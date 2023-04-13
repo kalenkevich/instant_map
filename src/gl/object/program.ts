@@ -14,6 +14,8 @@ export abstract class GlProgram {
   protected gl: WebGLRenderingContext;
   protected programInfo: ProgramInfo;
   private compiled: boolean = false;
+
+  /** Color of the object to be painted. HSL format. */
   protected color: v4;
 
   protected constructor(gl: WebGLRenderingContext, props: GlObjectProps) {

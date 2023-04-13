@@ -2,6 +2,7 @@ import { GlLine } from "./gl/object/line";
 import { GlCircle } from "./gl/object/circle";
 import { GlRectangle } from "./gl/object/rectangle";
 import { GlTriangle } from "./gl/object/triangle";
+import { GlPath } from "./gl/object/path";
 import { Painter } from "./gl/painter";
 
 function createCanvas() {
@@ -47,11 +48,29 @@ const renderScene = (gl: WebGLRenderingContext) => {
     p3: [400, 200],
   });
 
+  const path = new GlPath(gl, {
+    color: [0, 0, 0, 1],
+    points: [
+      [150, 120],
+      [250, 200],
+      [250, 200],
+      [430, 430],
+      [430, 430],
+      [610, 250],
+      [610, 250],
+      [420, 250],
+      [420, 250],
+      [150, 120],
+    ],
+    width: 5,
+  });
+
   const painter = new Painter(gl, [
     line1,
     line2,
     rectangle,
     triangle,
+    path,
     //circle,
   ]);
   painter.init();
