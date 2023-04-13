@@ -2,7 +2,6 @@ import { GlProgram, GlObjectProps, v2 } from "./program";
 
 export interface GlPathProps extends GlObjectProps {
   points: v2[];
-  width: number;
 }
 
 export class GlPath extends GlProgram {
@@ -13,7 +12,6 @@ export class GlPath extends GlProgram {
     super(gl, props);
 
     this.points = props.points;
-    this.width = props.width;
   }
 
   public getVertexShaderSource(...args: any[]): string {
@@ -35,10 +33,17 @@ export class GlPath extends GlProgram {
   }
 
   public getBufferAttrs(): Record<string, any> {
+    const points = [];
+
+    for (let i = 1; i < this.points.length; i++) {
+      points.push(this.points[i - 1]);
+      points.push(this.points[i]);
+    }
+
     return {
       position: {
         numComponents: 2,
-        data: this.points.flatMap(p => p),
+        data: points.flatMap(p => p),
       },
     };
   }

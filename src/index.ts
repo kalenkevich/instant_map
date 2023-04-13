@@ -1,9 +1,12 @@
+import { FeatureCollection } from "geojson";
 import { GlLine } from "./gl/object/line";
 import { GlCircle } from "./gl/object/circle";
 import { GlRectangle } from "./gl/object/rectangle";
 import { GlTriangle } from "./gl/object/triangle";
 import { GlPath } from "./gl/object/path";
 import { Painter } from "./gl/painter";
+import GEO_JSON_SAMPLE from './geojson/data/slonim-export_geojson.json';
+import {renderGeoJson} from './geojson/geojson_viewer';
 
 function createCanvas() {
   const canvas = document.createElement('canvas');
@@ -17,7 +20,7 @@ function createCanvas() {
   return canvas;
 }
 
-const renderScene = (gl: WebGLRenderingContext) => {
+const renderSceneV1 = (gl: WebGLRenderingContext) => {
   const line1 = new GlLine(gl,{
     color: [1, 0, 0.5, 1],
     p1: [0, 0],
@@ -53,16 +56,11 @@ const renderScene = (gl: WebGLRenderingContext) => {
     points: [
       [150, 120],
       [250, 200],
-      [250, 200],
-      [430, 430],
       [430, 430],
       [610, 250],
-      [610, 250],
-      [420, 250],
       [420, 250],
       [150, 120],
     ],
-    width: 5,
   });
 
   const painter = new Painter(gl, [
@@ -77,6 +75,10 @@ const renderScene = (gl: WebGLRenderingContext) => {
   painter.draw();
 };
 
+const renderSceneV2 = (gl: WebGLRenderingContext) => {
+  renderGeoJson(gl, GEO_JSON_SAMPLE as FeatureCollection);
+};
+
 window.addEventListener('load', () => {
   const canvas = createCanvas();
   const gl = canvas.getContext("webgl", {
@@ -89,5 +91,6 @@ window.addEventListener('load', () => {
     return;
   }
 
-  renderScene(gl);
+  //renderSceneV1(gl);
+  renderSceneV2(gl);
 });
