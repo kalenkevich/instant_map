@@ -1,5 +1,5 @@
 import { setUniforms, drawBufferInfo, resizeCanvasToDisplaySize, setBuffersAndAttributes } from "twgl.js";
-import { GlProgram } from "../gl/object/program";
+import { GlProgram } from "./object/program";
 
 export class Painter {
   private readonly gl: WebGLRenderingContext;

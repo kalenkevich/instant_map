@@ -1,4 +1,8 @@
-import * as twgl from 'twgl.js';
+import { GlLine } from "./gl/object/line";
+import { GlCircle } from "./gl/object/circle";
+import { GlRectangle } from "./gl/object/rectangle";
+import { GlTriangle } from "./gl/object/triangle";
+import { Painter } from "./gl/painter";
 
 function createCanvas() {
   const canvas = document.createElement('canvas');
@@ -12,35 +16,53 @@ function createCanvas() {
   return canvas;
 }
 
-const vertexShaderSource = `
-attribute vec4 position;
+const renderScene = (gl: WebGLRenderingContext) => {
+  const line1 = new GlLine(gl,{
+    color: [1, 0, 0.5, 1],
+    p1: [0, 0],
+    p2: [600, 600],
+    width: 1,
+  });
+  const line2 = new GlLine(gl,{
+    color: [0, 1, 0.5, 1],
+    p1: [600, 0],
+    p2: [0, 600],
+    width: 1,
+  });
+  const circle = new GlCircle(gl,{
+    color: [0, 0.5, 0.5, 1],
+    p: [300, 300],
+    radius: 10,
+  });
+  const rectangle = new GlRectangle(gl, {
+    color: [0.3, 0.5, 1, 1],
+    p: [250, 250],
+    width: 100,
+    height: 200,
+  });
+  const triangle = new GlTriangle(gl, {
+    color: [0.7, 1, 0.2, 1],
+    p1: [120, 100],
+    p2: [120, 200],
+    p3: [400, 200],
+  });
 
-void main() {
-  gl_Position = position;
-}
-`;
-
-const fragmentShaderSource = `
-  precision mediump float;
-  uniform vec2 resolution;
-  uniform float time;
-  
-  void main() {
-    vec2 uv = gl_FragCoord.xy / resolution;
-    float color = 0.0;
-    // lifted from glslsandbox.com
-    color += sin( uv.x * cos( time / 3.0 ) * 60.0 ) + cos( uv.y * cos( time / 2.80 ) * 10.0 );
-    color += sin( uv.y * sin( time / 2.0 ) * 40.0 ) + cos( uv.x * sin( time / 1.70 ) * 40.0 );
-    color += sin( uv.x * sin( time / 1.0 ) * 10.0 ) + sin( uv.y * sin( time / 3.50 ) * 80.0 );
-    color *= sin( time / 10.0 ) * 0.5;
-  
-    gl_FragColor = vec4( vec3( color * 0.5, sin( color + time / 2.5 ) * 0.75, color ), 1.0 );
-  }
-`;
+  const painter = new Painter(gl, [
+    line1,
+    line2,
+    rectangle,
+    triangle,
+    //circle,
+  ]);
+  painter.init();
+  painter.draw();
+};
 
 window.addEventListener('load', () => {
   const canvas = createCanvas();
-  const gl = canvas.getContext("webgl");
+  const gl = canvas.getContext("webgl", {
+    powerPreference: 'high-performance',
+  });
 
   if (!gl) {
     console.log('No Webgl context');
@@ -48,32 +70,5 @@ window.addEventListener('load', () => {
     return;
   }
 
-  const programInfo = twgl.createProgramInfo(gl, [
-    vertexShaderSource,
-    fragmentShaderSource,
-  ]);
-
-  twgl.resizeCanvasToDisplaySize(gl.canvas);
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-  gl.useProgram(programInfo.program);
-
-  const arrays = {
-    position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
-  };
-  const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
-  twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-
-  function render(time: number) {
-    const uniforms = {
-      time: time * 0.001,
-      resolution: [gl.canvas.width, gl.canvas.height],
-    };
-
-    twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, bufferInfo);
-
-    requestAnimationFrame(render);
-  }
-
-  requestAnimationFrame(render);
+  renderScene(gl);
 });

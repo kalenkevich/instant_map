@@ -1,22 +1,25 @@
 import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays } from "twgl.js";
-import { GlObject } from "../object/object";
 
-export class GlProgram {
-  private readonly gl: WebGLRenderingContext;
-  private programInfo: ProgramInfo;
-  private bufferInfo: BufferInfo;
-  private objects: GlObject[];
+export type v2 = [number, number];
+export type v3 = [number, number, number];
+export type v4 = [number, number, number, number];
+export type GlColor = string | v3 | v4;
+
+export interface GlObjectProps {
+  color: GlColor;
+}
+
+export abstract class GlProgram {
+  public requireExt: boolean = false;
+  protected gl: WebGLRenderingContext;
+  protected programInfo: ProgramInfo;
   private compiled: boolean = false;
+  protected color: v4;
 
-  constructor(gl: WebGLRenderingContext, objects?: GlObject[]) {
+  protected constructor(gl: WebGLRenderingContext, props: GlObjectProps) {
     this.gl = gl;
-    this.objects = objects || [];
     this.programInfo = null;
-    this.bufferInfo = null;
-  }
-
-  public addObject(obj: GlObject) {
-    this.objects.push(obj);
+    this.color = this.normalizeColor(props.color);
   }
 
   public compile(): ProgramInfo {
@@ -34,50 +37,63 @@ export class GlProgram {
     return this.programInfo;
   }
 
-  public getVertexShaderSource(): string {
-    return this.objects[0].getVertexShaderSource();
-  }
+  public abstract getVertexShaderSource(): string;
 
   public getFragmentShaderSource(): string {
-    return this.objects[0].getFragmentShaderSource();
-  }
+    return `
+      precision mediump float;
+      uniform vec4 color;
+
+      void main() {
+        gl_FragColor = color;
+      }
+    `;
+  };
+
+  public abstract getBufferAttrs(): Record<string, any>;
 
   public getProgramInfo(): ProgramInfo {
     return this.programInfo;
   }
 
   public getBufferInfo(): BufferInfo {
-    const gl = this.gl;
-    let arrays = {};
-
-    for (const obj of this.objects) {
-      const objBufferAttrs = obj.getBufferAttrs();
-
-      arrays = {
-        ...arrays,
-        ...objBufferAttrs,
-      };
-    }
-
-    return createBufferInfoFromArrays(this.gl, arrays);
+    return createBufferInfoFromArrays(this.gl, this.getBufferAttrs());
   }
 
   public getUniforms(): Record<string, any> {
     const gl = this.gl;
 
-    let uniforms = {
-      resolution: [gl.canvas.width, gl.canvas.height]
+    return {
+      color: this.color,
+      resolution: [gl.canvas.width, gl.canvas.height],
     };
+  }
 
-    for (const obj of this.objects) {
-      const objUniforms = obj.getUniforms();
+  public drawWithExt(...args: any[]) {}
 
-      uniforms = {
-        ...uniforms,
-        ...objUniforms,
-      };
+  public get primitiveType(): GLenum {
+    return this.gl.TRIANGLES;
+  }
+
+  protected normalizeColor(color: GlColor): v4 {
+    const typeErrorMessage = 'Color should be one of type string or rgb/rgba array';
+
+    if (Array.isArray(color)) {
+      if (color.length === 4) {
+        return color as v4;
+      }
+
+      if (color.length === 3) {
+        return [...color, 1.0] as v4;
+      }
+
+      throw new Error(typeErrorMessage);
     }
 
-    return uniforms;
+    if (typeof color === 'string') {
+
+    }
+
+    throw new Error(typeErrorMessage);
   }
 }
