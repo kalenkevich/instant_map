@@ -1,7 +1,23 @@
 import getBbox from '@turf/bbox';
 import { Polygon } from "@turf/helpers";
 import { BBox, Feature, FeatureCollection, LineString } from "geojson";
-import { GlPath, GlProgram, Painter, v2 } from '../gl';
+import { GlPath, GlProgram, Painter, v2, GlPathGroup } from '../gl';
+
+// set 1
+const translation: v2 = [0, 0];
+const rotationInRadians = 0;
+
+// set 2
+// const translation: v2 = [0, 2138];
+// const rotationInRadians = Math.PI / 2;
+
+// set 3
+// const translation: v2 = [2138, 1938];
+// const rotationInRadians = Math.PI;
+
+// set 4
+// const translation: v2 = [2138, 0];
+// const rotationInRadians = Math.PI * 1.5;
 
 /** Render GeoJson (exported from OSM) on webgl. */
 export const renderGeoJson = (gl: WebGLRenderingContext, geoJson: FeatureCollection) => {
@@ -47,19 +63,20 @@ export const getGlObjectsFromRoadFeatures = (
 	bbox: BBox,
 	scale: v2,
 ): GlProgram[] => {
-	const paths: GlPath[] = [];
-
+	const paths = [];
+	
 	for (const road of roads) {
-		const path = new GlPath(gl, {
-			color: [0, 0, 0, 1],
-			//rotation: [1, 0],
-			points: (road.geometry as LineString).coordinates.map(coord => getProjectedCoords(coord[0], coord[1], bbox, scale)),
-		});
-
-		paths.push(path);
+		paths.push((road.geometry as LineString).coordinates.map(coord => getProjectedCoords(coord[0], coord[1], bbox, scale)));
 	}
 
-	return paths;
+	const pathGroup = new GlPathGroup(gl, {
+		color: [0, 0, 0, 1],
+		paths,
+		translation,
+		rotationInRadians,
+	});
+
+	return [pathGroup];
 };
 
 export const getGlObjectsFromBuildingFeatures = (
@@ -68,19 +85,21 @@ export const getGlObjectsFromBuildingFeatures = (
 	bbox: BBox,
 	scale: v2,
 ): GlProgram[] => {
-	const paths: GlPath[] = [];
-
+	const paths = [];
+	
 	for (const building of buildings) {
-		const path = new GlPath(gl, {
-			color: [0.3, 0.5, 1, 1],
-			//rotation: [1, 0],
-			points: (building.geometry as Polygon).coordinates[0].map(coord => getProjectedCoords(coord[0], coord[1], bbox, scale)),
-		});
-
-		paths.push(path);
+		paths.push((building.geometry as Polygon).coordinates[0].map(coord => getProjectedCoords(coord[0], coord[1], bbox, scale)));
 	}
 
-	return paths;
+	const pathGroup = new GlPathGroup(gl, {
+		color: [0.3, 0.5, 1, 1],
+		paths,
+		lineWidth: 10,
+		translation,
+		rotationInRadians,
+	});
+
+	return [pathGroup];
 };
 
 const getScale = (width: number, height: number, bbox: BBox): v2 => {
@@ -92,7 +111,6 @@ const getScale = (width: number, height: number, bbox: BBox): v2 => {
 };
 
 const getProjectedCoords = (lon: number, lat: number, bbox: BBox, scale: v2): v2 => {
-	const myScale = 10500;
 	const x = (lon - bbox[0]) * scale[0];
 	const y = (lat - bbox[1]) * scale[1];
 

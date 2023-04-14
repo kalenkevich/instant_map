@@ -1,4 +1,5 @@
 import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays } from "twgl.js";
+import { m3 } from '../utils/m3';
 
 export type v2 = [number, number];
 export type v3 = [number, number, number];
@@ -7,7 +8,10 @@ export type GlColor = string | v3 | v4;
 
 export interface GlObjectProps {
   color: GlColor;
-  rotation?: v2;
+  rotationInRadians?: number;
+  translation?: v2;
+  scale?: v2;
+  lineWidth?: number;
 }
 
 export abstract class GlProgram {
@@ -17,15 +21,21 @@ export abstract class GlProgram {
   private compiled: boolean = false;
 
   /** Color of the object to be painted. HSL format. */
-  protected color: v4;
+  public color: v4;
+  public lineWidth?: number;
 
-  protected rotation: v2;
+  public rotationInRadians: number;
+  public translation: v2;
+  public scale: v2;
 
   protected constructor(gl: WebGLRenderingContext, props: GlObjectProps) {
     this.gl = gl;
     this.programInfo = null;
     this.color = this.normalizeColor(props.color);
-    this.rotation = props.rotation || [0, 1];
+    this.lineWidth = props.lineWidth;
+    this.rotationInRadians = props.rotationInRadians || 0;
+    this.translation = props.translation || [0, 0];
+    this.scale = props.scale || [1, 1];
   }
 
   public compile(): ProgramInfo {
@@ -47,16 +57,12 @@ export abstract class GlProgram {
     return `
       attribute vec2 a_position;
       uniform vec2 u_resolution;
-      uniform vec2 u_translation;
-      uniform vec2 u_rotation;
+      uniform mat3 u_matrix;
       
       void main() {
-        vec2 rotatedPosition = vec2(
-          a_position.x * u_rotation.y + a_position.y * u_rotation.x,
-          a_position.y * u_rotation.y - a_position.x * u_rotation.x
-        );
+        vec2 position = (u_matrix * vec3(a_position, 1)).xy;
           
-        vec2 zeroToOne = rotatedPosition / u_resolution;
+        vec2 zeroToOne = position / u_resolution;
         vec2 zeroToTwo = zeroToOne * 2.0;
         vec2 clipSpace = zeroToTwo - 1.0;
 
@@ -92,8 +98,17 @@ export abstract class GlProgram {
     return {
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
-      u_rotation: this.rotation,
+      u_matrix: this.getMatrix(),
     };
+  }
+
+  public getMatrix() {
+    const translationMatrix = m3.translation(this.translation[0], this.translation[1]);
+    const rotationMatrix = m3.rotation(this.rotationInRadians);
+    const scaleMatrix = m3.scaling(this.scale[0], this.scale[1]);
+    const matrix = m3.multiply(translationMatrix, rotationMatrix);
+
+    return m3.multiply(matrix, scaleMatrix);
   }
 
   public drawWithExt(...args: any[]) {}

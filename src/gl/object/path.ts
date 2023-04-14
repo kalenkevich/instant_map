@@ -6,7 +6,6 @@ export interface GlPathProps extends GlObjectProps {
 
 export class GlPath extends GlProgram {
   protected points: v2[];
-  protected width: number;
 
   constructor(gl: WebGLRenderingContext, props: GlPathProps) {
     super(gl, props);

@@ -26,13 +26,13 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     color: [1, 0, 0.5, 1],
     p1: [0, 0],
     p2: [600, 600],
-    width: 1,
+    lineWidth: 1,
   });
   const line2 = new GlLine(gl,{
     color: [0, 1, 0.5, 1],
     p1: [600, 0],
     p2: [0, 600],
-    width: 1,
+    lineWidth: 1,
   });
   const circle = new GlCircle(gl,{
     color: [0, 0.5, 0.5, 1],
@@ -51,9 +51,22 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     p2: [120, 200],
     p3: [400, 200],
   });
-
   const path = new GlPath(gl, {
     color: [0, 0, 0, 1],
+    points: [
+      [150, 120],
+      [250, 200],
+      [430, 430],
+      [610, 250],
+      [420, 250],
+      [150, 120],
+    ],
+  });
+  const rotatedPath = new GlPath(gl, {
+    color: [0, 0, 0, 1],
+    rotationInRadians: Math.PI * 0.5,
+    translation: [230, -155],
+    //scale: [0.56, 0.99],
     points: [
       [150, 120],
       [250, 200],
@@ -70,6 +83,7 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     rectangle,
     triangle,
     path,
+    rotatedPath,
     //circle,
   ]);
   painter.init();
@@ -92,6 +106,6 @@ window.addEventListener('load', () => {
     return;
   }
 
-  renderSceneV1(gl);
-  //renderSceneV2(gl);
+  //renderSceneV1(gl);
+  renderSceneV2(gl);
 });
