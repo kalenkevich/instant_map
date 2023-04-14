@@ -7,6 +7,7 @@ export type GlColor = string | v3 | v4;
 
 export interface GlObjectProps {
   color: GlColor;
+  rotation?: v2;
 }
 
 export abstract class GlProgram {
@@ -18,10 +19,13 @@ export abstract class GlProgram {
   /** Color of the object to be painted. HSL format. */
   protected color: v4;
 
+  protected rotation: v2;
+
   protected constructor(gl: WebGLRenderingContext, props: GlObjectProps) {
     this.gl = gl;
     this.programInfo = null;
     this.color = this.normalizeColor(props.color);
+    this.rotation = props.rotation || [0, 1];
   }
 
   public compile(): ProgramInfo {
@@ -39,15 +43,35 @@ export abstract class GlProgram {
     return this.programInfo;
   }
 
-  public abstract getVertexShaderSource(): string;
+  public getVertexShaderSource(...args: any[]): string {
+    return `
+      attribute vec2 a_position;
+      uniform vec2 u_resolution;
+      uniform vec2 u_translation;
+      uniform vec2 u_rotation;
+      
+      void main() {
+        vec2 rotatedPosition = vec2(
+          a_position.x * u_rotation.y + a_position.y * u_rotation.x,
+          a_position.y * u_rotation.y - a_position.x * u_rotation.x
+        );
+          
+        vec2 zeroToOne = rotatedPosition / u_resolution;
+        vec2 zeroToTwo = zeroToOne * 2.0;
+        vec2 clipSpace = zeroToTwo - 1.0;
+
+        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+      }
+    `;
+  }
 
   public getFragmentShaderSource(): string {
     return `
       precision mediump float;
-      uniform vec4 color;
+      uniform vec4 u_color;
 
       void main() {
-        gl_FragColor = color;
+        gl_FragColor = u_color;
       }
     `;
   };
@@ -66,8 +90,9 @@ export abstract class GlProgram {
     const gl = this.gl;
 
     return {
-      color: this.color,
-      resolution: [gl.canvas.width, gl.canvas.height],
+      u_color: this.color,
+      u_resolution: [gl.canvas.width, gl.canvas.height],
+      u_rotation: this.rotation,
     };
   }
 

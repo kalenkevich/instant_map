@@ -19,20 +19,6 @@ export class GlRectangle extends GlProgram {
     this.height = props.height;
   }
 
-  public getVertexShaderSource(...args: any[]): string {
-    return `
-      attribute vec2 position;
-      uniform vec2 resolution;
-      
-      void main() {
-         vec2 zeroToOne = position / resolution;
-         vec2 zeroToTwo = zeroToOne * 2.0;
-         vec2 clipSpace = zeroToTwo - 1.0;
-         gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-      }
-    `;
-  }
-
   public getBufferAttrs(): Record<string, any> {
     const p1 = this.p;
     const p2 = [p1[0] + this.width, p1[1]];
@@ -40,7 +26,7 @@ export class GlRectangle extends GlProgram {
     const p4 = [p1[0] + this.width, p1[1] + this.height];
 
     return {
-      position: {
+      a_position: {
         numComponents: 2,
         data: [
           ...p1,
