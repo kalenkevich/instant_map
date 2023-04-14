@@ -5,7 +5,8 @@ import { GlRectangle } from "./gl/object/rectangle";
 import { GlTriangle } from "./gl/object/triangle";
 import { GlPath } from "./gl/object/path";
 import { Painter } from "./gl/painter";
-import GEO_JSON_SAMPLE from './geojson/data/slonim-export_geojson.json';
+import GEO_JSON_SAMPLE from './geojson/data/slonim-export-v1_geojson.json';
+import GEO_JSON_SAMPLE_V3 from './geojson/data/slonim-export-v3_geojson.json';
 import {renderGeoJson} from './geojson/geojson_viewer';
 
 function createCanvas() {
@@ -76,7 +77,7 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
 };
 
 const renderSceneV2 = (gl: WebGLRenderingContext) => {
-  renderGeoJson(gl, GEO_JSON_SAMPLE as FeatureCollection);
+  renderGeoJson(gl, GEO_JSON_SAMPLE_V3 as FeatureCollection);
 };
 
 window.addEventListener('load', () => {
@@ -91,6 +92,6 @@ window.addEventListener('load', () => {
     return;
   }
 
-  //renderSceneV1(gl);
-  renderSceneV2(gl);
+  renderSceneV1(gl);
+  //renderSceneV2(gl);
 });

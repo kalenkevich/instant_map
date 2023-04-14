@@ -13,7 +13,7 @@ export class Painter {
   public init() {
     const gl = this.gl;
 
-    resizeCanvasToDisplaySize(gl.canvas);
+    //resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   }
 

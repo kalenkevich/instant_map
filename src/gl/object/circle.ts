@@ -18,21 +18,21 @@ export class GlCircle extends GlProgram {
 
   public getVertexShaderSource(...args: any[]): string {
     return `
-      uniform vec2 resolution;
-      attribute vec2 position;
-      attribute vec2 center;
-      attribute float radius;
+      uniform vec2 u_resolution;
+      attribute vec2 a_position;
+      attribute vec2 a_center;
+      attribute float a_radius;
       varying vec2 v_center;
       varying vec2 v_resolution;
       varying float v_radius;
 
       void main() {
-        vec2 clipspace = position / resolution * 2.0 - 1.0;
+        vec2 clipspace = a_position / u_resolution * 2.0 - 1.0;
         gl_Position = vec4(clipspace * vec2(1, -1), 0, 1);
     
-        v_radius = radius;
-        v_center = center;
-        v_resolution = resolution;
+        v_radius = a_radius;
+        v_center = a_center;
+        v_resolution = u_resolution;
       }
     `;
   }
@@ -40,7 +40,7 @@ export class GlCircle extends GlProgram {
   public getFragmentShaderSource(): string {
     return `
       precision mediump float;
-      uniform vec4 color;
+      uniform vec4 u_color;
       varying vec2 v_center;
       varying vec2 v_resolution;
       varying float v_radius;
@@ -56,7 +56,7 @@ export class GlCircle extends GlProgram {
         if (distance > v_radius)
           discard;
         else
-          gl_FragColor = color;
+          gl_FragColor = u_color;
       }
     `;
   }
@@ -85,15 +85,15 @@ export class GlCircle extends GlProgram {
 
     return {
       numElements: 3,
-      position: {
+      a_position: {
         numComponents: 2,
         data,
       },
-      center: {
+      v_center: {
         numComponents: 2,
         data: this.p,
       },
-      radius: {
+      v_radius: {
         numComponents: 1,
         data: this.radius,
       },
