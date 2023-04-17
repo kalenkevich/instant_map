@@ -1,3 +1,4 @@
+import { ProgramInfo } from "twgl.js";
 import { GlProgram, GlProgramProps } from "./program";
 import { v2 } from './types';
 
@@ -17,7 +18,11 @@ export class GlCircle extends GlProgram {
     this.radius = props.radius;
   }
 
-  public getVertexShaderSource(...args: any[]): string {
+  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
+    return GlCircle.compile(gl);
+  }
+
+  public static getVertexShaderSource(...args: any[]): string {
     return `
       uniform vec2 u_resolution;
       attribute vec2 a_position;

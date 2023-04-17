@@ -10,11 +10,11 @@ export interface GlProgramProps {
   lineWidth?: number;
 }
 
+let usedProgram: ProgramInfo | undefined;
+
 export abstract class GlProgram {
   public requireExt: boolean = false;
   protected gl: WebGLRenderingContext;
-  protected programInfo: ProgramInfo;
-  private compiled: boolean = false;
 
   /** Color of the object to be painted. HSL format. */
   public color: v4;
@@ -26,7 +26,6 @@ export abstract class GlProgram {
 
   protected constructor(gl: WebGLRenderingContext, props: GlProgramProps) {
     this.gl = gl;
-    this.programInfo = null;
     this.color = this.normalizeColor(props.color);
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
@@ -39,13 +38,14 @@ export abstract class GlProgram {
   }
 
   public draw(gl: WebGLRenderingContext) {
-    this.compile();
-
-    const programInfo = this.getProgramInfo();
+    const programInfo = this.getProgramInfoInstance(gl);
     const buffer = this.getBufferInfo();
     const uniforms = this.getUniforms();
 
-    gl.useProgram(programInfo.program);
+    if (programInfo !== usedProgram) {
+      gl.useProgram(programInfo.program);
+      usedProgram = programInfo;
+    }
     this.consoleGlError('Use program');
 
     setBuffersAndAttributes(gl, programInfo, buffer);
@@ -67,12 +67,20 @@ export abstract class GlProgram {
     };
   }
 
-  public compile(): ProgramInfo {
+  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
+    return GlProgram.compile(gl);
+  }
+
+  private static programInfo: ProgramInfo;
+
+  public static compiled: boolean = false;
+
+  public static compile(gl: WebGLRenderingContext): ProgramInfo {
     if (this.compiled) {
       return this.programInfo;
     }
 
-    this.programInfo = createProgramInfo(this.gl, [
+    this.programInfo = createProgramInfo(gl, [
       this.getVertexShaderSource(),
       this.getFragmentShaderSource(),
     ]);
@@ -82,7 +90,7 @@ export abstract class GlProgram {
     return this.programInfo;
   }
 
-  public getVertexShaderSource(...args: any[]): string {
+  public static getVertexShaderSource(...args: any[]): string {
     return `
       attribute vec2 a_position;
       uniform vec2 u_resolution;
@@ -102,7 +110,7 @@ export abstract class GlProgram {
     `;
   }
 
-  public getFragmentShaderSource(): string {
+  public static getFragmentShaderSource(): string {
     return `
       precision mediump float;
       uniform vec4 u_color;
@@ -113,11 +121,11 @@ export abstract class GlProgram {
     `;
   };
 
-  public abstract getBufferAttrs(): Record<string, any>;
-
-  public getProgramInfo(): ProgramInfo {
+  public static getProgramInfo(): ProgramInfo {
     return this.programInfo;
   }
+
+  public abstract getBufferAttrs(): Record<string, any>;
 
   public getBufferInfo(): BufferInfo {
     return createBufferInfoFromArrays(this.gl, this.getBufferAttrs());

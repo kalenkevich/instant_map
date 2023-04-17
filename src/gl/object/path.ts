@@ -1,3 +1,4 @@
+import { ProgramInfo } from "twgl.js";
 import { GlProgram, GlProgramProps } from "./program";
 import { GlMultiProgram } from "./multi_program";
 import { v2 } from './types';
@@ -36,12 +37,16 @@ export class LineStripProgram extends GlProgram {
     this.points = props.points;
   }
 
-  public get primitiveType(): GLenum {
-    return this.gl.TRIANGLES;
+  public setPoints(points: v2[]) {
+    this.points = points;
+  }
+
+  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
+    return LineStripProgram.compile(gl);
   }
 
   // Render basic lines with triangles.
-  public getVertexShaderSource(...args: any[]): string {
+  public static getVertexShaderSource(...args: any[]): string {
     return `
       attribute vec2 a_position;
       attribute vec2 point_a, point_b;
@@ -117,8 +122,16 @@ export class MiterLineCapProgram extends GlProgram {
     this.points = props.points;
   }
 
+  public setPoints(points: v2[]) {
+    this.points = points;
+  }
+
+  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
+    return MiterLineCapProgram.compile(gl);
+  }
+
   // Render basic lines with triangles.
-  public getVertexShaderSource(...args: any[]): string {
+  public static getVertexShaderSource(...args: any[]): string {
     return `
       attribute vec3 a_position;
       attribute vec2 point_a, point_b, point_c;
