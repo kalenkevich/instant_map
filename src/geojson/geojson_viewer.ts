@@ -99,7 +99,6 @@ export const getGlObjectsFromBuildingFeatures = (
 	const pathGroup = new GlPathGroup(gl, {
 		color: [0.3, 0.5, 1, 1],
 		paths,
-		lineWidth: 10,
 		scale,
 		translation,
 		rotationInRadians,

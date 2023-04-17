@@ -1,4 +1,4 @@
-import {GlProgram, GlProgramProps} from './program';
+import { GlProgram, GlProgramProps } from './program';
 
 /** 
  * Multiprogram object. This is a wrapper to render objects which require different programms to be fully painted.
@@ -26,7 +26,7 @@ export abstract class GlMultiProgram extends GlProgram {
    * Return dummy state as the real state will be handled by sub programs.
    */
   public getBufferAttrs(): Record<string, any> {
-    
+
     return {};
   }
 }

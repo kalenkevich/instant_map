@@ -4,6 +4,7 @@ import { GlCircle } from "./gl/object/circle";
 import { GlRectangle } from "./gl/object/rectangle";
 import { GlTriangle } from "./gl/object/triangle";
 import { GlPath } from "./gl/object/path";
+import { GlPathGroup } from "./gl/object/path_group";
 import { Painter } from "./gl/painter";
 import GEO_JSON_SAMPLE from './geojson/data/slonim-export-v1_geojson.json';
 import GEO_JSON_SAMPLE_V3 from './geojson/data/slonim-export-v3_geojson.json';
@@ -77,13 +78,36 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
       [150, 120],
     ],
   });
+  const pathGroup = new GlPathGroup(gl, {
+		color: [0.3, 0.5, 1, 1],
+		paths: [
+      [
+        [150, 120],
+        [250, 200],
+        [430, 430],
+        [610, 250],
+        [420, 250],
+        [150, 120],
+      ],
+      [
+        [150, 520],
+        [250, 600],
+        [430, 830],
+        [610, 650],
+        [420, 450],
+        [150, 520],
+      ]
+    ],
+		lineWidth: 5,
+  });
 
   const painter = new Painter(gl, [
     //line1,
     //line2,
     //rectangle,
     //triangle,
-    path,
+    //path,
+    pathGroup,
     rotatedPath,
     //circle,
   ]);
@@ -107,6 +131,6 @@ window.addEventListener('load', () => {
     return;
   }
 
-  renderSceneV1(gl);
-  //renderSceneV2(gl);
+  //renderSceneV1(gl);
+  renderSceneV2(gl);
 });

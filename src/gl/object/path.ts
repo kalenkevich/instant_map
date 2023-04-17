@@ -32,6 +32,7 @@ export class LineStripProgram extends GlProgram {
   constructor(gl: WebGLRenderingContext, props: GlPathProps) {
     super(gl, props);
 
+    this.lineWidth = props.lineWidth || 2;
     this.points = props.points;
   }
 
@@ -112,6 +113,7 @@ export class MiterLineCapProgram extends GlProgram {
   constructor(gl: WebGLRenderingContext, props: GlPathProps) {
     super(gl, props);
 
+    this.lineWidth = props.lineWidth || 2;
     this.points = props.points;
   }
 

@@ -54,19 +54,19 @@ export abstract class GlProgram {
     setUniforms(programInfo, uniforms);
     this.consoleGlError('setUniforms');
 
-    const {offset, vertexCount, instanceCount} = this.getDrawBufferInfoOptions();
+    const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
     drawBufferInfo(gl, buffer, this.primitiveType, vertexCount, offset, instanceCount);
     this.consoleGlError('Draw');
   }
 
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number;} {
+  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number; } {
     return {
       offset: undefined, // offset
       vertexCount: undefined, // num vertices per instance
       instanceCount: undefined, // num instances
     };
   }
- 
+
   public compile(): ProgramInfo {
     if (this.compiled) {
       return this.programInfo;
@@ -143,7 +143,7 @@ export abstract class GlProgram {
     return m3.multiply(matrix, scaleMatrix);
   }
 
-  public drawWithExt(...args: any[]) {}
+  public drawWithExt(...args: any[]) { }
 
   protected normalizeColor(color: GlColor): v4 {
     const typeErrorMessage = 'Color should be one of type string or rgb/rgba array';
