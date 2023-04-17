@@ -1,5 +1,4 @@
-import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays } from "twgl.js";
-import { mat4 } from "gl-matrix";
+import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from "twgl.js";
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from './types';
 
@@ -35,6 +34,39 @@ export abstract class GlProgram {
     this.scale = props.scale || [1, 1];
   }
 
+  public get primitiveType(): GLenum {
+    return this.gl.TRIANGLES;
+  }
+
+  public draw(gl: WebGLRenderingContext) {
+    this.compile();
+
+    const programInfo = this.getProgramInfo();
+    const buffer = this.getBufferInfo();
+    const uniforms = this.getUniforms();
+
+    gl.useProgram(programInfo.program);
+    this.consoleGlError('Use program');
+
+    setBuffersAndAttributes(gl, programInfo, buffer);
+    this.consoleGlError('setBuffersAndAttributes');
+
+    setUniforms(programInfo, uniforms);
+    this.consoleGlError('setUniforms');
+
+    const {offset, vertexCount, instanceCount} = this.getDrawBufferInfoOptions();
+    drawBufferInfo(gl, buffer, this.primitiveType, vertexCount, offset, instanceCount);
+    this.consoleGlError('Draw');
+  }
+
+  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number;} {
+    return {
+      offset: undefined, // offset
+      vertexCount: undefined, // num vertices per instance
+      instanceCount: undefined, // num instances
+    };
+  }
+ 
   public compile(): ProgramInfo {
     if (this.compiled) {
       return this.programInfo;
@@ -99,15 +131,6 @@ export abstract class GlProgram {
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_matrix: this.getMatrix(),
-      u_projection: mat4.ortho(
-        mat4.create(),
-        -this.gl.canvas.width / 2,
-        this.gl.canvas.width / 2,
-        -this.gl.canvas.height / 2,
-        this.gl.canvas.height / 2,
-        0,
-        -1
-      ),
     };
   }
 
@@ -121,10 +144,6 @@ export abstract class GlProgram {
   }
 
   public drawWithExt(...args: any[]) {}
-
-  public get primitiveType(): GLenum {
-    return this.gl.TRIANGLES;
-  }
 
   protected normalizeColor(color: GlColor): v4 {
     const typeErrorMessage = 'Color should be one of type string or rgb/rgba array';
@@ -146,5 +165,19 @@ export abstract class GlProgram {
     }
 
     throw new Error(typeErrorMessage);
+  }
+
+  public consoleGlError(stage: string) {
+    const gl = this.gl;
+    const glError = gl.getError();
+
+    switch (glError) {
+      case gl.NO_ERROR: return;
+      case gl.INVALID_ENUM: return console.log(`GL stage: '${stage}', error: INVALID_ENUM`);
+      case gl.INVALID_VALUE: return console.log(`GL stage: '${stage}', error: INVALID_VALUE`);
+      case gl.INVALID_OPERATION: return console.log(`GL stage: '${stage}', error: INVALID_OPERATION`);
+      case gl.OUT_OF_MEMORY: return console.log(`GL stage: '${stage}', error: OUT_OF_MEMORY`);
+      case gl.CONTEXT_LOST_WEBGL: return console.log(`GL stage: '${stage}', error: CONTEXT_LOST_WEBGL`);
+    }
   }
 }

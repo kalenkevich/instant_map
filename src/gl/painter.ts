@@ -1,4 +1,4 @@
-import { setUniforms, drawBufferInfo, resizeCanvasToDisplaySize, setBuffersAndAttributes } from "twgl.js";
+import { addExtensionsToContext } from "twgl.js";
 import { GlProgram } from "./object/program";
 
 export class Painter {
@@ -13,6 +13,8 @@ export class Painter {
   public init() {
     const gl = this.gl;
 
+    addExtensionsToContext(this.gl);
+
     //resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   }
@@ -25,21 +27,7 @@ export class Painter {
     const gl = this.gl;
 
     for (const program of this.programs) {
-      program.compile();
-
-      const programInfo = program.getProgramInfo();
-      const buffer = program.getBufferInfo();
-      const uniforms = program.getUniforms();
-
-      gl.useProgram(programInfo.program);
-      setBuffersAndAttributes(gl, programInfo, buffer);
-      setUniforms(programInfo, uniforms);
-
-      if (program.requireExt) {
-        program.drawWithExt();
-      } else {
-        drawBufferInfo(gl, buffer, program.primitiveType);
-      }
+        program.draw(gl);
     }
   }
 }
