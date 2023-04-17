@@ -53,7 +53,7 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
   });
   const path = new GlPath(gl, {
     color: [0, 0, 0, 1],
-    lineWidth: 20,
+    lineWidth: 10,
     points: [
       [150, 120],
       [250, 200],
@@ -67,7 +67,7 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     color: [0, 0, 0, 1],
     rotationInRadians: Math.PI * 0.5,
     translation: [230, -155],
-    //scale: [0.56, 0.99],
+    lineWidth: 10,
     points: [
       [150, 120],
       [250, 200],
@@ -84,7 +84,7 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     //rectangle,
     //triangle,
     path,
-    // rotatedPath,
+    rotatedPath,
     //circle,
   ]);
   painter.init();

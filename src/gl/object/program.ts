@@ -2,7 +2,7 @@ import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays,
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from './types';
 
-export interface GlObjectProps {
+export interface GlProgramProps {
   color: GlColor;
   rotationInRadians?: number;
   translation?: v2;
@@ -24,7 +24,7 @@ export abstract class GlProgram {
   public translation: v2;
   public scale: v2;
 
-  protected constructor(gl: WebGLRenderingContext, props: GlObjectProps) {
+  protected constructor(gl: WebGLRenderingContext, props: GlProgramProps) {
     this.gl = gl;
     this.programInfo = null;
     this.color = this.normalizeColor(props.color);

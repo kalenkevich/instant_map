@@ -1,7 +1,7 @@
-import { GlProgram, GlObjectProps } from "./program";
+import { GlProgram, GlProgramProps } from "./program";
 import { v2 } from './types';
 
-export interface GlPathGroupProps extends GlObjectProps {
+export interface GlPathGroupProps extends GlProgramProps {
   paths: v2[][];
 }
 

@@ -1,7 +1,7 @@
-import { GlProgram, GlObjectProps } from "./program";
+import { GlProgram, GlProgramProps } from "./program";
 import { v2 } from './types';
 
-export interface GlCircleProps extends GlObjectProps {
+export interface GlCircleProps extends GlProgramProps {
   p: v2;
   radius: number;
 }
