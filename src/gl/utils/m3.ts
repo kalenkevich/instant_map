@@ -1,3 +1,4 @@
+/** Math util for matrixes.*/
 export const m3 = {
 	translation: function (tx: number, ty: number): number[] {
 		return [

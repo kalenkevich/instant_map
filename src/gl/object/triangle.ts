@@ -1,4 +1,5 @@
-import { GlProgram, GlObjectProps, v2 } from "./program";
+import { GlProgram, GlObjectProps } from "./program";
+import { v2 } from './types';
 
 export interface GlTriangleProps extends GlObjectProps {
   p1: v2;

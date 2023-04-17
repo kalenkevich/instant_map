@@ -4,9 +4,9 @@ import { BBox, Feature, FeatureCollection, LineString } from "geojson";
 import { GlPath, GlProgram, Painter, v2, GlPathGroup } from '../gl';
 
 // set 1
-// const translation: v2 = [0, 0];
-// const rotationInRadians = 0;
-// const scale: v2 = [1, 1];
+const translation: v2 = [0, 0];
+const rotationInRadians = 0;
+const scale: v2 = [1, 1];
 
 // set 2
 // const translation: v2 = [0, 2138];
@@ -19,9 +19,9 @@ import { GlPath, GlProgram, Painter, v2, GlPathGroup } from '../gl';
 // const scale: v2 = [1, 1];
 
 // set 4
-const translation: v2 = [2138, 0];
-const rotationInRadians = Math.PI * 1.5;
-const scale: v2 = [1, 1];
+// const translation: v2 = [2138, 0];
+// const rotationInRadians = Math.PI * 1.5;
+// const scale: v2 = [1, 1];
 
 /** Render GeoJson (exported from OSM) on webgl. */
 export const renderGeoJson = (gl: WebGLRenderingContext, geoJson: FeatureCollection) => {

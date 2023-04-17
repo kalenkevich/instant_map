@@ -26,13 +26,13 @@ const renderSceneV1 = (gl: WebGLRenderingContext) => {
     color: [1, 0, 0.5, 1],
     p1: [0, 0],
     p2: [600, 600],
-    lineWidth: 1,
+    lineWidth: 10,
   });
   const line2 = new GlLine(gl,{
     color: [0, 1, 0.5, 1],
     p1: [600, 0],
     p2: [0, 600],
-    lineWidth: 1,
+    lineWidth: 10,
   });
   const circle = new GlCircle(gl,{
     color: [0, 0.5, 0.5, 1],
@@ -106,6 +106,6 @@ window.addEventListener('load', () => {
     return;
   }
 
-  //renderSceneV1(gl);
-  renderSceneV2(gl);
+  renderSceneV1(gl);
+  //renderSceneV2(gl);
 });

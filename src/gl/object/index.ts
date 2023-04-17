@@ -1,4 +1,5 @@
 /** Base */
+export * from './types';
 export * from './program';
 
 /** Object primitives */

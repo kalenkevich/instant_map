@@ -27,11 +27,6 @@ export class Painter {
     for (const program of this.programs) {
       program.compile();
 
-      const glLineWidth = gl.getParameter(gl.LINE_WIDTH);
-      if (program.primitiveType === gl.LINES && program.lineWidth) {
-        gl.lineWidth(program.lineWidth);
-      }
-
       const programInfo = program.getProgramInfo();
       const buffer = program.getBufferInfo();
       const uniforms = program.getUniforms();
@@ -44,11 +39,6 @@ export class Painter {
         program.drawWithExt();
       } else {
         drawBufferInfo(gl, buffer, program.primitiveType);
-      }
-
-      // Setting the original line width
-      if (program.primitiveType === gl.LINES && program.lineWidth) {
-        gl.lineWidth(glLineWidth);
       }
     }
   }

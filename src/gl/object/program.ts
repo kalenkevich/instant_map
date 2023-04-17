@@ -1,10 +1,7 @@
 import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays } from "twgl.js";
+import { mat4 } from "gl-matrix";
 import { m3 } from '../utils/m3';
-
-export type v2 = [number, number];
-export type v3 = [number, number, number];
-export type v4 = [number, number, number, number];
-export type GlColor = string | v3 | v4;
+import { GlColor, v2, v4 } from './types';
 
 export interface GlObjectProps {
   color: GlColor;
@@ -60,8 +57,10 @@ export abstract class GlProgram {
       uniform mat3 u_matrix;
       
       void main() {
+        // Apply tranlation, rotation and scale.
         vec2 position = (u_matrix * vec3(a_position, 1)).xy;
-          
+        
+        // Apply resolution.
         vec2 zeroToOne = position / u_resolution;
         vec2 zeroToTwo = zeroToOne * 2.0;
         vec2 clipSpace = zeroToTwo - 1.0;
@@ -96,9 +95,19 @@ export abstract class GlProgram {
     const gl = this.gl;
 
     return {
+      u_width: this.lineWidth,
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_matrix: this.getMatrix(),
+      u_projection: mat4.ortho(
+        mat4.create(),
+        -this.gl.canvas.width / 2,
+        this.gl.canvas.width / 2,
+        -this.gl.canvas.height / 2,
+        this.gl.canvas.height / 2,
+        0,
+        -1
+      ),
     };
   }
 
