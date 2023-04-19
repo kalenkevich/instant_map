@@ -1,6 +1,6 @@
 import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from "twgl.js";
 import { m3 } from '../utils/m3';
-import { GlColor, v2, v4 } from './types';
+import { GlColor, v2, v4 } from '../types';
 
 export interface GlProgramProps {
   color: GlColor;
@@ -73,19 +73,11 @@ export abstract class GlProgram {
 
   private static programInfo: ProgramInfo;
 
-  public static compiled: boolean = false;
-
   public static compile(gl: WebGLRenderingContext): ProgramInfo {
-    if (this.compiled) {
-      return this.programInfo;
-    }
-
     this.programInfo = createProgramInfo(gl, [
       this.getVertexShaderSource(),
       this.getFragmentShaderSource(),
     ]);
-
-    this.compiled = true;
 
     return this.programInfo;
   }

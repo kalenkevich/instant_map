@@ -1,7 +1,7 @@
 import { addExtensionsToContext } from "twgl.js";
 import { GlProgram } from "./object/program";
 
-export class Painter {
+export class GlPainter {
   private readonly gl: WebGLRenderingContext;
   private programs: GlProgram[];
 

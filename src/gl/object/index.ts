@@ -1,5 +1,5 @@
 /** Base */
-export * from './types';
+export * from '../types';
 export * from './program';
 export * from './multi_program';
 

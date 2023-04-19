@@ -1,4 +1,4 @@
-import { v2 } from '../object/types';
+import { v2 } from '../types';
 
 // export const lite2Triangles = (
 //   p1: v2,

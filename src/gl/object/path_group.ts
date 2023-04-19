@@ -1,7 +1,8 @@
 import { GlProgramProps } from "./program";
 import { GlMultiProgram } from './multi_program';
-import { LineStripProgram, MiterLineCapProgram } from './path';
-import { v2 } from './types';
+import { LineStripProgram } from './line';
+import { MiterLineCapProgram } from './path';
+import { v2 } from '../types';
 
 export interface GlPathGroupProps extends GlProgramProps {
   paths: v2[][];

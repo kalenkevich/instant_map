@@ -1,6 +1,6 @@
-import { ProgramInfo } from "twgl.js";
+import { ProgramInfo, getTypedArrayTypeForGLType } from "twgl.js";
 import { GlProgram, GlProgramProps } from "./program";
-import { v2 } from './types';
+import { v2 } from '../types';
 
 export interface GlCircleProps extends GlProgramProps {
   p: v2;
@@ -90,18 +90,19 @@ export class GlCircle extends GlProgram {
     ];
 
     return {
-      numElements: 3,
       a_position: {
         numComponents: 2,
         data,
       },
-      v_center: {
+      a_center: {
         numComponents: 2,
         data: this.p,
+        offset: 8,
       },
-      v_radius: {
+      a_radius: {
         numComponents: 1,
-        data: this.radius,
+        data: [this.radius],
+        offset: 16,
       },
     };
   }

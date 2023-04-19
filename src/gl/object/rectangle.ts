@@ -1,5 +1,5 @@
 import { GlProgram, GlProgramProps } from "./program";
-import { v2 } from './types';
+import { v2 } from '../types';
 
 export interface GlRectangleProps extends GlProgramProps {
   p: v2;

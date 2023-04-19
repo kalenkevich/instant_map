@@ -1,7 +1,7 @@
 import getBbox from '@turf/bbox';
 import { Polygon } from "@turf/helpers";
 import { BBox, Feature, FeatureCollection, LineString } from "geojson";
-import { GlPath, GlProgram, Painter, v2, GlPathGroup } from '../gl';
+import { GlProgram, GlPainter, v2, GlPathGroup, GL_COLOR_BLACK, GL_COLOR_BLUE_200 } from '../gl';
 
 // set 1
 const translation: v2 = [0, 0];
@@ -33,7 +33,7 @@ export const renderGeoJson = (gl: WebGLRenderingContext, geoJson: FeatureCollect
 		...getGlObjectsFromBuildingFeatures(gl, buildings, bbox, projectionScale),
 	];
 
-	const painter = new Painter(gl, glObjects);
+	const painter = new GlPainter(gl, glObjects);
 	painter.init();
 	painter.draw();
 };
@@ -74,7 +74,7 @@ export const getGlObjectsFromRoadFeatures = (
 	}
 
 	const pathGroup = new GlPathGroup(gl, {
-		color: [0, 0, 0, 1],
+		color: GL_COLOR_BLACK,
 		paths,
 		scale,
 		translation,
@@ -97,7 +97,7 @@ export const getGlObjectsFromBuildingFeatures = (
 	}
 
 	const pathGroup = new GlPathGroup(gl, {
-		color: [0.3, 0.5, 1, 1],
+		color: GL_COLOR_BLUE_200,
 		paths,
 		scale,
 		translation,
