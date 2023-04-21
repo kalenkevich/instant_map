@@ -72,6 +72,9 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     p1: [(cellWidth * 3) + 50, (cellHeight * 0) + 50],
     p3: [(cellWidth * 3) + 50, (cellHeight * 0) + 450],
     p2: [(cellWidth * 3) + 450, (cellHeight * 0) + 50],
+    origin: [-(cellWidth * 3) + 50, -(cellHeight * 0) + 50],
+    scale: [1, 1],
+    // rotationInRadians: Math.PI / 10,
   });
 
   // cell 5
@@ -107,8 +110,9 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
       [(cellWidth * 1) + 420, (cellHeight * 1) + 250],
       [(cellWidth * 1) + 50, (cellHeight * 1) + 50],
     ],
-    translation: [230, -155],
-    rotationInRadians: Math.PI / 2,
+    scale: [0.1, 1],
+    //translation: [230, -155],
+    //rotationInRadians: Math.PI / 2,
   });
 
   // cell 8

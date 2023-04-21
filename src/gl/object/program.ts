@@ -5,6 +5,7 @@ import { GlColor, v2, v4 } from '../types';
 export interface GlProgramProps {
   color: GlColor;
   rotationInRadians?: number;
+  origin?: v2;
   translation?: v2;
   scale?: v2;
   lineWidth?: number;
@@ -21,6 +22,7 @@ export abstract class GlProgram {
   public lineWidth?: number;
 
   public rotationInRadians: number;
+  public origin: v2;
   public translation: v2;
   public scale: v2;
 
@@ -29,6 +31,7 @@ export abstract class GlProgram {
     this.color = this.normalizeColor(props.color);
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
+    this.origin = props.origin || [0, 0];
     this.translation = props.translation || [0, 0];
     this.scale = props.scale || [1, 1];
   }
@@ -135,12 +138,14 @@ export abstract class GlProgram {
   }
 
   public getMatrix() {
+    const moveOriginMatrix = m3.translation(this.origin[0], this.origin[1]);
     const translationMatrix = m3.translation(this.translation[0], this.translation[1]);
     const rotationMatrix = m3.rotation(this.rotationInRadians);
     const scaleMatrix = m3.scaling(this.scale[0], this.scale[1]);
     const matrix = m3.multiply(translationMatrix, rotationMatrix);
+    const scaledMatrix = m3.multiply(matrix, scaleMatrix);
 
-    return m3.multiply(matrix, scaleMatrix);
+    return m3.multiply(scaledMatrix, moveOriginMatrix)
   }
 
   public drawWithExt(...args: any[]) { }

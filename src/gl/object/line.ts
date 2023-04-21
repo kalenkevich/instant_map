@@ -22,6 +22,7 @@ export class GlLine extends GlProgram {
         points: [props.p1, props.p2],
         color: props.color,
         rotationInRadians: props.rotationInRadians,
+        origin: props.origin,
         translation: props.translation,
         scale: props.scale,
         lineWidth: props.lineWidth,
