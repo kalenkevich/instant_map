@@ -1,4 +1,18 @@
-import { GlPainter, GlCircle, GlRectangle, GlTriangle, GlPath, GlPathGroup, GlProgram, GlLine, v2, GL_COLOR_BLACK, GL_COLOR_RED, GlColor } from "./gl";
+import {
+  GlArea,
+  GlPainter,
+  GlCircle,
+  GlRectangle,
+  GlTriangle,
+  GlPath,
+  GlPathGroup,
+  GlProgram,
+  GlLine,
+  v2,
+  GL_COLOR_BLACK,
+  GL_COLOR_RED,
+  GlColor,
+} from "./gl";
 
 /**
  * Interface for GridOptions.
@@ -26,39 +40,44 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
   const cellHeight = 500;
   const grid = getGrid(gl, { cellWidth, cellHeight });
 
-  // cell 1
   const nativeLines = [
     new GlLine(gl, {
       color: GL_COLOR_RED,
-      p1: [(cellWidth * 0) + 50, (cellHeight * 0) + 50],
-      p2: [(cellWidth * 0) + 450, (cellHeight * 0) + 450],
+      p1: [0, 0],
+      p2: [400, 400],
       lineWidth: 1,
+      translation: [(cellWidth * 0) + 250, (cellHeight * 0) + 250],
+      origin: [-200, -200],
     }),
     new GlLine(gl, {
       color: [0, 1, 0.5, 1],
-      p1: [(cellWidth * 0) + 450, (cellHeight * 0) + 50],
-      p2: [(cellWidth * 0) + 50, (cellHeight * 0) + 450],
+      p1: [400, 0],
+      p2: [0, 400],
+      translation: [(cellWidth * 0) + 250, (cellHeight * 0) + 250],
+      origin: [-200, -200],
       lineWidth: 1,
     }),
   ];
 
-  // cell 2
   const triangleLines = [
     new GlLine(gl, {
       color: GL_COLOR_RED,
-      p1: [(cellWidth * 1) + 50, (cellHeight * 0) + 50],
-      p2: [(cellWidth * 1) + 450, (cellHeight * 0) + 450],
+      p1: [0, 0],
+      p2: [400, 400],
+      translation: [(cellWidth * 1) + 250, (cellHeight * 0) + 250],
+      origin: [-200, -200],
       lineWidth: 5,
     }),
     new GlLine(gl, {
       color: [0, 1, 0.5, 1],
-      p1: [(cellWidth * 1) + 450, (cellHeight * 0) + 50],
-      p2: [(cellWidth * 1) + 50, (cellHeight * 0) + 450],
+      p1: [400, 0],
+      p2: [0, 400],
+      translation: [(cellWidth * 1) + 250, (cellHeight * 0) + 250],
+      origin: [-200, -200],
       lineWidth: 5,
     }),
   ];
 
-  // cell 3
   const rectangle = new GlRectangle(gl, {
     color: [0.3, 0.5, 1, 1],
     p: [0, 0],
@@ -67,40 +86,66 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     width: 400,
     height: 300,
   });
+  const rotatedRectangle = new GlRectangle(gl, {
+    color: [0.3, 0.5, 1, 1],
+    p: [0, 0],
+    translation: [(cellWidth * 3) + 250, (cellHeight * 0) + 200],
+    origin: [-200, -150],
+    width: 400,
+    height: 300,
+  });
 
-  // cell 4
   const triangle = new GlTriangle(gl, {
     color: [0.7, 1, 0.2, 1],
     p1: [50, 50],
     p3: [50, 450],
     p2: [450, 50],
-    translation: [(cellWidth * 3) + 200, (cellHeight * 0) + 200],
+    translation: [(cellWidth * 4) + 200, (cellHeight * 0) + 200],
     origin: [-200, -200],
     scale: [1, 1],
   });
 
-  // cell 5
+  const rotatedTriangle = new GlTriangle(gl, {
+    color: [0.7, 1, 0.2, 1],
+    p1: [50, 50],
+    p3: [50, 450],
+    p2: [450, 50],
+    translation: [(cellWidth * 5) + 200, (cellHeight * 0) + 200],
+    origin: [-200, -200],
+    scale: [1, 1],
+  });
+
   const circle = new GlCircle(gl,{
     color: GL_COLOR_RED,
-    p: [(cellWidth * 4) + 250, (cellHeight * 0) + 250],
+    p: [0, 0],
     radius: 200,
+    translation: [(cellWidth * 1) + 200, (cellHeight * 1) + 200],
+    origin: [-200, -200],
   });
-  
-  // cell 6
+
+  const rotatedCircle = new GlCircle(gl,{
+    color: GL_COLOR_RED,
+    p: [0, 0],
+    radius: 200,
+    translation: [(cellWidth * 1) + 200, (cellHeight * 1) + 200],
+    origin: [-200, -200],
+  });
+
   const path = new GlPath(gl, {
     color: GL_COLOR_BLACK,
     lineWidth: 10,
     points: [
-      [(cellWidth * 0) + 50,  (cellHeight * 1) + 50],
-      [(cellWidth * 0) + 250, (cellHeight * 1) + 200],
-      [(cellWidth * 0) + 330, (cellHeight * 1) + 430],
-      [(cellWidth * 0) + 470, (cellHeight * 1) + 250],
-      [(cellWidth * 0) + 420, (cellHeight * 1) + 250],
-      [(cellWidth * 0) + 50, (cellHeight * 1) + 50],
+      [50,  50],
+      [250, 200],
+      [330, 430],
+      [470, 250],
+      [420, 250],
+      [50, 50],
     ],
+    origin: [-210, -140],
+    translation: [(cellWidth * 2) + 210, (cellHeight * 1) + 140],
   });
 
-  // cell 7
   const rotatedPath = new GlPath(gl, {
     color: GL_COLOR_BLACK,
     lineWidth: 10,
@@ -113,38 +158,58 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
       [50, 50],
     ],
     origin: [-210, -140],
-    translation: [(cellWidth * 1) + 210, (cellHeight * 1) + 140],
-    // rotationInRadians: Math.PI / 2,
+    translation: [(cellWidth * 3) + 210, (cellHeight * 1) + 140],
   });
 
-  // cell 8
   const pathGroup = new GlPathGroup(gl, {
 		color: [0.3, 0.5, 1, 1],
 		paths: [
       [
-        [(cellWidth * 2) + 50,  (cellHeight * 1) + 50],
-        [(cellWidth * 2) + 250, (cellHeight * 1) + 200],
-        [(cellWidth * 2) + 330, (cellHeight * 1) + 430],
-        [(cellWidth * 2) + 470, (cellHeight * 1) + 250],
-        [(cellWidth * 2) + 420, (cellHeight * 1) + 250],
-        [(cellWidth * 2) + 50, (cellHeight * 1) + 50],
+        [50, 50],
+        [250, 200],
+        [330, 430],
+        [470, 250],
+        [420, 250],
+        [50, 50],
       ],
       [
-        [(cellWidth * 2) + 100,  (cellHeight * 1) + 50],
-        [(cellWidth * 2) + 320, (cellHeight * 1) + 250],
-        [(cellWidth * 2) + 370, (cellHeight * 1) + 250],
-        [(cellWidth * 2) + 230, (cellHeight * 1) + 430],
-        [(cellWidth * 2) + 150, (cellHeight * 1) + 200],
-        [(cellWidth * 2) + 100, (cellHeight * 1) + 50],
+        [100, 50],
+        [320, 250],
+        [370, 250],
+        [230, 430],
+        [150, 200],
+        [100, 50],
       ]
     ],
+    origin: [-210, -140],
+    translation: [(cellWidth * 4), (cellHeight * 1)],
 		lineWidth: 5,
   });
 
+  const area = new GlArea(gl, {
+    points: [
+      [50, 150],
+      [150, 50],
+      [350, 100],
+      [450, 250],
+      [350, 320],
+      [200, 350],
+      [100 ,360],
+      [50, 250],
+    ],
+    translation: [(cellWidth * 5), (cellHeight * 1)],
+    color: GL_COLOR_RED,
+  });
+
   const renderScene = () => {
-    rectangle.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
-    triangle.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
-    rotatedPath.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
+    // for (const line of triangleLines) {
+    //   line.setRotationInRadians(line.getRotationInRadians() + 0.1);
+    // }
+    // rotatedRectangle.setRotationInRadians(rotatedRectangle.getRotationInRadians() + 0.1);
+    // rotatedRectangle.setRotationInRadians(rotatedRectangle.getRotationInRadians() + 0.1);
+    // rotatedTriangle.setRotationInRadians(rotatedTriangle.getRotationInRadians() + 0.1);
+    // rotatedPath.setRotationInRadians(rotatedPath.getRotationInRadians() + 0.1);
+
     painter.clear();
     painter.draw();
 
@@ -155,12 +220,16 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     ...grid,
     ...nativeLines,
     ...triangleLines,
-    triangle,
     rectangle,
+    rotatedRectangle,
+    triangle,
+    rotatedTriangle,
     // circle,
+    // rotatedCircle,
     path,
     rotatedPath,
     pathGroup,
+    area,
   ]);
 
   painter.init();

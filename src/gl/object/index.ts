@@ -4,6 +4,7 @@ export * from './program';
 export * from './multi_program';
 
 /** Object primitives */
+export * from './area';
 export * from './line';
 export * from './path';
 export * from './rectangle';
