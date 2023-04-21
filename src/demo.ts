@@ -61,7 +61,9 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
   // cell 3
   const rectangle = new GlRectangle(gl, {
     color: [0.3, 0.5, 1, 1],
-    p: [(cellWidth * 2) + 50, (cellHeight * 0) + 100],
+    p: [0, 0],
+    translation: [(cellWidth * 2) + 250, (cellHeight * 0) + 200],
+    origin: [-200, -150],
     width: 400,
     height: 300,
   });
@@ -69,12 +71,12 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
   // cell 4
   const triangle = new GlTriangle(gl, {
     color: [0.7, 1, 0.2, 1],
-    p1: [(cellWidth * 3) + 50, (cellHeight * 0) + 50],
-    p3: [(cellWidth * 3) + 50, (cellHeight * 0) + 450],
-    p2: [(cellWidth * 3) + 450, (cellHeight * 0) + 50],
-    origin: [-(cellWidth * 3) + 50, -(cellHeight * 0) + 50],
+    p1: [50, 50],
+    p3: [50, 450],
+    p2: [450, 50],
+    translation: [(cellWidth * 3) + 200, (cellHeight * 0) + 200],
+    origin: [-200, -200],
     scale: [1, 1],
-    // rotationInRadians: Math.PI / 10,
   });
 
   // cell 5
@@ -103,16 +105,16 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     color: GL_COLOR_BLACK,
     lineWidth: 10,
     points: [
-      [(cellWidth * 1) + 50,  (cellHeight * 1) + 50],
-      [(cellWidth * 1) + 250, (cellHeight * 1) + 200],
-      [(cellWidth * 1) + 330, (cellHeight * 1) + 430],
-      [(cellWidth * 1) + 470, (cellHeight * 1) + 250],
-      [(cellWidth * 1) + 420, (cellHeight * 1) + 250],
-      [(cellWidth * 1) + 50, (cellHeight * 1) + 50],
+      [50,  50],
+      [250, 200],
+      [330, 430],
+      [470, 250],
+      [420, 250],
+      [50, 50],
     ],
-    scale: [0.1, 1],
-    //translation: [230, -155],
-    //rotationInRadians: Math.PI / 2,
+    origin: [-210, -140],
+    translation: [(cellWidth * 1) + 210, (cellHeight * 1) + 140],
+    // rotationInRadians: Math.PI / 2,
   });
 
   // cell 8
@@ -139,6 +141,16 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
 		lineWidth: 5,
   });
 
+  const renderScene = () => {
+    rectangle.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
+    triangle.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
+    rotatedPath.setRotationInRadians(rectangle.getRotationInRadians() + 0.1);
+    painter.clear();
+    painter.draw();
+
+    requestAnimationFrame(renderScene);
+  };
+
   const painter = new GlPainter(gl, [
     ...grid,
     ...nativeLines,
@@ -152,7 +164,8 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
   ]);
 
   painter.init();
-  painter.draw();
+
+  renderScene();
 };
 
 /**

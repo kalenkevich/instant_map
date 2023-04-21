@@ -18,13 +18,12 @@ export abstract class GlProgram {
   protected gl: WebGLRenderingContext;
 
   /** Color of the object to be painted. HSL format. */
-  public color: v4;
-  public lineWidth?: number;
-
-  public rotationInRadians: number;
-  public origin: v2;
-  public translation: v2;
-  public scale: v2;
+  protected color: v4;
+  protected lineWidth?: number;
+  protected rotationInRadians: number;
+  protected origin: v2;
+  protected translation: v2;
+  protected scale: v2
 
   protected constructor(gl: WebGLRenderingContext, props: GlProgramProps) {
     this.gl = gl;
@@ -34,6 +33,38 @@ export abstract class GlProgram {
     this.origin = props.origin || [0, 0];
     this.translation = props.translation || [0, 0];
     this.scale = props.scale || [1, 1];
+  }
+
+  public getRotationInRadians(): number {
+    return this.rotationInRadians;
+  }
+
+  public getOrigin(): v2 {
+    return this.origin;
+  }
+
+  public getTranslation(): v2 {
+    return this.translation;
+  }
+
+  public getScale(): v2 {
+    return this.scale;
+  }
+
+  public setRotationInRadians(rotationInRadians: number) {
+    this.rotationInRadians = rotationInRadians;
+  }
+
+  public setOrigin(origin: v2) {
+    this.origin = origin;
+  }
+
+  public setTranslation(translation: v2) {
+    this.translation = translation;
+  }
+
+  public setScale(scale: v2) {
+    this.scale = scale;
   }
 
   public get primitiveType(): GLenum {

@@ -23,6 +23,11 @@ export class GlPainter {
     this.programs.push(program);
   }
 
+  public clear() {
+    // Clear the canvas.
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  }
+
   public draw(...args: any[]): void {
     const gl = this.gl;
 

@@ -32,6 +32,26 @@ export class GlLine extends GlProgram {
     }
   }
 
+  public setRotationInRadians(rotationInRadians: number) {
+    this.rotationInRadians = rotationInRadians;
+    this.line.setRotationInRadians(rotationInRadians);
+  }
+
+  public setOrigin(origin: v2) {
+    this.origin = origin;
+    this.line.setOrigin(origin);
+  }
+
+  public setTranslation(translation: v2) {
+    this.translation = translation;
+    this.line.setTranslation(translation);
+  }
+
+  public setScale(scale: v2) {
+    this.scale = scale;
+    this.line.setScale(scale);
+  }
+
   public draw(gl: WebGLRenderingContext) {
     return this.line.draw(gl);
   }
