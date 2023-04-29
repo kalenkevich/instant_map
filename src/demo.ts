@@ -119,7 +119,7 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     color: GL_COLOR_RED,
     p: [250, 250],
     radius: 200,
-    translation: [(cellWidth * 0) + 400, (cellHeight * 1) + 400],
+    translation: [(cellWidth * 0) + 200, (cellHeight * 1) + 200],
     origin: [-200, -200],
     components: 36,
   });
@@ -128,7 +128,7 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     color: GL_COLOR_RED,
     p: [250, 250],
     radius: 10,
-    translation: [(cellWidth * 1) + 40, (cellHeight * 1) + 40],
+    translation: [(cellWidth * 1) + 20, (cellHeight * 1) + 20],
     origin: [-20, -20],
     components: 24,
   });

@@ -30,8 +30,8 @@ export class GlCircle extends GlProgram {
       let j = i * Math.PI / 180;
       
       data.push(
-        Math.sin(j) * this.radius,
-        Math.cos(j) * this.radius,
+        this.p[0] + Math.sin(j) * this.radius,
+        this.p[1] + Math.cos(j) * this.radius,
         this.p[0],
         this.p[1],
       );
