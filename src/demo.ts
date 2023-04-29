@@ -117,18 +117,20 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
 
   const circle = new GlCircle(gl,{
     color: GL_COLOR_RED,
-    p: [0, 0],
+    p: [250, 250],
     radius: 200,
-    translation: [(cellWidth * 1) + 200, (cellHeight * 1) + 200],
+    translation: [(cellWidth * 0) + 400, (cellHeight * 1) + 400],
     origin: [-200, -200],
+    components: 36,
   });
 
   const rotatedCircle = new GlCircle(gl,{
     color: GL_COLOR_RED,
-    p: [0, 0],
-    radius: 200,
-    translation: [(cellWidth * 1) + 200, (cellHeight * 1) + 200],
-    origin: [-200, -200],
+    p: [250, 250],
+    radius: 10,
+    translation: [(cellWidth * 1) + 40, (cellHeight * 1) + 40],
+    origin: [-20, -20],
+    components: 24,
   });
 
   const path = new GlPath(gl, {
@@ -213,7 +215,7 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     painter.clear();
     painter.draw();
 
-    requestAnimationFrame(renderScene);
+    // requestAnimationFrame(renderScene);
   };
 
   const painter = new GlPainter(gl, [
@@ -224,8 +226,8 @@ export const renderObjectsDemo = (gl: WebGLRenderingContext) => {
     rotatedRectangle,
     triangle,
     rotatedTriangle,
-    // circle,
-    // rotatedCircle,
+    circle,
+    rotatedCircle,
     path,
     rotatedPath,
     pathGroup,
