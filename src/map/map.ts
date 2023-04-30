@@ -82,7 +82,7 @@ export class GlideMap {
 
     // drag events
     this.gl.canvas.addEventListener('mousedown', throttle((mouseDownEvent: MouseEvent) => this.onMouseDownEvent(mouseDownEvent), 50));
-    this.gl.canvas.addEventListener('mousemove', throttle((mouseMoveEvent: MouseEvent) => this.onMouseMove(mouseMoveEvent), 50));
+    this.gl.canvas.addEventListener('mousemove', throttle((mouseMoveEvent: MouseEvent) => this.onMouseMove(mouseMoveEvent), 0));
     this.gl.canvas.addEventListener('mouseup', throttle((mouseUpEvent: MouseEvent) => this.onMouseUpEvent(mouseUpEvent), 50));
   }
 
@@ -123,8 +123,8 @@ export class GlideMap {
       console.log('mouseMoveEvent', mouseMoveEvent, this.state);
 
       this.center = [
-        mouseMoveEvent.x - this.dragStartX,
-        mouseMoveEvent.y - this.dragStartY,
+        this.center[0] + (mouseMoveEvent.x - this.dragStartX) / 40,
+        this.center[1] + (mouseMoveEvent.y - this.dragStartY) / 40,
       ];
       this.rerenderMap();
     }
