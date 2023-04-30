@@ -19,6 +19,10 @@ export class GlPainter {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   }
 
+  public setPrograms(programs: GlProgram[]) {
+    this.programs = programs;
+  }
+
   public addProgram(program: GlProgram) {
     this.programs.push(program);
   }

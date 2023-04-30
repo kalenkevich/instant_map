@@ -2,6 +2,7 @@ import { FeatureCollection } from "geojson";
 import GEO_JSON_SAMPLE_V3 from './geojson/data/slonim-export-v3_geojson.json';
 import {renderGeoJson} from './geojson/geojson_viewer';
 import { renderObjectsDemo } from './demo';
+import { GlideMap } from './map/map';
 
 function createCanvas() {
   const canvas = document.createElement('canvas');
@@ -31,6 +32,8 @@ window.addEventListener('load', () => {
     return;
   }
 
+  const map = new GlideMap(gl);
+
   // renderSceneV2(gl);
-  renderObjectsDemo(gl);
+  //renderObjectsDemo(gl);
 });
