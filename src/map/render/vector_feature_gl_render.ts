@@ -1,7 +1,7 @@
 import { VectorTileLayer } from '@mapbox/vector-tile';
 import { BBox } from "geojson";
 import { GlProgram, GlPath, GlPathGroup, v2, LineStrip, Area, GL_COLOR_BLACK, GlNativeLineStrip, GlArea, RGBColor } from "../../gl";
-import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass, BuildingFeatureClass } from '../features/map_features';
+import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass } from '../features/map_features';
 
 export interface Point {
   x: number;
@@ -72,6 +72,10 @@ export const LandCoverClassColorMap = {
   [LandCoverFeatureClass.snow]: RGBColor.toGLColor(233,239,244),
 };
 
+export const BOUNDARY_COLOR = RGBColor.toGLColor(114,113,207);
+
+export const BUILDING_COLOR = RGBColor.toGLColor(222, 215, 211);
+
 /**
  * 
  * @param gl WebGLRenderingContext
@@ -83,12 +87,7 @@ export const getTransportationFeatures = (
   transportationLayer: VectorTileLayer,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  pixelRatio: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number],
+  scale: [number, number],
 ): GlProgram[] => {
   if (!transportationLayer || !transportationLayer.length) {
     return [];
@@ -116,14 +115,11 @@ export const getTransportationFeatures = (
   return Object
     .entries(programs)
     .map(([name, points]: [string, v2[][]]) => {
-      const scaleX = width / mapWidth / 2;
-      const scaleY = height / mapHeight / 2;
- 
       return new GlPathGroup(gl, {
         color: GL_COLOR_BLACK,
-        paths: points.slice(0, 3000),
+        paths: points,
         translation: [x, y],
-        scale: [scaleX, scaleY],
+        scale,
       });
     });
 }
@@ -133,12 +129,7 @@ export const getBuildingFeatures = (
   buildingLayer: VectorTileLayer,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  pixelRatio: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number],
+  scale: [number, number],
 ): GlProgram[] => {
   if (!buildingLayer || !buildingLayer.length) {
     return [];
@@ -160,16 +151,12 @@ export const getBuildingFeatures = (
 
   return geometryFeatures
     .reduce((programs, feature) => {
-        const bbox = feature.bbox;
-        const scaleX = width / mapWidth / 2;
-        const scaleY = height / mapHeight / 2;
-        
         for (const area of feature.areas) {
           programs.push(new GlArea(gl, {
-            color: RGBColor.toGLColor(222, 215, 211),
+            color: BUILDING_COLOR,
             points: area,
             translation: [x, y],
-            scale: [scaleX, scaleY],
+            scale,
           }));
         }
       
@@ -182,12 +169,7 @@ export const getBoundaryFeatures = (
   boundaryLayer: VectorTileLayer,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  pixelRatio: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number]
+  scale: [number, number],
 ): GlProgram[] => {
   if (!boundaryLayer || !boundaryLayer.length) {
     return [];
@@ -216,21 +198,16 @@ export const getBoundaryFeatures = (
     }
   }
 
-  pixelRatio = 1;
-
   return Object
     .values(geometryFeatures)
     .reduce((programs: GlProgram[], features: { bbox: BBox; lines: v2[][] }[]) => {
       for (const feature of features) {
-        const scaleX = width / mapWidth / 2;
-        const scaleY = height / mapHeight / 2;
-        
         for (const lineStrip of feature.lines) {
           programs.push(new GlNativeLineStrip(gl, {
-            color: GL_COLOR_BLACK,
+            color: BOUNDARY_COLOR,
             points: lineStrip,
             translation: [x, y],
-            scale: [scaleX, scaleY],
+            scale,
           }));
         }
       }
@@ -244,12 +221,7 @@ export const getWaterFeatures = (
   waterLayer: VectorTileLayer,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  pixelRatio: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number]
+  scale: [number, number],
 ): GlProgram[] => {
   if (!waterLayer || !waterLayer.length) {
     return [];
@@ -278,22 +250,16 @@ export const getWaterFeatures = (
     }
   }
 
-  pixelRatio = 1;
-
   return Object
     .entries(geometryFeatures)
     .reduce((programs: GlProgram[], [waterClass, features]: [WaterFeatureClass, { bbox: BBox; areas: Area[] }[]]) => {
       for (const feature of features) {
-        const bbox = feature.bbox;
-        const scaleX = width / mapWidth / 2;
-        const scaleY = height / mapHeight / 2;
-        
         for (const area of feature.areas) {
           programs.push(new GlArea(gl, {
             color: WaterFeatureClassColorMap[waterClass],
             points: area,
             translation: [x, y],
-            scale: [scaleX, scaleY],
+            scale,
           }));
         }
       }
@@ -307,12 +273,7 @@ export const getLandCoverFeatures = (
   landCoverLayer: VectorTileLayer,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  pixelRatio: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number]
+  scale: [number, number],
 ): GlProgram[] => {
   if (!landCoverLayer || !landCoverLayer.length) {
     return [];
@@ -341,24 +302,16 @@ export const getLandCoverFeatures = (
     }
   }
 
-  pixelRatio = 1;
-
   return Object
     .entries(geometryFeatures)
     .reduce((programs: GlProgram[], [landClass, features]: [LandCoverFeatureClass, { bbox: BBox; areas: Area[] }[]]) => {
       for (const feature of features) {
-        const bbox = feature.bbox;
-        const scaleX = width / mapWidth / 2;
-        const scaleY = height / mapHeight / 2;
-        
         for (const area of feature.areas) {
           programs.push(new GlArea(gl, {
             color: LandCoverClassColorMap[landClass],
             points: area,
             translation: [x, y],
-            //translation: [x - bbox[0], y - bbox[1]],
-            // origin: [bbox[0], bbox[1]],
-            scale: [scaleX, scaleY],
+            scale,
           }));
         }
       }
@@ -430,21 +383,18 @@ export const getTileBorders = (
   y: number,
   width: number,
   height: number,
-  pixelRatio: number,
 ): GlProgram[] => {
-  pixelRatio = 1;
-
   return [
     new GlPath(gl, {
       color: GL_COLOR_BLACK,
       points: [
         [0, 0],
-        [width * pixelRatio, 0],
-        [width * pixelRatio, height * pixelRatio],
-        [0, height * pixelRatio],
+        [width, 0],
+        [width, height],
+        [0, height],
         [0, 0],
       ],
-      translation: [x * pixelRatio, y * pixelRatio],
+      translation: [x, y],
     }),
   ];
 };

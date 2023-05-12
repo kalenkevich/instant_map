@@ -39,6 +39,7 @@ export class MapPbfTile extends MapTile {
   tileData?: VectorTile;
   isDataLoading: boolean = false;
   blank: boolean;
+  scale: [number, number];
 
   constructor(gl: WebGLRenderingContext, options: MapTileOptions) {
     super();
@@ -55,6 +56,7 @@ export class MapPbfTile extends MapTile {
 
     this.tileZXY = options.tileZXY;
     this.tilesMeta = options.tilesMeta;
+    this.scale = [this.width / this.mapWidth / this.pixelRatio, this.height / this.mapHeight / this.pixelRatio];
   }
 
   /**
@@ -103,72 +105,42 @@ export class MapPbfTile extends MapTile {
         this.tileData.layers.water, 
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
       ...getLandCoverFeatures(
         this.gl,
         this.tileData.layers.landcover, 
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
       ...getLandCoverFeatures(
         this.gl,
         this.tileData.layers.globallandcover, 
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
       ...getBoundaryFeatures(
         this.gl,
         this.tileData.layers.boundary,
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
       ...getTransportationFeatures(
         this.gl,
         this.tileData.layers.transportation,
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
       ...getBuildingFeatures(
         this.gl,
         this.tileData.layers.building,
         this.x,
         this.y,
-        this.width,
-        this.height,
-        this.pixelRatio,
-        this.mapWidth,
-        this.mapHeight,
-        this.tilesMeta.bounds as [number, number, number, number],
+        this.scale,
       ),
     ];
   }
