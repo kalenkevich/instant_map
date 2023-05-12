@@ -158,7 +158,18 @@ export class MapPbfTile extends MapTile {
         this.mapHeight,
         this.tilesMeta.bounds as [number, number, number, number],
       ),
-      //...getBuildingFeatures(this.gl, this.tileData.layers.building),
+      ...getBuildingFeatures(
+        this.gl,
+        this.tileData.layers.building,
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        this.pixelRatio,
+        this.mapWidth,
+        this.mapHeight,
+        this.tilesMeta.bounds as [number, number, number, number],
+      ),
     ];
   }
 }

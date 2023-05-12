@@ -1,7 +1,7 @@
 import { VectorTileLayer } from '@mapbox/vector-tile';
 import { BBox } from "geojson";
 import { GlProgram, GlPath, GlPathGroup, v2, LineStrip, Area, GL_COLOR_BLACK, GlNativeLineStrip, GlArea, RGBColor } from "../../gl";
-import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass } from '../features/map_features';
+import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass, BuildingFeatureClass } from '../features/map_features';
 
 export interface Point {
   x: number;
@@ -136,8 +136,45 @@ export const getBuildingFeatures = (
   width: number,
   height: number,
   pixelRatio: number,
+  mapWidth: number,
+  mapHeight: number,
+  mapBoundaries: [number, number, number, number],
 ): GlProgram[] => {
-  return [];
+  if (!buildingLayer || !buildingLayer.length) {
+    return [];
+  }
+
+  const geometryFeatures: Array<{ bbox: BBox; areas: Area[]; }> = [];
+
+  for (let i = 0; i < buildingLayer.length; i++) {
+    const feature = buildingLayer.feature(i);
+
+    const areas: Array<Point[]> = feature.loadGeometry();
+    const geometryFeature = {
+      bbox: feature.bbox(),
+      areas: areas.map(area => area.map(p => ([p.x, p.y] as v2))),
+    };
+
+    geometryFeatures.push(geometryFeature);
+  }
+
+  return geometryFeatures
+    .reduce((programs, feature) => {
+        const bbox = feature.bbox;
+        const scaleX = width / mapWidth / 2;
+        const scaleY = height / mapHeight / 2;
+        
+        for (const area of feature.areas) {
+          programs.push(new GlArea(gl, {
+            color: RGBColor.toGLColor(222, 215, 211),
+            points: area,
+            translation: [x, y],
+            scale: [scaleX, scaleY],
+          }));
+        }
+      
+        return programs;
+    }, [] as GlProgram[]);
 };
 
 export const getBoundaryFeatures = (
@@ -185,7 +222,6 @@ export const getBoundaryFeatures = (
     .values(geometryFeatures)
     .reduce((programs: GlProgram[], features: { bbox: BBox; lines: v2[][] }[]) => {
       for (const feature of features) {
-        const bbox = feature.bbox;
         const scaleX = width / mapWidth / 2;
         const scaleY = height / mapHeight / 2;
         

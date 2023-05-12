@@ -69,3 +69,7 @@ export enum LandCoverFeatureClass {
   forest = "forest",
   snow = "snow"
 }
+
+export enum BuildingFeatureClass {
+  
+}

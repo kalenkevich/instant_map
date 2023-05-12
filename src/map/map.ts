@@ -165,18 +165,18 @@ export class GlideMap {
   //   ];
   // }
 
-  getTilesToRender(): Array<RenderTileInfo> {
-    const tWidth = this.width / 2;
-    const tHeigth = this.height / 2;
+  // getTilesToRender(): Array<RenderTileInfo> {
+  //   const tWidth = this.width / 2;
+  //   const tHeigth = this.height / 2;
 
-    return [
-      {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 0, 0], },
-      {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 1, 0], blank: false },
+  //   return [
+  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 0, 0], },
+  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 1, 0], blank: false },
 
-      {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 0, 1]},
-      {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 1, 1], blank: false},
-    ];
-  }
+  //     {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 0, 1]},
+  //     {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 1, 1], blank: false},
+  //   ];
+  // }
 
   // getTilesToRender(): Array<RenderTileInfo> {
   //     const tWidth = this.width / 3;
@@ -192,6 +192,31 @@ export class GlideMap {
   //       {x: tWidth * 2, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [3, 5, 3],},
   //     ];
   //   }
+
+  // getTilesToRender(): Array<RenderTileInfo> {
+  //   const tWidth = this.width / 2;
+  //   const tHeigth = this.height / 1;
+
+  //   return [
+  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [9,294,164], },
+  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [9,295,164],},
+  //   ];
+  // }
+
+  getTilesToRender(): Array<RenderTileInfo> {
+    const tWidth = this.width / 3;
+    const tHeigth = this.height / 2;
+
+    return [
+      {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,589,328],},
+      {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,590,328],},
+      {x: tWidth * 2, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,591,328],},
+
+      {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,589,329],},
+      {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,590,329],},
+      {x: tWidth * 2, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,591,329],},
+    ];
+  }
 
   async fetchTilesMeta() {
     try {
