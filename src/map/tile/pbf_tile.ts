@@ -8,6 +8,7 @@ import {
   getBuildingFeatures,
   getBoundaryFeatures,
   getWaterFeatures,
+  getLandCoverFeatures,
 } from '../render/vector_feature_gl_render';
 import { ZXY, MapTilesMeta } from '../types';
 
@@ -96,33 +97,43 @@ export class MapPbfTile extends MapTile {
       return [] as GlProgram[];
     }
 
-    const programms: GlProgram[] = [
-      ...getTileBorders(
+    return [
+      ...getWaterFeatures(
         this.gl,
+        this.tileData.layers.water, 
         this.x,
         this.y,
         this.width,
         this.height,
         this.pixelRatio,
+        this.mapWidth,
+        this.mapHeight,
+        this.tilesMeta.bounds as [number, number, number, number],
       ),
-    ];
-
-    if (this.blank) {
-      return programms;
-    }
-
-    return [
-      ...programms,
-      // ...getTransportationFeatures(
-      //   this.gl,
-      //   this.tileData.layers.transportation,
-      //   this.x,
-      //   this.y,
-      //   this.width,
-      //   this.height,
-      //   this.pixelRatio,
-      // ),
-      // ...getBuildingFeatures(this.gl, this.tileData.layers.building),
+      ...getLandCoverFeatures(
+        this.gl,
+        this.tileData.layers.landcover, 
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        this.pixelRatio,
+        this.mapWidth,
+        this.mapHeight,
+        this.tilesMeta.bounds as [number, number, number, number],
+      ),
+      ...getLandCoverFeatures(
+        this.gl,
+        this.tileData.layers.globallandcover, 
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        this.pixelRatio,
+        this.mapWidth,
+        this.mapHeight,
+        this.tilesMeta.bounds as [number, number, number, number],
+      ),
       ...getBoundaryFeatures(
         this.gl,
         this.tileData.layers.boundary,
@@ -135,7 +146,19 @@ export class MapPbfTile extends MapTile {
         this.mapHeight,
         this.tilesMeta.bounds as [number, number, number, number],
       ),
-      // ...getWaterFeatures(this.gl, this.tileData.layers.water),
+      ...getTransportationFeatures(
+        this.gl,
+        this.tileData.layers.transportation,
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        this.pixelRatio,
+        this.mapWidth,
+        this.mapHeight,
+        this.tilesMeta.bounds as [number, number, number, number],
+      ),
+      //...getBuildingFeatures(this.gl, this.tileData.layers.building),
     ];
   }
 }

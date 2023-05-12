@@ -8,8 +8,8 @@ function createCanvas() {
   const canvas = document.createElement('canvas');
 
   canvas.id = 'glide-gl';
-  canvas.width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0) * window.devicePixelRatio;
-  canvas.height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * window.devicePixelRatio;
+  canvas.width = 1024 * window.devicePixelRatio;
+  canvas.height = 1024 * window.devicePixelRatio;
 
   document.body.appendChild(canvas);
 
@@ -33,7 +33,7 @@ window.addEventListener('load', () => {
   }
 
   const map = new GlideMap(gl, {
-    tilesMetaUrl: 'https://api.maptiler.com/tiles/v3-openmaptiles/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+    tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   });
 
   // renderSceneV2(gl);

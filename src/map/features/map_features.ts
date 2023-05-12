@@ -46,3 +46,26 @@ export enum BoudaryAdminLevel {
   ADMIN_LEVEL_9 = 9,
   ADMIN_LEVEL_10 = 10
 };
+
+export enum WaterFeatureClass {
+  dock = "dock",
+  river = "river",
+  lake = "lake",
+  ocean = "ocean",
+  swimming_pool = "swimming_pool"
+}
+
+export enum LandCoverFeatureClass {
+  farmland = "farmland",
+  ice = "ice",
+  wood = "wood",
+  rock = "rock",
+  grass = "grass",
+  wetland = "wetland",
+  sand = "sand",
+  crop = "crop",
+  scrub = "scrub",
+  tree = "tree",
+  forest = "forest",
+  snow = "snow"
+}
