@@ -32,7 +32,9 @@ window.addEventListener('load', () => {
     return;
   }
 
-  const map = new GlideMap(gl);
+  const map = new GlideMap(gl, {
+    tilesMetaUrl: 'https://api.maptiler.com/tiles/v3-openmaptiles/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+  });
 
   // renderSceneV2(gl);
   //renderObjectsDemo(gl);

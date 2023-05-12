@@ -12,13 +12,13 @@ export interface GlLineStripProps extends GlProgramProps {
 }
 
 export class GlLine extends GlProgram {
-  line: GlNativeLine | LineStripProgram;
+  line: GlNativeLine | GlLineStrip;
 
   constructor(gl: WebGLRenderingContext, props: GlLineProps) {
     super(gl, props);
 
     if (props.lineWidth && props.lineWidth > 1) {
-      this.line = new LineStripProgram(gl, {
+      this.line = new GlLineStrip(gl, {
         points: [props.p1, props.p2],
         color: props.color,
         rotationInRadians: props.rotationInRadians,
@@ -63,7 +63,7 @@ export class GlLine extends GlProgram {
 
 /**
  * Class to render Lines using default WebGL API.
- * It support only lineWidth 1. 
+ * It support only lineWidth = 1. 
  */
 export class GlNativeLine extends GlProgram {
   protected p1: v2;
@@ -103,10 +103,40 @@ export class GlNativeLine extends GlProgram {
 }
 
 /**
+ * Class to render LineStrips using default WebGL API.
+ * It support only lineWidth = 1. 
+ */
+export class GlNativeLineStrip extends GlProgram {
+  protected points: v2[];
+
+  constructor(gl: WebGLRenderingContext, props: GlLineStripProps) {
+    super(gl, props);
+    this.points = props.points;
+  }
+
+  public setPoints(points: v2[]) {
+    this.points = points;
+  }
+
+  public get primitiveType(): GLenum {
+    return this.gl.LINE_STRIP;
+  }
+
+  public getBufferAttrs(): Record<string, any> {
+    return {
+      a_position: {
+        numComponents: 2,
+        data: this.points.flatMap(p => p),
+      },
+    };
+  }
+}
+
+/**
  * Class to render Lines using 2 triangles.
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
-export class LineStripProgram extends GlProgram {
+export class GlLineStrip extends GlProgram {
   protected points: v2[];
 
   protected segmentInstanceGeometry = [
@@ -130,7 +160,7 @@ export class LineStripProgram extends GlProgram {
   }
 
   public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return LineStripProgram.compile(gl);
+    return GlLineStrip.compile(gl);
   }
 
   // Render basic lines with triangles.

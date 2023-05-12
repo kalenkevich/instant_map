@@ -36,7 +36,7 @@ export class GlPainter {
     const gl = this.gl;
 
     for (const program of this.programs) {
-        program.draw(gl);
+      program.draw(gl);
     }
   }
 }

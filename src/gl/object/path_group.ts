@@ -1,7 +1,7 @@
 import { GlProgramProps } from "./program";
 import { GlMultiProgram } from './multi_program';
-import { LineStripProgram } from './line';
-import { MiterLineCapProgram } from './path';
+import { GlNativeLineStrip, GlNativeLine } from './line';
+import { MiterLineCap } from './path';
 import { v2 } from '../types';
 
 export interface GlPathGroupProps extends GlProgramProps {
@@ -14,7 +14,7 @@ export interface GlPathGroupProps extends GlProgramProps {
  */
 export class GlPathGroup extends GlMultiProgram {
   paths: v2[][];
-  subPrograms: [LineStripProgram, MiterLineCapProgram];
+  subPrograms: [GlNativeLineStrip, MiterLineCap];
 
   constructor(gl: WebGLRenderingContext, props: GlPathGroupProps) {
     super(gl, props);
@@ -26,13 +26,14 @@ export class GlPathGroup extends GlMultiProgram {
       lineWidth: props.lineWidth,
       rotationInRadians: props.rotationInRadians,
       translation: props.translation,
+      origin: props.origin,
       scale: props.scale,
       points: [] as v2[],
     };
 
     this.subPrograms = [
-      new LineStripProgram(gl, subProgramProps),
-      new MiterLineCapProgram(gl, subProgramProps),
+      new GlNativeLineStrip(gl, subProgramProps),
+      new MiterLineCap(gl, subProgramProps),
     ];
   }
 
@@ -53,10 +54,10 @@ export class GlPathGroup extends GlMultiProgram {
       lineStripProgram.draw(gl);
     }
 
-    // Draw all line caps
-    for (const path of this.paths) {
-      lineCapProgram.setPoints(path);
-      lineCapProgram.draw(gl);
-    }
+    // // Draw all line caps
+    // for (const path of this.paths) {
+    //   lineCapProgram.setPoints(path);
+    //   lineCapProgram.draw(gl);
+    // }
   }
 }

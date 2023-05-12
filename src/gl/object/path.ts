@@ -2,7 +2,7 @@ import { ProgramInfo } from "twgl.js";
 import { GlProgram } from "./program";
 import { GlMultiProgram } from "./multi_program";
 import { v2 } from '../types';
-import { LineStripProgram, GlLineStripProps } from './line';
+import { GlLineStrip, GlLineStripProps } from './line';
 
 export interface GlPathProps extends GlLineStripProps {}
 
@@ -11,8 +11,8 @@ export class GlPath extends GlMultiProgram {
     super(gl, props);
 
     this.subPrograms = [
-      new LineStripProgram(gl, props),
-      new MiterLineCapProgram(gl, props),
+      new GlLineStrip(gl, props),
+      new MiterLineCap(gl, props),
     ];
   }
 }
@@ -21,7 +21,7 @@ export class GlPath extends GlMultiProgram {
  * Class to render Miter Line Cap
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
-export class MiterLineCapProgram extends GlProgram {
+export class MiterLineCap extends GlProgram {
   protected points: v2[];
   protected instanceMiterJoin = [
     [0, 0, 0],
@@ -44,7 +44,7 @@ export class MiterLineCapProgram extends GlProgram {
   }
 
   public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return MiterLineCapProgram.compile(gl);
+    return MiterLineCap.compile(gl);
   }
 
   // Render basic lines with triangles.
