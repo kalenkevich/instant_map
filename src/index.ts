@@ -33,6 +33,7 @@ window.addEventListener('load', () => {
   }
 
   const map = new GlideMap(gl, {
+    zoom: 0,
     tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   });
 

@@ -3,66 +3,76 @@ import { throttle } from './utils';
 
 import { MapPbfTile } from './tile/pbf_tile';
 
-import { RenderTileInfo, TileCacheKey, MapTilesMeta, MapOptions } from './types';
+import { RenderTileInfo, TileCacheKey, MapTilesMeta, MapOptions, ZXY } from './types';
  
-export const getTileKey = (renderTile: RenderTileInfo) => {
-  const [z, x, y] = renderTile.tileZXY;
+export const getTileKey = ({ tileZXY }: { tileZXY: ZXY }) => {
+  const [z, x, y] = tileZXY;
 
   return `${z}-${x}-${y}`;
 }
 
+export interface MapState {
+  zoom: number;
+  center: [number, number];
+}
+
 export class GlideMap {
   gl: WebGLRenderingContext;
-  
-  zoom: number;
-
-  center: [number, number];
-
   painter: GlPainter;
-
   tilesCache: Map<TileCacheKey, MapPbfTile>;
-
-  tiles: Array<RenderTileInfo>;
-
   tilesMetaUrl: string;
-
   tilesMeta?: MapTilesMeta;
-
   devicePixelRatio: number;
-
   width: number;
-
   height: number;
+  tileWidth: number;
+  tileHeight: number;
+  tileCoords: Array<[number, number]>;
+  renderedTiles: Array<RenderTileInfo> = [];
 
-  get state() {
-    return {
-      zoom: this.zoom,
-      center: this.center,
-      tiles: this.tiles,
-    }
-  }
+  private state: MapState;
+  private prevState: MapState;
 
   constructor(gl: WebGLRenderingContext, options: MapOptions) {
     this.gl = gl;
-    this.zoom = options.zoom || 0;
-    this.center = options.center || [0, 0] as [number, number];
     this.painter = new GlPainter(this.gl, []);
     this.tilesMetaUrl = options.tilesMetaUrl;
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
     this.tilesCache = new Map<TileCacheKey, MapPbfTile>();
     this.width = this.gl.canvas.width;
     this.height = this.gl.canvas.height;
+    this.tileWidth = this.width / 2;
+    this.tileHeight = this.height / 2;
+    this.tileCoords = [
+      [0, 0],
+      [this.tileWidth, 0],
+      [0, this.tileHeight],
+      [this.tileWidth, this.tileHeight],
+    ];
+    this.state = this.prevState = {
+      zoom: options.zoom || 0,
+      center: options.center || [this.tileWidth, this.tileHeight] as [number, number],
+    };
 
     this.init();
+  }
+
+  getState(): MapState {
+    return this.state;
+  }
+
+  getPrevState(): MapState {
+    return this.prevState;
   }
 
   init() {
     this.painter.init();
     this.subscribeOnGlEvents();
 
-    this.tiles = this.getTilesToRender();
     this.fetchTilesMeta().then(() => {
-      this.fetchTiles();
+      const tilesToRender = this.getTilesToRender(this.state);
+
+      this.fetchTiles(tilesToRender);
     })
   }
 
@@ -77,23 +87,29 @@ export class GlideMap {
   }
 
   onClickEvent(clickEvent: MouseEvent) {
-    console.log('clickEvent', clickEvent, this.state);
+    console.log('clickEvent', clickEvent, this.getState());
   }
   
   onWheelEvent(wheelEvent: WheelEvent) {
-    console.log('wheelEvent', wheelEvent, this.state);
+    console.log('wheelEvent', wheelEvent, this.getState());
+
+    let newZoom = this.state.zoom;
 
     if (wheelEvent.deltaY < 0) {
-      this.zoom += Math.abs(wheelEvent.deltaY / 25);
-      this.zoom = Math.min(this.zoom, 24);
-      this.zoom = Number(this.zoom.toFixed(4));
+      newZoom = this.state.zoom + Math.abs(wheelEvent.deltaY / 10);
+      newZoom = Math.min(newZoom, 24);
+      newZoom = Number(newZoom.toFixed(4));
     } else {
-      this.zoom -= Math.abs(wheelEvent.deltaY / 25);
-      this.zoom = Math.max(this.zoom, 0);
-      this.zoom = Number(this.zoom.toFixed(4));
+      newZoom = this.state.zoom - Math.abs(wheelEvent.deltaY / 10);
+      newZoom = Math.max(newZoom, 0);
+      newZoom = Number(newZoom.toFixed(4));
     }
 
-    this.onMapStateChange();
+    this.onMapStateChange({
+      ...this.getState(),
+      zoom: newZoom,
+      center: [wheelEvent.x, wheelEvent.y],
+    });
   }
 
   dragStarted = false;
@@ -101,122 +117,84 @@ export class GlideMap {
   dragStartY = 0;
 
   onMouseDownEvent(mouseDownEvent: MouseEvent) {
-    console.log('mouseDownEvent', mouseDownEvent, this.state);
+    console.log('mouseDownEvent', mouseDownEvent, this.getState());
     this.dragStarted = true;
 
     this.dragStartX = mouseDownEvent.x;
     this.dragStartY = mouseDownEvent.y;
   }
 
-  onMouseMove(mouseMoveEvent: MouseEvent) {
-    if (this.dragStarted) {
-      console.log('mouseMoveEvent', mouseMoveEvent, this.state);
-      let deltaX = (mouseMoveEvent.x - this.dragStartX) / 2;
-      let deltaY = (mouseMoveEvent.y - this.dragStartY) / 2;
-
-      if (deltaX < 0) {
-        deltaX = Math.max(deltaX, -5);
-      } else {
-        deltaX = Math.min(deltaX, 5);
-      }
-
-      if (deltaY < 0) {
-        deltaY = Math.max(deltaY, -5);
-      } else {
-        deltaY = Math.min(deltaY, 5);
-      }
-
-      this.center = [
-        this.center[0] + deltaX,
-        this.center[1] + deltaY,
-      ];
-      this.onMapStateChange();
-    }
-  }
+  onMouseMove(mouseMoveEvent: MouseEvent) {}
 
   onMouseUpEvent(mouseUpEvent: MouseEvent) {
-    console.log('mouseUpEvent', mouseUpEvent, this.state);
-    this.dragStarted = false;
-  }
 
-  onMapStateChange() {
-    this.tiles = this.getTilesToRender();
-    this.fetchTiles();
-  }
-
-  // getTilesToRender(): Array<RenderTileInfo> {
-  //   const cWidth = this.gl.canvas.width;
-  //   const cHeight = this.gl.canvas.height;
-  //   const tWidth = cWidth / 3;
-  //   const tHeigth = cHeight / 3;
-
-  //   return [
-  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [8, 145, 81], },
-  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [8, 146, 81], blank: false },
-  //     {x: tWidth * 2, y: 0, width: tWidth, height: tHeigth, tileZXY: [8, 147, 81]},
-
-  //     {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [8, 145, 82], blank: false},
-  //     {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [8, 146, 82]},
-  //     {x: tWidth * 2, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [8, 147, 82], blank: false},
-
-  //     {x: 0, y: tHeigth * 2, width: tWidth, height: tHeigth, tileZXY: [8, 145, 83]},
-  //     {x: tWidth, y: tHeigth * 2, width: tWidth, height: tHeigth, tileZXY: [8, 146, 83], blank: false},
-  //     {x: tWidth * 2, y: tHeigth * 2, width: tWidth, height: tHeigth, tileZXY: [8, 147, 83]},
-  //   ];
-  // }
-
-  // getTilesToRender(): Array<RenderTileInfo> {
-  //   const tWidth = this.width / 2;
-  //   const tHeigth = this.height / 2;
-
-  //   return [
-  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 0, 0], },
-  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [1, 1, 0], blank: false },
-
-  //     {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 0, 1]},
-  //     {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [1, 1, 1], blank: false},
-  //   ];
-  // }
-
-  getTilesToRender(): Array<RenderTileInfo> {
-      const tWidth = this.width / 3;
-      const tHeigth = this.height / 2;
-  
-      return [
-        {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [3, 3, 2], },
-        {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [3, 4, 2],},
-        {x: tWidth * 2, y: 0, width: tWidth, height: tHeigth, tileZXY: [3, 5, 2],},
-
-        {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [3, 3, 3], },
-        {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [3, 4, 3],},
-        {x: tWidth * 2, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [3, 5, 3],},
-      ];
+    if (!this.dragStarted) {
+      return;
     }
 
-  // getTilesToRender(): Array<RenderTileInfo> {
-  //   const tWidth = this.width / 2;
-  //   const tHeigth = this.height / 1;
+    this.dragStarted = false;
+    const state = this.getState();
 
-  //   return [
-  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [9,294,164], },
-  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [9,295,164],},
-  //   ];
-  // }
+    let deltaX = (mouseUpEvent.x - this.dragStartX);
+    let deltaY = (mouseUpEvent.y - this.dragStartY);
 
-  // getTilesToRender(): Array<RenderTileInfo> {
-  //   const tWidth = this.width / 3;
-  //   const tHeigth = this.height / 2;
+    this.onMapStateChange({
+      ...state,
+      // inverse the delta
+      center: [
+        state.center[0] - deltaX,
+        state.center[1] - deltaY,
+      ],
+    });
 
-  //   return [
-  //     {x: 0, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,589,328],},
-  //     {x: tWidth, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,590,328],},
-  //     {x: tWidth * 2, y: 0, width: tWidth, height: tHeigth, tileZXY: [10,591,328],},
+    console.log('mouseUpEvent', mouseUpEvent, this.getState());
+  }
 
-  //     {x: 0, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,589,329],},
-  //     {x: tWidth, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,590,329],},
-  //     {x: tWidth * 2, y: tHeigth, width: tWidth, height: tHeigth, tileZXY: [10,591,329],},
-  //   ];
-  // }
+  onMapStateChange(newState: MapState) {
+    this.prevState = this.state;
+    this.state = newState;
+
+    this.fetchTiles(this.getTilesToRender(this.state));
+  }
+
+  getTilesToRender(state: MapState): Array<RenderTileInfo> {
+    const z = Math.floor(state.zoom);
+    const tileBound = (1 << z) - 1;
+    const x = Math.max(Math.min(Math.abs(state.center[0] / this.tileWidth) << z, tileBound), 0);
+    const y = Math.max(Math.min(Math.abs(state.center[1] / this.tileHeight) << z, tileBound), 0);
+    const nextTiles: RenderTileInfo[] = [];
+
+    if (z === 0) {
+      const tileZXY = [z, 0, 0] as ZXY;
+
+      return [{
+        tileId: getTileKey({ tileZXY }),
+        x: this.tileWidth / 2,
+        y: this.tileHeight / 2,
+        // Use map width and height for root tile
+        width: this.tileWidth,
+        height: this.tileHeight,
+        tileZXY,
+      }];
+    }
+    
+    for (let i = 0; i < 4; i++) {
+      const childX = Math.max(Math.min((x << 1) + (i % 2), tileBound), 0);
+      const childY = Math.max(Math.min((y << 1) + (i >> 1), tileBound), 0);
+      const tileZXY = [z, childX, childY] as ZXY;
+
+      nextTiles.push({
+        tileId: getTileKey({ tileZXY }),
+        x: this.tileCoords[i][0],
+        y: this.tileCoords[i][1],
+        width: this.tileWidth,
+        height: this.tileHeight,
+        tileZXY,
+      });
+    }
+
+    return nextTiles;
+  }
 
   async fetchTilesMeta() {
     try {
@@ -226,17 +204,33 @@ export class GlideMap {
     }
   }
 
-  fetchTiles() {
+  fetchInProgress = false;
+  fetchingTilesMap: Map<string, AbortController> = new Map();
+
+  fetchTiles(tilesToRender: Array<RenderTileInfo>) {
     if (!this.tilesMeta) {
       throw new Error('Tiles meta is not defined.');
     }
 
     const tilesPromises: Promise<void>[] = [];
 
-    for (const tile of this.tiles) {
-      const tileId = getTileKey(tile);
+    this.fetchInProgress = true;
 
-      if (this.tilesCache.has(tileId)) {
+    for (const alreadyFetchingTileId of this.fetchingTilesMap.keys()) {
+      const tileToFetch = tilesToRender.find(tile => tile.tileId === alreadyFetchingTileId);
+
+      if (!tileToFetch) {
+        this.fetchingTilesMap.get(alreadyFetchingTileId).abort();
+        this.fetchingTilesMap.delete(alreadyFetchingTileId);
+        this.tilesCache.delete(alreadyFetchingTileId);
+      }
+    }
+
+    let invokeRerender = false;
+
+    for (const tile of tilesToRender) {
+      if (this.tilesCache.has(tile.tileId) || this.fetchingTilesMap.has(tile.tileId)) {
+        invokeRerender = true;
         continue;
       }
 
@@ -252,31 +246,63 @@ export class GlideMap {
         blank: tile.blank,
       });
 
-      this.tilesCache.set(tileId, pbfTile);
+      const abortController = new AbortController();
 
-      tilesPromises.push(pbfTile.fetchTileData());
+      this.tilesCache.set(tile.tileId, pbfTile);
+      this.fetchingTilesMap.set(tile.tileId, abortController);
+
+      tilesPromises.push(
+        pbfTile
+          .fetchTileData(abortController.signal)
+          .finally(() => {
+            this.fetchingTilesMap.delete(tile.tileId);
+          })
+      );
     }
 
     if (tilesPromises.length) {
-      Promise.all(tilesPromises).then(() => {
-        this.onMapStateChange();
-        this.rerenderMap();
-      });
+      Promise
+        .all(tilesPromises)
+        .then(() => {
+          this.fetchInProgress = false;
+          this.rerenderMap(tilesToRender);
+        }).catch(() => {
+          this.fetchInProgress = false;
+        });
+    } else {
+      this.fetchInProgress = false;
+
+      if (invokeRerender) {
+        this.rerenderMap(tilesToRender);
+      }
     }
   }
 
-  rerenderMap() {
-    const renderScene = () => {
-      const tilesToRender = this.tiles.map(tile => this.tilesCache.get(getTileKey(tile)));
+  rerenderMap(tilesToRender: Array<RenderTileInfo>) {
+    const renderScene = (tiles: Array<RenderTileInfo>) => {
+      if (this.isAlreadRendered(this.renderedTiles, tiles)) {
+        return;
+      }
+
+      const tilesToRender = tiles.map(tile => this.tilesCache.get(getTileKey(tile)));
       const glPrograms = tilesToRender.flatMap(tile => tile.getRenderPrograms());
 
-      console.log('Start draw');
+      console.log('Render...');
       this.painter.setPrograms(glPrograms);
       this.painter.draw();
+
+      this.renderedTiles = tiles;
     };
 
     requestAnimationFrame(() => {
-      renderScene();
+      renderScene(tilesToRender);
     });
+  }
+
+  isAlreadRendered(renderedTiles: Array<RenderTileInfo>, tilesToRender: Array<RenderTileInfo>): boolean {
+    const renderedKeys = renderedTiles.map(t => t.tileId).sort().join('');
+    const tilesKeys = tilesToRender.map(t => t.tileId).sort().join('');
+    
+    return renderedKeys === tilesKeys;
   }
 }

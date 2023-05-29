@@ -320,63 +320,6 @@ export const getLandCoverFeatures = (
     }, [] as GlProgram[]);
 };
 
-export const getProjectionScale = (width: number, height: number, bbox: BBox): v2 => {
-	// bbox: longitude, latitude, longitude, latitude
-	const lonD = bbox[2] - bbox[0];
-	const latD = bbox[3] - bbox[1];
-
-	return [width / lonD, height / latD];
-};
-
-export const getProjectedCoords = (lon: number, lat: number, bbox: BBox, projectionScale: v2): v2 => {
-	const x = (lon - bbox[0]) * projectionScale[0];
-	const y = (lat - bbox[1]) * projectionScale[1];
-
-	return [x, y];
-};
-
-export const getBbox = (line: v2[]): [number, number, number, number] => {
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-
-  for (const [x, y] of line) {
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x);
-    maxY = Math.max(maxY, y);
-  }
- 
-  return [minX, minY, maxX, maxY];
-};
-
-export const merkatorProjection = (
-  x: number, 
-  y: number,
-  mapWidth: number,
-  mapHeight: number,
-  mapBoundaries: [number, number, number, number],
-): v2 => {
-    // lat = lat * Math.PI / 180;
-    // // [-180,-85.0511,180,85.0511]
-    // const [mapLonLeft, mapLatBottom, mapLonRight, mapLatTop] = mapBoundaries;
-    // const mapLonDelta = mapLonRight - mapLonLeft;
-    // const mapLatBottomDegree = mapLatBottom * Math.PI / 180;
-    // const x = (lon - mapLonLeft) * (mapWidth / mapLonDelta);
-    // const worldMapWidth = ((mapWidth / mapLonDelta) * 360) / (2 * Math.PI);
-    // const mapOffsetY = (worldMapWidth / 2 * Math.log((1 + Math.sin(mapLatBottomDegree)) / (1 - Math.sin(mapLatBottomDegree))));
-    // const y = mapHeight - ((worldMapWidth / 2 * Math.log((1 + Math.sin(lat)) / (1 - Math.sin(lat)))) - mapOffsetY);
-
-    // const x = (180 + lon) / 360;
-    // const y = (180 - (180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)))) / 360;
-
-    // return [x * mapWidth, y * mapHeight];
-    const scaleFactor = mapWidth / 2 / Math.PI;
-
-    return [x , y];
-}
-
 export const getTileBorders = (
   gl: WebGLRenderingContext,
   x: number,

@@ -3,13 +3,12 @@ import { VectorTile } from '@mapbox/vector-tile';
 import {MapTile} from './tile';
 import { GlProgram } from "../../gl";
 import {
-  getTileBorders,
   getTransportationFeatures,
   getBuildingFeatures,
   getBoundaryFeatures,
   getWaterFeatures,
   getLandCoverFeatures,
-} from '../render/vector_feature_gl_render';
+} from '../render/pbf_gl_render_utils';
 import { ZXY, MapTilesMeta } from '../types';
 
 export interface MapTileOptions {

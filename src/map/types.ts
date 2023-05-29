@@ -5,6 +5,7 @@ export type ZXY = [number, number, number];
 export type TileCacheKey = string;
 
 export interface RenderTileInfo {
+  tileId: string;
   tileZXY: ZXY;
   x: number;
   y: number;
