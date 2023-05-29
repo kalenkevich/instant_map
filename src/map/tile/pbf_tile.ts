@@ -1,14 +1,8 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
-import {MapTile} from './tile';
-import { GlProgram } from "../../gl";
-import {
-  getTransportationFeatures,
-  getBuildingFeatures,
-  getBoundaryFeatures,
-  getWaterFeatures,
-  getLandCoverFeatures,
-} from '../render/pbf_gl_render_utils';
+import { MapTile } from './tile';
+import { GlProgram } from '../../webgl';
+import { getTransportationFeatures, getBuildingFeatures, getBoundaryFeatures, getWaterFeatures, getLandCoverFeatures } from '../render/pbf_gl_render_utils';
 import { ZXY, MapTilesMeta } from '../types';
 
 export interface MapTileOptions {
@@ -25,7 +19,6 @@ export interface MapTileOptions {
 }
 
 export class MapPbfTile extends MapTile {
-  gl: WebGLRenderingContext;
   x: number;
   y: number;
   tileZXY: ZXY;
@@ -40,10 +33,9 @@ export class MapPbfTile extends MapTile {
   blank: boolean;
   scale: [number, number];
 
-  constructor(gl: WebGLRenderingContext, options: MapTileOptions) {
+  constructor(options: MapTileOptions) {
     super();
 
-    this.gl = gl;
     this.x = options.x;
     this.y = options.y;
     this.width = options.width;
@@ -70,10 +62,7 @@ export class MapPbfTile extends MapTile {
       this.isDataLoading = true;
       const [z, x, y] = this.tileZXY;
 
-      const tileUrl = this.tilesMeta.tiles[0]
-        .replace('{z}', z.toString())
-        .replace('{x}', x.toString())
-        .replace('{y}', y.toString());
+      const tileUrl = this.tilesMeta.tiles[0].replace('{z}', z.toString()).replace('{x}', x.toString()).replace('{y}', y.toString());
 
       const data = await fetch(tileUrl, { signal: abortSignal }).then(data => data.arrayBuffer());
 
@@ -99,48 +88,12 @@ export class MapPbfTile extends MapTile {
     }
 
     return [
-      ...getWaterFeatures(
-        this.gl,
-        this.tileData.layers.water, 
-        this.x,
-        this.y,
-        this.scale,
-      ),
-      ...getLandCoverFeatures(
-        this.gl,
-        this.tileData.layers.landcover, 
-        this.x,
-        this.y,
-        this.scale,
-      ),
-      ...getLandCoverFeatures(
-        this.gl,
-        this.tileData.layers.globallandcover, 
-        this.x,
-        this.y,
-        this.scale,
-      ),
-      ...getBoundaryFeatures(
-        this.gl,
-        this.tileData.layers.boundary,
-        this.x,
-        this.y,
-        this.scale,
-      ),
-      ...getTransportationFeatures(
-        this.gl,
-        this.tileData.layers.transportation,
-        this.x,
-        this.y,
-        this.scale,
-      ),
-      ...getBuildingFeatures(
-        this.gl,
-        this.tileData.layers.building,
-        this.x,
-        this.y,
-        this.scale,
-      ),
+      ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale),
+      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale),
+      ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale),
+      ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale),
+      ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
+      ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),
     ];
   }
 }

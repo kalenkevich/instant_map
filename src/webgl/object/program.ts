@@ -1,4 +1,4 @@
-import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from "twgl.js";
+import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 
@@ -23,10 +23,9 @@ export abstract class GlProgram {
   protected rotationInRadians: number;
   protected origin: v2;
   protected translation: v2;
-  protected scale: v2
+  protected scale: v2;
 
-  protected constructor(gl: WebGLRenderingContext, props: GlProgramProps) {
-    this.gl = gl;
+  protected constructor(props: GlProgramProps) {
     this.color = this.normalizeColor(props.color);
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
@@ -67,33 +66,33 @@ export abstract class GlProgram {
     this.scale = scale;
   }
 
-  public get primitiveType(): GLenum {
-    return this.gl.TRIANGLES;
+  public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
+    return gl.TRIANGLES;
   }
 
   public draw(gl: WebGLRenderingContext) {
     const programInfo = this.getProgramInfoInstance(gl);
-    const buffer = this.getBufferInfo();
-    const uniforms = this.getUniforms();
+    const buffer = this.getBufferInfo(gl);
+    const uniforms = this.getUniforms(gl);
 
     if (programInfo !== usedProgram) {
       gl.useProgram(programInfo.program);
       usedProgram = programInfo;
     }
-    this.consoleGlError('Use program');
+    this.consoleGlError(gl, 'Use program');
 
     setBuffersAndAttributes(gl, programInfo, buffer);
-    this.consoleGlError('setBuffersAndAttributes');
+    this.consoleGlError(gl, 'setBuffersAndAttributes');
 
     setUniforms(programInfo, uniforms);
-    this.consoleGlError('setUniforms');
+    this.consoleGlError(gl, 'setUniforms');
 
     const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
-    drawBufferInfo(gl, buffer, this.primitiveType, vertexCount, offset, instanceCount);
-    this.consoleGlError('Draw');
+    drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
+    this.consoleGlError(gl, 'Draw');
   }
 
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number; } {
+  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
     return {
       offset: undefined, // offset
       vertexCount: undefined, // num vertices per instance
@@ -108,10 +107,7 @@ export abstract class GlProgram {
   private static programInfo: ProgramInfo;
 
   public static compile(gl: WebGLRenderingContext): ProgramInfo {
-    this.programInfo = createProgramInfo(gl, [
-      this.getVertexShaderSource(),
-      this.getFragmentShaderSource(),
-    ]);
+    this.programInfo = createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
 
     return this.programInfo;
   }
@@ -145,21 +141,19 @@ export abstract class GlProgram {
         gl_FragColor = u_color;
       }
     `;
-  };
+  }
 
-  public static getProgramInfo(): ProgramInfo {
+  public static getProgramInfo(gl: WebGLRenderingContext): ProgramInfo {
     return this.programInfo;
   }
 
-  public abstract getBufferAttrs(): Record<string, any>;
+  public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;
 
-  public getBufferInfo(): BufferInfo {
-    return createBufferInfoFromArrays(this.gl, this.getBufferAttrs());
+  public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
+    return createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
   }
 
-  public getUniforms(): Record<string, any> {
-    const gl = this.gl;
-
+  public getUniforms(gl: WebGLRenderingContext): Record<string, any> {
     return {
       u_width: this.lineWidth,
       u_color: this.color,
@@ -176,10 +170,10 @@ export abstract class GlProgram {
     const matrix = m3.multiply(translationMatrix, rotationMatrix);
     const scaledMatrix = m3.multiply(matrix, scaleMatrix);
 
-    return m3.multiply(scaledMatrix, moveOriginMatrix)
+    return m3.multiply(scaledMatrix, moveOriginMatrix);
   }
 
-  public drawWithExt(...args: any[]) { }
+  public drawWithExt(...args: any[]) {}
 
   protected normalizeColor(color: GlColor): v4 {
     const typeErrorMessage = 'Color should be one of type string or rgb/rgba array';
@@ -197,23 +191,27 @@ export abstract class GlProgram {
     }
 
     if (typeof color === 'string') {
-
     }
 
     throw new Error(typeErrorMessage);
   }
 
-  public consoleGlError(stage: string) {
-    const gl = this.gl;
+  public consoleGlError(gl: WebGLRenderingContext, stage: string) {
     const glError = gl.getError();
 
     switch (glError) {
-      case gl.NO_ERROR: return;
-      case gl.INVALID_ENUM: return console.log(`GL stage: '${stage}', error: INVALID_ENUM`);
-      case gl.INVALID_VALUE: return console.log(`GL stage: '${stage}', error: INVALID_VALUE`);
-      case gl.INVALID_OPERATION: return console.log(`GL stage: '${stage}', error: INVALID_OPERATION`);
-      case gl.OUT_OF_MEMORY: return console.log(`GL stage: '${stage}', error: OUT_OF_MEMORY`);
-      case gl.CONTEXT_LOST_WEBGL: return console.log(`GL stage: '${stage}', error: CONTEXT_LOST_WEBGL`);
+      case gl.NO_ERROR:
+        return;
+      case gl.INVALID_ENUM:
+        return console.log(`GL stage: '${stage}', error: INVALID_ENUM`);
+      case gl.INVALID_VALUE:
+        return console.log(`GL stage: '${stage}', error: INVALID_VALUE`);
+      case gl.INVALID_OPERATION:
+        return console.log(`GL stage: '${stage}', error: INVALID_OPERATION`);
+      case gl.OUT_OF_MEMORY:
+        return console.log(`GL stage: '${stage}', error: OUT_OF_MEMORY`);
+      case gl.CONTEXT_LOST_WEBGL:
+        return console.log(`GL stage: '${stage}', error: CONTEXT_LOST_WEBGL`);
     }
   }
 }

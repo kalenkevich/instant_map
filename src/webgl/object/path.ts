@@ -1,19 +1,16 @@
-import { ProgramInfo } from "twgl.js";
-import { GlProgram } from "./program";
-import { GlMultiProgram } from "./multi_program";
+import { ProgramInfo } from 'twgl.js';
+import { GlProgram } from './program';
+import { GlMultiProgram } from './multi_program';
 import { v2 } from '../types';
-import { GlLineStrip, GlLineStripProps } from './line';
+import { WebGlLineStrip, GlLineStripProps } from './line';
 
 export interface GlPathProps extends GlLineStripProps {}
 
-export class GlPath extends GlMultiProgram {
-  constructor(gl: WebGLRenderingContext, props: GlPathProps) {
-    super(gl, props);
+export class WebGlPath extends GlMultiProgram {
+  constructor(props: GlPathProps) {
+    super(props);
 
-    this.subPrograms = [
-      new GlLineStrip(gl, props),
-      new MiterLineCap(gl, props),
-    ];
+    this.subPrograms = [new WebGlLineStrip(props), new WebGlMiterLineCap(props)];
   }
 }
 
@@ -21,7 +18,7 @@ export class GlPath extends GlMultiProgram {
  * Class to render Miter Line Cap
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
-export class MiterLineCap extends GlProgram {
+export class WebGlMiterLineCap extends GlProgram {
   protected points: v2[];
   protected instanceMiterJoin = [
     [0, 0, 0],
@@ -29,11 +26,11 @@ export class MiterLineCap extends GlProgram {
     [0, 1, 0],
     [0, 0, 0],
     [0, 1, 0],
-    [0, 0, 1]
+    [0, 0, 1],
   ];
 
-  constructor(gl: WebGLRenderingContext, props: GlPathProps) {
-    super(gl, props);
+  constructor(props: GlPathProps) {
+    super(props);
 
     this.lineWidth = props.lineWidth || 2;
     this.points = props.points;
@@ -44,7 +41,7 @@ export class MiterLineCap extends GlProgram {
   }
 
   public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return MiterLineCap.compile(gl);
+    return WebGlMiterLineCap.compile(gl);
   }
 
   // Render basic lines with triangles.
@@ -103,18 +100,18 @@ export class MiterLineCap extends GlProgram {
         numComponents: 2,
         data: points,
         divisor: 1,
-        offset: Float32Array.BYTES_PER_ELEMENT * 2
+        offset: Float32Array.BYTES_PER_ELEMENT * 2,
       },
       point_c: {
         numComponents: 2,
         data: points,
         divisor: 1,
-        offset: Float32Array.BYTES_PER_ELEMENT * 4
-      }
+        offset: Float32Array.BYTES_PER_ELEMENT * 4,
+      },
     };
   }
 
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number;} {
+  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
     return {
       offset: 0, // offset
       vertexCount: this.instanceMiterJoin.length, // num vertices per instance

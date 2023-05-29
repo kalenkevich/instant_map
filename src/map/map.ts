@@ -1,24 +1,43 @@
-import { GlPainter } from '../gl';
-import { throttle } from './utils';
+import { WebGlPainter } from '../webgl';
 
 import { MapPbfTile } from './tile/pbf_tile';
+import { Pan } from './pan';
+import { MapState } from './map_state';
+import { RenderTileInfo, TileCacheKey, MapTilesMeta, MapOptions, ZXY, MapRendererType, MapRendererOptions, MapRenderer } from './types';
 
-import { RenderTileInfo, TileCacheKey, MapTilesMeta, MapOptions, ZXY } from './types';
- 
 export const getTileKey = ({ tileZXY }: { tileZXY: ZXY }) => {
   const [z, x, y] = tileZXY;
 
   return `${z}-${x}-${y}`;
-}
+};
 
-export interface MapState {
-  zoom: number;
-  center: [number, number];
-}
+export const getRenderer = (renderer: MapRendererType | MapRendererOptions, canvasEl: HTMLCanvasElement): MapRenderer => {
+  if ((renderer as MapRendererOptions).renderer) {
+    return (renderer as MapRendererOptions).renderer;
+  }
 
-export class GlideMap {
-  gl: WebGLRenderingContext;
-  painter: GlPainter;
+  const type = renderer as MapRendererType;
+
+  if (type === MapRendererType.webgl) {
+    const gl = canvasEl.getContext('webgl', {
+      powerPreference: 'high-performance',
+    });
+
+    return new WebGlPainter(gl, []);
+  }
+
+  throw new Error(`Renderer ${type} is not supported.`);
+};
+
+/**
+ * Visual Map class
+ * Core of the map. Controls user events like mousemove, click, drag, wheel and converts it to the maps events like drag, zoom, move.
+ * Based on center and zoom fetch tiles.
+ *
+ * TODO: should support combination of the webgl (development), webgl2, webgpu as render engine and vector, xml, json as a data source format.
+ */
+export class GlideMap extends Pan {
+  renderer: MapRenderer;
   tilesCache: Map<TileCacheKey, MapPbfTile>;
   tilesMetaUrl: string;
   tilesMeta?: MapTilesMeta;
@@ -30,17 +49,15 @@ export class GlideMap {
   tileCoords: Array<[number, number]>;
   renderedTiles: Array<RenderTileInfo> = [];
 
-  private state: MapState;
-  private prevState: MapState;
+  constructor(options: MapOptions) {
+    super(options.el);
 
-  constructor(gl: WebGLRenderingContext, options: MapOptions) {
-    this.gl = gl;
-    this.painter = new GlPainter(this.gl, []);
+    this.renderer = getRenderer(options.renderer || MapRendererType.webgl, options.el as HTMLCanvasElement);
     this.tilesMetaUrl = options.tilesMetaUrl;
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
     this.tilesCache = new Map<TileCacheKey, MapPbfTile>();
-    this.width = this.gl.canvas.width;
-    this.height = this.gl.canvas.height;
+    this.width = (this.el as HTMLCanvasElement).width;
+    this.height = (this.el as HTMLCanvasElement).height;
     this.tileWidth = this.width / 2;
     this.tileHeight = this.height / 2;
     this.tileCoords = [
@@ -51,103 +68,21 @@ export class GlideMap {
     ];
     this.state = this.prevState = {
       zoom: options.zoom || 0,
-      center: options.center || [this.tileWidth, this.tileHeight] as [number, number],
+      center: options.center || ([this.tileWidth, this.tileHeight] as [number, number]),
     };
 
     this.init();
   }
 
-  getState(): MapState {
-    return this.state;
-  }
-
-  getPrevState(): MapState {
-    return this.prevState;
-  }
-
   init() {
-    this.painter.init();
-    this.subscribeOnGlEvents();
+    super.init();
+    this.renderer.init();
 
     this.fetchTilesMeta().then(() => {
       const tilesToRender = this.getTilesToRender(this.state);
 
       this.fetchTiles(tilesToRender);
-    })
-  }
-
-  subscribeOnGlEvents() {
-    this.gl.canvas.addEventListener('click', throttle((clickEvent: MouseEvent) => this.onClickEvent(clickEvent), 50));
-    this.gl.canvas.addEventListener('wheel', throttle((wheelEvent: WheelEvent) => this.onWheelEvent(wheelEvent), 200));
-
-    // drag events
-    this.gl.canvas.addEventListener('mousedown', throttle((mouseDownEvent: MouseEvent) => this.onMouseDownEvent(mouseDownEvent), 50));
-    this.gl.canvas.addEventListener('mousemove', (mouseMoveEvent: MouseEvent) => this.onMouseMove(mouseMoveEvent));
-    this.gl.canvas.addEventListener('mouseup', throttle((mouseUpEvent: MouseEvent) => this.onMouseUpEvent(mouseUpEvent), 50));
-  }
-
-  onClickEvent(clickEvent: MouseEvent) {
-    console.log('clickEvent', clickEvent, this.getState());
-  }
-  
-  onWheelEvent(wheelEvent: WheelEvent) {
-    console.log('wheelEvent', wheelEvent, this.getState());
-
-    let newZoom = this.state.zoom;
-
-    if (wheelEvent.deltaY < 0) {
-      newZoom = this.state.zoom + Math.abs(wheelEvent.deltaY / 10);
-      newZoom = Math.min(newZoom, 24);
-      newZoom = Number(newZoom.toFixed(4));
-    } else {
-      newZoom = this.state.zoom - Math.abs(wheelEvent.deltaY / 10);
-      newZoom = Math.max(newZoom, 0);
-      newZoom = Number(newZoom.toFixed(4));
-    }
-
-    this.onMapStateChange({
-      ...this.getState(),
-      zoom: newZoom,
-      center: [wheelEvent.x, wheelEvent.y],
     });
-  }
-
-  dragStarted = false;
-  dragStartX = 0;
-  dragStartY = 0;
-
-  onMouseDownEvent(mouseDownEvent: MouseEvent) {
-    console.log('mouseDownEvent', mouseDownEvent, this.getState());
-    this.dragStarted = true;
-
-    this.dragStartX = mouseDownEvent.x;
-    this.dragStartY = mouseDownEvent.y;
-  }
-
-  onMouseMove(mouseMoveEvent: MouseEvent) {}
-
-  onMouseUpEvent(mouseUpEvent: MouseEvent) {
-
-    if (!this.dragStarted) {
-      return;
-    }
-
-    this.dragStarted = false;
-    const state = this.getState();
-
-    let deltaX = (mouseUpEvent.x - this.dragStartX);
-    let deltaY = (mouseUpEvent.y - this.dragStartY);
-
-    this.onMapStateChange({
-      ...state,
-      // inverse the delta
-      center: [
-        state.center[0] - deltaX,
-        state.center[1] - deltaY,
-      ],
-    });
-
-    console.log('mouseUpEvent', mouseUpEvent, this.getState());
   }
 
   onMapStateChange(newState: MapState) {
@@ -167,17 +102,19 @@ export class GlideMap {
     if (z === 0) {
       const tileZXY = [z, 0, 0] as ZXY;
 
-      return [{
-        tileId: getTileKey({ tileZXY }),
-        x: this.tileWidth / 2,
-        y: this.tileHeight / 2,
-        // Use map width and height for root tile
-        width: this.tileWidth,
-        height: this.tileHeight,
-        tileZXY,
-      }];
+      return [
+        {
+          tileId: getTileKey({ tileZXY }),
+          x: 0,
+          y: 0,
+          // Use map width and height for root tile
+          width: this.width,
+          height: this.height,
+          tileZXY,
+        },
+      ];
     }
-    
+
     for (let i = 0; i < 4; i++) {
       const childX = Math.max(Math.min((x << 1) + (i % 2), tileBound), 0);
       const childY = Math.max(Math.min((y << 1) + (i >> 1), tileBound), 0);
@@ -198,7 +135,7 @@ export class GlideMap {
 
   async fetchTilesMeta() {
     try {
-      this.tilesMeta = await fetch(this.tilesMetaUrl).then(data => data.json()) as MapTilesMeta;
+      this.tilesMeta = (await fetch(this.tilesMetaUrl).then(data => data.json())) as MapTilesMeta;
     } catch (e) {
       console.log(e);
     }
@@ -234,7 +171,7 @@ export class GlideMap {
         continue;
       }
 
-      const pbfTile = new MapPbfTile(this.gl, {
+      const pbfTile = new MapPbfTile({
         x: tile.x,
         y: tile.y,
         width: tile.width,
@@ -252,21 +189,19 @@ export class GlideMap {
       this.fetchingTilesMap.set(tile.tileId, abortController);
 
       tilesPromises.push(
-        pbfTile
-          .fetchTileData(abortController.signal)
-          .finally(() => {
-            this.fetchingTilesMap.delete(tile.tileId);
-          })
+        pbfTile.fetchTileData(abortController.signal).finally(() => {
+          this.fetchingTilesMap.delete(tile.tileId);
+        })
       );
     }
 
     if (tilesPromises.length) {
-      Promise
-        .all(tilesPromises)
+      Promise.all(tilesPromises)
         .then(() => {
           this.fetchInProgress = false;
           this.rerenderMap(tilesToRender);
-        }).catch(() => {
+        })
+        .catch(() => {
           this.fetchInProgress = false;
         });
     } else {
@@ -288,8 +223,8 @@ export class GlideMap {
       const glPrograms = tilesToRender.flatMap(tile => tile.getRenderPrograms());
 
       console.log('Render...');
-      this.painter.setPrograms(glPrograms);
-      this.painter.draw();
+      this.renderer.setPrograms(glPrograms);
+      this.renderer.draw();
 
       this.renderedTiles = tiles;
     };
@@ -300,9 +235,15 @@ export class GlideMap {
   }
 
   isAlreadRendered(renderedTiles: Array<RenderTileInfo>, tilesToRender: Array<RenderTileInfo>): boolean {
-    const renderedKeys = renderedTiles.map(t => t.tileId).sort().join('');
-    const tilesKeys = tilesToRender.map(t => t.tileId).sort().join('');
-    
+    const renderedKeys = renderedTiles
+      .map(t => t.tileId)
+      .sort()
+      .join('');
+    const tilesKeys = tilesToRender
+      .map(t => t.tileId)
+      .sort()
+      .join('');
+
     return renderedKeys === tilesKeys;
   }
 }

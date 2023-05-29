@@ -4,7 +4,7 @@ export const throttle = function (func: Function, delay: number) {
   return (...args: any[]) => {
     // If setTimeout is already scheduled, no need to do anything
     if (timerId) {
-      return
+      return;
     }
 
     // Schedule a setTimeout after delay seconds
@@ -15,5 +15,5 @@ export const throttle = function (func: Function, delay: number) {
       // the next scroll event function execution can be scheduled by the setTimeout
       timerId = undefined;
     }, delay);
-  }
-}
+  };
+};

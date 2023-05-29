@@ -1,5 +1,5 @@
-import { ProgramInfo } from "twgl.js";
-import { GlProgram, GlProgramProps } from "./program";
+import { ProgramInfo } from 'twgl.js';
+import { GlProgram, GlProgramProps } from './program';
 import { v2 } from '../types';
 
 export interface GlLineProps extends GlProgramProps {
@@ -11,14 +11,14 @@ export interface GlLineStripProps extends GlProgramProps {
   points: v2[];
 }
 
-export class GlLine extends GlProgram {
-  line: GlNativeLine | GlLineStrip;
+export class WebGlLine extends GlProgram {
+  line: WebGlNativeLine | WebGlLineStrip;
 
-  constructor(gl: WebGLRenderingContext, props: GlLineProps) {
-    super(gl, props);
+  constructor(props: GlLineProps) {
+    super(props);
 
     if (props.lineWidth && props.lineWidth > 1) {
-      this.line = new GlLineStrip(gl, {
+      this.line = new WebGlLineStrip({
         points: [props.p1, props.p2],
         color: props.color,
         rotationInRadians: props.rotationInRadians,
@@ -28,7 +28,7 @@ export class GlLine extends GlProgram {
         lineWidth: props.lineWidth,
       });
     } else {
-      this.line = new GlNativeLine(gl, props);
+      this.line = new WebGlNativeLine(props);
     }
   }
 
@@ -63,21 +63,21 @@ export class GlLine extends GlProgram {
 
 /**
  * Class to render Lines using default WebGL API.
- * It support only lineWidth = 1. 
+ * It support only lineWidth = 1.
  */
-export class GlNativeLine extends GlProgram {
+export class WebGlNativeLine extends GlProgram {
   protected p1: v2;
   protected p2: v2;
 
-  constructor(gl: WebGLRenderingContext, props: GlLineProps) {
-    super(gl, props);
+  constructor(props: GlLineProps) {
+    super(props);
 
     this.p1 = props.p1;
     this.p2 = props.p2;
   }
 
-  public get primitiveType(): GLenum {
-    return this.gl.LINES;
+  public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
+    return gl.LINES;
   }
 
   public getBufferAttrs(): Record<string, any> {
@@ -89,14 +89,7 @@ export class GlNativeLine extends GlProgram {
     return {
       a_position: {
         numComponents: 2,
-        data: [
-          ...p1,
-          ...p2,
-          ...p3,
-          ...p3,
-          ...p2,
-          ...p4,
-        ],
+        data: [...p1, ...p2, ...p3, ...p3, ...p2, ...p4],
       },
     };
   }
@@ -104,13 +97,13 @@ export class GlNativeLine extends GlProgram {
 
 /**
  * Class to render LineStrips using default WebGL API.
- * It support only lineWidth = 1. 
+ * It support only lineWidth = 1.
  */
-export class GlNativeLineStrip extends GlProgram {
+export class WebGlNativeLineStrip extends GlProgram {
   protected points: v2[];
 
-  constructor(gl: WebGLRenderingContext, props: GlLineStripProps) {
-    super(gl, props);
+  constructor(props: GlLineStripProps) {
+    super(props);
     this.points = props.points;
   }
 
@@ -118,11 +111,11 @@ export class GlNativeLineStrip extends GlProgram {
     this.points = points;
   }
 
-  public get primitiveType(): GLenum {
-    return this.gl.LINE_STRIP;
+  public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
+    return gl.LINE_STRIP;
   }
 
-  public getBufferAttrs(): Record<string, any> {
+  public getBufferAttrs(gl: WebGLRenderingContext): Record<string, any> {
     return {
       a_position: {
         numComponents: 2,
@@ -136,20 +129,20 @@ export class GlNativeLineStrip extends GlProgram {
  * Class to render Lines using 2 triangles.
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
-export class GlLineStrip extends GlProgram {
+export class WebGlLineStrip extends GlProgram {
   protected points: v2[];
 
   protected segmentInstanceGeometry = [
     [0, -0.5],
     [1, -0.5],
-    [1,  0.5],
+    [1, 0.5],
     [0, -0.5],
-    [1,  0.5],
-    [0,  0.5]
+    [1, 0.5],
+    [0, 0.5],
   ];
 
-  constructor(gl: WebGLRenderingContext, props: GlLineStripProps) {
-    super(gl, props);
+  constructor(props: GlLineStripProps) {
+    super(props);
 
     this.lineWidth = props.lineWidth || 2;
     this.points = props.points;
@@ -160,7 +153,7 @@ export class GlLineStrip extends GlProgram {
   }
 
   public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return GlLineStrip.compile(gl);
+    return WebGlLineStrip.compile(gl);
   }
 
   // Render basic lines with triangles.
@@ -208,12 +201,12 @@ export class GlLineStrip extends GlProgram {
         numComponents: 2,
         data: points,
         divisor: 1,
-        offset: Float32Array.BYTES_PER_ELEMENT * 2
+        offset: Float32Array.BYTES_PER_ELEMENT * 2,
       },
     };
   }
 
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number;} {
+  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
     return {
       offset: 0, // offset
       vertexCount: this.segmentInstanceGeometry.length, // num vertices per instance

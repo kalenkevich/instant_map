@@ -1,4 +1,4 @@
-import { GlColor } from "./types";
+import { GlColor } from './types';
 
 export class RGBColor {
   r: number;

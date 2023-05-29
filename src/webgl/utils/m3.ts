@@ -1,32 +1,20 @@
 /** Math util for matrixes.*/
 export const m3 = {
-	translation: function (tx: number, ty: number): number[] {
-		return [
-			1, 0, 0,
-			0, 1, 0,
-			tx, ty, 1,
-		];
-	},
+  translation: function (tx: number, ty: number): number[] {
+    return [1, 0, 0, 0, 1, 0, tx, ty, 1];
+  },
 
-	rotation: function (angleInRadians: number): number[] {
-		var c = Math.cos(angleInRadians);
-		var s = Math.sin(angleInRadians);
-		return [
-			c, -s, 0,
-			s, c, 0,
-			0, 0, 1,
-		];
-	},
+  rotation: function (angleInRadians: number): number[] {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+    return [c, -s, 0, s, c, 0, 0, 0, 1];
+  },
 
-	scaling: function (sx: number, sy: number): number[] {
-		return [
-			sx, 0, 0,
-			0, sy, 0,
-			0, 0, 1,
-		];
-	},
+  scaling: function (sx: number, sy: number): number[] {
+    return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
+  },
 
-	multiply: function(a: number[], b: number[]): number[] {
+  multiply: function (a: number[], b: number[]): number[] {
     var a00 = a[0 * 3 + 0];
     var a01 = a[0 * 3 + 1];
     var a02 = a[0 * 3 + 2];

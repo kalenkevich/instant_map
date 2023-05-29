@@ -1,7 +1,7 @@
-import { addExtensionsToContext } from "twgl.js";
-import { GlProgram } from "./object/program";
+import { addExtensionsToContext } from 'twgl.js';
+import { GlProgram } from './object/program';
 
-export class GlPainter {
+export class WebGlPainter {
   private readonly gl: WebGLRenderingContext;
   private programs: GlProgram[];
 
@@ -32,7 +32,7 @@ export class GlPainter {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
-  public draw(...args: any[]): void {
+  public draw(): void {
     const gl = this.gl;
 
     for (const program of this.programs) {

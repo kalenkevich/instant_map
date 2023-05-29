@@ -1,7 +1,7 @@
-import { GlProgramProps } from "./program";
+import { GlProgramProps } from './program';
 import { GlMultiProgram } from './multi_program';
-import { GlNativeLineStrip, GlNativeLine } from './line';
-import { MiterLineCap } from './path';
+import { WebGlNativeLineStrip, WebGlNativeLine } from './line';
+import { WebGlMiterLineCap } from './path';
 import { v2 } from '../types';
 
 export interface GlPathGroupProps extends GlProgramProps {
@@ -12,12 +12,12 @@ export interface GlPathGroupProps extends GlProgramProps {
  * Class to group all path objects together and render it faster.
  * Check the draw method desription for more info.
  */
-export class GlPathGroup extends GlMultiProgram {
+export class WebGlPathGroup extends GlMultiProgram {
   paths: v2[][];
-  subPrograms: [GlNativeLineStrip, MiterLineCap];
+  subPrograms: [WebGlNativeLineStrip, WebGlMiterLineCap];
 
-  constructor(gl: WebGLRenderingContext, props: GlPathGroupProps) {
-    super(gl, props);
+  constructor(props: GlPathGroupProps) {
+    super(props);
 
     this.paths = props.paths;
 
@@ -31,18 +31,15 @@ export class GlPathGroup extends GlMultiProgram {
       points: [] as v2[],
     };
 
-    this.subPrograms = [
-      new GlNativeLineStrip(gl, subProgramProps),
-      new MiterLineCap(gl, subProgramProps),
-    ];
+    this.subPrograms = [new WebGlNativeLineStrip(subProgramProps), new WebGlMiterLineCap(subProgramProps)];
   }
 
   /**
    * Optimization to render big list of programs.
    * Idea: Instead of setting new program info each time we set it only once per object type.
    * Then only change buffer/data while each render which is much faster!
-   * 
-   * We need to loop through the list of paths twice as we need to render all line strips first, 
+   *
+   * We need to loop through the list of paths twice as we need to render all line strips first,
    * change the program and render all line caps.
    */
   public draw(gl: WebGLRenderingContext) {

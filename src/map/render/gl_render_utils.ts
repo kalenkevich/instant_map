@@ -1,12 +1,4 @@
-import {
-  GlProgram,
-  GlLine,
-  GL_COLOR_BLACK,
-  GL_COLOR_RED,
-  GL_COLOR_LIME,
-  GL_COLOR_BLUE,
-  GlColor,
-} from '../../gl';
+import { GlProgram, WebGlLine, GL_COLOR_BLACK, GL_COLOR_RED, GL_COLOR_LIME, GL_COLOR_BLUE, GlColor } from '../../webgl';
 
 export const ZoomColorMap: { [prop: string]: GlColor } = {
   '0': GL_COLOR_BLACK,
@@ -44,42 +36,33 @@ export const ZoomColorMap: { [prop: string]: GlColor } = {
 /**
  * Return the sample grid (development/debug purpose only).
  * @param gl WebGLRenderingContext
- * @param options zoom and center of the map view. 
- * @returns 
+ * @param options zoom and center of the map view.
+ * @returns
  */
-export const getMapSampleGrid = (
-  gl: WebGLRenderingContext,
-  { zoom, center }: { zoom: number; center: [number, number] },
-): GlProgram[] => {
+export const getMapSampleGrid = ({ zoom, center, width, height }: { zoom: number; center: [number, number]; width: number; height: number }): GlProgram[] => {
   const grid: GlProgram[] = [];
 
-  const generateCenterLines = (
-    startX: number,
-    startY: number,
-    width: number,
-    height: number,
-    deepLevel: number,
-  ) => {
+  const generateCenterLines = (startX: number, startY: number, width: number, height: number, deepLevel: number) => {
     if (deepLevel > zoom) {
       return;
     }
 
     const scale = Math.max((zoom - Math.round(zoom)) * 2, 1);
 
-    const horizontalLine = new GlLine(gl, {
+    const horizontalLine = new WebGlLine({
       color: ZoomColorMap[deepLevel.toString()] as GlColor,
       p1: [startX, startY + height / 2],
       p2: [startX + width, startY + height / 2],
-      lineWidth: Math.max(25 - (deepLevel * 4), 1),
+      lineWidth: Math.max(25 - deepLevel * 4, 1),
       translation: center,
       scale: [scale, scale],
       //origin: [-(startX + width), -(startY + height)]
     });
-    const verticalLine = new GlLine(gl, {
+    const verticalLine = new WebGlLine({
       color: ZoomColorMap[deepLevel.toString()] as GlColor,
       p1: [startX + width / 2, startY],
       p2: [startX + width / 2, startY + height],
-      lineWidth: Math.max(25 - (deepLevel * 5), 1),
+      lineWidth: Math.max(25 - deepLevel * 5, 1),
       translation: center,
       scale: [scale, scale],
       //origin: [-(startX + width), -(startY + height)]
@@ -93,7 +76,7 @@ export const getMapSampleGrid = (
     generateCenterLines(startX + width / 2, startY + height / 2, width / 2, height / 2, deepLevel + 1);
   };
 
-  generateCenterLines(0, 0, gl.canvas.width, gl.canvas.height, 0);
+  generateCenterLines(0, 0, width, height, 0);
 
   return grid;
-}
+};

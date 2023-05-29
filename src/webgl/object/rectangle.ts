@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps } from "./program";
+import { GlProgram, GlProgramProps } from './program';
 import { v2 } from '../types';
 
 export interface GlRectangleProps extends GlProgramProps {
@@ -7,13 +7,13 @@ export interface GlRectangleProps extends GlProgramProps {
   height: number;
 }
 
-export class GlRectangle extends GlProgram {
+export class WebGlRectangle extends GlProgram {
   protected p: v2;
   protected width: number;
   protected height: number;
 
-  constructor(gl: WebGLRenderingContext, props: GlRectangleProps) {
-    super(gl, props);
+  constructor(props: GlRectangleProps) {
+    super(props);
 
     this.p = props.p;
     this.width = props.width;
@@ -29,14 +29,7 @@ export class GlRectangle extends GlProgram {
     return {
       a_position: {
         numComponents: 2,
-        data: [
-          ...p1,
-          ...p2,
-          ...p3,
-          ...p3,
-          ...p2,
-          ...p4,
-        ],
+        data: [...p1, ...p2, ...p3, ...p3, ...p2, ...p4],
       },
     };
   }
