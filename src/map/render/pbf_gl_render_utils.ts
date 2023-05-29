@@ -43,6 +43,11 @@ const SUPPORTED_LAND_COVER_FEATURES = [
   LandCoverFeatureClass.grass,
   LandCoverFeatureClass.wetland,
   LandCoverFeatureClass.sand,
+  LandCoverFeatureClass.crop,
+  LandCoverFeatureClass.scrub,
+  LandCoverFeatureClass.tree,
+  LandCoverFeatureClass.forest,
+  LandCoverFeatureClass.snow,
 ];
 
 export const WaterFeatureClassColorMap = {

@@ -107,6 +107,10 @@ export abstract class GlProgram {
   private static programInfo: ProgramInfo;
 
   public static compile(gl: WebGLRenderingContext): ProgramInfo {
+    if (this.programInfo) {
+      return this.programInfo;
+    }
+
     this.programInfo = createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
 
     return this.programInfo;

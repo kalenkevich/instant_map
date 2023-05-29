@@ -1,4 +1,4 @@
-import { ProgramInfo } from 'twgl.js';
+import earcut from 'earcut';
 import { GlProgram, GlProgramProps } from './program';
 import { v2 } from '../types';
 
@@ -14,22 +14,24 @@ export class WebGlArea extends GlProgram {
     this.points = props.points;
   }
 
+  setPoints(points: v2[]) {
+    this.points = points;
+  }
+
   public getBufferAttrs(gl: WebGLRenderingContext): Record<string, any> {
+    const points = this.points.flatMap(p => p);
+    // Magic here! This function returns the indexes of the coordinates for triangle from the source point array.
+    const indexes = earcut(points);
     const data = [];
-    const n = this.points.length;
 
-    for (let i = 1; i < n; i++) {
-      data.push(this.points[i - 1], this.points[i], this.points[n - 1]);
-    }
-
-    if (data[data.length - 2] === data[data.length - 1]) {
-      data.pop();
+    for (const index of indexes) {
+      data.push(points[index * 2], points[index * 2 + 1]);
     }
 
     return {
       a_position: {
         numComponents: 2,
-        data: data.flatMap(p => p),
+        data: data,
       },
     };
   }

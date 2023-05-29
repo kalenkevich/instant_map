@@ -9,17 +9,22 @@ export class Pan extends Evented {
     this.subscribeOnUserEvents();
   }
 
-  onClickEvent(clickEvent: MouseEvent) {}
+  onClickEvent(clickEvent: MouseEvent) {
+    this.onMapStateChange({
+      ...this.state,
+      center: [clickEvent.x, clickEvent.y],
+    });
+  }
 
   onWheelEvent(wheelEvent: WheelEvent) {
     let newZoom = this.state.zoom;
 
     if (wheelEvent.deltaY < 0) {
-      newZoom = this.state.zoom + Math.abs(wheelEvent.deltaY / 10);
+      newZoom = this.state.zoom + Math.abs(wheelEvent.deltaY / 20);
       newZoom = Math.min(newZoom, 24);
       newZoom = Number(newZoom.toFixed(4));
     } else {
-      newZoom = this.state.zoom - Math.abs(wheelEvent.deltaY / 10);
+      newZoom = this.state.zoom - Math.abs(wheelEvent.deltaY / 20);
       newZoom = Math.max(newZoom, 0);
       newZoom = Number(newZoom.toFixed(4));
     }
@@ -53,9 +58,9 @@ export class Pan extends Evented {
     this.onMapStateChange({
       ...this.state,
       // inverse the delta
-      center: [this.state.center[0] - deltaX, this.state.center[1] - deltaY],
+      center: [Math.max(this.state.center[0] - deltaX, 0), Math.max(this.state.center[1] - deltaY, 0)],
     });
   }
 
-  onMapStateChange(state: MapState) {}
+  onMapStateChange(newState: MapState) {}
 }

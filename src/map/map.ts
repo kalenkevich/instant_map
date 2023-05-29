@@ -1,4 +1,4 @@
-import { WebGlPainter } from '../webgl';
+import { WebGlPainter, GlProgram } from '../webgl';
 
 import { MapPbfTile } from './tile/pbf_tile';
 import { Pan } from './pan';
@@ -58,8 +58,8 @@ export class GlideMap extends Pan {
     this.tilesCache = new Map<TileCacheKey, MapPbfTile>();
     this.width = (this.el as HTMLCanvasElement).width;
     this.height = (this.el as HTMLCanvasElement).height;
-    this.tileWidth = this.width / 2;
-    this.tileHeight = this.height / 2;
+    this.tileWidth = this.width / 4;
+    this.tileHeight = this.height / 4;
     this.tileCoords = [
       [0, 0],
       [this.tileWidth, 0],
@@ -94,10 +94,6 @@ export class GlideMap extends Pan {
 
   getTilesToRender(state: MapState): Array<RenderTileInfo> {
     const z = Math.floor(state.zoom);
-    const tileBound = (1 << z) - 1;
-    const x = Math.max(Math.min(Math.abs(state.center[0] / this.tileWidth) << z, tileBound), 0);
-    const y = Math.max(Math.min(Math.abs(state.center[1] / this.tileHeight) << z, tileBound), 0);
-    const nextTiles: RenderTileInfo[] = [];
 
     if (z === 0) {
       const tileZXY = [z, 0, 0] as ZXY;
@@ -114,6 +110,11 @@ export class GlideMap extends Pan {
         },
       ];
     }
+
+    const tileBound = (1 << z) - 1;
+    const x = Math.max(Math.min((state.center[0] / this.tileWidth) << z, tileBound), 0);
+    const y = Math.max(Math.min((state.center[1] / this.tileHeight) << z, tileBound), 0);
+    const nextTiles: RenderTileInfo[] = [];
 
     for (let i = 0; i < 4; i++) {
       const childX = Math.max(Math.min((x << 1) + (i % 2), tileBound), 0);
@@ -222,9 +223,10 @@ export class GlideMap extends Pan {
       const tilesToRender = tiles.map(tile => this.tilesCache.get(getTileKey(tile)));
       const glPrograms = tilesToRender.flatMap(tile => tile.getRenderPrograms());
 
-      console.log('Render...');
+      console.time('map_render');
       this.renderer.setPrograms(glPrograms);
       this.renderer.draw();
+      console.timeEnd('map_render');
 
       this.renderedTiles = tiles;
     };
