@@ -7,8 +7,6 @@ function createCanvas() {
   canvas.id = 'glide-gl';
   canvas.width = 1024 * window.devicePixelRatio;
   canvas.height = 1024 * window.devicePixelRatio;
-  // canvas.width = 1024;
-  // canvas.height = 1024;
 
   document.body.appendChild(canvas);
 

@@ -1,51 +1,40 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
-import { MapTile } from './tile';
+import { MapTile, MapTileOptions, TileCoords } from './tile';
 import { GlProgram } from '../../webgl';
 import { getTransportationFeatures, getBuildingFeatures, getBoundaryFeatures, getWaterFeatures, getLandCoverFeatures } from '../render/pbf_gl_render_utils';
-import { ZXY, MapTilesMeta } from '../types';
+import { MapTilesMeta } from '../types';
 
-export interface MapTileOptions {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  mapWidth: number;
-  mapHeight: number;
-  tileZXY: ZXY;
+export interface PbfMapTileOptions extends MapTileOptions {
   tilesMeta: MapTilesMeta;
-  pixelRatio?: number;
-  blank?: boolean;
 }
 
-export class MapPbfTile extends MapTile {
+export class PbfMapTile extends MapTile {
   x: number;
   y: number;
-  tileZXY: ZXY;
   width: number;
   height: number;
   mapWidth: number;
   mapHeight: number;
+  tileCoords: TileCoords;
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileData?: VectorTile;
   isDataLoading: boolean = false;
-  blank: boolean;
   scale: [number, number];
 
-  constructor(options: MapTileOptions) {
-    super();
+  constructor(options: PbfMapTileOptions) {
+    super(options);
 
-    this.x = options.x;
-    this.y = options.y;
-    this.width = options.width;
-    this.height = options.height;
-    this.mapWidth = options.mapWidth;
-    this.mapHeight = options.mapHeight;
-    this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
-    this.blank = options.blank || false;
+    this.x = options.renderOptions.x;
+    this.y = options.renderOptions.y;
+    this.width = options.renderOptions.width;
+    this.height = options.renderOptions.height;
+    this.mapWidth = options.renderOptions.mapWidth;
+    this.mapHeight = options.renderOptions.mapHeight;
+    this.pixelRatio = options.renderOptions.pixelRatio || window.devicePixelRatio || 1;
 
-    this.tileZXY = options.tileZXY;
+    this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
     this.scale = [this.width / this.mapWidth / this.pixelRatio, this.height / this.mapHeight / this.pixelRatio];
   }
@@ -60,7 +49,7 @@ export class MapPbfTile extends MapTile {
 
     try {
       this.isDataLoading = true;
-      const [z, x, y] = this.tileZXY;
+      const [z, x, y] = this.tileCoords;
 
       const tileUrl = this.tilesMeta.tiles[0].replace('{z}', z.toString()).replace('{x}', x.toString()).replace('{y}', y.toString());
 
@@ -89,8 +78,8 @@ export class MapPbfTile extends MapTile {
 
     return [
       ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale),
-      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale),
       ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale),
+      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale),
       ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale),
       ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
       ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),

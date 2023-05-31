@@ -33,7 +33,13 @@ const SUPPORTED_BOUNDARY_FEATURES = [
   BoudaryAdminLevel.ADMIN_LEVEL_10,
 ];
 
-const SUPPORTED_WATER_FEATURES = [WaterFeatureClass.ocean];
+const SUPPORTED_WATER_FEATURES = [
+  WaterFeatureClass.ocean,
+  WaterFeatureClass.dock,
+  WaterFeatureClass.river,
+  WaterFeatureClass.lake,
+  WaterFeatureClass.swimming_pool,
+];
 
 const SUPPORTED_LAND_COVER_FEATURES = [
   LandCoverFeatureClass.farmland,
@@ -53,7 +59,6 @@ const SUPPORTED_LAND_COVER_FEATURES = [
 export const WaterFeatureClassColorMap = {
   [WaterFeatureClass.ocean]: RGBColor.toGLColor(95, 200, 255),
   [WaterFeatureClass.dock]: RGBColor.toGLColor(95, 200, 255),
-  [WaterFeatureClass.ocean]: RGBColor.toGLColor(95, 200, 255),
   [WaterFeatureClass.river]: RGBColor.toGLColor(95, 200, 255),
   [WaterFeatureClass.lake]: RGBColor.toGLColor(95, 200, 255),
   [WaterFeatureClass.swimming_pool]: RGBColor.toGLColor(95, 200, 255),
