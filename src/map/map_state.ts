@@ -1,4 +1,6 @@
+import { LatLng } from './geo/lat_lng';
+
 export interface MapState {
   zoom: number;
-  center: [number, number];
+  center: LatLng;
 }

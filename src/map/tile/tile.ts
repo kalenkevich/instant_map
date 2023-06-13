@@ -2,11 +2,21 @@ import { GlProgram } from '../../webgl';
 
 export type MapTileId = string;
 
-export type TileCoords = [number, number, number]; // z, x, y;
+export class TileCoordinate {
+  x: number;
+  y: number;
+  z: number;
+
+  constructor(x: number, y: number, z: number) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+}
 
 export interface MapTileOptions {
   id: MapTileId;
-  tileCoords: TileCoords;
+  tileCoords: TileCoordinate;
   renderOptions: MapTileRenderOptions;
 }
 
@@ -20,8 +30,7 @@ export interface MapTileRenderOptions {
   pixelRatio?: number;
 }
 
-export const DEFAULT_TILE_WIDTH = 256;
-export const DEFAULT_TILE_HEIGHT = 256;
+export const DEFAULT_TILE_SIZE = 256;
 
 /**
  * Base class for tiles:

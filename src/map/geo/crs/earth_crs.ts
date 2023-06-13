@@ -1,11 +1,21 @@
 import { CoordinateReferenceSystem } from './crs';
-import { MEAN_EARTH_RADIUS } from '../consts';
+import { EARTH_RADIUS, MEAN_EARTH_RADIUS } from '../consts';
 import { LatLng } from '../lat_lng';
+import { SphericalMercatorProjection } from '../projection/spherical_mercator_projection';
+import { Transformation } from '../../geometry/transformation';
+
+const EARTH_CRS_SCALE = 0.5 / (Math.PI * EARTH_RADIUS);
+const EARTH_CRS_TRANSFORMATION = new Transformation(EARTH_CRS_SCALE, 0.5, -EARTH_CRS_SCALE, 0.5);
+const EARTH_CRS_PROGECTION = new SphericalMercatorProjection();
 
 export class EarthCoordinateReferenceSystem extends CoordinateReferenceSystem {
   wrapLng: [-180, 180];
 
   R = MEAN_EARTH_RADIUS;
+
+  projection = EARTH_CRS_PROGECTION;
+
+  transformation = EARTH_CRS_TRANSFORMATION;
 
   // distance between two geographical points using spherical law of cosines approximation
   distance(latlng1: LatLng, latlng2: LatLng): number {

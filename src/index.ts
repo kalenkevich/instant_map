@@ -1,4 +1,5 @@
 import { renderObjectsDemo } from './demo';
+import { LatLng } from './map/geo/lat_lng';
 import { GlideMap } from './map/map';
 
 function createCanvas() {
@@ -17,7 +18,8 @@ window.addEventListener('load', () => {
   const canvas = createCanvas();
   const map = new GlideMap({
     el: canvas,
-    zoom: 0,
+    zoom: 14.3218,
+    center: new LatLng(53.0875, 25.3183),
     tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   });
 

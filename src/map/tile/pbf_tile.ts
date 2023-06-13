@@ -1,6 +1,6 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
-import { MapTile, MapTileOptions, TileCoords } from './tile';
+import { MapTile, MapTileOptions, TileCoordinate } from './tile';
 import { GlProgram } from '../../webgl';
 import { getTransportationFeatures, getBuildingFeatures, getBoundaryFeatures, getWaterFeatures, getLandCoverFeatures } from '../render/pbf_gl_render_utils';
 import { MapTilesMeta } from '../types';
@@ -16,7 +16,7 @@ export class PbfMapTile extends MapTile {
   height: number;
   mapWidth: number;
   mapHeight: number;
-  tileCoords: TileCoords;
+  tileCoords: TileCoordinate;
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileData?: VectorTile;
@@ -49,9 +49,11 @@ export class PbfMapTile extends MapTile {
 
     try {
       this.isDataLoading = true;
-      const [z, x, y] = this.tileCoords;
 
-      const tileUrl = this.tilesMeta.tiles[0].replace('{z}', z.toString()).replace('{x}', x.toString()).replace('{y}', y.toString());
+      const tileUrl = this.tilesMeta.tiles[0]
+        .replace('{z}', this.tileCoords.z.toString())
+        .replace('{x}', this.tileCoords.x.toString())
+        .replace('{y}', this.tileCoords.y.toString());
 
       const data = await fetch(tileUrl, { signal: abortSignal }).then(data => data.arrayBuffer());
 

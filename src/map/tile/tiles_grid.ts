@@ -1,11 +1,15 @@
 import { MapState } from '../map_state';
 import { MapTilesMeta } from '../types';
-import { MapTile, MapTileId, TileCoords, DEFAULT_TILE_WIDTH, DEFAULT_TILE_HEIGHT } from './tile';
+import { MapTile, MapTileId, TileCoordinate, DEFAULT_TILE_SIZE } from './tile';
 import { PbfMapTile } from './pbf_tile';
+import { Point } from '../geometry/point';
+import { Bounds } from '../geometry/bounds';
+import { GlideMap } from '../map';
+import { LatLngBounds } from '../geo/lat_lng_bounds';
 
 export interface RenderTileInfo {
   tileId: MapTileId;
-  tileCoords: TileCoords;
+  tileCoords: TileCoordinate;
   x: number;
   y: number;
   width: number;
@@ -13,62 +17,71 @@ export interface RenderTileInfo {
 }
 
 export interface TilesGridOptions {
-  tilesMetaUrl: string;
+  tilesMeta: MapTilesMeta;
   mapWidth: number;
   mapHeight: number;
+  devicePixelRatio?: number;
 }
 
 /**
  * This class suppouse to handle all actions with tiles: load, unload, etc.
  */
 export class TilesGrid {
+  map: GlideMap;
   tilesCache: Map<MapTileId, MapTile>;
-  tilesMetaUrl: string;
-  tilesMeta?: MapTilesMeta;
+  tilesMeta: MapTilesMeta;
   devicePixelRatio: number;
 
-  tileWidth: number;
-  tileHeight: number;
+  tileSize: number;
   tileCoords: Array<[number, number]>;
   mapWidth: number;
   mapHeight: number;
   renderedTiles: Array<RenderTileInfo> = [];
+  tileZoom: number;
+
+  globalTileRange: Bounds;
+  // wrapX: Point;
+  // wrapY: Point;
 
   fetchInProgress = false;
   fetchingTilesMap: Map<string, AbortController> = new Map();
 
-  constructor(options: TilesGridOptions) {
-    this.tilesMetaUrl = options.tilesMetaUrl;
+  constructor(map: GlideMap, options: TilesGridOptions) {
+    this.map = map;
+    this.tilesMeta = options.tilesMeta;
     this.mapWidth = options.mapWidth;
     this.mapHeight = options.mapHeight;
+    this.devicePixelRatio = options.devicePixelRatio || 1;
     this.tilesCache = new Map<MapTileId, MapTile>();
   }
 
-  public async init(): Promise<void> {
-    await this.fetchTilesMeta();
+  public async init() {
+    this.tileSize = (this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE) * this.devicePixelRatio;
+    this.tileCoords = [
+      [0, 0],
+      [this.tileSize, 0],
+      [0, this.tileSize],
+      [this.tileSize, this.tileSize],
+    ];
+
+    this.resetGrid();
+  }
+
+  resetGrid() {
+    const crs = this.map.crs;
+    const tileZoom = this.getTileZoom(this.map.getZoom());
+    const tileSize = this.getTileSize();
+
+    const bounds = this.map.getPixelWorldBounds(tileZoom);
+    if (bounds) {
+      this.globalTileRange = this.pxBoundsToTileRange(bounds);
+    }
   }
 
   public async update(mapState: MapState): Promise<MapTile[]> {
     const tilesToRender = this.getTilesToRender(mapState);
 
     return this.fetchTiles(tilesToRender);
-  }
-
-  private async fetchTilesMeta() {
-    try {
-      this.tilesMeta = (await fetch(this.tilesMetaUrl).then(data => data.json())) as MapTilesMeta;
-
-      this.tileWidth = this.tilesMeta.pixel_scale || DEFAULT_TILE_WIDTH;
-      this.tileHeight = this.tilesMeta.pixel_scale || DEFAULT_TILE_HEIGHT;
-      this.tileCoords = [
-        [0, 0],
-        [this.tileWidth, 0],
-        [0, this.tileHeight],
-        [this.tileWidth, this.tileHeight],
-      ];
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   private async fetchTiles(tilesToRender: Array<RenderTileInfo>): Promise<MapTile[]> {
@@ -133,43 +146,131 @@ export class TilesGrid {
       return tiles;
     } catch (e) {
       this.fetchInProgress = false;
+
+      return [];
     }
   }
 
-  private getTilesToRender(mapState: MapState): Array<RenderTileInfo> {
-    const nextTiles: RenderTileInfo[] = [];
-    const tilesCoords: TileCoords[] = [
-      [0, 0, 0],
-      // [12, 2335, 1332],
-      // [12, 2336, 1332],
-      // [12, 2335, 1333],
-      // [12, 2336, 1333],
-      // [14, 9343, 5330],
-      // [14, 9344, 5330],
-      // [14, 9343, 5331],
-      // [14, 9344, 5331],
-    ];
+  getTileZoom(mapZoom: number): number | undefined {
+    let tileZoom = Math.round(mapZoom);
 
-    let i = 0;
-    for (const tileCoords of tilesCoords) {
-      nextTiles.push({
-        tileId: getTileId(tileCoords),
-        x: this.tileCoords[i][0],
-        y: this.tileCoords[i][1],
-        width: this.tileWidth,
-        height: this.tileHeight,
-        tileCoords,
-      });
-      i++;
+    if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
+      return undefined;
     }
 
-    return nextTiles;
+    return this.clampZoom(tileZoom);
+  }
+
+  clampZoom(zoom: number) {
+    const minZoom = this.map.getMinZoom();
+    const maxZoom = this.map.getMaxZoom();
+
+    if (zoom < minZoom) {
+      return zoom;
+    }
+
+    if (maxZoom < zoom) {
+      return maxZoom;
+    }
+
+    return zoom;
+  }
+
+  private getTilesToRender(state: MapState): RenderTileInfo[] {
+    const tileZoom = this.getTileZoom(state.zoom);
+    const pixelBounds = this.getTiledPixelBounds(state);
+    const tileRange = this.pxBoundsToTileRange(pixelBounds);
+    const tileCenter = tileRange.getCenter();
+
+    const tilesCoords: TileCoordinate[] = [];
+    for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
+      for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
+        const coords = new TileCoordinate(i, j, tileZoom);
+
+        if (!this.isValidTile(coords)) {
+          continue;
+        }
+
+        tilesCoords.push(coords);
+      }
+    }
+    const minXTileCoord = Math.min(...tilesCoords.map(t => t.x));
+    const minYTileCoord = Math.min(...tilesCoords.map(t => t.y));
+
+    const res = tilesCoords.map(tileCoords => ({
+      tileId: getTileId(tileCoords),
+      x: (tileCoords.x - minXTileCoord) * this.tileSize,
+      y: (tileCoords.y - minYTileCoord) * this.tileSize,
+      width: this.tileSize,
+      height: this.tileSize,
+      tileCoords: new TileCoordinate(tileCoords.x, tileCoords.y, tileCoords.z - 1),
+    }));
+
+    console.log(res);
+
+    return res;
+  }
+
+  isValidTile(coords: TileCoordinate): boolean {
+    const crs = this.map.crs;
+
+    if (!crs.infinite) {
+      // don't load tile if it's out of bounds and not wrapped
+      const bounds = this.globalTileRange;
+      if ((!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) || (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))) {
+        return false;
+      }
+    }
+
+    const bounds = this.map.bounds;
+
+    if (!bounds) {
+      return true;
+    }
+
+    const tileBounds = this.tileCoordsToBounds(coords);
+
+    // don't load tile if it doesn't intersect the bounds in options
+    return bounds.overlaps(tileBounds);
+  }
+
+  tileCoordsToBounds(tileCoords: TileCoordinate) {
+    const bounds = this.tileCoordsToNwSe(tileCoords);
+
+    return this.map.wrapLatLngBounds(bounds);
+  }
+
+  tileCoordsToNwSe(tileCoords: TileCoordinate): LatLngBounds {
+    const map = this.map;
+    const coords = new Point(tileCoords.x, tileCoords.y);
+    const tileSize = this.getTileSize();
+    const nwPoint = coords.scaleBy(tileSize);
+    const sePoint = nwPoint.add(tileSize);
+    const nw = map.unproject(nwPoint, tileCoords.z);
+    const se = map.unproject(sePoint, tileCoords.z);
+
+    return new LatLngBounds(nw, se);
+  }
+
+  pxBoundsToTileRange(bounds: Bounds) {
+    const tileSize = this.getTileSize();
+
+    return new Bounds(bounds.min.unscaleBy(tileSize).floor(), bounds.max.unscaleBy(tileSize).ceil().subtract(new Point(1, 1)));
+  }
+
+  getTileSize(): Point {
+    return new Point(this.tileSize, this.tileSize);
+  }
+
+  getTiledPixelBounds({ zoom, center }: MapState): Bounds {
+    const tileZoom = this.getTileZoom(zoom);
+    const scale = this.map.getZoomScale(zoom, tileZoom);
+    const pixelCenter = this.map.project(center, tileZoom).floor();
+    const halfSize = this.map.getSize().divideBy(scale * 2);
+
+    return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
   }
 }
 
 // TODO use number instead of string. Number easier to operate.
-export const getTileId = (tileCoords: TileCoords): MapTileId => {
-  const [z, x, y] = tileCoords;
-
-  return `${z}-${x}-${y}`;
-};
+export const getTileId = (tileCoords: TileCoordinate): MapTileId => `${tileCoords.z}:${tileCoords.x}:${tileCoords.y}`;
