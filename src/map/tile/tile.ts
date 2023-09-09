@@ -23,10 +23,12 @@ export interface MapTileOptions {
 export interface MapTileRenderOptions {
   x: number;
   y: number;
+  scale: number;
   width: number;
   height: number;
   mapWidth: number;
   mapHeight: number;
+  mapZoom: number;
   pixelRatio?: number;
 }
 
@@ -46,6 +48,10 @@ export abstract class MapTile {
   constructor(options: MapTileOptions) {
     this.id = options.id;
   }
+
+  abstract setScale(scale: number): void;
+
+  abstract setZoom(mapZoom: number): void;
 
   abstract fetchTileData(abortSignal?: AbortSignal): Promise<void>;
 

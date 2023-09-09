@@ -1,7 +1,7 @@
 import { VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile';
 import { BBox, Feature, Geometry, Polygon } from 'geojson';
 import { simplify } from './simplify';
-import { GlProgram, WebGlPath, WebGlPathGroup, v2, LineStrip, Area, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea, RGBColor } from '../../webgl';
+import { GlProgram, WebGlPath, WebGlPathGroup, v2, LineStrip, Area, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea, RGBColor, WebGlRectangle } from '../../webgl';
 import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass } from '../features/map_features';
 
 export interface Point {
@@ -93,7 +93,6 @@ export interface SipmlifyGeometryOptions {
 };
 
 export const DefaultSipmlifyGeometryOptions = {
-  tolerance: 20,
   highQuality: false,
   mutate: true, // performance increase
   enabled: true,
@@ -367,11 +366,6 @@ const getGeoJsonFeatureFromVectorTile = (
     properties: {},
   };
   
-  // if (simplifyOptions.enabled) {
-  //   // @ts-ignore
-  //   return simplify(geometryFeature, simplifyOptions);
-  // }
-
   return geometryFeature;
 };
 

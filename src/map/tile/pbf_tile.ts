@@ -10,6 +10,7 @@ import {
   getLandCoverFeatures,
   getTileBorders,
   SipmlifyGeometryOptions,
+  DefaultSipmlifyGeometryOptions,
 } from '../render/pbf_gl_render_utils';
 import { MapTilesMeta } from '../types';
 
@@ -18,33 +19,59 @@ export interface PbfMapTileOptions extends MapTileOptions {
 }
 
 export class PbfMapTile extends MapTile {
+  originalX: number
+  originalY: number;
   x: number;
   y: number;
   width: number;
   height: number;
   mapWidth: number;
   mapHeight: number;
+  mapZoom: number;
   tileCoords: TileCoordinate;
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileData?: VectorTile;
   isDataLoading: boolean = false;
+  scaleFactor: number;
   scale: [number, number];
 
   constructor(options: PbfMapTileOptions) {
     super(options);
 
-    this.x = options.renderOptions.x;
-    this.y = options.renderOptions.y;
+    this.originalX = options.renderOptions.x;
+    this.originalY = options.renderOptions.y;
+    this.scaleFactor = options.renderOptions.scale;
+    this.x = this.originalX * options.renderOptions.scale;
+    this.y = this.originalY * options.renderOptions.scale;
     this.width = options.renderOptions.width;
     this.height = options.renderOptions.height;
     this.mapWidth = options.renderOptions.mapWidth;
     this.mapHeight = options.renderOptions.mapHeight;
+    this.mapZoom = options.renderOptions.mapZoom;
     this.pixelRatio = options.renderOptions.pixelRatio || window.devicePixelRatio || 1;
 
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
-    this.scale = [this.width / this.mapWidth / this.pixelRatio, this.height / this.mapHeight / this.pixelRatio];
+    this.scale = [
+      (this.width / this.mapWidth / this.pixelRatio) * options.renderOptions.scale,
+      (this.height / this.mapHeight / this.pixelRatio) * options.renderOptions.scale,
+    ];
+  }
+
+  setZoom(zoom: number) {
+    this.mapZoom = zoom;
+  }
+
+  setScale(scale: number) {
+    this.scaleFactor = scale;
+    this.x = this.originalX * scale;
+    this.y = this.originalY * scale;
+
+    this.scale = [
+      (this.width / this.mapWidth / this.pixelRatio) * scale,
+      (this.height / this.mapHeight / this.pixelRatio) * scale,
+    ];
   }
 
   /**
@@ -86,12 +113,17 @@ export class PbfMapTile extends MapTile {
       return [] as GlProgram[];
     }
 
+    const simplifyOptions = {
+      ...DefaultSipmlifyGeometryOptions,
+      tolerance: 50 / this.mapZoom,
+    };
+
     return [
       ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale, {enabled: false}),
       ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale, {enabled: false}),
-      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale),
-      ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale),
-      ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
+      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale, {enabled: false}),
+      // ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale, simplifyOptions),
+      // ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
       // ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),
       // ...getTileBorders(this.x, this.y, this.width, this.height),
     ];

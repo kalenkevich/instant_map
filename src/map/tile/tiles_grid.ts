@@ -12,8 +12,10 @@ export interface RenderTileInfo {
   tileCoords: TileCoordinate;
   x: number;
   y: number;
+  scale: number;
   width: number;
   height: number;
+  mapZoom: number;
 }
 
 export interface TilesGridOptions {
@@ -32,7 +34,7 @@ export class TilesGrid {
   tilesMeta: MapTilesMeta;
   devicePixelRatio: number;
 
-  tileSize: number;
+  defaultTileSize: number;
   tileCoords: Array<[number, number]>;
   mapWidth: number;
   mapHeight: number;
@@ -56,12 +58,12 @@ export class TilesGrid {
   }
 
   public async init() {
-    this.tileSize = (this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE) * this.devicePixelRatio;
+    this.defaultTileSize = (this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE) * this.devicePixelRatio;
     this.tileCoords = [
       [0, 0],
-      [this.tileSize, 0],
-      [0, this.tileSize],
-      [this.tileSize, this.tileSize],
+      [this.defaultTileSize, 0],
+      [0, this.defaultTileSize],
+      [this.defaultTileSize, this.defaultTileSize],
     ];
 
     this.resetGrid();
@@ -81,10 +83,10 @@ export class TilesGrid {
   public async update(mapState: MapState): Promise<MapTile[]> {
     const tilesToRender = this.getTilesToRender(mapState);
 
-    return this.fetchTiles(tilesToRender);
+    return this.fetchTiles(tilesToRender, mapState);
   }
 
-  private async fetchTiles(tilesToRender: Array<RenderTileInfo>): Promise<MapTile[]> {
+  private async fetchTiles(tilesToRender: Array<RenderTileInfo>, mapState: MapState): Promise<MapTile[]> {
     if (!this.tilesMeta) {
       throw new Error('Tiles meta is not defined.');
     }
@@ -103,11 +105,8 @@ export class TilesGrid {
       }
     }
 
-    let invokeRerender = false;
-
     for (const tile of tilesToRender) {
       if (this.tilesCache.has(tile.tileId) || this.fetchingTilesMap.has(tile.tileId)) {
-        invokeRerender = true;
         continue;
       }
 
@@ -118,10 +117,12 @@ export class TilesGrid {
         renderOptions: {
           x: tile.x,
           y: tile.y,
+          scale: tile.scale,
           width: tile.width,
           height: tile.height,
           mapWidth: this.mapWidth,
           mapHeight: this.mapHeight,
+          mapZoom: mapState.zoom,
         },
       });
 
@@ -139,11 +140,17 @@ export class TilesGrid {
     }
 
     try {
-      const tiles = await Promise.all(tilesPromises);
+      await Promise.all(tilesPromises);
 
       this.fetchInProgress = false;
 
-      return tiles;
+      return tilesToRender.map(ttr => {
+        const tile = this.tilesCache.get(ttr.tileId);
+        tile.setScale(ttr.scale);
+        tile.setZoom(ttr.mapZoom);
+
+        return tile;
+      });
     } catch (e) {
       this.fetchInProgress = false;
 
@@ -178,9 +185,9 @@ export class TilesGrid {
 
   private getTilesToRender(state: MapState): RenderTileInfo[] {
     const tileZoom = this.getTileZoom(state.zoom);
+    const tileScale = this.getTileScale(state);
     const pixelBounds = this.getTiledPixelBounds(state);
     const tileRange = this.pxBoundsToTileRange(pixelBounds);
-    const tileCenter = tileRange.getCenter();
 
     const tilesCoords: TileCoordinate[] = [];
     for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
@@ -196,17 +203,21 @@ export class TilesGrid {
     }
     const minXTileCoord = Math.min(...tilesCoords.map(t => t.x));
     const minYTileCoord = Math.min(...tilesCoords.map(t => t.y));
+    let tileSize = this.defaultTileSize;
+    if (tilesCoords.length < 16) {
+      tileSize = this.defaultTileSize * (Math.pow(4, Math.floor(state.zoom)) / tilesCoords.length);
+    }
 
     const res = tilesCoords.map(tileCoords => ({
       tileId: getTileId(tileCoords),
-      x: (tileCoords.x - minXTileCoord) * this.tileSize,
-      y: (tileCoords.y - minYTileCoord) * this.tileSize,
-      width: this.tileSize,
-      height: this.tileSize,
+      x: (tileCoords.x - minXTileCoord) * tileSize,
+      y: (tileCoords.y - minYTileCoord) * tileSize,
+      scale: tileScale,
+      width: tileSize,
+      height: tileSize,
+      mapZoom: state.zoom,
       tileCoords: new TileCoordinate(tileCoords.x, tileCoords.y, tileCoords.z - 1),
     }));
-
-    console.log(res);
 
     return res;
   }
@@ -259,7 +270,7 @@ export class TilesGrid {
   }
 
   getTileSize(): Point {
-    return new Point(this.tileSize, this.tileSize);
+    return new Point(this.defaultTileSize, this.defaultTileSize);
   }
 
   getTiledPixelBounds({ zoom, center }: MapState): Bounds {
@@ -269,6 +280,12 @@ export class TilesGrid {
     const halfSize = this.map.getSize().divideBy(scale * 2);
 
     return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
+  }
+
+  getTileScale({ zoom, center }: MapState): number {
+    const tileZoom = this.getTileZoom(zoom);
+
+    return this.map.getZoomScale(zoom, tileZoom);
   }
 }
 

@@ -21,7 +21,7 @@ export const DEFAULT_MAP_METADATA: MapMeta = {
   center: [0, 0, 1],
   format: TilesetFormat.pbf,
   maxzoom: 14,
-  minzoom: 0,
+  minzoom: 1,
   crs: MapCrsType.earth,
   tiles: [],
 };
