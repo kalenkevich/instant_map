@@ -1,4 +1,3 @@
-import { BBox } from 'geojson';
 import { WebGlPainter } from '../webgl';
 import { LatLng } from './geo/lat_lng';
 import { CoordinateReferenceSystem } from './geo/crs/crs';

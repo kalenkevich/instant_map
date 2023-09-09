@@ -11,6 +11,13 @@ export interface GlProgramProps {
   lineWidth?: number;
 }
 
+export interface GlUniforms {
+  u_width: number;
+  u_color: v4;
+  u_resolution: [number, number];
+  u_matrix: number[];
+}
+
 let usedProgram: ProgramInfo | undefined;
 
 export abstract class GlProgram {
@@ -24,6 +31,8 @@ export abstract class GlProgram {
   protected origin: v2;
   protected translation: v2;
   protected scale: v2;
+
+  private uniformsCache?: GlUniforms; 
 
   protected constructor(props: GlProgramProps) {
     this.color = this.normalizeColor(props.color);
@@ -52,18 +61,22 @@ export abstract class GlProgram {
 
   public setRotationInRadians(rotationInRadians: number) {
     this.rotationInRadians = rotationInRadians;
+    this.uniformsCache = undefined;
   }
 
   public setOrigin(origin: v2) {
     this.origin = origin;
+    this.uniformsCache = undefined;
   }
 
   public setTranslation(translation: v2) {
     this.translation = translation;
+    this.uniformsCache = undefined;
   }
 
   public setScale(scale: v2) {
     this.scale = scale;
+    this.uniformsCache = undefined;
   }
 
   public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
@@ -77,9 +90,9 @@ export abstract class GlProgram {
 
     if (programInfo !== usedProgram) {
       gl.useProgram(programInfo.program);
+      this.consoleGlError(gl, 'Use program');
       usedProgram = programInfo;
     }
-    this.consoleGlError(gl, 'Use program');
 
     setBuffersAndAttributes(gl, programInfo, buffer);
     this.consoleGlError(gl, 'setBuffersAndAttributes');
@@ -158,7 +171,11 @@ export abstract class GlProgram {
   }
 
   public getUniforms(gl: WebGLRenderingContext): Record<string, any> {
-    return {
+    if (this.uniformsCache) {
+      return this.uniformsCache;
+    }
+
+    return this.uniformsCache = {
       u_width: this.lineWidth,
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
@@ -166,7 +183,7 @@ export abstract class GlProgram {
     };
   }
 
-  public getMatrix() {
+  public getMatrix(): number[] {
     const moveOriginMatrix = m3.translation(this.origin[0], this.origin[1]);
     const translationMatrix = m3.translation(this.translation[0], this.translation[1]);
     const rotationMatrix = m3.rotation(this.rotationInRadians);

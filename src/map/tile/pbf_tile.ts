@@ -2,7 +2,15 @@ import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 import { MapTile, MapTileOptions, TileCoordinate } from './tile';
 import { GlProgram } from '../../webgl';
-import { getTransportationFeatures, getBuildingFeatures, getBoundaryFeatures, getWaterFeatures, getLandCoverFeatures } from '../render/pbf_gl_render_utils';
+import {
+  getTransportationFeatures,
+  getBuildingFeatures,
+  getBoundaryFeatures,
+  getWaterFeatures,
+  getLandCoverFeatures,
+  getTileBorders,
+  SipmlifyGeometryOptions,
+} from '../render/pbf_gl_render_utils';
 import { MapTilesMeta } from '../types';
 
 export interface PbfMapTileOptions extends MapTileOptions {
@@ -79,12 +87,13 @@ export class PbfMapTile extends MapTile {
     }
 
     return [
-      ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale),
-      ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale),
+      ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale, {enabled: false}),
+      ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale, {enabled: false}),
       ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale),
       ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale),
       ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
-      ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),
+      // ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),
+      // ...getTileBorders(this.x, this.y, this.width, this.height),
     ];
   }
 }

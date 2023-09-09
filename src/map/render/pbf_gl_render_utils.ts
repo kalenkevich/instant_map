@@ -1,5 +1,6 @@
-import { VectorTileLayer } from '@mapbox/vector-tile';
-import { BBox } from 'geojson';
+import { VectorTileLayer, VectorTileFeature } from '@mapbox/vector-tile';
+import { BBox, Feature, Geometry, Polygon } from 'geojson';
+import { simplify } from './simplify';
 import { GlProgram, WebGlPath, WebGlPathGroup, v2, LineStrip, Area, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea, RGBColor } from '../../webgl';
 import { TransportationFeatureType, BoudaryAdminLevel, WaterFeatureClass, LandCoverFeatureClass } from '../features/map_features';
 
@@ -84,13 +85,33 @@ export const BOUNDARY_COLOR = RGBColor.toGLColor(114, 113, 207);
 
 export const BUILDING_COLOR = RGBColor.toGLColor(222, 215, 211);
 
+export interface SipmlifyGeometryOptions {
+  tolerance?: number;
+  highQuality?: boolean;
+  mutate?: boolean;
+  enabled: boolean;
+};
+
+export const DefaultSipmlifyGeometryOptions = {
+  tolerance: 20,
+  highQuality: false,
+  mutate: true, // performance increase
+  enabled: true,
+};
+
 /**
  *
  * @param gl WebGLRenderingContext
  * @param transportationLayer data layer from pbf tile.
  * @returns List of the Gl Programs representing the map features.
  */
-export const getTransportationFeatures = (transportationLayer: VectorTileLayer, x: number, y: number, scale: [number, number]): GlProgram[] => {
+export const getTransportationFeatures = (
+  transportationLayer: VectorTileLayer,
+  x: number,
+  y: number,
+  scale: [number, number],
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): GlProgram[] => {
   if (!transportationLayer || !transportationLayer.length) {
     return [];
   }
@@ -115,16 +136,26 @@ export const getTransportationFeatures = (transportationLayer: VectorTileLayer, 
   }
 
   return Object.entries(programs).map(([name, points]: [string, v2[][]]) => {
+    const resultPoints = simplifyOptions.enabled
+      ? points.map(p => simplify(p, simplifyOptions.tolerance, simplifyOptions.highQuality))
+      : points;
+
     return new WebGlPathGroup({
       color: GL_COLOR_BLACK,
-      paths: points,
+      paths: resultPoints,
       translation: [x, y],
       scale,
     });
   });
 };
 
-export const getBuildingFeatures = (buildingLayer: VectorTileLayer, x: number, y: number, scale: [number, number]): GlProgram[] => {
+export const getBuildingFeatures = (
+  buildingLayer: VectorTileLayer,
+  x: number,
+  y: number,
+  scale: [number, number],
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): GlProgram[] => {
   if (!buildingLayer || !buildingLayer.length) {
     return [];
   }
@@ -159,12 +190,18 @@ export const getBuildingFeatures = (buildingLayer: VectorTileLayer, x: number, y
   }, [] as GlProgram[]);
 };
 
-export const getBoundaryFeatures = (boundaryLayer: VectorTileLayer, x: number, y: number, scale: [number, number]): GlProgram[] => {
+export const getBoundaryFeatures = (
+  boundaryLayer: VectorTileLayer,
+  x: number,
+  y: number,
+  scale: [number, number],
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): GlProgram[] => {
   if (!boundaryLayer || !boundaryLayer.length) {
     return [];
   }
 
-  const geometryFeatures: { [BoudaryAdminLevel: number]: Array<{ bbox: BBox; lines: LineStrip }> } = {};
+  const geometryFeatures: { [BoudaryAdminLevel: number]: Array<Feature> } = {};
 
   for (let i = 0; i < boundaryLayer.length; i++) {
     const feature = boundaryLayer.feature(i);
@@ -174,11 +211,7 @@ export const getBoundaryFeatures = (boundaryLayer: VectorTileLayer, x: number, y
       continue;
     }
 
-    const lines: Array<Point[]> = feature.loadGeometry();
-    const geometryFeature = {
-      bbox: feature.bbox(),
-      lines: lines.map(points => points.map(p => [p.x, p.y] as v2)),
-    };
+    const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
 
     if (adminLevel in geometryFeatures) {
       geometryFeatures[adminLevel].push(geometryFeature);
@@ -187,13 +220,15 @@ export const getBoundaryFeatures = (boundaryLayer: VectorTileLayer, x: number, y
     }
   }
 
-  return Object.values(geometryFeatures).reduce((programs: GlProgram[], features: { bbox: BBox; lines: v2[][] }[]) => {
+  return Object.values(geometryFeatures).reduce((programs: GlProgram[], features: Array<Feature>) => {
     for (const feature of features) {
-      for (const lineStrip of feature.lines) {
+      for (const lineStrip of (feature.geometry as Polygon).coordinates) {
         programs.push(
           new WebGlNativeLineStrip({
             color: BOUNDARY_COLOR,
-            points: lineStrip,
+            points:  simplifyOptions.enabled
+              ? simplify(lineStrip as v2[], simplifyOptions.tolerance, simplifyOptions.highQuality)
+              : lineStrip as v2[],
             translation: [x, y],
             scale,
           })
@@ -205,12 +240,18 @@ export const getBoundaryFeatures = (boundaryLayer: VectorTileLayer, x: number, y
   }, [] as GlProgram[]);
 };
 
-export const getWaterFeatures = (waterLayer: VectorTileLayer, x: number, y: number, scale: [number, number]): GlProgram[] => {
+export const getWaterFeatures = (
+  waterLayer: VectorTileLayer,
+  x: number,
+  y: number,
+  scale: [number, number],
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): GlProgram[] => {
   if (!waterLayer || !waterLayer.length) {
     return [];
   }
 
-  const geometryFeatures: { [WaterFeatures: string]: Array<{ bbox: BBox; areas: Area[] }> } = {};
+  const geometryFeatures: { [WaterFeatures: string]: Array<Feature> } = {};
 
   for (let i = 0; i < waterLayer.length; i++) {
     const feature = waterLayer.feature(i);
@@ -220,11 +261,7 @@ export const getWaterFeatures = (waterLayer: VectorTileLayer, x: number, y: numb
       continue;
     }
 
-    const areas: Array<Point[]> = feature.loadGeometry();
-    const geometryFeature = {
-      bbox: feature.bbox(),
-      areas: areas.map(area => area.map(p => [p.x, p.y] as v2)),
-    };
+    const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
 
     if (waterClass in geometryFeatures) {
       geometryFeatures[waterClass].push(geometryFeature);
@@ -233,13 +270,15 @@ export const getWaterFeatures = (waterLayer: VectorTileLayer, x: number, y: numb
     }
   }
 
-  return Object.entries(geometryFeatures).reduce((programs: GlProgram[], [waterClass, features]: [WaterFeatureClass, { bbox: BBox; areas: Area[] }[]]) => {
+  return Object.entries(geometryFeatures).reduce((programs: GlProgram[], [waterClass, features]: [WaterFeatureClass, Feature[]]) => {
     for (const feature of features) {
-      for (const area of feature.areas) {
+      for (const area of (feature.geometry as Polygon).coordinates) {
         programs.push(
           new WebGlArea({
             color: WaterFeatureClassColorMap[waterClass],
-            points: area,
+            points: simplifyOptions.enabled
+              ? simplify(area as v2[], simplifyOptions.tolerance, simplifyOptions.highQuality)
+              : area as v2[],
             translation: [x, y],
             scale,
           })
@@ -251,12 +290,18 @@ export const getWaterFeatures = (waterLayer: VectorTileLayer, x: number, y: numb
   }, [] as GlProgram[]);
 };
 
-export const getLandCoverFeatures = (landCoverLayer: VectorTileLayer, x: number, y: number, scale: [number, number]): GlProgram[] => {
+export const getLandCoverFeatures = (
+  landCoverLayer: VectorTileLayer,
+  x: number,
+  y: number,
+  scale: [number, number],
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): GlProgram[] => {
   if (!landCoverLayer || !landCoverLayer.length) {
     return [];
   }
 
-  const geometryFeatures: { [WaterFeatures: string]: Array<{ bbox: BBox; areas: Area[] }> } = {};
+  const geometryFeatures: { [WaterFeatures: string]: Array<Feature> } = {};
 
   for (let i = 0; i < landCoverLayer.length; i++) {
     const feature = landCoverLayer.feature(i);
@@ -266,11 +311,7 @@ export const getLandCoverFeatures = (landCoverLayer: VectorTileLayer, x: number,
       continue;
     }
 
-    const areas: Array<Point[]> = feature.loadGeometry();
-    const geometryFeature = {
-      bbox: feature.bbox(),
-      areas: areas.map(area => area.map(p => [p.x, p.y] as v2)),
-    };
+    const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
 
     if (landClass in geometryFeatures) {
       geometryFeatures[landClass].push(geometryFeature);
@@ -279,13 +320,15 @@ export const getLandCoverFeatures = (landCoverLayer: VectorTileLayer, x: number,
     }
   }
 
-  return Object.entries(geometryFeatures).reduce((programs: GlProgram[], [landClass, features]: [LandCoverFeatureClass, { bbox: BBox; areas: Area[] }[]]) => {
+  return Object.entries(geometryFeatures).reduce((programs: GlProgram[], [landClass, features]: [LandCoverFeatureClass, Feature[]]) => {
     for (const feature of features) {
-      for (const area of feature.areas) {
+      for (const area of (feature.geometry as Polygon).coordinates) {
         programs.push(
           new WebGlArea({
             color: LandCoverClassColorMap[landClass],
-            points: area,
+            points: simplifyOptions.enabled
+              ? simplify(area as v2[], simplifyOptions.tolerance, simplifyOptions.highQuality)
+              : area as v2[],
             translation: [x, y],
             scale,
           })
@@ -311,4 +354,34 @@ export const getTileBorders = (x: number, y: number, width: number, height: numb
       translation: [x, y],
     }),
   ];
+};
+
+const getGeoJsonFeatureFromVectorTile = (
+  feature: VectorTileFeature,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+): Feature => {
+  const geometryFeature: Feature = {
+    type: 'Feature',
+    bbox: feature.bbox(),
+    geometry: getGeometryFromVectorTile(feature),
+    properties: {},
+  };
+  
+  // if (simplifyOptions.enabled) {
+  //   // @ts-ignore
+  //   return simplify(geometryFeature, simplifyOptions);
+  // }
+
+  return geometryFeature;
+};
+
+const getGeometryFromVectorTile = (
+  feature: VectorTileFeature,
+): Geometry => {
+  const points = feature.loadGeometry();
+
+  return {
+    type: 'MultiLineString',
+    coordinates: points.map(points => points.map(p => [p.x, p.y] as v2)),
+  };
 };

@@ -12,6 +12,9 @@ import { EventHandler } from './events/event_handler';
 import { ZoomEventHandler } from './events/zoom_event_handler';
 import { CoordinateReferenceSystem } from './geo/crs/crs';
 import { EarthCoordinateReferenceSystem } from './geo/crs/earth_crs';
+import {RenderQueue} from './render_queue/render_queue';
+import {PositionAnimation} from './animation/position_animation';
+import { DragEventHandler } from './events/drag_event_handler';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -22,6 +25,28 @@ export const DEFAULT_MAP_METADATA: MapMeta = {
   crs: MapCrsType.earth,
   tiles: [],
 };
+
+export interface MapPanOptions {
+  duration: number;
+  easeLinearity: number;
+  noMoveStart?: boolean;
+  animate?: boolean;
+}
+
+export enum MapEventType {
+  MOVE_START = 'movestart',
+  MOVE = 'move',
+  MOVE_END = 'moveend',
+  DRAG_START = 'dragstart',
+  DRAG = 'drag',
+  DRAG_END = 'dragend',
+  ZOOM = 'zoom',
+}
+
+export interface EventListener {
+  eventType: MapEventType;
+  handler: (...eventArgs: any[]) => void;
+}
 
 /**
  * Visual Map class
@@ -50,7 +75,10 @@ export class GlideMap {
   eventHandlers: EventHandler[];
   crs: CoordinateReferenceSystem;
 
-  constructor(options: MapOptions) {
+  animation: PositionAnimation;
+  renderQueue: RenderQueue = new RenderQueue();
+
+  constructor(private readonly options: MapOptions) {
     this.el = options.el;
 
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
@@ -65,7 +93,7 @@ export class GlideMap {
     this.renderer = getRenderer(options.renderer || MapRendererType.webgl, options.el as HTMLCanvasElement);
     this.mapMeta = DEFAULT_MAP_METADATA;
     this.crs = getCrs(options.crs);
-    this.eventHandlers = [new ZoomEventHandler(this)];
+    this.eventHandlers = [new ZoomEventHandler(this), new DragEventHandler(this)];
 
     this.init();
   }
@@ -96,6 +124,8 @@ export class GlideMap {
       this.renderer.init();
       this.tilesGrid.init();
       this.tilesGrid.update(this.state).then(tiles => this.rerenderMap(tiles));
+      this.fire(MapEventType.ZOOM);
+      this.fire(MapEventType.MOVE);
     });
   }
 
@@ -125,28 +155,26 @@ export class GlideMap {
     return this.mapMeta.maxzoom;
   }
 
-  public setZoom(zoom: number) {
-    this.setState({ zoom });
+  public setZoom(zoom: number): Promise<void> {
+    return this.setState({ zoom });
   }
 
   public getCenter(): LatLng {
     return this.state.center;
   }
 
-  public setCenter(center: LatLng | Point) {
+  public setCenter(center: LatLng | Point): Promise<void> {
     if (center instanceof LatLng) {
-      this.setState({ center });
-
-      return;
+      return this.setState({ center });
     }
 
-    this.setState({ center: this.getLatLngFromPoint(center) });
+    return this.setState({ center: this.getLatLngFromPoint(center) });
   }
 
-  public zoomToPoint(zoom: number, point: LatLng | Point) {
+  public zoomToPoint(zoom: number, point: LatLng | Point): Promise<void> {
     const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, zoom);
 
-    this.setState({ zoom, center: newCenter });
+    return this.setState({ zoom, center: newCenter });
   }
 
   public getPixelWorldBounds(zoom?: number): Bounds {
@@ -155,6 +183,10 @@ export class GlideMap {
 
   public getBounds(): LatLngBounds {
     return this.bounds;
+  }
+
+  public getOptions(): MapOptions {
+    return this.options;
   }
 
   limitZoom(zoom: number): number {
@@ -168,6 +200,48 @@ export class GlideMap {
 
     return Math.max(min, Math.min(max, zoom));
   }
+
+  limitOffset(offset: Point, bounds: LatLngBounds) {
+		if (!bounds) {
+      return offset;
+    }
+
+		const viewBounds = this.getPixelBounds();
+		const newBounds = new Bounds(viewBounds.min.add(offset), viewBounds.max.add(offset));
+
+		return offset.add(this.getBoundsOffset(newBounds, bounds));
+	}
+
+  getPixelBounds() {
+		const topLeftPoint = this.getTopLeftPoint();
+
+		return new Bounds(topLeftPoint, topLeftPoint.add(this.getSize()));
+	}
+
+  getBoundsOffset(pxBounds: Bounds, maxBounds: LatLngBounds, zoom?: number) {
+		const projectedMaxBounds = new Bounds(
+        this.project(maxBounds.getNorthEast(), zoom),
+        this.project(maxBounds.getSouthWest(), zoom),
+    );
+    const minOffset = projectedMaxBounds.min.subtract(pxBounds.min);
+    const maxOffset = projectedMaxBounds.max.subtract(pxBounds.max);
+    const dx = this.rebound(minOffset.x, -maxOffset.x);
+    const dy = this.rebound(minOffset.y, -maxOffset.y);
+
+		return new Point(dx, dy);
+	}
+
+  rebound(left: number, right: number): number {
+		return left + right > 0 ?
+			Math.round(left - right) / 2 :
+			Math.max(0, Math.ceil(left)) - Math.max(0, Math.floor(right));
+	}
+
+  getTopLeftPoint() {
+		const pixelOrigin = this.getPixelOrigin();
+
+		return pixelOrigin.subtract(this.getMapPanePos());
+	}
 
   getLatLngFromPoint(point: Point, zoom?: number): LatLng {
     const scale = this.getZoomScale(zoom || this.state.zoom);
@@ -185,7 +259,7 @@ export class GlideMap {
   }
 
   project(latlng: LatLng, zoom?: number): Point {
-    return this.crs.latLngToPoint(latlng, zoom);
+    return this.crs.latLngToPoint(latlng, zoom || this.getZoom());
   }
 
   unproject(point: Point, zoom?: number): LatLng {
@@ -224,7 +298,7 @@ export class GlideMap {
     return this.project(this.state.center, this.state.zoom).subtract(viewHalf).add(this.getMapPanePos()).round();
   }
 
-  getMapPanePos() {
+  getMapPanePos(): Point {
     return new Point(0, 0);
   }
 
@@ -232,54 +306,85 @@ export class GlideMap {
     return new Point(this.width, this.height);
   }
 
-  private setState(partinalState: Partial<MapState>) {
-    this.state = {
-      ...this.state,
-      ...partinalState,
-    };
+  panBy(offset: Point, options: MapPanOptions): Promise<void> {
+    if (!offset.x && !offset.y) {
+			this.fire(MapEventType.MOVE_END);
 
-    // console.log(this.state);
+      return this.renderQueue.next();
+		}
 
-    this.tilesGrid.update(this.state).then(tiles => this.rerenderMap(tiles));
+		// If we pan too far, Chrome gets issues with tiles
+		// and makes them disappear or appear in the wrong place (slightly offset)
+		if (!options.animate || !this.getSize().contains(offset)) {
+      const newLatLng = this.unproject(this.project(this.getCenter()).add(offset));
+
+      return this.zoomToPoint(this.getZoom(), newLatLng);
+		}
+
+    const newPos = this.getMapPanePos().subtract(offset).round();
+    const animation = new PositionAnimation(this, newPos, offset, {
+      durationInSec: options.duration,
+      easeLinearity: options.easeLinearity,
+    });
+
+    return animation.run();
   }
 
-  renderedTiles: MapTile[] = [];
-  rerenderMap(tilesToRender: MapTile[]) {
-    if (!tilesToRender || !tilesToRender.length) {
-      return;
+  private setState(partialState: Partial<MapState>): Promise<void> {
+    this.state = {
+      ...this.state,
+      ...partialState,
+    };
+
+    if (partialState.zoom) {
+      this.fire(MapEventType.ZOOM);
     }
 
-    const renderScene = (tiles: MapTile[]) => {
-      if (this.isAlreadyRendered(this.renderedTiles, tiles)) {
-        return;
-      }
+    if (partialState.center) {
+      this.fire(MapEventType.MOVE);
+    }
 
+    return this.tilesGrid.update(this.state).then(tiles => this.rerenderMap(tiles));
+  }
+
+  stopRender(): Promise<void> {
+    return this.renderQueue.clear();
+  }
+
+  private rerenderMap(tiles: MapTile[]): Promise<void> {
+    this.renderQueue.push(() => {
       const glPrograms = tiles.flatMap(tile => tile.getRenderPrograms());
 
       console.time('map_render');
       this.renderer.setPrograms(glPrograms);
       this.renderer.draw();
       console.timeEnd('map_render');
-
-      this.renderedTiles = tiles;
-    };
-
-    requestAnimationFrame(() => {
-      renderScene(tilesToRender);
     });
+
+    return this.renderQueue.next();
   }
 
-  private isAlreadyRendered(renderedTiles: MapTile[], tilesToRender: MapTile[]): boolean {
-    const renderedKeys = renderedTiles
-      .map(t => t.id)
-      .sort()
-      .join('');
-    const tilesKeys = tilesToRender
-      .map(t => t.id)
-      .sort()
-      .join('');
+  private eventListeners: EventListener[] = [];
+  addEventListener(listener: EventListener): void {
+    this.eventListeners.push(listener);
+  }
 
-    return renderedKeys === tilesKeys;
+  removeEventListener(listener: EventListener) {
+    const index = this.eventListeners.findIndex(l => {
+      return l.eventType === listener.eventType && l.handler === listener.handler;
+    });
+
+    if (index > -1) {
+      this.eventListeners.splice(index);
+    }
+  }
+
+  fire(eventType: MapEventType, ...eventArgs: any[]) {
+    for (const listener of this.eventListeners) {
+      if (listener.eventType === eventType) {
+        listener.handler(...eventArgs);
+      }
+    }
   }
 }
 

@@ -22,10 +22,10 @@ export const ZoomColorMap: { [prop: string]: GlColor } = {
   '15': GL_COLOR_LIME,
   '16': GL_COLOR_BLACK,
 
-  17: GL_COLOR_RED,
-  18: GL_COLOR_BLUE,
-  19: GL_COLOR_LIME,
-  20: GL_COLOR_BLACK,
+  '17': GL_COLOR_RED,
+  '18': GL_COLOR_BLUE,
+  '19': GL_COLOR_LIME,
+  '20': GL_COLOR_BLACK,
 
   '21': GL_COLOR_RED,
   '22': GL_COLOR_BLUE,

@@ -156,4 +156,8 @@ export class LatLngBounds {
   isValid(): boolean {
     return !!(this.southWest && this.northEast);
   }
+
+  clone(): LatLngBounds {
+    return new LatLngBounds(this.northEast, this.southWest);
+  }
 }
