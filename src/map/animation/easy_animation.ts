@@ -1,5 +1,4 @@
 import {GlideMap} from '../map';
-import { Point } from '../geometry/point.js';
 
 export interface PositionAnimationOptions {
 	durationInSec?: number;
@@ -10,7 +9,9 @@ export const easeOut = (t: number, power: number): number => {
 	return 1 - Math.pow(1 - t, power);
 };
 
-export class PositionAnimation {
+export type AnimationStep = (progress: number) => Promise<void>;
+
+export class EasyAnimation {
 	private inProgress: boolean = false; 
 	private startTime: number;
 	private durationInSec: number;
@@ -18,8 +19,7 @@ export class PositionAnimation {
 	
   constructor(
 		private readonly map: GlideMap, 
-		private readonly startPosition: Point,
-		private readonly offset: Point,
+		private animationStep: AnimationStep,
 		animationOptions: PositionAnimationOptions,
 	) {
 		this.durationInSec = animationOptions.durationInSec || 0.250;
@@ -34,42 +34,32 @@ export class PositionAnimation {
 
 	startAnimation(): Promise<void> {
 		if (this.inProgress) {
-			return this.stopAnimation().then(() => this.step());
+			this.stopAnimation();
 		}
 
 		return this.step();
 	}
 
-	step(shouldRound?: boolean): Promise<void> {
+	step(): Promise<void> {
 		const elapsed = (+new Date()) - this.startTime;
 		const durationInMs = this.durationInSec * 1000;
 
 		if (elapsed < durationInMs) {
-			return this.runFrame(easeOut(elapsed / durationInMs, this.easeOutPower), shouldRound);
+			return this.animationStep(easeOut(elapsed / durationInMs, this.easeOutPower));
 		}
 
-		return this.runFrame(1).then(() => this.complete());
-	}
-
-	runFrame(progress: number, shouldRound?: boolean): Promise<void> {
-		const nextPosition = this.startPosition.add(this.offset.multiplyBy(progress));
-
-		if (shouldRound) {
-			nextPosition.round();
-		}
-
-		return this.map.setCenter(nextPosition);
+		return this.animationStep(1).then(() => this.complete());
 	}
 
 	complete() {
 		this.inProgress = false;
 	}
 
-	stopAnimation(): Promise<void> {
+	stopAnimation(): void {
 		if (!this.inProgress) {
 			return;
 		}
 
-		return this.map.stopRender();
+		this.map.stopRender();
 	}
 }

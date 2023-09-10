@@ -1,7 +1,7 @@
 import { EventHandler } from './event_handler';
 import { Point } from '../geometry/point';
 import {Bounds} from '../geometry/bounds';
-import { GlideMap, MapEventType } from '../map';
+import { GlideMap } from '../map';
 import { LatLng } from '../geo/lat_lng';
 
 // const START = Browser.touch ? 'touchstart mousedown' : 'mousedown';

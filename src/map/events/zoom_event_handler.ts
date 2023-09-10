@@ -43,8 +43,7 @@ export class ZoomEventHandler extends EventHandler {
     const zoom = this.map.getZoom();
     const snap = this.map.zoomSnap || 0;
 
-    // this.map._stop(); // stop panning and fly animations if any
-
+    this.map.stopRender();
     // map the delta with a sigmoid function to -4..4 range leaning on -1..1
     const d2 = this.delta / (this.wheelPxPerZoomLevel * 4);
     const d3 = (4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2))))) / Math.LN2;

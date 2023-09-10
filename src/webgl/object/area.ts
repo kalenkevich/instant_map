@@ -1,5 +1,5 @@
 import earcut from 'earcut';
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, GlProgramType } from './program';
 import { v2 } from '../types';
 
 export interface GlAreaPorps extends GlProgramProps {
@@ -12,6 +12,14 @@ export class WebGlArea extends GlProgram {
   constructor(props: GlAreaPorps) {
     super(props);
     this.points = props.points;
+  }
+
+  public getType(): GlProgramType {
+    return GlProgramType.AREA;
+  }
+
+  getPoints(): v2[] {
+    return this.points;
   }
 
   setPoints(points: v2[]) {

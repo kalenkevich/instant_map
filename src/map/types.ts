@@ -1,6 +1,6 @@
-import { WebGlPainter } from '../webgl';
 import { LatLng } from './geo/lat_lng';
 import { CoordinateReferenceSystem } from './geo/crs/crs';
+import { MapRenderer, MapRendererType } from './render/renderer';
 
 export interface MapOptions {
   el: HTMLElement;
@@ -16,15 +16,6 @@ export type MapCrs = CoordinateReferenceSystem;
 
 export enum MapCrsType {
   earth = 'earth',
-}
-
-export type MapRenderer = WebGlPainter; // | WebGl2Painter | WebGPUPainter | SVGPainter | ImagePainter;
-
-export enum MapRendererType {
-  webgl = 'webgl',
-  svg = 'svg', // not supported yet.
-  webgl2 = 'webgl2', // not supported yet.
-  webgpu = 'webgpu', // not supported yet.
 }
 
 export interface MapRendererOptions {
@@ -45,7 +36,7 @@ export interface MapMeta {
   mtime?: Date;
   bounds: [number, number, number, number]; // [minlat, minlon, maxlat, maxlon]
   center: [number, number, number];
-  format: TilesetFormat.pbf;
+  format: TilesetFormat;
   maxzoom: number;
   minzoom: number;
   version?: string;
