@@ -18,6 +18,16 @@ export interface GlUniforms {
   u_matrix: number[];
 }
 
+export enum GlProgramType {
+  PROGRAM = 'PROGRAM',
+  TRIANGLE = 'TRIANGLE',
+  AREA = 'AREA',
+  CIRCLE = 'CIRCLE',
+  LINE = 'LINE',
+  PATH = 'PATH',
+  RECTANGLE = 'RECTANGLE'
+}
+
 let usedProgram: ProgramInfo | undefined;
 
 export abstract class GlProgram {
@@ -41,6 +51,14 @@ export abstract class GlProgram {
     this.origin = props.origin || [0, 0];
     this.translation = props.translation || [0, 0];
     this.scale = props.scale || [1, 1];
+  }
+
+  public getColor(): v4 {
+    return this.color;
+  }
+
+  public getLineWidth(): number {
+    return this.lineWidth;
   }
 
   public getRotationInRadians(): number {
@@ -81,6 +99,10 @@ export abstract class GlProgram {
 
   public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
     return gl.TRIANGLES;
+  }
+
+  public getType(): GlProgramType {
+    return GlProgramType.PROGRAM;
   }
 
   public draw(gl: WebGLRenderingContext) {
@@ -170,7 +192,7 @@ export abstract class GlProgram {
     return createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
   }
 
-  public getUniforms(gl: WebGLRenderingContext): Record<string, any> {
+  public getUniforms(gl: WebGLRenderingContext): GlUniforms {
     if (this.uniformsCache) {
       return this.uniformsCache;
     }

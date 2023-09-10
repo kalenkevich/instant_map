@@ -1,77 +1,40 @@
 import Protobuf from 'pbf';
-import { VectorTile } from '@mapbox/vector-tile';
-import { MapTile, MapTileOptions, TileCoordinate } from './tile';
-import { GlProgram } from '../../webgl';
-import {
-  getTransportationFeatures,
-  getBuildingFeatures,
-  getBoundaryFeatures,
-  getWaterFeatures,
-  getLandCoverFeatures,
-  getTileBorders,
-  SipmlifyGeometryOptions,
-  DefaultSipmlifyGeometryOptions,
-} from '../render/pbf_gl_render_utils';
+import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-tile';
+import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileFeature, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
 
 export interface PbfMapTileOptions extends MapTileOptions {
   tilesMeta: MapTilesMeta;
 }
 
-export class PbfMapTile extends MapTile {
-  originalX: number
-  originalY: number;
+export class PbfMapTile implements MapTile {
+  id: string;
+  formatType: MapTileFormatType.pbf;
   x: number;
   y: number;
   width: number;
   height: number;
   mapWidth: number;
   mapHeight: number;
-  mapZoom: number;
   tileCoords: TileCoordinate;
   pixelRatio: number;
-  tilesMeta: MapTilesMeta;
-  tileData?: VectorTile;
-  isDataLoading: boolean = false;
-  scaleFactor: number;
-  scale: [number, number];
+
+  private tilesMeta: MapTilesMeta;
+  private tileData?: VectorTile;
+  private isDataLoading: boolean = false;
+  private tileDataPromise?: Promise<void>;
 
   constructor(options: PbfMapTileOptions) {
-    super(options);
-
-    this.originalX = options.renderOptions.x;
-    this.originalY = options.renderOptions.y;
-    this.scaleFactor = options.renderOptions.scale;
-    this.x = this.originalX * options.renderOptions.scale;
-    this.y = this.originalY * options.renderOptions.scale;
-    this.width = options.renderOptions.width;
-    this.height = options.renderOptions.height;
-    this.mapWidth = options.renderOptions.mapWidth;
-    this.mapHeight = options.renderOptions.mapHeight;
-    this.mapZoom = options.renderOptions.mapZoom;
-    this.pixelRatio = options.renderOptions.pixelRatio || window.devicePixelRatio || 1;
-
+    this.id = options.id;
+    this.x = options.x;
+    this.y = options.y;
+    this.width = options.width;
+    this.height = options.height;
+    this.mapWidth = options.mapWidth;
+    this.mapHeight = options.mapHeight;
+    this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
-    this.scale = [
-      (this.width / this.mapWidth / this.pixelRatio) * options.renderOptions.scale,
-      (this.height / this.mapHeight / this.pixelRatio) * options.renderOptions.scale,
-    ];
-  }
-
-  setZoom(zoom: number) {
-    this.mapZoom = zoom;
-  }
-
-  setScale(scale: number) {
-    this.scaleFactor = scale;
-    this.x = this.originalX * scale;
-    this.y = this.originalY * scale;
-
-    this.scale = [
-      (this.width / this.mapWidth / this.pixelRatio) * scale,
-      (this.height / this.mapHeight / this.pixelRatio) * scale,
-    ];
   }
 
   /**
@@ -82,6 +45,10 @@ export class PbfMapTile extends MapTile {
       return Promise.resolve();
     }
 
+    if (this.isDataLoading) {
+      return this.tileDataPromise;
+    }
+
     try {
       this.isDataLoading = true;
 
@@ -90,13 +57,14 @@ export class PbfMapTile extends MapTile {
         .replace('{x}', this.tileCoords.x.toString())
         .replace('{y}', this.tileCoords.y.toString());
 
-      const data = await fetch(tileUrl, { signal: abortSignal }).then(data => data.arrayBuffer());
+      return this.tileDataPromise = fetch(tileUrl, { signal: abortSignal }).then(async (data) => {
+        const buffer = await data.arrayBuffer();
 
-      this.tileData = new VectorTile(new Protobuf(data));
+        this.tileData = new VectorTile(new Protobuf(buffer));
+      });
     } catch (e) {
       if (e.type === 'AbortError') {
         // skip error;
-
         return Promise.resolve();
       }
 
@@ -104,28 +72,50 @@ export class PbfMapTile extends MapTile {
     } finally {
       this.isDataLoading = false;
     }
-
-    return Promise.resolve();
   }
 
-  getRenderPrograms(): GlProgram[] {
+  getLayers(): TileLayersMap {
     if (!this.tileData) {
-      return [] as GlProgram[];
+      return {};
     }
 
-    const simplifyOptions = {
-      ...DefaultSipmlifyGeometryOptions,
-      tolerance: 50 / this.mapZoom,
-    };
+    const tileLayersMap: TileLayersMap = {};
 
     return [
-      ...getWaterFeatures(this.tileData.layers.water, this.x, this.y, this.scale, {enabled: false}),
-      ...getLandCoverFeatures(this.tileData.layers.globallandcover, this.x, this.y, this.scale, {enabled: false}),
-      ...getLandCoverFeatures(this.tileData.layers.landcover, this.x, this.y, this.scale, {enabled: false}),
-      // ...getBoundaryFeatures(this.tileData.layers.boundary, this.x, this.y, this.scale, simplifyOptions),
-      // ...getTransportationFeatures(this.tileData.layers.transportation, this.x, this.y, this.scale),
-      // ...getBuildingFeatures(this.tileData.layers.building, this.x, this.y, this.scale),
-      // ...getTileBorders(this.x, this.y, this.width, this.height),
-    ];
+      'water',
+      'globallandcover',
+      'landcover',
+      'boundary',
+      'transportation',
+      'building',
+    ].reduce((layersMap: TileLayersMap, layerName: string) => {
+      const layer: VectorTileLayer = this.tileData.layers[layerName];
+
+      if (!layer) {
+        return layersMap;
+      }
+
+      const features: TileFeature[] = [];
+
+      for (let i = 0; i < layer.length; i++) {
+        features.push(this.getTileFature(layer.feature(i)));
+      }
+
+      layersMap[layerName] = {
+        name: layerName,
+        features,
+      };
+
+      return layersMap;
+    }, tileLayersMap);
   }
+
+  getTileFature(vectorTileFeature: VectorTileFeature): TileFeature {
+    return {
+      id: vectorTileFeature.id,
+      bbox: vectorTileFeature.bbox(),
+      geometry: vectorTileFeature.loadGeometry().map(points => points.map(p => [p.x, p.y])),
+      properties: vectorTileFeature.properties,
+    };
+  } 
 }

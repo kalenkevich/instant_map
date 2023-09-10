@@ -1,4 +1,3 @@
-import { renderObjectsDemo } from './demo';
 import { LatLng } from './map/geo/lat_lng';
 import { GlideMap, MapEventType } from './map/map';
 
@@ -18,18 +17,18 @@ function getStartMapLocation(): [number, number, number] {
   const query = new URLSearchParams(document.location.search);
   
   if (!query.has('l')) {
-    return [53.0875, 25.3183, 14.3218];
+    return [14.3218, 53.0875, 25.3183];
   }
 
   const location = decodeURIComponent(query.get('l'));
   const [zoom, lat, lng] = location.split('/');
 
-  return [parseFloat(lat), parseFloat(lng), parseFloat(zoom)];
+  return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
 }
 
 window.addEventListener('load', () => {
   const canvas = createCanvas();
-  const [lat, lng, zoom] = getStartMapLocation();
+  const [zoom, lat, lng] = getStartMapLocation();
   const map = new GlideMap({
     el: canvas,
     zoom,
@@ -42,7 +41,7 @@ window.addEventListener('load', () => {
     const zoom = map.getZoom();
     
     const query = new URLSearchParams(document.location.search);
-    const safeLocation = encodeURIComponent(`${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`);
+    const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
 
     if (query.has('l')) {
       query.delete('l');

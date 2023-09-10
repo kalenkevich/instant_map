@@ -42,14 +42,15 @@ export class RenderQueue {
       return this.promiseQueue;
     }
 
-    while (!this.queue.isEmpty() && this.queue.peek()!.type === task.type) {
-      this.queue.pop();
-    }
+    // while (!this.queue.isEmpty() && this.queue.peek()!.type === task.type) {
+    //   this.queue.pop();
+    // }
 
     return this.promiseQueue.then(() => {
       return new Promise((resolve) => {
         task.frameId = requestAnimationFrame(() => {
           task.renderFn();
+          // this.next();
           resolve();
         });
       });
@@ -65,6 +66,6 @@ export class RenderQueue {
       }
     }
 
-    return this.promiseQueue;
+    return this.promiseQueue = Promise.resolve();
   }
 }

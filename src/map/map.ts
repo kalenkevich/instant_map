@@ -1,9 +1,9 @@
-import { WebGlPainter, GlProgram } from '../webgl';
 
-import { MapTile } from './tile/tile';
+
 import { TilesGrid } from './tile/tiles_grid';
 import { MapState } from './map_state';
-import { MapOptions, MapRendererType, MapRendererOptions, MapRenderer, MapCrs, MapCrsType, MapMeta, TilesetFormat } from './types';
+import { MapOptions, MapRendererOptions, MapCrs, MapCrsType, MapMeta, TilesetFormat } from './types';
+import { MapRenderer } from './render/renderer';
 import { LatLng } from './geo/lat_lng';
 import { LatLngBounds } from './geo/lat_lng_bounds';
 import { Point } from './geometry/point';
@@ -12,9 +12,12 @@ import { EventHandler } from './events/event_handler';
 import { ZoomEventHandler } from './events/zoom_event_handler';
 import { CoordinateReferenceSystem } from './geo/crs/crs';
 import { EarthCoordinateReferenceSystem } from './geo/crs/earth_crs';
-import {RenderQueue} from './render_queue/render_queue';
-import {PositionAnimation} from './animation/position_animation';
+import { RenderQueue } from './render_queue/render_queue';
+import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
+import { MapRendererType } from './render/renderer';
+import { GlMapRenderer } from './render/gl/gl_renderer';
+import { MapTileFormatType } from './tile/tile';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -75,7 +78,6 @@ export class GlideMap {
   eventHandlers: EventHandler[];
   crs: CoordinateReferenceSystem;
 
-  animation: PositionAnimation;
   renderQueue: RenderQueue = new RenderQueue();
 
   constructor(private readonly options: MapOptions) {
@@ -90,7 +92,7 @@ export class GlideMap {
       center: options.center || new LatLng(0, 0),
     };
     this.tilesMetaUrl = options.tilesMetaUrl;
-    this.renderer = getRenderer(options.renderer || MapRendererType.webgl, options.el as HTMLCanvasElement);
+    this.renderer = getRenderer(this, options.renderer || MapRendererType.webgl, options.el as HTMLCanvasElement);
     this.mapMeta = DEFAULT_MAP_METADATA;
     this.crs = getCrs(options.crs);
     this.eventHandlers = [new ZoomEventHandler(this), new DragEventHandler(this)];
@@ -108,8 +110,8 @@ export class GlideMap {
       };
 
       this.bounds = getMapBounds(mapMeta);
-
       this.tilesGrid = new TilesGrid(this, {
+        tileFormatType: MapTileFormatType.pbf,
         devicePixelRatio: this.devicePixelRatio,
         tilesMeta: {
           tilestats: this.mapMeta.tilestats,
@@ -122,8 +124,10 @@ export class GlideMap {
       });
 
       this.renderer.init();
-      this.tilesGrid.init();
-      this.tilesGrid.update(this.state).then(tiles => this.rerenderMap(tiles));
+      this.tilesGrid.init(this.state);
+      this.tilesGrid
+        .update(this.state)
+        .then(tiles => this.renderer.renderTiles(tiles, this.state));
       this.fire(MapEventType.ZOOM);
       this.fire(MapEventType.MOVE);
     });
@@ -171,10 +175,23 @@ export class GlideMap {
     return this.setState({ center: this.getLatLngFromPoint(center) });
   }
 
-  public zoomToPoint(zoom: number, point: LatLng | Point): Promise<void> {
-    const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, zoom);
+  public zoomToPoint(newZoom: number, point: LatLng | Point): Promise<void> {
+    const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, newZoom);
 
-    return this.setState({ zoom, center: newCenter });
+    // if (Math.abs(newZoom - this.state.zoom) > 0.5) {
+    //   const currentZoom = this.state.zoom;
+    //   const diff = newZoom - currentZoom;
+    //   const animation = new EasyAnimation(this,
+    //     (progress: number) => {
+    //       return this.setZoom(currentZoom + diff * progress);
+    //     }, {
+    //     durationInSec: 0.5,
+    //   });
+  
+    //   return animation.run();
+    // }
+
+    return this.setState({ zoom: newZoom, center: newCenter });
   }
 
   public getPixelWorldBounds(zoom?: number): Bounds {
@@ -272,7 +289,7 @@ export class GlideMap {
     return this.crs.scale(toZoom) / this.crs.scale(fromZoom);
   }
 
-  containerPointToLatLng(point: Point) {
+  containerPointToLatLng(point: Point): LatLng {
     const layerPoint = this.containerPointToLayerPoint(point);
 
     return this.layerPointToLatLng(layerPoint);
@@ -322,7 +339,12 @@ export class GlideMap {
 		}
 
     const newPos = this.getMapPanePos().subtract(offset).round();
-    const animation = new PositionAnimation(this, newPos, offset, {
+    const animation = new EasyAnimation(this,
+      (progress: number) => {
+        const nextPosition = newPos.add(offset.multiplyBy(progress));
+
+        return this.setCenter(nextPosition);
+      }, {
       durationInSec: options.duration,
       easeLinearity: options.easeLinearity,
     });
@@ -344,24 +366,15 @@ export class GlideMap {
       this.fire(MapEventType.MOVE);
     }
 
-    return this.tilesGrid.update(this.state).then(tiles => this.rerenderMap(tiles));
-  }
+    return this.tilesGrid.update(this.state).then(tiles => {
+      this.renderer.stopRender();
 
-  stopRender(): Promise<void> {
-    return this.renderQueue.clear();
-  }
-
-  private rerenderMap(tiles: MapTile[]): Promise<void> {
-    this.renderQueue.push(() => {
-      const glPrograms = tiles.flatMap(tile => tile.getRenderPrograms());
-
-      console.time('map_render');
-      this.renderer.setPrograms(glPrograms);
-      this.renderer.draw();
-      console.timeEnd('map_render');
+      this.renderer.renderTiles(tiles, this.state);
     });
+  }
 
-    return this.renderQueue.next();
+  stopRender(): void {
+    return this.renderer.stopRender();
   }
 
   private eventListeners: EventListener[] = [];
@@ -388,7 +401,11 @@ export class GlideMap {
   }
 }
 
-export const getRenderer = (renderer: MapRendererType | MapRendererOptions, canvasEl: HTMLCanvasElement): MapRenderer => {
+export const getRenderer = (
+  map: GlideMap,
+  renderer: MapRendererType | MapRendererOptions,
+  canvasEl: HTMLCanvasElement,
+): MapRenderer => {
   if ((renderer as MapRendererOptions).renderer) {
     return (renderer as MapRendererOptions).renderer;
   }
@@ -400,7 +417,7 @@ export const getRenderer = (renderer: MapRendererType | MapRendererOptions, canv
       powerPreference: 'high-performance',
     });
 
-    return new WebGlPainter(gl, []);
+    return new GlMapRenderer(map, gl);
   }
 
   throw new Error(`Renderer ${type} is not supported.`);
