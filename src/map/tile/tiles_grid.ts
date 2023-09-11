@@ -6,6 +6,7 @@ import { Bounds } from '../geometry/bounds';
 import { GlideMap } from '../map';
 import { LatLngBounds } from '../geo/lat_lng_bounds';
 import { PbfMapTile } from './pbf_tile';
+import { PngMapTile } from './png_tile';
 
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
@@ -48,7 +49,7 @@ export class TilesGrid {
   }
 
   public async init(mapState: MapState) {
-    this.defaultTileSize = (this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE) * this.devicePixelRatio;
+    this.defaultTileSize = this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE;
     this.tileCoords = [
       [0, 0],
       [this.defaultTileSize, 0],
@@ -179,18 +180,20 @@ export class TilesGrid {
       mapHeight: this.mapHeight,
       tileCoords: {
         ...tileCoords,
-        z: tileCoords.z - 1,
+        z: tileCoords.z,
       },
       pixelRatio: this.devicePixelRatio,
+      tilesMeta: this.tilesMeta,
     }));
   }
 
   private getMapTile(createOptions: MapTileOptions): MapTile {
     switch (createOptions.formatType) {
-      case MapTileFormatType.pbf: return new PbfMapTile({
-        ...createOptions,
-        tilesMeta: this.tilesMeta,
-      });
+      case MapTileFormatType.pbf:
+        return new PbfMapTile(createOptions);
+
+      case MapTileFormatType.png:
+        return new PngMapTile(createOptions);
     }
   }
 

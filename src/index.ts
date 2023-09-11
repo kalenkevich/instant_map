@@ -1,16 +1,15 @@
 import { LatLng } from './map/geo/lat_lng';
-import { GlideMap, MapEventType } from './map/map';
+import { GlideMap, MapEventType, DEFAULT_MAP_METADATA } from './map/map';
+import { MapTileFormatType } from './map/tile/tile';
+import { MapRendererType } from './map/render/renderer';
 
-function createCanvas() {
-  const canvas = document.createElement('canvas');
+function createRootEl() {
+  const div = document.createElement('div');
 
-  canvas.id = 'glide-gl';
-  canvas.width = 1024 * window.devicePixelRatio;
-  canvas.height = 1024 * window.devicePixelRatio;
+  div.id = 'glide-gl';
+  document.body.appendChild(div);
 
-  document.body.appendChild(canvas);
-
-  return canvas;
+  return div;
 }
 
 function getStartMapLocation(): [number, number, number] {
@@ -27,13 +26,29 @@ function getStartMapLocation(): [number, number, number] {
 }
 
 window.addEventListener('load', () => {
-  const canvas = createCanvas();
   const [zoom, lat, lng] = getStartMapLocation();
+  // const map = new GlideMap({
+  //   rootEl: createRootEl(),
+  //   width: 1024,
+  //   height: 1024,
+  //   zoom,
+  //   center: new LatLng(lat, lng),
+  //   tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+  // });
   const map = new GlideMap({
-    el: canvas,
+    rootEl: createRootEl(),
+    width: 1024,
+    height: 1024,
     zoom,
     center: new LatLng(lat, lng),
-    tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+    renderer: MapRendererType.png,
+    mapMeta: {
+      ...DEFAULT_MAP_METADATA,
+      maxzoom: 19,
+      minzoom: 0,
+      format: MapTileFormatType.png,
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    },
   });
 
   const updateQueryParams = () => {

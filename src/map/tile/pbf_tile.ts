@@ -1,11 +1,7 @@
 import Protobuf from 'pbf';
 import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-tile';
-import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileFeature, TileLayersMap } from './tile';
+import { MapTile, MapTileOptions, MapTileFormatType, TileCoordinate, TileFeature, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
-
-export interface PbfMapTileOptions extends MapTileOptions {
-  tilesMeta: MapTilesMeta;
-}
 
 export class PbfMapTile implements MapTile {
   id: string;
@@ -18,21 +14,21 @@ export class PbfMapTile implements MapTile {
   mapHeight: number;
   tileCoords: TileCoordinate;
   pixelRatio: number;
+  tilesMeta: MapTilesMeta;
 
-  private tilesMeta: MapTilesMeta;
   private tileData?: VectorTile;
   private isDataLoading: boolean = false;
   private tileDataPromise?: Promise<void>;
 
-  constructor(options: PbfMapTileOptions) {
+  constructor(options: MapTileOptions) {
     this.id = options.id;
     this.x = options.x;
     this.y = options.y;
-    this.width = options.width;
-    this.height = options.height;
     this.mapWidth = options.mapWidth;
     this.mapHeight = options.mapHeight;
     this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
+    this.width = options.width * this.pixelRatio;
+    this.height = options.height * this.pixelRatio;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
   }
@@ -98,7 +94,7 @@ export class PbfMapTile implements MapTile {
       const features: TileFeature[] = [];
 
       for (let i = 0; i < layer.length; i++) {
-        features.push(this.getTileFature(layer.feature(i)));
+        features.push(this.getTileFeature(layer.feature(i)));
       }
 
       layersMap[layerName] = {
@@ -110,7 +106,7 @@ export class PbfMapTile implements MapTile {
     }, tileLayersMap);
   }
 
-  getTileFature(vectorTileFeature: VectorTileFeature): TileFeature {
+  getTileFeature(vectorTileFeature: VectorTileFeature): TileFeature {
     return {
       id: vectorTileFeature.id,
       bbox: vectorTileFeature.bbox(),

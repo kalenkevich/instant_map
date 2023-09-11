@@ -1,4 +1,5 @@
 import { BBox } from "geojson";
+import { MapTilesMeta } from '../types';
 
 export type MapTileId = string;
 
@@ -75,6 +76,7 @@ export interface MapTileOptions {
   mapHeight: number;
   tileCoords: TileCoordinate;
   pixelRatio?: number;
+  tilesMeta: MapTilesMeta;
 }
 
 export interface MapTile extends MapTileOptions {

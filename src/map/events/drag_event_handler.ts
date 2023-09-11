@@ -72,7 +72,7 @@ export class Draggable {
   }
 
   // Creates a `Draggable` object for moving `el` when you start dragging the `dragHandle` element (equals `el` itself by default).
-  constructor(element: HTMLElement, dragStartTarget: HTMLElement, shouldPreventOutline?: boolean, options?: DraggableOptions) {
+  constructor(element: HTMLElement , dragStartTarget: HTMLElement, shouldPreventOutline?: boolean, options?: DraggableOptions) {
     this.options = options || DefaultDraggableOptions;
     this.element = element;
     this.dragStartTarget = dragStartTarget || element;
@@ -472,7 +472,7 @@ export class DragEventHandler extends EventHandler {
 
   subscribe() {
     if (!this.draggable) {
-      this.draggable = new Draggable(this.map.el, this.map.el);
+      this.draggable = new Draggable(this.map.rootEl, this.map.rootEl);
       this.draggable.addEventListener({
         eventType: DragEventType.DRAG_START,
         handler: this.onDragStart,

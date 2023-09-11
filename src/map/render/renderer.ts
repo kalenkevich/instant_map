@@ -11,6 +11,7 @@ export interface MapRenderer {
 
 export enum MapRendererType {
   webgl = 'webgl',
+  png = 'png',
   svg = 'svg', // not supported yet.
   webgl2 = 'webgl2', // not supported yet.
   webgpu = 'webgpu', // not supported yet.

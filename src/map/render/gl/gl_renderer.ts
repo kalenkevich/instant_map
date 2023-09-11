@@ -13,19 +13,33 @@ import {
 } from './gl_render_utils';
 
 export class GlMapRenderer implements MapRenderer {
-  animationFrameTaskIdSet = new Set<number>();
-
-  glPainter: WebGlPainter;
+  private readonly animationFrameTaskIdSet = new Set<number>();
+  private readonly canvasEl: HTMLCanvasElement;
+  private readonly gl: WebGLRenderingContext;
+  private readonly glPainter: WebGlPainter;
 
   constructor(
     private readonly map: GlideMap,
-    gl: WebGLRenderingContext,
   ) {
     this.map = map;
-    this.glPainter = new WebGlPainter(gl, []);
+    this.canvasEl = this.createCanvasEl();
+    this.gl = this.canvasEl.getContext('webgl', {
+      powerPreference: 'high-performance',
+    });
+    this.glPainter = new WebGlPainter(this.gl, []);
   }
 
   init() {}
+
+  createCanvasEl(): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+
+    canvas.width = this.map.width * this.map.devicePixelRatio;
+    canvas.height = this.map.height * this.map.devicePixelRatio;
+    this.map.rootEl.appendChild(canvas);
+
+    return canvas;
+  }
 
   renderTiles(tiles: MapTile[], mapState: MapState) {
     for (const tile of tiles) {
@@ -100,7 +114,7 @@ export class GlMapRenderer implements MapRenderer {
     const maxZoom = this.map.getMaxZoom();
 
     if (zoom < minZoom) {
-      return zoom;
+      return minZoom;
     }
 
     if (maxZoom < zoom) {
