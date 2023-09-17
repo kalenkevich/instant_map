@@ -12,7 +12,6 @@ import { EventHandler } from './events/event_handler';
 import { ZoomEventHandler } from './events/zoom_event_handler';
 import { CoordinateReferenceSystem } from './geo/crs/crs';
 import { EarthCoordinateReferenceSystem } from './geo/crs/earth_crs';
-import { RenderQueue } from './render_queue/render_queue';
 import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
@@ -77,8 +76,6 @@ export class GlideMap {
   tilesGrid: TilesGrid;
   eventHandlers: EventHandler[];
   crs: CoordinateReferenceSystem;
-
-  renderQueue: RenderQueue = new RenderQueue();
 
   constructor(private readonly options: MapOptions) {
     this.rootEl = options.rootEl;
@@ -328,8 +325,7 @@ export class GlideMap {
   panBy(offset: Point, options: MapPanOptions): Promise<void> {
     if (!offset.x && !offset.y) {
 			this.fire(MapEventType.MOVE_END);
-
-      return this.renderQueue.next();
+      return;
 		}
 
 		// If we pan too far, Chrome gets issues with tiles

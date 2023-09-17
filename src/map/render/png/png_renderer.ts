@@ -77,8 +77,11 @@ export class PngMapRenderer implements MapRenderer {
     let tileY = tile.y * tileScale;
 
     if (tileScale < 1) {
-      tileX -= (tile.width * tileScale) * (1 - tileScale);
-      tileY -= (tile.height * tileScale) * (1 - tileScale);
+      tileX -= (tile.width * (1 - tileScale)) / 2;
+      tileY -= (tile.height * (1 - tileScale)) / 2;
+    } else {
+      tileX += (tile.width * (tileScale - 1)) / 2;
+      tileY += (tile.height * (tileScale - 1)) / 2;
     }
 
     image.src = imageSrc;
