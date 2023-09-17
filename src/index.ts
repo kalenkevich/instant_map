@@ -3,10 +3,14 @@ import { GlideMap, MapEventType, DEFAULT_MAP_METADATA } from './map/map';
 import { MapTileFormatType } from './map/tile/tile';
 import { MapRendererType } from './map/render/renderer';
 
-function createRootEl() {
+function createRootEl(width: number, height: number) {
   const div = document.createElement('div');
 
   div.id = 'glide-gl';
+  div.style.border = '1px solid';
+  div.style.margin = '10px';
+  div.style.width = `${width}px`;
+  div.style.height = `${height}px`;
   document.body.appendChild(div);
 
   return div;
@@ -35,10 +39,12 @@ window.addEventListener('load', () => {
   //   center: new LatLng(lat, lng),
   //   tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   // });
+  const width = window.innerWidth - 20;
+  const height = window.innerHeight - 20;
   const map = new GlideMap({
-    rootEl: createRootEl(),
-    width: 1024,
-    height: 1024,
+    rootEl: createRootEl(width, height),
+    width,
+    height,
     zoom,
     center: new LatLng(lat, lng),
     renderer: MapRendererType.png,

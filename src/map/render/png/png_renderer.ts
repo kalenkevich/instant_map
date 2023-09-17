@@ -38,15 +38,11 @@ export class PngMapRenderer implements MapRenderer {
 
   renderTiles(tiles: MapTile[], mapState: MapState) {
     for (const image of this.images) {
-      image.style.opacity = '0';
+      image.style.display = 'none';
     }
 
     for (let i = 0; i < tiles.length; i++) {
-      const taskId = requestAnimationFrame(() => {
-        this.renderTile(tiles[i] as PngMapTile, i, mapState);
-        this.animationFrameTaskIdSet.delete(taskId);
-      });
-      this.animationFrameTaskIdSet.add(taskId);
+      this.renderTile(tiles[i] as PngMapTile, i, mapState);
     }
   }
 
@@ -77,11 +73,16 @@ export class PngMapRenderer implements MapRenderer {
     mapState: MapState,
   ) {
     const tileScale = this.getTileScale(mapState);
-    const tileX = tile.x * tileScale;
-    const tileY = tile.y * tileScale;
+    let tileX = tile.x * tileScale;
+    let tileY = tile.y * tileScale;
+
+    if (tileScale < 1) {
+      tileX -= (tile.width * tileScale) * (1 - tileScale);
+      tileY -= (tile.height * tileScale) * (1 - tileScale);
+    }
 
     image.src = imageSrc;
-    image.style.opacity = '1';
+    image.style.display = 'block';
     image.style.width = `${tile.width}px`;
     image.style.height = `${tile.height}px`;
     image.style.position = 'absolute';

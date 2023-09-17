@@ -13,10 +13,17 @@ export class PngMapTile implements MapTile {
   tileCoords: TileCoordinate;
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
-
   tileUrl: string;
 
   constructor(options: MapTileOptions) {
+    this.resetState(options);
+  }
+
+  async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
+    return Promise.resolve();
+  }
+
+  resetState(options: MapTileOptions): void {
     this.id = options.id;
     this.x = options.x;
     this.y = options.y;
@@ -31,10 +38,6 @@ export class PngMapTile implements MapTile {
       .replace('{z}', this.tileCoords.z.toString())
       .replace('{x}', this.tileCoords.x.toString())
       .replace('{y}', this.tileCoords.y.toString());
-  }
-
-  async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
-    return Promise.resolve();
   }
 
   getLayers(): TileLayersMap {

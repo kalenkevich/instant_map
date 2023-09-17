@@ -33,8 +33,6 @@ export class TilesGrid {
   mapHeight: number;
   tileZoom: number;
 
-  globalTileRange: Bounds;
-
   fetchInProgress = false;
   fetchingTilesMap: Map<string, AbortController> = new Map();
 
@@ -56,17 +54,12 @@ export class TilesGrid {
       [0, this.defaultTileSize],
       [this.defaultTileSize, this.defaultTileSize],
     ];
-
-    this.resetGrid(mapState);
   }
 
-  resetGrid(mapState: MapState) {
-    const tileZoom = this.getTileZoom(mapState);
+  getTileRange(tileZoom: number, mapState: MapState) {
     const bounds = this.map.getPixelWorldBounds(tileZoom);
 
-    if (bounds) {
-      this.globalTileRange = this.pxBoundsToTileRange(bounds, mapState);
-    }
+    return this.pxBoundsToTileRange(bounds, mapState);
   }
 
   public async update(mapState: MapState): Promise<MapTile[]> {
@@ -117,7 +110,13 @@ export class TilesGrid {
 
       this.fetchInProgress = false;
 
-      return tilesToRender.map(ttr => this.tilesCache.get(ttr.id));
+      return tilesToRender.map(ttr => {
+        const tile = this.tilesCache.get(ttr.id);
+
+        tile.resetState(ttr);
+
+        return tile;
+      });
     } catch (e) {
       this.fetchInProgress = false;
 
@@ -159,7 +158,7 @@ export class TilesGrid {
           z: tileZoom,
         };
 
-        if (!this.isValidTile(coords, state)) {
+        if (!this.isValidTile(coords, tileZoom, state)) {
           continue;
         }
 
@@ -178,10 +177,7 @@ export class TilesGrid {
       height: tileSize,
       mapWidth: this.mapWidth,
       mapHeight: this.mapHeight,
-      tileCoords: {
-        ...tileCoords,
-        z: tileCoords.z,
-      },
+      tileCoords,
       pixelRatio: this.devicePixelRatio,
       tilesMeta: this.tilesMeta,
     }));
@@ -197,16 +193,18 @@ export class TilesGrid {
     }
   }
 
-  isValidTile(coords: TileCoordinate, mapState: MapState): boolean {
+  isValidTile(coords: TileCoordinate, tileZoom: number, mapState: MapState): boolean {
     const crs = this.map.crs;
 
     if (!crs.infinite) {
       // don't load tile if it's out of bounds and not wrapped
-      const bounds = this.globalTileRange;
+      const bounds = this.getTileRange(tileZoom, mapState);
       if ((!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) || (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))) {
         return false;
       }
     }
+
+    // const bounds = this.map.getPixelWorldBounds(tileZoom);
 
     const bounds = this.map.bounds;
 

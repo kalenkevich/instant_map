@@ -82,4 +82,5 @@ export interface MapTileOptions {
 export interface MapTile extends MapTileOptions {
   fetchTileData(abortSignal?: AbortSignal): Promise<void>;
   getLayers(): TileLayersMap;
+  resetState(tileState: MapTileOptions): void;
 }

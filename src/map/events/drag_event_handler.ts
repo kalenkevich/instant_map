@@ -34,6 +34,13 @@ enum DragEventType {
   DRAG = 'drag',
 }
 
+interface DragEndParams {
+  distance: number,
+  startPosition: Point;
+  endPosition: Point;
+  noInertia?: boolean;
+}
+
 export class Draggable {
   // @section
   // @aka Draggable options
@@ -160,6 +167,8 @@ export class Draggable {
     this.startPos = new Point(first.clientX, first.clientY);
     this.newPos = Draggable.getPosition(this.element);
 
+    console.log(this.startPos);
+
     // Cache the scale, so that we can continuously compensate for it during drag (_onMove).
     this.parentScale = this.getScale(sizedParent);
 
@@ -174,12 +183,6 @@ export class Draggable {
       return;
     }
 
-    // if (e.touches && e.touches.length > 1) {
-    //   this.moved = true;
-    //   return;
-    // }
-
-    // const first = e.touches && e.touches.length === 1 ? e.touches[0] : e;
     const first = e;
     const offset = new Point(first.clientX, first.clientY).subtract(this.startPos);
 
@@ -271,6 +274,8 @@ export class Draggable {
       this.fire(DragEventType.DRAG_END, {
         noInertia,
         distance: this.newPos.distanceTo(this.startPos),
+        startPosition: this.startPos,
+        endPosition: this.newPos,
       });
     }
   }
@@ -609,7 +614,7 @@ export class DragEventHandler extends EventHandler {
     this.draggable.getNewPosition().x = newX;
   }
 
-  onDragEnd(e: MouseEvent) {
+  onDragEnd({startPosition, endPosition}: DragEndParams) {
     const noInertia = !this.inertia || this.times.length < 2;
 
     // this.map.fire('dragend', e);
@@ -619,7 +624,7 @@ export class DragEventHandler extends EventHandler {
     } else {
       this.prunePositions(+new Date());
 
-      const direction = this.lastPos.subtract(this.positions[0]);
+      const direction = endPosition.subtract(startPosition);
       const duration = (this.lastTime - this.times[0]) / 1000;
       const ease = this.easeLinearity;
       const speedVector = direction.multiplyBy(ease / duration);
@@ -627,8 +632,7 @@ export class DragEventHandler extends EventHandler {
       const limitedSpeed = Math.min(this.inertiaMaxSpeed, speed);
       const limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed);
       const decelerationDuration = limitedSpeed / (this.inertiaDeceleration * ease);
-      let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2);
-      // .round()
+      let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
 
       if (!offset.x && !offset.y) {
         // this.map.fire('moveend');

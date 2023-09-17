@@ -21,6 +21,10 @@ export class PbfMapTile implements MapTile {
   private tileDataPromise?: Promise<void>;
 
   constructor(options: MapTileOptions) {
+    this.resetState(options);
+  }
+
+  resetState(options: MapTileOptions): void {
     this.id = options.id;
     this.x = options.x;
     this.y = options.y;
