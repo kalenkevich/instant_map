@@ -164,16 +164,21 @@ export class Draggable {
     const first = e;
     const sizedParent = this.getSizedParentNode(this.element);
 
-    this.startPos = new Point(first.clientX, first.clientY);
+    this.startPos = this.getMapPoint(first);
     this.newPos = Draggable.getPosition(this.element);
-
-    console.log(this.startPos);
 
     // Cache the scale, so that we can continuously compensate for it during drag (_onMove).
     this.parentScale = this.getScale(sizedParent);
 
     document.addEventListener('mousemove', this.onMove);
     document.addEventListener('mouseup', this.onUp);
+  }
+
+  private getMapPoint(e: MouseEvent): Point {
+    const x = e.clientX - this.element.offsetTop;
+    const y = e.clientY - this.element.offsetLeft;
+
+    return new Point(x, y);
   }
 
   onMove(e: MouseEvent) {
@@ -184,7 +189,7 @@ export class Draggable {
     }
 
     const first = e;
-    const offset = new Point(first.clientX, first.clientY).subtract(this.startPos);
+    const offset = this.getMapPoint(first).subtract(this.startPos);
 
     if (!offset.x && !offset.y) {
       return;
@@ -211,12 +216,6 @@ export class Draggable {
       document.body.classList.add('leaflet-dragging');
 
       this.lastTarget = e.target || e.srcElement;
-      // IE and Edge do not give the <use> element, so fetch it
-      // if necessary
-      // if (window.SVGElementInstance && this.lastTarget instanceof window.SVGElementInstance) {
-      //   this.lastTarget = this.lastTarget.correspondingUseElement;
-      // }
-      // this.lastTarget.classList.add('leaflet-drag-target');
     }
 
     this.newPos = this.startPos.add(offset);
@@ -250,8 +249,6 @@ export class Draggable {
   }
 
   finishDrag(noInertia?: boolean) {
-    document.body.classList.remove('leaflet-dragging');
-
     if (this.lastTarget) {
       // this.lastTarget.classList.remove('leaflet-drag-target');
       this.lastTarget = null;
@@ -541,7 +538,7 @@ export class DragEventHandler extends EventHandler {
   }
 
   onDrag(e: Event) {
-    if (this.inertia) {
+    // if (this.inertia) {
       const time = (this.lastTime = +new Date());
       this.lastPos = this.draggable.getAbsolutePos() || this.draggable.getNewPosition();
       const pos = this.lastPos;
@@ -550,7 +547,7 @@ export class DragEventHandler extends EventHandler {
       this.times.push(time);
 
       this.prunePositions(time);
-    }
+    // }
 
     // this.map
     //   .fire('move', e)
@@ -615,37 +612,28 @@ export class DragEventHandler extends EventHandler {
   }
 
   onDragEnd({startPosition, endPosition}: DragEndParams) {
-    const noInertia = !this.inertia || this.times.length < 2;
+    this.prunePositions(+new Date());
 
-    // this.map.fire('dragend', e);
+    // const direction = endPosition.subtract(startPosition);
+    // const duration = 1;
+    const ease = this.easeLinearity;
+    // const speedVector = direction.multiplyBy(ease / duration);
+    // const speed = speedVector.distanceTo(new Point(0, 0));
+    // const limitedSpeed = Math.min(this.inertiaMaxSpeed, speed);
+    // const limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed);
+    // const decelerationDuration = limitedSpeed / (this.inertiaDeceleration * ease);
+    // let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
+    let offset = endPosition.subtract(startPosition);
 
-    if (noInertia) {
-      // this.map.fire('moveend');
-    } else {
-      this.prunePositions(+new Date());
+    if (offset.x && offset.y) {
+      offset = this.map.limitOffset(offset, this.map.bounds);
 
-      const direction = endPosition.subtract(startPosition);
-      const duration = (this.lastTime - this.times[0]) / 1000;
-      const ease = this.easeLinearity;
-      const speedVector = direction.multiplyBy(ease / duration);
-      const speed = speedVector.distanceTo(new Point(0, 0));
-      const limitedSpeed = Math.min(this.inertiaMaxSpeed, speed);
-      const limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed);
-      const decelerationDuration = limitedSpeed / (this.inertiaDeceleration * ease);
-      let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
-
-      if (!offset.x && !offset.y) {
-        // this.map.fire('moveend');
-      } else {
-        offset = this.map.limitOffset(offset, this.map.bounds);
-
-        this.map.panBy(offset, {
-          duration: decelerationDuration,
-          easeLinearity: ease,
-          noMoveStart: true,
-          animate: true,
-        });
-      }
+      this.map.panBy(offset, {
+        duration: 1, //decelerationDuration,
+        easeLinearity: ease,
+        noMoveStart: true,
+        animate: false,
+      });
     }
   }
 }
