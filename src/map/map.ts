@@ -128,8 +128,10 @@ export class GlideMap {
     this.tilesGrid
       .update(this.state)
       .then(tiles => this.renderer.renderTiles(tiles, this.state));
-    this.fire(MapEventType.ZOOM);
-    this.fire(MapEventType.MOVE);
+    setTimeout(() => {
+      this.fire(MapEventType.ZOOM);
+      this.fire(MapEventType.MOVE);
+    }, 0);
   }
 
   private async fetchMapMeta(): Promise<MapMeta | undefined> {
