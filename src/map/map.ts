@@ -18,6 +18,7 @@ import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/gl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer'; 
 import { MapTileFormatType } from './tile/tile';
+import { ClickEventHandler } from './events/click_event_handler';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -90,7 +91,11 @@ export class GlideMap {
     this.tilesMetaUrl = options.tilesMetaUrl;
     this.renderer = getRenderer(this, options.renderer || MapRendererType.webgl);
     this.crs = getCrs(options.crs);
-    this.eventHandlers = [new ZoomEventHandler(this), new DragEventHandler(this)];
+    this.eventHandlers = [
+      new ZoomEventHandler(this),
+      new DragEventHandler(this),
+      //new ClickEventHandler(this),
+    ];
 
     this.init();
   }
@@ -179,7 +184,7 @@ export class GlideMap {
   public zoomToPoint(newZoom: number, point: LatLng | Point): Promise<void> {
     const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, newZoom);
 
-    if (Math.abs(newZoom - this.state.zoom) > 0.5) {
+    if (Math.abs(newZoom - this.state.zoom) > 1) {
       const currentZoom = this.state.zoom;
       const diff = newZoom - currentZoom;
       const animation = new EasyAnimation(this,
@@ -262,10 +267,14 @@ export class GlideMap {
 	}
 
   getLatLngFromPoint(point: Point, zoom?: number): LatLng {
+    console.log('getLatLngFromPoint', point);
     const scale = this.getZoomScale(zoom || this.state.zoom);
     const viewHalf = this.getSize().divideBy(2);
     const containerPoint = point instanceof Point ? point : this.getPointFromLatLng(point);
-    const centerOffset = containerPoint.subtract(viewHalf).multiplyBy(1 - 1 / scale);
+    let centerOffset = containerPoint.subtract(viewHalf);
+    if (scale !== 1) {
+      centerOffset.multiplyBy(1 - 1 / scale);
+    }
 
     return this.containerPointToLatLng(viewHalf.add(centerOffset));
   }
@@ -329,6 +338,8 @@ export class GlideMap {
 			this.fire(MapEventType.MOVE_END);
       return;
 		}
+
+    console.log('offset', offset);
 
 		// If we pan too far, Chrome gets issues with tiles
 		// and makes them disappear or appear in the wrong place (slightly offset)

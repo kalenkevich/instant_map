@@ -27,7 +27,7 @@ export class ZoomEventHandler extends EventHandler {
 
   public eventHandler(e: WheelEvent) {
     this.delta += getWheelDelta(e);
-    this.lastMousePos = new Point(e.clientX, e.clientY);
+    this.lastMousePos = this.getMapPoint(e);
 
     if (!this.wheelStartTime) {
       this.wheelStartTime = Date.now();
@@ -37,6 +37,13 @@ export class ZoomEventHandler extends EventHandler {
 
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(this.performZoom.bind(this), left);
+  }
+
+  private getMapPoint(e: WheelEvent): Point {
+    const x = e.clientX - this.el.offsetTop;
+    const y = e.clientY - this.el.offsetLeft;
+
+    return new Point(x, y);
   }
 
   private performZoom() {
