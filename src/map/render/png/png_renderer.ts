@@ -90,7 +90,6 @@ export class PngMapRenderer implements MapRenderer {
     image.style.height = `${tile.height}px`;
     image.style.position = 'absolute';
     image.style.userSelect = 'none';
-    image.style.border = '1px solid red';
     image.style.transform = `translate3d(${tileX}px, ${tileY}px, 0)scale(${tileScale}, ${tileScale})`;
   }
 
