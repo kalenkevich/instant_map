@@ -72,7 +72,7 @@ export class GlMapRenderer implements MapRenderer {
 
     const simplifyOptions = {
       ...DefaultSipmlifyGeometryOptions,
-      tolerance: 100 / mapState.zoom,
+      tolerance: 10,
     };
 
     const tileScale = this.getTileScale(mapState);

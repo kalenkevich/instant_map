@@ -31,16 +31,16 @@ function getStartMapLocation(): [number, number, number] {
 
 window.addEventListener('load', () => {
   const [zoom, lat, lng] = getStartMapLocation();
+  const width = window.innerWidth - 20;
+  const height = window.innerHeight - 20;
   // const map = new GlideMap({
-  //   rootEl: createRootEl(),
-  //   width: 1024,
-  //   height: 1024,
+  //   rootEl: createRootEl(width, height),
+  //   width,
+  //   height,
   //   zoom,
   //   center: new LatLng(lat, lng),
   //   tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   // });
-  const width = window.innerWidth - 20;
-  const height = window.innerHeight - 20;
   const map = new GlideMap({
     rootEl: createRootEl(width, height),
     width,
