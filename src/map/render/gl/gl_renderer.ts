@@ -111,18 +111,17 @@ export class GlMapRenderer implements MapRenderer {
     const tileScale = this.getTileScale(mapState);
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
-    const scale: v2 = [
-      (tile.width / tile.mapWidth / tile.pixelRatio) * tileScale,
-      (tile.height / tile.mapHeight / tile.pixelRatio) * tileScale,
-    ];
 
     return [
       new WebGlImage({
-        p: [tileX, tileY],
-        width: tile.width,
-        height: tile.height,
+        width: tile.width / tile.pixelRatio,
+        height: tile.height / tile.pixelRatio,
         image: tile.image,
-        scale,
+        scale: [
+          (tile.width / tile.mapWidth / tile.pixelRatio) * tileScale * 6,
+          (tile.height / tile.mapHeight / tile.pixelRatio) * tileScale * 5,
+        ],
+        translation: [tileX, tileY],
       }),
     ];
   }

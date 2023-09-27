@@ -623,7 +623,7 @@ export class DragEventHandler extends EventHandler {
     // const limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed);
     // const decelerationDuration = limitedSpeed / (this.inertiaDeceleration * ease);
     // let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
-    let offset = endPosition.subtract(startPosition);
+    let offset = endPosition.subtract(startPosition).multiplyBy(-1);
 
     if (offset.x && offset.y) {
       offset = this.map.limitOffset(offset, this.map.bounds);
@@ -632,7 +632,7 @@ export class DragEventHandler extends EventHandler {
         duration: 1, //decelerationDuration,
         easeLinearity: ease,
         noMoveStart: true,
-        animate: false,
+        animate: true,
       });
     }
   }

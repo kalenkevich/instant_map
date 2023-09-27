@@ -1,4 +1,4 @@
-import { addExtensionsToContext } from 'twgl.js';
+import { addExtensionsToContext, resizeCanvasToDisplaySize } from 'twgl.js';
 import { GlProgram } from './object/program';
 
 export class WebGlPainter {
@@ -11,12 +11,7 @@ export class WebGlPainter {
   }
 
   public init() {
-    const gl = this.gl;
-
     addExtensionsToContext(this.gl);
-
-    //resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   }
 
   public setPrograms(programs: GlProgram[]) {
@@ -29,11 +24,15 @@ export class WebGlPainter {
 
   public clear() {
     // Clear the canvas.
+    this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
   public draw(): void {
     const gl = this.gl;
+
+    resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     for (const program of this.programs) {
       program.draw(gl);

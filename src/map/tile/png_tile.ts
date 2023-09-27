@@ -3,7 +3,7 @@ import { MapTilesMeta } from '../types';
 
 export class PngMapTile implements MapTile {
   id: string;
-  formatType: MapTileFormatType.png;
+  formatType = MapTileFormatType.png;
   x: number;
   y: number;
   width: number;
@@ -30,6 +30,7 @@ export class PngMapTile implements MapTile {
 
     this.image = new Image(this.width, this.height);
     this.image.src = this.tileUrl;
+    this.image.crossOrigin = "anonymous";
 
     return this.fetchDataPromise = new Promise((resolve) => {
       this.image.onload = () => {
