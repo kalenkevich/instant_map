@@ -14,19 +14,31 @@ export class PngMapRenderer implements MapRenderer {
   ) {
     this.map = map;
     this.el = this.createDivEl();
+    this.resizeEventListener = this.resizeEventListener.bind(this);
   }
 
-  init() {
+  public init() {
     this.map.addEventListener({
       eventType: MapEventType.RESIZE,
-      handler: () => {
-        const width = this.map.getWidth();
-        const height = this.map.getHeight();
-  
-        this.el.style.width = `${width}px`;
-        this.el.style.height = `${height}px`;
-      },
+      handler: this.resizeEventListener,
     });
+  }
+
+  private resizeEventListener() {
+    const width = this.map.getWidth();
+    const height = this.map.getHeight();
+
+    this.el.style.width = `${width}px`;
+    this.el.style.height = `${height}px`;
+  }
+
+  public destroy() {
+    this.map.removeEventListener({
+      eventType: MapEventType.RESIZE,
+      handler: this.resizeEventListener,
+    });
+    this.map.rootEl.removeChild(this.el);
+    this.stopRender();
   }
 
   private createDivEl(): HTMLElement {
@@ -43,7 +55,7 @@ export class PngMapRenderer implements MapRenderer {
     return div;
   }
 
-  renderTiles(tiles: MapTile[], mapState: MapState) {
+  public renderTiles(tiles: MapTile[], mapState: MapState) {
     for (const image of this.images) {
       image.style.display = 'none';
     }
@@ -53,13 +65,13 @@ export class PngMapRenderer implements MapRenderer {
     }
   }
 
-  stopRender(): void {
+  public stopRender(): void {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);
     }
   }
 
-  renderTile(tile: PngMapTile, tileIndex: number, mapState: MapState) {
+  private renderTile(tile: PngMapTile, tileIndex: number, mapState: MapState) {
     if (!tile.isReady()) {
       throw new Error('Png tile is not ready yet.');
     }
@@ -76,7 +88,7 @@ export class PngMapRenderer implements MapRenderer {
     }
   }
 
-  setupImage(
+  private setupImage(
     image: HTMLImageElement,
     tile: PngMapTile,
     imageSrc: string,
@@ -103,13 +115,13 @@ export class PngMapRenderer implements MapRenderer {
     image.style.transform = `translate3d(${tileX}px, ${tileY}px, 0)scale(${tileScale}, ${tileScale})`;
   }
 
-  getTileScale(mapState: MapState): number {
+  private getTileScale(mapState: MapState): number {
     const tileZoom = this.getTileZoom(mapState);
 
     return this.map.getZoomScale(mapState.zoom, tileZoom);
   }
 
-  getTileZoom(mapState: MapState): number | undefined {
+  private getTileZoom(mapState: MapState): number | undefined {
     let tileZoom = Math.round(mapState.zoom);
 
     if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
@@ -119,7 +131,7 @@ export class PngMapRenderer implements MapRenderer {
     return this.clampZoom(tileZoom);
   }
 
-  clampZoom(zoom: number) {
+  private clampZoom(zoom: number) {
     const minZoom = this.map.getMinZoom();
     const maxZoom = this.map.getMaxZoom();
 

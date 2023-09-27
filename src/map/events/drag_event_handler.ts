@@ -462,6 +462,25 @@ export class DragEventHandler extends EventHandler {
     throw new Error('Method not implemented.');
   }
 
+  public destroy() {
+    this.draggable.removeEventListener({
+      eventType: DragEventType.DRAG_START,
+      handler: this.onDragStart,
+    });
+    this.draggable.removeEventListener({
+      eventType: DragEventType.DRAG,
+      handler: this.onDrag,
+    });
+    this.draggable.removeEventListener({
+      eventType: DragEventType.DRAG_END,
+      handler: this.onDragEnd,
+    });
+    this.draggable.removeEventListener({
+      eventType: DragEventType.PRE_DRAG,
+      handler: this.onPreDragLimit,
+    });
+  }
+
   constructor(map: GlideMap, viscosity: number = 0) {
     super(map);
 

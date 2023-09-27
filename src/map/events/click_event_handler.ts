@@ -11,6 +11,10 @@ export class ClickEventHandler extends EventHandler {
     this.map.setCenter(latLng);
   }
 
+  public destroy() {
+    this.unsubscribe();
+  }
+
   private getMapPoint(e: MouseEvent): Point {
     const x = e.clientX - this.el.offsetTop;
     const y = e.clientY - this.el.offsetLeft;

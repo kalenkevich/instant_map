@@ -25,6 +25,10 @@ export class ZoomEventHandler extends EventHandler {
   wheelStartTime?: number;
   debounceTimer?: ReturnType<typeof setTimeout>;
 
+  public destroy() {
+    this.unsubscribe();
+  }
+
   public eventHandler(e: WheelEvent) {
     this.delta += getWheelDelta(e);
     this.lastMousePos = this.getMapPoint(e);
