@@ -52,7 +52,6 @@ export enum MapTileFormatType {
   xml = 'xml', // tile data stored as xml
   json = 'json', // tile data stored as json
   pbf = 'pbf', // tile data stored as pbf (most efficiet type)
-  svg = 'svg', // tile data stored as svg
   png = 'png', // tile data stored as image
 }
 
@@ -81,6 +80,7 @@ export interface MapTileOptions {
 
 export interface MapTile extends MapTileOptions {
   fetchTileData(abortSignal?: AbortSignal): Promise<void>;
+  isReady(): boolean;
   getLayers(): TileLayersMap;
   resetState(tileState: MapTileOptions): void;
 }

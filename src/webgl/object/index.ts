@@ -10,6 +10,7 @@ export * from './path';
 export * from './rectangle';
 export * from './triangle';
 export * from './circle';
+export * from './image';
 
 /** Object Groups */
 export * from './path_group';

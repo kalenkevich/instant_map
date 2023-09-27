@@ -3,7 +3,7 @@ import { MapTilesMeta } from '../types';
 
 export class PngMapTile implements MapTile {
   id: string;
-  formatType: MapTileFormatType.png;
+  formatType = MapTileFormatType.png;
   x: number;
   y: number;
   width: number;
@@ -14,13 +14,34 @@ export class PngMapTile implements MapTile {
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileUrl: string;
+  image?: HTMLImageElement;
+
+  private ready = false;
+  private fetchDataPromise?: Promise<void>;
 
   constructor(options: MapTileOptions) {
     this.resetState(options);
   }
 
   async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
-    return Promise.resolve();
+    if (this.ready && this.fetchDataPromise) {
+      return this.fetchDataPromise;
+    }
+
+    this.image = new Image(this.width, this.height);
+    this.image.src = this.tileUrl;
+    this.image.crossOrigin = "anonymous";
+
+    return this.fetchDataPromise = new Promise((resolve) => {
+      this.image.onload = () => {
+        resolve();
+        this.ready = true;
+      };
+    });
+  }
+
+  isReady() {
+    return this.ready;
   }
 
   resetState(options: MapTileOptions): void {

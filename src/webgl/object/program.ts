@@ -1,9 +1,10 @@
 import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
+import { GL_COLOR_BLACK } from '../colors';
 
 export interface GlProgramProps {
-  color: GlColor;
+  color?: GlColor;
   rotationInRadians?: number;
   origin?: v2;
   translation?: v2;
@@ -45,7 +46,7 @@ export abstract class GlProgram {
   private uniformsCache?: GlUniforms; 
 
   protected constructor(props: GlProgramProps) {
-    this.color = this.normalizeColor(props.color);
+    this.color = props.color ? this.normalizeColor(props.color) : GL_COLOR_BLACK as v4;
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
     this.origin = props.origin || [0, 0];
@@ -139,7 +140,7 @@ export abstract class GlProgram {
     return GlProgram.compile(gl);
   }
 
-  private static programInfo: ProgramInfo;
+  public static programInfo: ProgramInfo;
 
   public static compile(gl: WebGLRenderingContext): ProgramInfo {
     if (this.programInfo) {

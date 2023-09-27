@@ -5,7 +5,7 @@ import { MapTilesMeta } from '../types';
 
 export class PbfMapTile implements MapTile {
   id: string;
-  formatType: MapTileFormatType.pbf;
+  formatType = MapTileFormatType.pbf;
   x: number;
   y: number;
   width: number;
@@ -72,6 +72,10 @@ export class PbfMapTile implements MapTile {
     } finally {
       this.isDataLoading = false;
     }
+  }
+
+  isReady() {
+    return !!this.tileData;
   }
 
   getLayers(): TileLayersMap {

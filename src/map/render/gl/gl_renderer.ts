@@ -1,8 +1,9 @@
-import { MapTile } from '../../tile/tile';
+import { MapTile, MapTileFormatType } from '../../tile/tile';
+import { PngMapTile } from '../../tile/png_tile'
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap } from '../../map';
-import { WebGlPainter, GlProgram, v2 } from '../../../webgl';
+import { WebGlPainter, GlProgram, v2, WebGlImage } from '../../../webgl';
 import {
   getTransportationFeatures,
   getBuildingFeatures,
@@ -29,13 +30,19 @@ export class GlMapRenderer implements MapRenderer {
     this.glPainter = new WebGlPainter(this.gl, []);
   }
 
-  init() {}
+  init() {
+  }
 
   createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
+    const width = this.map.width;
+    const height = this.map.height;
 
-    canvas.width = this.map.width * this.map.devicePixelRatio;
-    canvas.height = this.map.height * this.map.devicePixelRatio;
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
     this.map.rootEl.appendChild(canvas);
 
     return canvas;
@@ -64,6 +71,14 @@ export class GlMapRenderer implements MapRenderer {
   }
 
   private getRenderPrograms(tile: MapTile, mapState: MapState): GlProgram[] {
+    if (tile.formatType === MapTileFormatType.png) {
+      return this.getImagePrograms(tile as PngMapTile, mapState);
+    }
+
+    return this.getDataTilePrograms(tile, mapState);
+  }
+
+  private getDataTilePrograms(tile: MapTile, mapState: MapState): GlProgram[] {
     const tileLayers = tile.getLayers();
 
     if (!tileLayers || Object.keys(tileLayers).length === 0) {
@@ -72,7 +87,7 @@ export class GlMapRenderer implements MapRenderer {
 
     const simplifyOptions = {
       ...DefaultSipmlifyGeometryOptions,
-      tolerance: 100 / mapState.zoom,
+      tolerance: 10,
     };
 
     const tileScale = this.getTileScale(mapState);
@@ -90,6 +105,25 @@ export class GlMapRenderer implements MapRenderer {
       ...getBoundaryFeatures(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
       ...getTransportationFeatures(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
       ...getBuildingFeatures(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
+    ];
+  }
+
+  private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
+    const tileScale = this.getTileScale(mapState);
+    const tileX = tile.x * tileScale;
+    const tileY = tile.y * tileScale;
+
+    return [
+      new WebGlImage({
+        width: tile.width,
+        height: tile.height,
+        image: tile.image,
+        scale: [
+          tileScale,
+          tileScale,
+        ],
+        translation: [tileX, tileY],
+      }),
     ];
   }
 

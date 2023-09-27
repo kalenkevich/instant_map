@@ -30,12 +30,6 @@ export class PngMapRenderer implements MapRenderer {
     return div;
   }
 
-  private createImgEl(): HTMLImageElement {
-    const img = document.createElement('img');
-
-    return img;
-  }
-
   renderTiles(tiles: MapTile[], mapState: MapState) {
     for (const image of this.images) {
       image.style.display = 'none';
@@ -53,10 +47,13 @@ export class PngMapRenderer implements MapRenderer {
   }
 
   renderTile(tile: PngMapTile, tileIndex: number, mapState: MapState) {
+    if (!tile.isReady()) {
+      throw new Error('Png tile is not ready yet.');
+    }
+
     if (this.images[tileIndex] === undefined) {
-      const image = this.createImgEl();
-      this.images.push(image);
-      this.el.appendChild(image);
+      this.images.push(tile.image);
+      this.el.appendChild(tile.image);
     }
 
     const image = this.images[tileIndex];
