@@ -34,8 +34,8 @@ export class GlMapRenderer implements MapRenderer {
 
   createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    const width = this.map.width * this.map.devicePixelRatio;
-    const height = this.map.height * this.map.devicePixelRatio;
+    const width = this.map.width;
+    const height = this.map.height;
 
     canvas.width = width;
     canvas.height = height;
@@ -114,12 +114,12 @@ export class GlMapRenderer implements MapRenderer {
 
     return [
       new WebGlImage({
-        width: tile.width / tile.pixelRatio,
-        height: tile.height / tile.pixelRatio,
+        width: tile.width,
+        height: tile.height,
         image: tile.image,
         scale: [
-          (tile.width / tile.mapWidth / tile.pixelRatio) * tileScale * 6,
-          (tile.height / tile.mapHeight / tile.pixelRatio) * tileScale * 5,
+          tileScale,
+          tileScale,
         ],
         translation: [tileX, tileY],
       }),

@@ -95,7 +95,10 @@ window.addEventListener('load', () => {
       maxzoom: 19,
       minzoom: 0,
       format: MapTileFormatType.png,
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tiles: [
+        'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+        // 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+      ],
     },
   });
 
