@@ -18,7 +18,6 @@ import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/gl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer'; 
 import { MapTileFormatType } from './tile/tile';
-import { ClickEventHandler } from './events/click_event_handler';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -45,6 +44,7 @@ export enum MapEventType {
   DRAG = 'drag',
   DRAG_END = 'dragend',
   ZOOM = 'zoom',
+  RESIZE = 'resize',
 }
 
 export interface EventListener {
@@ -63,8 +63,6 @@ export class GlideMap {
   rootEl: HTMLElement;
   devicePixelRatio: number;
   state: MapState;
-  width: number;
-  height: number;
   minZoom?: number;
   maxZoom?: number;
   zoomSnap?: number;
@@ -78,11 +76,14 @@ export class GlideMap {
   eventHandlers: EventHandler[];
   crs: CoordinateReferenceSystem;
 
+  private width: number;
+  private height: number;
+
   constructor(private readonly options: MapOptions) {
     this.rootEl = options.rootEl;
+    this.width = this.rootEl.offsetWidth;
+    this.height = this.rootEl.offsetHeight;
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
-    this.width = options.width;
-    this.height = options.height;
     this.state = {
       zoom: options.zoom,
       center: options.center || new LatLng(0, 0),
@@ -94,7 +95,6 @@ export class GlideMap {
     this.eventHandlers = [
       new ZoomEventHandler(this),
       new DragEventHandler(this),
-      //new ClickEventHandler(this),
     ];
 
     this.init();
@@ -102,6 +102,15 @@ export class GlideMap {
 
   init() {
     this.eventHandlers.forEach(eventHandler => eventHandler.subscribe());
+
+    if (this.options.resizable) {
+      window.addEventListener('resize', () => {
+        this.width = this.rootEl.offsetWidth;
+        this.height = this.rootEl.offsetHeight;
+        this.fire(MapEventType.RESIZE);
+        this.triggerRerender();
+      });
+    }
 
     if (this.mapMeta) {
       this.postInit();
@@ -111,6 +120,26 @@ export class GlideMap {
         this.postInit();
       });
     }
+  }
+
+  getWidth(): number {
+    return this.width;
+  }
+
+  getHeight(): number {
+    return this.height;
+  }
+
+  setWidth(width: number) {
+    this.width = width;
+    this.fire(MapEventType.RESIZE);
+    this.triggerRerender();
+  }
+
+  setHeight(height: number) {
+    this.height = height;
+    this.fire(MapEventType.RESIZE);
+    this.triggerRerender();
   }
 
   private postInit() {
@@ -124,15 +153,11 @@ export class GlideMap {
         tileset_type: this.mapMeta.tileset_type,
         tiles: this.mapMeta.tiles,
       },
-      mapWidth: this.width,
-      mapHeight: this.height,
     });
 
     this.renderer.init();
     this.tilesGrid.init(this.state);
-    this.tilesGrid
-      .update(this.state)
-      .then(tiles => this.renderer.renderTiles(tiles, this.state));
+    this.triggerRerender();
     setTimeout(() => {
       this.fire(MapEventType.ZOOM);
       this.fire(MapEventType.MOVE);
@@ -377,6 +402,10 @@ export class GlideMap {
       this.fire(MapEventType.MOVE);
     }
 
+    return this.triggerRerender();
+  }
+
+  triggerRerender() {
     return this.tilesGrid.update(this.state).then(tiles => {
       this.renderer.stopRender();
 

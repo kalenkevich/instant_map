@@ -5,8 +5,6 @@ import { MapTileFormatType } from './tile/tile';
 
 export interface MapOptions {
   rootEl: HTMLElement;
-  width: number;
-  height: number;
   zoom?: number;
   center?: LatLng;
   mapMeta?: MapMeta;
@@ -14,6 +12,7 @@ export interface MapOptions {
   devicePixelRatio?: number;
   renderer?: MapRendererType | MapRendererOptions;
   crs?: MapCrs;
+  resizable?: boolean,
 }
 
 export type MapCrs = CoordinateReferenceSystem;

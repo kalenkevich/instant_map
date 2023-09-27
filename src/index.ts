@@ -13,6 +13,14 @@ function createRootEl(width: number, height: number, margin: number) {
   div.style.height = `${height}px`;
   document.body.appendChild(div);
 
+  window.addEventListener('resize', () => {
+    const width = window.innerWidth - (margin * 2) - 2;
+    const height = window.innerHeight - (margin * 2) - 2;
+
+    div.style.width = `${width}px`;
+    div.style.height = `${height}px`;
+  });
+
   return div;
 }
 
@@ -61,7 +69,7 @@ window.addEventListener('load', () => {
   const width = window.innerWidth - (margin * 2) - 2;
   const height = window.innerHeight - (margin * 2) - 2;
   // const vectorTileGlMap = new GlideMap({
-  //   rootEl: createRootEl(width, height, margin),
+  //   rootEl: createRootEl(margin),
   //   width,
   //   height,
   //   zoom,
@@ -69,7 +77,7 @@ window.addEventListener('load', () => {
   //   tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
   // });
   // const pngMap = new GlideMap({
-  //   rootEl: createRootEl(width, height, margin),
+  //   rootEl: createRootEl(margin),
   //   width,
   //   height,
   //   zoom,
@@ -85,11 +93,10 @@ window.addEventListener('load', () => {
   // });
   const pngGlMap = new GlideMap({
     rootEl: createRootEl(width, height, margin),
-    width,
-    height,
     zoom,
     center: new LatLng(lat, lng),
     renderer: MapRendererType.webgl,
+    resizable: true,
     mapMeta: {
       ...DEFAULT_MAP_METADATA,
       maxzoom: 19,

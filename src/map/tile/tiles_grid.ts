@@ -11,8 +11,6 @@ import { PngMapTile } from './png_tile';
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
   tileFormatType: MapTileFormatType;
-  mapWidth: number;
-  mapHeight: number;
   devicePixelRatio?: number;
 }
 
@@ -29,8 +27,6 @@ export class TilesGrid {
 
   defaultTileSize: number;
   tileCoords: Array<[number, number]>;
-  mapWidth: number;
-  mapHeight: number;
   tileZoom: number;
 
   fetchInProgress = false;
@@ -39,8 +35,6 @@ export class TilesGrid {
   constructor(map: GlideMap, options: TilesGridOptions) {
     this.map = map;
     this.tilesMeta = options.tilesMeta;
-    this.mapWidth = options.mapWidth;
-    this.mapHeight = options.mapHeight;
     this.tileFormatType = options.tileFormatType;
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
     this.tilesCache = new Map<MapTileId, MapTile>();
@@ -179,8 +173,8 @@ export class TilesGrid {
       y: (tileCoords.y - minYTileCoord) * tileSize,
       width: tileSize,
       height: tileSize,
-      mapWidth: this.mapWidth,
-      mapHeight: this.mapHeight,
+      mapWidth: this.map.getWidth(),
+      mapHeight: this.map.getHeight(),
       tileCoords,
       pixelRatio: this.devicePixelRatio,
       tilesMeta: this.tilesMeta,

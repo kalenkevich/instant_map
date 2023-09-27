@@ -2,7 +2,7 @@ import { MapTile, MapTileFormatType } from '../../tile/tile';
 import { PngMapTile } from '../../tile/png_tile'
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
-import { GlideMap } from '../../map';
+import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, v2, WebGlImage } from '../../../webgl';
 import {
   getTransportationFeatures,
@@ -31,12 +31,24 @@ export class GlMapRenderer implements MapRenderer {
   }
 
   init() {
+    this.map.addEventListener({
+      eventType: MapEventType.RESIZE,
+      handler: () => {
+        const width = this.map.getWidth();
+        const height = this.map.getHeight();
+  
+        this.canvasEl.width = width;
+        this.canvasEl.height = height;
+        this.canvasEl.style.width = `${width}px`;
+        this.canvasEl.style.height = `${height}px`;
+      },
+    });
   }
 
   createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    const width = this.map.width;
-    const height = this.map.height;
+    const width = this.map.getWidth();
+    const height = this.map.getHeight();
 
     canvas.width = width;
     canvas.height = height;
