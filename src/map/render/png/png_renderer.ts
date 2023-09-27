@@ -1,7 +1,7 @@
 import { MapTile } from '../../tile/tile';
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
-import { GlideMap } from '../../map';
+import { GlideMap, MapEventType } from '../../map';
 import { PngMapTile } from '../../tile/png_tile';
 
 export class PngMapRenderer implements MapRenderer {
@@ -16,13 +16,26 @@ export class PngMapRenderer implements MapRenderer {
     this.el = this.createDivEl();
   }
 
-  init() {}
+  init() {
+    this.map.addEventListener({
+      eventType: MapEventType.RESIZE,
+      handler: () => {
+        const width = this.map.getWidth();
+        const height = this.map.getHeight();
+  
+        this.el.style.width = `${width}px`;
+        this.el.style.height = `${height}px`;
+      },
+    });
+  }
 
   private createDivEl(): HTMLElement {
     const div = document.createElement('div');
+    const width = this.map.getWidth();
+    const height = this.map.getHeight();
 
-    div.style.width = `${this.map.width}px`;
-    div.style.height = `${this.map.height}px`;
+    div.style.width = `${width}px`;
+    div.style.height = `${height}px`;
     div.style.position = 'relative';
     div.style.overflow = 'hidden';
     this.map.rootEl.appendChild(div);
