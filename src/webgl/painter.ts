@@ -16,7 +16,7 @@ export class WebGlPainter {
   }
 
   public destroy() {
-    this.gl.getExtension('WEBGL_lose_context').loseContext();
+    // this.gl.getExtension('WEBGL_lose_context').loseContext();
   }
 
   public clear() {

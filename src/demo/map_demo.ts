@@ -35,7 +35,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     minzoom: 0,
     format: MapTileFormatType.png,
     tiles: [
-      'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     ],
   },
 }, {
@@ -69,7 +69,7 @@ function createRootEl(width: number, height: number, margin: number) {
 
   window.addEventListener('resize', () => {
     const width = window.innerWidth - (margin * 2) - 2;
-    const height = window.innerHeight - (margin * 2) - 2;
+    const height = window.innerHeight - (margin * 2) - 2 - 50;
 
     div.style.width = `${width}px`;
     div.style.height = `${height}px`;

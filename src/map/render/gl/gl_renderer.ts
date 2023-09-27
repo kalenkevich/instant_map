@@ -46,12 +46,13 @@ export class GlMapRenderer implements MapRenderer {
   }
 
   public destroy() {
+    this.stopRender();
+    this.glPainter.destroy();
     this.map.removeEventListener({
       eventType: MapEventType.RESIZE,
       handler: this.resizeEventListener,
     });
     this.map.rootEl.removeChild(this.canvasEl);
-    this.stopRender();
   }
 
   createCanvasEl(): HTMLCanvasElement {

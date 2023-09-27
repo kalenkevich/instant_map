@@ -148,8 +148,8 @@ export class TilesGrid {
     const tileRange = this.pxBoundsToTileRange(pixelBounds, state);
 
     const tilesCoords: TileCoordinate[] = [];
-    for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
-      for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
+    for (let j = tileRange.min.y - 1; j <= tileRange.max.y + 1; j++) {
+      for (let i = tileRange.min.x - 1; i <= tileRange.max.x + 1; i++) {
         const coords: TileCoordinate = {
           x: i,
           y: j,
