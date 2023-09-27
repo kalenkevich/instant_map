@@ -35,7 +35,6 @@ export class PbfMapTile implements MapTile {
     this.height = options.height * this.pixelRatio;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
-    // this.tileData = undefined;
   }
 
   /**

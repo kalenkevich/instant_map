@@ -59,8 +59,6 @@ export class PngMapTile implements MapTile {
       .replace('{z}', this.tileCoords.z.toString())
       .replace('{x}', this.tileCoords.x.toString())
       .replace('{y}', this.tileCoords.y.toString());
-    // this.fetchDataPromise = undefined;
-    // this.ready = false;
   }
 
   getLayers(): TileLayersMap {

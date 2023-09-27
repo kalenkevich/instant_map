@@ -30,7 +30,8 @@ export class GlMapRenderer implements MapRenderer {
     this.glPainter = new WebGlPainter(this.gl, []);
   }
 
-  init() {}
+  init() {
+  }
 
   createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');

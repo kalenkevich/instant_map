@@ -14,8 +14,6 @@ export class WebGlPainter {
     const gl = this.gl;
 
     addExtensionsToContext(gl);
-    // gl.enable(gl.CULL_FACE);
-    // gl.cullFace(gl.FRONT_AND_BACK);
   }
 
   public setPrograms(programs: GlProgram[]) {
