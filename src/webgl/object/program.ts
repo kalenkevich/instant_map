@@ -3,7 +3,7 @@ import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 
 export interface GlProgramProps {
-  color: GlColor;
+  color?: GlColor;
   rotationInRadians?: number;
   origin?: v2;
   translation?: v2;

@@ -14,13 +14,33 @@ export class PngMapTile implements MapTile {
   pixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileUrl: string;
+  image?: HTMLImageElement;
+
+  private ready = false;
+  private fetchDataPromise?: Promise<void>;
 
   constructor(options: MapTileOptions) {
     this.resetState(options);
   }
 
   async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
-    return Promise.resolve();
+    if (this.ready && this.fetchDataPromise) {
+      return this.fetchDataPromise;
+    }
+
+    this.image = new Image(this.width, this.height);
+    this.image.src = this.tileUrl;
+
+    return this.fetchDataPromise = new Promise((resolve) => {
+      this.image.onload = () => {
+        resolve();
+        this.ready = true;
+      };
+    });
+  }
+
+  isReady() {
+    return this.ready;
   }
 
   resetState(options: MapTileOptions): void {
@@ -38,6 +58,8 @@ export class PngMapTile implements MapTile {
       .replace('{z}', this.tileCoords.z.toString())
       .replace('{x}', this.tileCoords.x.toString())
       .replace('{y}', this.tileCoords.y.toString());
+    // this.fetchDataPromise = undefined;
+    // this.ready = false;
   }
 
   getLayers(): TileLayersMap {

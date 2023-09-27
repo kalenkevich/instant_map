@@ -35,6 +35,7 @@ export class PbfMapTile implements MapTile {
     this.height = options.height * this.pixelRatio;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
+    // this.tileData = undefined;
   }
 
   /**
@@ -72,6 +73,10 @@ export class PbfMapTile implements MapTile {
     } finally {
       this.isDataLoading = false;
     }
+  }
+
+  isReady() {
+    return !!this.tileData;
   }
 
   getLayers(): TileLayersMap {

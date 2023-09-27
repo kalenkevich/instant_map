@@ -94,13 +94,17 @@ export class TilesGrid {
 
       const abortController = new AbortController();
 
-      this.tilesCache.set(tile.id, tile);
+      
       this.fetchingTilesMap.set(tile.id, abortController);
 
       tilesPromises.push(
         tile
           .fetchTileData(abortController.signal)
-          .then(() => tile)
+          .then(() => {
+            this.tilesCache.set(tile.id, tile);
+
+            return tile;
+          })
           .finally(() => this.fetchingTilesMap.delete(tile.id))
       );
     }
