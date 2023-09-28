@@ -97,19 +97,15 @@ export class GlideMap {
       new DragEventHandler(this),
     ];
 
+    this.resizeEventListener = this.resizeEventListener.bind(this);
     this.init();
   }
 
-  init() {
+  private init() {
     this.eventHandlers.forEach(eventHandler => eventHandler.subscribe());
 
     if (this.options.resizable) {
-      window.addEventListener('resize', () => {
-        this.width = this.rootEl.offsetWidth;
-        this.height = this.rootEl.offsetHeight;
-        this.fire(MapEventType.RESIZE);
-        this.triggerRerender();
-      });
+      window.addEventListener('resize', this.resizeEventListener);
     }
 
     if (this.mapMeta) {
@@ -120,26 +116,6 @@ export class GlideMap {
         this.postInit();
       });
     }
-  }
-
-  getWidth(): number {
-    return this.width;
-  }
-
-  getHeight(): number {
-    return this.height;
-  }
-
-  setWidth(width: number) {
-    this.width = width;
-    this.fire(MapEventType.RESIZE);
-    this.triggerRerender();
-  }
-
-  setHeight(height: number) {
-    this.height = height;
-    this.fire(MapEventType.RESIZE);
-    this.triggerRerender();
   }
 
   private postInit() {
@@ -162,6 +138,47 @@ export class GlideMap {
       this.fire(MapEventType.ZOOM);
       this.fire(MapEventType.MOVE);
     }, 0);
+  }
+
+  public destroy() {
+    if (this.options.resizable) {
+      window.removeEventListener('resize', this.resizeEventListener);
+    }
+
+    this.renderer.destroy();
+
+    for (const eventHandler of this.eventHandlers) {
+      eventHandler.destroy();
+    }
+
+    this.eventListeners = [];
+  }
+
+  public resizeEventListener() {
+    this.width = this.rootEl.offsetWidth;
+    this.height = this.rootEl.offsetHeight;
+    this.fire(MapEventType.RESIZE);
+    this.triggerRerender();
+  }
+
+  public getWidth(): number {
+    return this.width;
+  }
+
+  public getHeight(): number {
+    return this.height;
+  }
+
+  public setWidth(width: number) {
+    this.width = width;
+    this.fire(MapEventType.RESIZE);
+    this.triggerRerender();
+  }
+
+  public setHeight(height: number) {
+    this.height = height;
+    this.fire(MapEventType.RESIZE);
+    this.triggerRerender();
   }
 
   private async fetchMapMeta(): Promise<MapMeta | undefined> {
@@ -405,7 +422,7 @@ export class GlideMap {
     return this.triggerRerender();
   }
 
-  triggerRerender() {
+  private triggerRerender() {
     return this.tilesGrid.update(this.state).then(tiles => {
       this.renderer.stopRender();
 
@@ -413,16 +430,16 @@ export class GlideMap {
     });
   }
 
-  stopRender(): void {
+  public stopRender(): void {
     return this.renderer.stopRender();
   }
 
   private eventListeners: EventListener[] = [];
-  addEventListener(listener: EventListener): void {
+  public addEventListener(listener: EventListener): void {
     this.eventListeners.push(listener);
   }
 
-  removeEventListener(listener: EventListener) {
+  public removeEventListener(listener: EventListener) {
     const index = this.eventListeners.findIndex(l => {
       return l.eventType === listener.eventType && l.handler === listener.handler;
     });
@@ -432,7 +449,7 @@ export class GlideMap {
     }
   }
 
-  fire(eventType: MapEventType, ...eventArgs: any[]) {
+  private fire(eventType: MapEventType, ...eventArgs: any[]) {
     for (const listener of this.eventListeners) {
       if (listener.eventType === eventType) {
         listener.handler(...eventArgs);

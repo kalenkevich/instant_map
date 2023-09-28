@@ -33,7 +33,6 @@ let usedProgram: ProgramInfo | undefined;
 
 export abstract class GlProgram {
   public requireExt: boolean = false;
-  protected gl: WebGLRenderingContext;
 
   /** Color of the object to be painted. HSL format. */
   protected color: v4;
@@ -107,7 +106,7 @@ export abstract class GlProgram {
   }
 
   public draw(gl: WebGLRenderingContext) {
-    const programInfo = this.getProgramInfoInstance(gl);
+    const programInfo = this.getProgramInfo(gl);
     const buffer = this.getBufferInfo(gl);
     const uniforms = this.getUniforms(gl);
 
@@ -136,23 +135,7 @@ export abstract class GlProgram {
     };
   }
 
-  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return GlProgram.compile(gl);
-  }
-
-  public static programInfo: ProgramInfo;
-
-  public static compile(gl: WebGLRenderingContext): ProgramInfo {
-    if (this.programInfo) {
-      return this.programInfo;
-    }
-
-    this.programInfo = createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
-
-    return this.programInfo;
-  }
-
-  public static getVertexShaderSource(...args: any[]): string {
+  public getVertexShaderSource(...args: any[]): string {
     return `
       attribute vec2 a_position;
       uniform vec2 u_resolution;
@@ -172,7 +155,7 @@ export abstract class GlProgram {
     `;
   }
 
-  public static getFragmentShaderSource(): string {
+  public getFragmentShaderSource(): string {
     return `
       precision mediump float;
       uniform vec4 u_color;
@@ -183,8 +166,8 @@ export abstract class GlProgram {
     `;
   }
 
-  public static getProgramInfo(gl: WebGLRenderingContext): ProgramInfo {
-    return this.programInfo;
+  public getProgramInfo(gl: WebGLRenderingContext): ProgramInfo {
+    return createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
   }
 
   public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;

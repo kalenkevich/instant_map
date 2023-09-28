@@ -21,7 +21,7 @@ export class WebGlImage extends GlProgram {
   }
 
   public draw(gl: WebGLRenderingContext) {
-    const programInfo = this.getProgramInfoInstance(gl);
+    const programInfo = this.getProgramInfo(gl);
     const uniforms = this.getUniforms(gl);
     const buffers = this.getBufferInfo(gl);
 
@@ -77,23 +77,7 @@ export class WebGlImage extends GlProgram {
     };
   }
 
-  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return WebGlImage.compile(gl);
-  }
-
-  public static programInfo: ProgramInfo;
-
-  public static compile(gl: WebGLRenderingContext): ProgramInfo {
-    if (this.programInfo) {
-      return this.programInfo;
-    }
-
-    this.programInfo = createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
-
-    return this.programInfo;
-  }
-
-  public static getVertexShaderSource(): string {
+  public getVertexShaderSource(): string {
     return `
       attribute vec2 a_position;
       attribute vec2 a_texCoord;
@@ -118,7 +102,7 @@ export class WebGlImage extends GlProgram {
     `;
   }
 
-  public static getFragmentShaderSource(): string {
+  public getFragmentShaderSource(): string {
     return `
       precision mediump float;
 

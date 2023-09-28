@@ -12,6 +12,8 @@ export abstract class EventHandler {
     this.eventHandler = this.eventHandler.bind(this);
   }
 
+  abstract destroy(): void;
+
   subscribe(): void {
     this.el.addEventListener(this.eventType, this.eventHandler);
   }

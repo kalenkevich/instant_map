@@ -7,6 +7,8 @@ export interface MapRenderer {
   renderTiles(tiles: MapTile[], mapState: MapState): void;
 
   stopRender(): void;
+
+  destroy(): void;
 }
 
 export enum MapRendererType {

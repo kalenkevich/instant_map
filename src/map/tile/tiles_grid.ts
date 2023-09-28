@@ -26,7 +26,6 @@ export class TilesGrid {
   devicePixelRatio: number;
 
   defaultTileSize: number;
-  tileCoords: Array<[number, number]>;
   tileZoom: number;
 
   fetchInProgress = false;
@@ -41,13 +40,7 @@ export class TilesGrid {
   }
 
   public async init(mapState: MapState) {
-    this.defaultTileSize = this.tilesMeta.pixel_scale || DEFAULT_TILE_SIZE;
-    this.tileCoords = [
-      [0, 0],
-      [this.defaultTileSize, 0],
-      [0, this.defaultTileSize],
-      [this.defaultTileSize, this.defaultTileSize],
-    ];
+    this.defaultTileSize = DEFAULT_TILE_SIZE;
   }
 
   getTileRange(tileZoom: number, mapState: MapState) {
@@ -141,11 +134,11 @@ export class TilesGrid {
     return zoom;
   }
 
-  private getTilesToRender(state: MapState): MapTile[] {
-    const tileSize = this.getTileSize(state);
-    const tileZoom = this.getTileZoom(state);
-    const pixelBounds = this.getTiledPixelBounds(state);
-    const tileRange = this.pxBoundsToTileRange(pixelBounds, state);
+  private getTilesToRender(mapState: MapState): MapTile[] {
+    const tileSize = this.getTileSize(mapState);
+    const tileZoom = this.getTileZoom(mapState);
+    const pixelBounds = this.getTiledPixelBounds(mapState);
+    const tileRange = this.pxBoundsToTileRange(pixelBounds, mapState);
 
     const tilesCoords: TileCoordinate[] = [];
     for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
@@ -156,7 +149,7 @@ export class TilesGrid {
           z: tileZoom,
         };
 
-        if (!this.isValidTile(coords, tileZoom, state)) {
+        if (!this.isValidTile(coords, tileZoom, mapState)) {
           continue;
         }
 
@@ -236,7 +229,7 @@ export class TilesGrid {
   }
 
   pxBoundsToTileRange(bounds: Bounds, mapState: MapState): Bounds {
-    const tileSize = this.getTileSize(mapState);
+    const tileSize = this.defaultTileSize;
     const tileSizePoint = new Point(tileSize, tileSize);
 
     return new Bounds(

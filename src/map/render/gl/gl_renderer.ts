@@ -16,7 +16,6 @@ import {
 export class GlMapRenderer implements MapRenderer {
   private readonly animationFrameTaskIdSet = new Set<number>();
   private readonly canvasEl: HTMLCanvasElement;
-  private readonly gl: WebGLRenderingContext;
   private readonly glPainter: WebGlPainter;
 
   constructor(
@@ -24,25 +23,36 @@ export class GlMapRenderer implements MapRenderer {
   ) {
     this.map = map;
     this.canvasEl = this.createCanvasEl();
-    this.gl = this.canvasEl.getContext('webgl', {
-      powerPreference: 'high-performance',
-    });
-    this.glPainter = new WebGlPainter(this.gl, []);
+    this.glPainter = new WebGlPainter(this.canvasEl);
+    this.resizeEventListener = this.resizeEventListener.bind(this);
   }
 
   init() {
+    this.glPainter.init();
     this.map.addEventListener({
       eventType: MapEventType.RESIZE,
-      handler: () => {
-        const width = this.map.getWidth();
-        const height = this.map.getHeight();
-  
-        this.canvasEl.width = width;
-        this.canvasEl.height = height;
-        this.canvasEl.style.width = `${width}px`;
-        this.canvasEl.style.height = `${height}px`;
-      },
+      handler: this.resizeEventListener,
     });
+  }
+
+  public resizeEventListener() {
+    const width = this.map.getWidth();
+    const height = this.map.getHeight();
+
+    this.canvasEl.width = width;
+    this.canvasEl.height = height;
+    this.canvasEl.style.width = `${width}px`;
+    this.canvasEl.style.height = `${height}px`;
+  }
+
+  public destroy() {
+    this.stopRender();
+    this.glPainter.destroy();
+    this.map.removeEventListener({
+      eventType: MapEventType.RESIZE,
+      handler: this.resizeEventListener,
+    });
+    this.map.rootEl.removeChild(this.canvasEl);
   }
 
   createCanvasEl(): HTMLCanvasElement {
@@ -60,14 +70,13 @@ export class GlMapRenderer implements MapRenderer {
     return canvas;
   }
 
-  renderTiles(tiles: MapTile[], mapState: MapState) {
+  public renderTiles(tiles: MapTile[], mapState: MapState) {
     for (const tile of tiles) {
       const taskId = requestAnimationFrame(() => {
         const glPrograms = this.getRenderPrograms(tile, mapState);
   
         console.time('gl map_render');
-        this.glPainter.setPrograms(glPrograms);
-        this.glPainter.draw();
+        this.glPainter.draw(glPrograms);
         console.timeEnd('gl map_render');
 
         this.animationFrameTaskIdSet.delete(taskId);
@@ -76,7 +85,7 @@ export class GlMapRenderer implements MapRenderer {
     }
   }
 
-  stopRender(): void {
+  public stopRender(): void {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);
     }
@@ -139,13 +148,13 @@ export class GlMapRenderer implements MapRenderer {
     ];
   }
 
-  getTileScale({ zoom, center }: MapState): number {
+  private getTileScale({ zoom, center }: MapState): number {
     const tileZoom = this.getTileZoom(zoom);
 
     return this.map.getZoomScale(zoom, tileZoom);
   }
 
-  getTileZoom(mapZoom: number): number | undefined {
+  private getTileZoom(mapZoom: number): number | undefined {
     let tileZoom = Math.round(mapZoom);
 
     if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
@@ -155,7 +164,7 @@ export class GlMapRenderer implements MapRenderer {
     return this.clampZoom(tileZoom);
   }
 
-  clampZoom(zoom: number) {
+  private clampZoom(zoom: number) {
     const minZoom = this.map.getMinZoom();
     const maxZoom = this.map.getMaxZoom();
 

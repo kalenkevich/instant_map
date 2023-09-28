@@ -13,7 +13,7 @@ import {
   GL_COLOR_BLACK,
   GL_COLOR_RED,
   GlColor,
-} from './webgl';
+} from '../webgl';
 
 /**
  * Interface for GridOptions.
@@ -487,29 +487,26 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
 
     //painter.clear();
 
-    painter.draw();
+    painter.draw([
+      // ...grid,
+      // ...nativeLines,
+      // ...triangleLines,
+      // rectangle,
+      // rotatedRectangle,
+      // triangle,
+      // rotatedTriangle,
+      // circle,
+      // rotatedCircle,
+      // path,
+      // rotatedPath,
+      // pathGroup,
+      area,
+    ]);
 
     requestAnimationFrame(renderScene);
   };
-
-  const gl = canvas.getContext('webgl', {
-    powerPreference: 'high-performance',
-  });
-  const painter = new WebGlPainter(gl, [
-    // ...grid,
-    // ...nativeLines,
-    // ...triangleLines,
-    // rectangle,
-    // rotatedRectangle,
-    // triangle,
-    // rotatedTriangle,
-    // circle,
-    // rotatedCircle,
-    // path,
-    // rotatedPath,
-    // pathGroup,
-    area,
-  ]);
+  
+  const painter = new WebGlPainter(canvas);
 
   painter.init();
 

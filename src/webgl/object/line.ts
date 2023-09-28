@@ -152,12 +152,8 @@ export class WebGlLineStrip extends GlProgram {
     this.points = points;
   }
 
-  public getProgramInfoInstance(gl: WebGLRenderingContext): ProgramInfo {
-    return WebGlLineStrip.compile(gl);
-  }
-
   // Render basic lines with triangles.
-  public static getVertexShaderSource(...args: any[]): string {
+  public getVertexShaderSource(...args: any[]): string {
     return `
       attribute vec2 a_position;
       attribute vec2 point_a, point_b;

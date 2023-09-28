@@ -3,40 +3,34 @@ import { GlProgram } from './object/program';
 
 export class WebGlPainter {
   private readonly gl: WebGLRenderingContext;
-  private programs: GlProgram[];
 
-  constructor(gl: WebGLRenderingContext, programs?: GlProgram[]) {
-    this.gl = gl;
-    this.programs = programs || [];
+  constructor(canvas: HTMLCanvasElement) {
+    this.gl = canvas.getContext('webgl', {
+      powerPreference: 'high-performance',
+    });
   }
 
   public init() {
-    const gl = this.gl;
-
-    addExtensionsToContext(gl);
+    addExtensionsToContext(this.gl);
+    this.clear();
   }
 
-  public setPrograms(programs: GlProgram[]) {
-    this.programs = programs;
-  }
-
-  public addProgram(program: GlProgram) {
-    this.programs.push(program);
+  public destroy() {
+    // this.gl.getExtension('WEBGL_lose_context').loseContext();
   }
 
   public clear() {
-    // Clear the canvas.
     this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
-  public draw(): void {
+  public draw(programs: GlProgram[]): void {
     const gl = this.gl;
 
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    for (const program of this.programs) {
+    for (const program of programs) {
       program.draw(gl);
     }
   }
