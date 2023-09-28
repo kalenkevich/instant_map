@@ -58,14 +58,14 @@ export abstract class CoordinateReferenceSystem {
   // Returns the scale used when transforming projected coordinates into
   // pixel coordinates for a particular zoom. For example, it returns
   // `256 * 2^zoom` for Mercator-based CRS.
-  scale(zoom: number): number {
-    return 256 * Math.pow(2, zoom);
+  scale(zoom: number, scaleFactor = 256): number {
+    return scaleFactor * Math.pow(2, zoom);
   }
 
   // Inverse of `scale()`, returns the zoom level corresponding to a scale
   // factor of `scale`.
-  zoom(scale: number): number {
-    return Math.log(scale / 256) / Math.LN2;
+  zoom(scale: number, scaleFactor = 256): number {
+    return Math.log(scale / scaleFactor) / Math.LN2;
   }
 
   // Returns the projection's bounds scaled and transformed for the provided `zoom`.
@@ -101,7 +101,7 @@ export abstract class CoordinateReferenceSystem {
 
   // @property infinite: Boolean
   // If true, the coordinate space will be unbounded (infinite in both axes)
-  infinite: false;
+  infinite: boolean = false;
 
   // @method wrapLatLng(latlng: LatLng): LatLng
   // Returns a `LatLng` where lat and lng has been wrapped according to the

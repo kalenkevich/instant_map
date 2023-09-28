@@ -49,7 +49,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     minzoom: 0,
     format: MapTileFormatType.png,
     tiles: [
-      'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+      'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
     ],
   },
 }];
