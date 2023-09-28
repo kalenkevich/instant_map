@@ -40,7 +40,7 @@ export class EasyAnimation {
 		return this.step();
 	}
 
-	step(): Promise<void> {
+	async step(): Promise<void> {
 		const elapsed = (+new Date()) - this.startTime;
 		const durationInMs = this.durationInSec * 1000;
 
