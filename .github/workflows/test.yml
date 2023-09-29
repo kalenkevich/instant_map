@@ -24,4 +24,4 @@ jobs:
       continue-on-error: true
       env:
         ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-      run: npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/__diff_output__/
+      run: npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
