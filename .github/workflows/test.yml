@@ -13,5 +13,9 @@ jobs:
       run: npm install
     - name: Run unit tests
       run: npm run test:unit
+    - name: Build project for integration tests
+      run: npm run test:build
+    - name: Run static server
+      run: npm run test:server
     - name: Run integration tests
       run: npm run test:integration

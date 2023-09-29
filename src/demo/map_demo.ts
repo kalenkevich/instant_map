@@ -7,14 +7,14 @@ import { MapRendererType } from '../map/render/renderer';
 type ButtonOption = Partial<MapOptions & {name: string; id: string}>;
 
 export const ButtonMapOptions: ButtonOption[] = [{
-  name: 'VT webgl map',
-  id: 'vt_webgl',
+  name: 'VT webgl',
+  id: 'webgl_vt_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
   tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
 }, {
-  name: 'Png image map',
-  id: 'png_image',
+  name: 'Png image osm',
+  id: 'html_png_osm',
   renderer: MapRendererType.png,
   resizable: true,
   mapMeta: {
@@ -25,8 +25,20 @@ export const ButtonMapOptions: ButtonOption[] = [{
     tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
   },
 }, {
-  name: 'Png webgl osm map',
-  id: 'png_webgl_osm',
+  name: 'Png image maptiler',
+  id: 'html_png_maptiler',
+  renderer: MapRendererType.png,
+  resizable: true,
+  mapMeta: {
+    ...DEFAULT_MAP_METADATA,
+    maxzoom: 19,
+    minzoom: 0,
+    format: MapTileFormatType.png,
+    tiles: ['https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt'],
+  },
+}, {
+  name: 'Png webgl osm',
+  id: 'webgl_png_osm',
   renderer: MapRendererType.webgl,
   resizable: true,
   mapMeta: {
@@ -39,8 +51,8 @@ export const ButtonMapOptions: ButtonOption[] = [{
     ],
   },
 }, {
-  name: 'Png webgl maptiler map',
-  id: 'png_webgl_maptiler',
+  name: 'Png webgl maptiler',
+  id: 'webgl_png_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
   mapMeta: {
@@ -95,7 +107,7 @@ function getStartMapViewId(): string {
   const query = new URLSearchParams(document.location.search);
 
   if (!query.has('sm')) {
-    return 'png_webgl_osm';
+    return 'webgl_png_osm';
   }
 
   return query.get('sm');

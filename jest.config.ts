@@ -2,6 +2,7 @@ import type {Config} from 'jest';
 
 const config: Config = {
   verbose: true,
+  testTimeout: 60000,
   projects: [{
     displayName: 'unit',
     testEnvironment: 'jsdom',

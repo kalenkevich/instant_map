@@ -1,4 +1,9 @@
 {
+  "ts-node": {
+    "compilerOptions": {
+      "module": "nodenext",
+    }
+  },
   "compilerOptions": {
     "outDir": "./dist/",
     "noImplicitAny": true,
@@ -11,9 +16,10 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "types": [
-      "puppeteer",
+      "expect-puppeteer",
       "jest-environment-puppeteer",
-      "expect-puppeteer"
+      "jest-image-snapshot",
+      "puppeteer"
     ]
   }
 }
