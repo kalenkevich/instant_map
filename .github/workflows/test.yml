@@ -18,10 +18,13 @@ jobs:
     - name: Run static server
       run: npm run test:server
     - name: Run integration tests
+      id: integrationTests
       continue-on-error: true
       run: npm run test:integration
     - name: Upload screenshots to argos-ci.com
-      continue-on-error: true
       env:
         ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-      run: npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
+      if: failure()
+      run: |
+        npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
+        exit 1

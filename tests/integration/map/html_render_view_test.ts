@@ -1,6 +1,5 @@
 import {describe, expect, it} from '@jest/globals';
 import {toMatchImageSnapshot} from 'jest-image-snapshot';
-import { argosScreenshot } from '@argos-ci/puppeteer';
 
 expect.extend({ toMatchImageSnapshot });
 
