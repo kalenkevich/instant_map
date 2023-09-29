@@ -6,8 +6,8 @@ expect.extend({ toMatchImageSnapshot });
 describe('HTML render', () => {
   describe('Png images', () => {
     it('should render osm png images', async () => {
-      await page.goto('http://localhost:3000/?sm=html_png_osm');
-      await page.waitForTimeout(5000);
+      await page.goto('http://localhost:3000/?sm=html_png_osm&ls');
+      await page.waitForTimeout(2000);
 
       const image = await page.screenshot();
   
@@ -18,8 +18,8 @@ describe('HTML render', () => {
     });
 
     it('should render osm png images', async () => {
-      await page.goto('http://localhost:3000/?sm=html_png_maptiler');
-      await page.waitForTimeout(5000);
+      await page.goto('http://localhost:3000/?sm=html_png_maptiler&ls');
+      await page.waitForTimeout(2000);
 
       const image = await page.screenshot();
   

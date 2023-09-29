@@ -6,12 +6,21 @@ import { MapRendererType } from '../map/render/renderer';
 
 type ButtonOption = Partial<MapOptions & {name: string; id: string}>;
 
+const MAP_LOCATION_PARAM_NAME = 'l';
+const USE_LOCAL_SERVER_PARAM_NAME = 'ls';
+const SELECTED_MAP_VIEW_PARAM_MNAME = 'sm';
+
+const useLocalServer = new URLSearchParams(document.location.search).has(USE_LOCAL_SERVER_PARAM_NAME);
+const OSM_TILE_URL = `${useLocalServer ? '/osm' : 'https://tile.openstreetmap.org'}/{z}/{x}/{y}.png`;
+const MAPTILER_PNG_TILE_URL = `${useLocalServer ? '/maptiler/satellite' : 'https://api.maptiler.com/maps/satellite/256'}/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt`;
+const MAPTILER_VT_META_URL = `${useLocalServer ? '/maptiler/tiles_meta.json' : 'https://api.maptiler.com/tiles/v3/tiles.json'}?key=MfT8xhKONCRR9Ut0IKkt`;
+
 export const ButtonMapOptions: ButtonOption[] = [{
   name: 'VT webgl',
   id: 'webgl_vt_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
-  tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+  tilesMetaUrl: MAPTILER_VT_META_URL,
 }, {
   name: 'Png image osm',
   id: 'html_png_osm',
@@ -22,7 +31,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    tiles: [OSM_TILE_URL],
   },
 }, {
   name: 'Png image maptiler',
@@ -34,7 +43,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: ['https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt'],
+    tiles: [MAPTILER_PNG_TILE_URL],
   },
 }, {
   name: 'Png webgl osm',
@@ -46,9 +55,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: [
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    ],
+    tiles: [OSM_TILE_URL],
   },
 }, {
   name: 'Png webgl maptiler',
@@ -60,9 +67,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: [
-      'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
-    ],
+    tiles: [MAPTILER_PNG_TILE_URL],
   },
 }];
 
@@ -93,11 +98,11 @@ function createRootEl(width: number, height: number, margin: number) {
 function getStartMapLocation(): [number, number, number] {
   const query = new URLSearchParams(document.location.search);
   
-  if (!query.has('l')) {
+  if (!query.has(MAP_LOCATION_PARAM_NAME)) {
     return [14.3218, 53.0875, 25.3183];
   }
 
-  const location = decodeURIComponent(query.get('l'));
+  const location = decodeURIComponent(query.get(MAP_LOCATION_PARAM_NAME));
   const [zoom, lat, lng] = location.split('/');
 
   return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
@@ -106,11 +111,11 @@ function getStartMapLocation(): [number, number, number] {
 function getStartMapViewId(): string {
   const query = new URLSearchParams(document.location.search);
 
-  if (!query.has('sm')) {
+  if (!query.has(SELECTED_MAP_VIEW_PARAM_MNAME)) {
     return 'webgl_png_osm';
   }
 
-  return query.get('sm');
+  return query.get(SELECTED_MAP_VIEW_PARAM_MNAME);
 }
 
 const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
@@ -120,10 +125,10 @@ const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
   const query = new URLSearchParams(document.location.search);
   const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
 
-  if (query.has('l')) {
-    query.delete('l');
+  if (query.has(MAP_LOCATION_PARAM_NAME)) {
+    query.delete(MAP_LOCATION_PARAM_NAME);
   }
-  query.append('l', safeLocation);
+  query.append(MAP_LOCATION_PARAM_NAME, safeLocation);
 
   history.replaceState(null, '', '?' + query.toString());
 };
@@ -131,10 +136,10 @@ const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
 const syncQueryParamsWithSelectedMap = (selectdMapId: string) => {
   const query = new URLSearchParams(document.location.search);
 
-  if (query.has('sm')) {
-    query.delete('sm');
+  if (query.has(SELECTED_MAP_VIEW_PARAM_MNAME)) {
+    query.delete(SELECTED_MAP_VIEW_PARAM_MNAME);
   }
-  query.append('sm', selectdMapId);
+  query.append(SELECTED_MAP_VIEW_PARAM_MNAME, selectdMapId);
 
   history.replaceState(null, '', '?' + query.toString());
 }

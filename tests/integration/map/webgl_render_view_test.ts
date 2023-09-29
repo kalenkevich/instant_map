@@ -6,8 +6,8 @@ expect.extend({ toMatchImageSnapshot });
 describe('Webgl render ', () => {
   describe('PNG images.', () => {
     it('should render osm images on canvas as a map background.', async () => {
-      await page.goto('http://localhost:3000/?sm=webgl_png_osm');
-      await page.waitForTimeout(5000);
+      await page.goto('http://localhost:3000/?sm=webgl_png_osm&ls');
+      await page.waitForTimeout(2000);
   
       const image = await page.screenshot();
   
@@ -18,8 +18,8 @@ describe('Webgl render ', () => {
     });
 
     it('should render maptiler images on canvas as a map background.', async () => {
-      await page.goto('http://localhost:3000/?sm=webgl_png_maptiler');
-      await page.waitForTimeout(5000);
+      await page.goto('http://localhost:3000/?sm=webgl_png_maptiler&ls');
+      await page.waitForTimeout(2000);
   
       const image = await page.screenshot();
   
@@ -32,7 +32,7 @@ describe('Webgl render ', () => {
 
   describe.skip('Vector tiles.', () => {
     it('should render osm images on canvas as a map background.', async () => {
-      await page.goto('http://localhost:3000/?sm=webgl_vt_maptiler');
+      await page.goto('http://localhost:3000/?sm=webgl_vt_maptiler&ls');
       await page.waitForTimeout(10000);
   
       const image = await page.screenshot();
