@@ -22,9 +22,13 @@ jobs:
       continue-on-error: true
       run: npm run test:integration
     - name: Upload screenshots to argos-ci.com
+      if: steps.integrationTests.outcome == 'failure'
       env:
         ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-      if: failure()
-      run: |
-        npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
-        exit 1
+      run: npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
+    - name: Fail job when integration tests failed
+      uses: actions/github-script@v3
+      if: steps.integrationTests.outcome == 'failure'
+      with:
+        script: |
+          core.setFailed('Integration tests failed.')
