@@ -13,6 +13,8 @@ describe('Webgl render ', () => {
   
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
+        customDiffConfig: { threshold: 0.1 },
+        dumpInlineDiffToConsole: true,
         customSnapshotIdentifier: 'webgl_render_png_osm',
       });
     });
@@ -25,6 +27,8 @@ describe('Webgl render ', () => {
   
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
+        customDiffConfig: { threshold: 0.1 },
+        dumpInlineDiffToConsole: true,
         customSnapshotIdentifier: 'webgl_render_png_maptiler',
       });
     });
@@ -39,6 +43,8 @@ describe('Webgl render ', () => {
   
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
+        customDiffConfig: { threshold: 0.1 },
+        dumpInlineDiffToConsole: true,
         customSnapshotIdentifier: 'webgl_render_vt_maptiler',
       });
     });

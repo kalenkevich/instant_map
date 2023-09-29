@@ -2,7 +2,6 @@ import {describe, expect, it} from '@jest/globals';
 import {toMatchImageSnapshot} from 'jest-image-snapshot';
 
 expect.extend({ toMatchImageSnapshot });
-const customDiffConfig = { threshold: 0.1 };
 
 describe('HTML render', () => {
   describe('Png images', () => {
@@ -14,8 +13,9 @@ describe('HTML render', () => {
   
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
-          customDiffConfig,
-          customSnapshotIdentifier: 'html_render_png_osm',
+        customDiffConfig: { threshold: 0.1 },
+        dumpInlineDiffToConsole: true,
+        customSnapshotIdentifier: 'html_render_png_osm',
       });
     });
 
@@ -27,7 +27,9 @@ describe('HTML render', () => {
   
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
-          customSnapshotIdentifier: 'html_render_png_maptiler',
+        customDiffConfig: { threshold: 0.1 },
+        dumpInlineDiffToConsole: true,
+        customSnapshotIdentifier: 'html_render_png_maptiler',
       });
     });
   });
