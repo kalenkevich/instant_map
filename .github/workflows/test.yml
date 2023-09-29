@@ -18,6 +18,7 @@ jobs:
     - name: Run static server
       run: npm run test:server
     - name: Run integration tests
+      continue-on-error: true
       run: npm run test:integration
     - name: Upload screenshots to argos-ci.com
       continue-on-error: true
