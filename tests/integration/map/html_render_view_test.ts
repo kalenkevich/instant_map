@@ -1,5 +1,6 @@
 import {describe, expect, it} from '@jest/globals';
 import {toMatchImageSnapshot} from 'jest-image-snapshot';
+import { argosScreenshot } from '@argos-ci/puppeteer';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -10,11 +11,10 @@ describe('HTML render', () => {
       await page.waitForTimeout(2000);
 
       const image = await page.screenshot();
-  
+
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
         customDiffConfig: { threshold: 0.1 },
-        dumpInlineDiffToConsole: true,
         customSnapshotIdentifier: 'html_render_png_osm',
       });
     });
@@ -24,11 +24,10 @@ describe('HTML render', () => {
       await page.waitForTimeout(2000);
 
       const image = await page.screenshot();
-  
+
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
         customDiffConfig: { threshold: 0.1 },
-        dumpInlineDiffToConsole: true,
         customSnapshotIdentifier: 'html_render_png_maptiler',
       });
     });
