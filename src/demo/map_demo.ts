@@ -166,62 +166,63 @@ function unsubscribeFromEvents(map: GlideMap) {
   });
 }
 
-const createButtonsParent = () => {
-  const div = document.createElement('div');
+const createSelect = () => {
+  const div = document.createElement('select');
 
   div.style.margin = '20px 20px 0 20px';
-  div.style.display = 'flex';
-  div.style.justifyContent = 'space-between';
-
   document.body.appendChild(div);
 
   return div;
 };
 
-const createButton = () => {
-  const button = document.createElement('button');
+const showMap = (options: ButtonOption[], optionId: string) => {
+  const option =  options.find((op) => op.id === optionId);
 
-  return button;
+  if (currentMap) {
+    unsubscribeFromEvents(currentMap);
+    currentMap.destroy();
+  }
+
+  const [zoom, lat, lng] = getStartMapLocation();
+
+  currentMap = new GlideMap({
+    rootEl,
+    zoom,
+    center: new LatLng(lat, lng),
+    ...option,
+  });
+
+  subscribeOnEvents(currentMap);
+  syncQueryParamsWithSelectedMap(option.id);
 };
 
 export const renderMapOptions = (options: ButtonOption[]) => {
-  const buttonParent = createButtonsParent();
+  const startMapViewOptionId = getStartMapViewId();
+  const select = createSelect();
   const margin = 20;
   const width = window.innerWidth - (margin * 2) - 2;
   const height = window.innerHeight - (margin * 2) - 2 - 50;
-  const buttons = [];
 
   rootEl = createRootEl(width, height, margin);
 
   for (const option of options) {
-    const button = createButton();
-    
-    button.id = option.id;
-    button.innerText = option.name;
-    button.addEventListener('click', () => {
-      if (currentMap) {
-        unsubscribeFromEvents(currentMap);
-        currentMap.destroy();
-      }
+    const selectOption = document.createElement('option');
+    selectOption.id = option.id;
+    selectOption.value = option.id;
+    selectOption.innerText = option.name;
+    if (option.id === startMapViewOptionId) {
+      selectOption.selected = true;
+    }
 
-      const [zoom, lat, lng] = getStartMapLocation();
-  
-      currentMap = new GlideMap({
-        rootEl,
-        zoom,
-        center: new LatLng(lat, lng),
-        ...option,
-      });
-
-      subscribeOnEvents(currentMap);
-      syncQueryParamsWithSelectedMap(option.id);
-    });
-
-    buttonParent.appendChild(button);
-    buttons.push(button);
+    select.appendChild(selectOption);
   }
 
-  const startMapView = getStartMapViewId();
-  const button = buttons.find(b => b.id === startMapView);
-  button.click();
+  select.addEventListener('change', (e) => {
+    // @ts-ignore
+    const id = e.target.value;
+
+    showMap(options, id);
+  });
+  
+  showMap(options, startMapViewOptionId);
 };
