@@ -13,7 +13,8 @@ describe('HTML render', () => {
 
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
-        customDiffConfig: { threshold: 0.1 },
+        failureThreshold: 0.02,
+        failureThresholdType: 'percent',
         customSnapshotIdentifier: 'html_render_png_osm',
       });
     });
@@ -26,7 +27,8 @@ describe('HTML render', () => {
 
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
-        customDiffConfig: { threshold: 0.1 },
+        failureThreshold: 0.02,
+        failureThresholdType: 'percent',
         customSnapshotIdentifier: 'html_render_png_maptiler',
       });
     });
