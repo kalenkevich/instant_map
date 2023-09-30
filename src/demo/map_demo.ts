@@ -6,15 +6,24 @@ import { MapRendererType } from '../map/render/renderer';
 
 type ButtonOption = Partial<MapOptions & {name: string; id: string}>;
 
+const MAP_LOCATION_PARAM_NAME = 'l';
+const USE_LOCAL_SERVER_PARAM_NAME = 'ls';
+const SELECTED_MAP_VIEW_PARAM_MNAME = 'sm';
+
+const useLocalServer = new URLSearchParams(document.location.search).has(USE_LOCAL_SERVER_PARAM_NAME);
+const OSM_TILE_URL = `${useLocalServer ? '/osm' : 'https://tile.openstreetmap.org'}/{z}/{x}/{y}.png`;
+const MAPTILER_PNG_TILE_URL = `${useLocalServer ? '/maptiler/satellite' : 'https://api.maptiler.com/maps/satellite/256'}/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt`;
+const MAPTILER_VT_META_URL = `${useLocalServer ? '/maptiler/tiles_meta.json' : 'https://api.maptiler.com/tiles/v3/tiles.json'}?key=MfT8xhKONCRR9Ut0IKkt`;
+
 export const ButtonMapOptions: ButtonOption[] = [{
-  name: 'VT webgl map',
-  id: 'vt_webgl',
+  name: 'VT webgl',
+  id: 'webgl_vt_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
-  tilesMetaUrl: 'https://api.maptiler.com/tiles/v3/tiles.json?key=MfT8xhKONCRR9Ut0IKkt',
+  tilesMetaUrl: MAPTILER_VT_META_URL,
 }, {
-  name: 'Png image map',
-  id: 'png_image',
+  name: 'Png image osm',
+  id: 'html_png_osm',
   renderer: MapRendererType.png,
   resizable: true,
   mapMeta: {
@@ -22,11 +31,23 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    tiles: [OSM_TILE_URL],
   },
 }, {
-  name: 'Png webgl osm map',
-  id: 'png_webgl_osm',
+  name: 'Png image maptiler',
+  id: 'html_png_maptiler',
+  renderer: MapRendererType.png,
+  resizable: true,
+  mapMeta: {
+    ...DEFAULT_MAP_METADATA,
+    maxzoom: 19,
+    minzoom: 0,
+    format: MapTileFormatType.png,
+    tiles: [MAPTILER_PNG_TILE_URL],
+  },
+}, {
+  name: 'Png webgl osm',
+  id: 'webgl_png_osm',
   renderer: MapRendererType.webgl,
   resizable: true,
   mapMeta: {
@@ -34,13 +55,11 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: [
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    ],
+    tiles: [OSM_TILE_URL],
   },
 }, {
-  name: 'Png webgl maptiler map',
-  id: 'png_webgl_maptiler',
+  name: 'Png webgl maptiler',
+  id: 'webgl_png_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
   mapMeta: {
@@ -48,9 +67,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
     maxzoom: 19,
     minzoom: 0,
     format: MapTileFormatType.png,
-    tiles: [
-      'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
-    ],
+    tiles: [MAPTILER_PNG_TILE_URL],
   },
 }];
 
@@ -81,11 +98,11 @@ function createRootEl(width: number, height: number, margin: number) {
 function getStartMapLocation(): [number, number, number] {
   const query = new URLSearchParams(document.location.search);
   
-  if (!query.has('l')) {
+  if (!query.has(MAP_LOCATION_PARAM_NAME)) {
     return [14.3218, 53.0875, 25.3183];
   }
 
-  const location = decodeURIComponent(query.get('l'));
+  const location = decodeURIComponent(query.get(MAP_LOCATION_PARAM_NAME));
   const [zoom, lat, lng] = location.split('/');
 
   return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
@@ -94,11 +111,11 @@ function getStartMapLocation(): [number, number, number] {
 function getStartMapViewId(): string {
   const query = new URLSearchParams(document.location.search);
 
-  if (!query.has('sm')) {
-    return 'png_webgl_osm';
+  if (!query.has(SELECTED_MAP_VIEW_PARAM_MNAME)) {
+    return 'webgl_png_osm';
   }
 
-  return query.get('sm');
+  return query.get(SELECTED_MAP_VIEW_PARAM_MNAME);
 }
 
 const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
@@ -108,10 +125,10 @@ const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
   const query = new URLSearchParams(document.location.search);
   const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
 
-  if (query.has('l')) {
-    query.delete('l');
+  if (query.has(MAP_LOCATION_PARAM_NAME)) {
+    query.delete(MAP_LOCATION_PARAM_NAME);
   }
-  query.append('l', safeLocation);
+  query.append(MAP_LOCATION_PARAM_NAME, safeLocation);
 
   history.replaceState(null, '', '?' + query.toString());
 };
@@ -119,10 +136,10 @@ const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
 const syncQueryParamsWithSelectedMap = (selectdMapId: string) => {
   const query = new URLSearchParams(document.location.search);
 
-  if (query.has('sm')) {
-    query.delete('sm');
+  if (query.has(SELECTED_MAP_VIEW_PARAM_MNAME)) {
+    query.delete(SELECTED_MAP_VIEW_PARAM_MNAME);
   }
-  query.append('sm', selectdMapId);
+  query.append(SELECTED_MAP_VIEW_PARAM_MNAME, selectdMapId);
 
   history.replaceState(null, '', '?' + query.toString());
 }
@@ -149,62 +166,63 @@ function unsubscribeFromEvents(map: GlideMap) {
   });
 }
 
-const createButtonsParent = () => {
-  const div = document.createElement('div');
+const createSelect = () => {
+  const div = document.createElement('select');
 
   div.style.margin = '20px 20px 0 20px';
-  div.style.display = 'flex';
-  div.style.justifyContent = 'space-between';
-
   document.body.appendChild(div);
 
   return div;
 };
 
-const createButton = () => {
-  const button = document.createElement('button');
+const showMap = (options: ButtonOption[], optionId: string) => {
+  const option =  options.find((op) => op.id === optionId);
 
-  return button;
+  if (currentMap) {
+    unsubscribeFromEvents(currentMap);
+    currentMap.destroy();
+  }
+
+  const [zoom, lat, lng] = getStartMapLocation();
+
+  currentMap = new GlideMap({
+    rootEl,
+    zoom,
+    center: new LatLng(lat, lng),
+    ...option,
+  });
+
+  subscribeOnEvents(currentMap);
+  syncQueryParamsWithSelectedMap(option.id);
 };
 
 export const renderMapOptions = (options: ButtonOption[]) => {
-  const buttonParent = createButtonsParent();
+  const startMapViewOptionId = getStartMapViewId();
+  const select = createSelect();
   const margin = 20;
   const width = window.innerWidth - (margin * 2) - 2;
   const height = window.innerHeight - (margin * 2) - 2 - 50;
-  const buttons = [];
 
   rootEl = createRootEl(width, height, margin);
 
   for (const option of options) {
-    const button = createButton();
-    
-    button.id = option.id;
-    button.innerText = option.name;
-    button.addEventListener('click', () => {
-      if (currentMap) {
-        unsubscribeFromEvents(currentMap);
-        currentMap.destroy();
-      }
+    const selectOption = document.createElement('option');
+    selectOption.id = option.id;
+    selectOption.value = option.id;
+    selectOption.innerText = option.name;
+    if (option.id === startMapViewOptionId) {
+      selectOption.selected = true;
+    }
 
-      const [zoom, lat, lng] = getStartMapLocation();
-  
-      currentMap = new GlideMap({
-        rootEl,
-        zoom,
-        center: new LatLng(lat, lng),
-        ...option,
-      });
-
-      subscribeOnEvents(currentMap);
-      syncQueryParamsWithSelectedMap(option.id);
-    });
-
-    buttonParent.appendChild(button);
-    buttons.push(button);
+    select.appendChild(selectOption);
   }
 
-  const startMapView = getStartMapViewId();
-  const button = buttons.find(b => b.id === startMapView);
-  button.click();
+  select.addEventListener('change', (e) => {
+    // @ts-ignore
+    const id = e.target.value;
+
+    showMap(options, id);
+  });
+  
+  showMap(options, startMapViewOptionId);
 };

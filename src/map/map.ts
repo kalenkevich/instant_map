@@ -1,5 +1,3 @@
-
-
 import { TilesGrid } from './tile/tiles_grid';
 import { MapState } from './map_state';
 import { MapOptions, MapRendererOptions, MapCrs, MapCrsType, MapMeta } from './types';

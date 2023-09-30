@@ -15,7 +15,7 @@ export interface MapOptions {
   resizable?: boolean,
 }
 
-export type MapCrs = CoordinateReferenceSystem;
+export type MapCrs = CoordinateReferenceSystem | MapCrsType;
 
 export enum MapCrsType {
   earth = 'earth',

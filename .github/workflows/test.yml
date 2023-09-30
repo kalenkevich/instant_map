@@ -1,0 +1,34 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install modules
+      run: npm install
+    - name: Run unit tests
+      run: npm run test:unit
+    - name: Build project for integration tests
+      run: npm run test:build
+    - name: Run static server
+      run: npm run test:server
+    - name: Run integration tests
+      id: integrationTests
+      continue-on-error: true
+      run: npm run test:integration
+    - name: Upload screenshots to argos-ci.com
+      if: steps.integrationTests.outcome == 'failure'
+      env:
+        ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+      run: npm exec argos upload /home/runner/work/webgl/webgl/tests/integration/map/__image_snapshots__/
+    - name: Fail job when integration tests failed
+      uses: actions/github-script@v3
+      if: steps.integrationTests.outcome == 'failure'
+      with:
+        script: |
+          core.setFailed('Integration tests failed.')
