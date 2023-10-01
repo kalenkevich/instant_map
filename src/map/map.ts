@@ -15,6 +15,7 @@ import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/gl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer'; 
+import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
@@ -468,6 +469,10 @@ export const getRenderer = (
 
   if (type === MapRendererType.webgl) {
     return new GlMapRenderer(map);
+  }
+
+  if (type === MapRendererType.threejs) {
+    return new ThreeJsMapRenderer(map);
   }
 
   if (type === MapRendererType.png) {

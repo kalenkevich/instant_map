@@ -168,7 +168,11 @@ export class TilesGrid {
       height: tileSize,
       mapWidth: this.map.getWidth(),
       mapHeight: this.map.getHeight(),
-      tileCoords,
+      tileCoords: {
+        x: tileCoords.x,
+        y: tileCoords.y,
+        z: tileCoords.z,
+      },
       pixelRatio: this.devicePixelRatio,
       tilesMeta: this.tilesMeta,
     }));
@@ -239,15 +243,17 @@ export class TilesGrid {
   }
 
   getTileSize({ zoom }: MapState): number {
+    const tileSize = parseInt(this.tilesMeta.pixel_scale || '0') || this.defaultTileSize;
+
     if (zoom > 1) {
-      return this.defaultTileSize;
+      return tileSize;
     }
 
     if (zoom === 1) {
-      return this.defaultTileSize * 2;
+      return tileSize * 2;
     }
 
-    return this.defaultTileSize * 4;
+    return tileSize * 4;
   }
 
   getTiledPixelBounds(mapState: MapState): Bounds {

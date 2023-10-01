@@ -19,6 +19,10 @@ export class WebGlPainter {
     // this.gl.getExtension('WEBGL_lose_context').loseContext();
   }
 
+  public setWidth(w: number) {}
+
+  public setHeight(h: number) {}
+
   public clear() {
     this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);

@@ -1,33 +1,35 @@
 import { MapTile, MapTileFormatType } from '../../tile/tile';
 import { PngMapTile } from '../../tile/png_tile'
+import { Painter } from '../painter';
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, v2, WebGlImage } from '../../../webgl';
+import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import {
-  getTransportationFeatures,
-  getBuildingFeatures,
-  getBoundaryFeatures,
-  getWaterFeatures,
-  getLandCoverFeatures,
-  DefaultSipmlifyGeometryOptions,
+  getTransportationGlPrograms,
+  getBuildingGlPrograms,
+  getBoundaryGlPrograms,
+  getWaterGlPrograms,
+  getLandCoverGlPrograms,
 } from './gl_render_utils';
 
 export class GlMapRenderer implements MapRenderer {
-  private readonly animationFrameTaskIdSet = new Set<number>();
-  private readonly canvasEl: HTMLCanvasElement;
-  private readonly glPainter: WebGlPainter;
+  protected readonly animationFrameTaskIdSet = new Set<number>();
+  protected canvasEl?: HTMLCanvasElement;
+  protected glPainter?: Painter;
 
   constructor(
-    private readonly map: GlideMap,
+    protected readonly map: GlideMap,
   ) {
     this.map = map;
-    this.canvasEl = this.createCanvasEl();
-    this.glPainter = new WebGlPainter(this.canvasEl);
     this.resizeEventListener = this.resizeEventListener.bind(this);
   }
 
-  init() {
+  public init() {
+    this.canvasEl = this.createCanvasEl();
+    this.glPainter = new WebGlPainter(this.canvasEl);
+
     this.glPainter.init();
     this.map.addEventListener({
       eventType: MapEventType.RESIZE,
@@ -36,6 +38,10 @@ export class GlMapRenderer implements MapRenderer {
   }
 
   public resizeEventListener() {
+    if (!this.canvasEl) {
+      return;
+    }
+
     const width = this.map.getWidth();
     const height = this.map.getHeight();
 
@@ -43,31 +49,22 @@ export class GlMapRenderer implements MapRenderer {
     this.canvasEl.height = height;
     this.canvasEl.style.width = `${width}px`;
     this.canvasEl.style.height = `${height}px`;
+
+    this.glPainter.setWidth(width);
+    this.glPainter.setHeight(height);
   }
 
   public destroy() {
     this.stopRender();
-    this.glPainter.destroy();
+    this.glPainter?.destroy();
     this.map.removeEventListener({
       eventType: MapEventType.RESIZE,
       handler: this.resizeEventListener,
     });
-    this.map.rootEl.removeChild(this.canvasEl);
-  }
 
-  createCanvasEl(): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    const width = this.map.getWidth();
-    const height = this.map.getHeight();
-
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-
-    this.map.rootEl.appendChild(canvas);
-
-    return canvas;
+    if (this.canvasEl) {
+      this.map.rootEl.removeChild(this.canvasEl);
+    }
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {
@@ -76,7 +73,7 @@ export class GlMapRenderer implements MapRenderer {
         const glPrograms = this.getRenderPrograms(tile, mapState);
   
         console.time('gl map_render');
-        this.glPainter.draw(glPrograms);
+        this.glPainter?.draw(glPrograms);
         console.timeEnd('gl map_render');
 
         this.animationFrameTaskIdSet.delete(taskId);
@@ -89,6 +86,21 @@ export class GlMapRenderer implements MapRenderer {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);
     }
+  }
+
+  protected createCanvasEl(): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    const width = this.map.getWidth();
+    const height = this.map.getHeight();
+
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    this.map.rootEl.appendChild(canvas);
+
+    return canvas;
   }
 
   private getRenderPrograms(tile: MapTile, mapState: MapState): GlProgram[] {
@@ -115,17 +127,17 @@ export class GlMapRenderer implements MapRenderer {
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
     const scale: v2 = [
-      (tile.width / tile.mapWidth / tile.pixelRatio) * tileScale,
-      (tile.height / tile.mapHeight / tile.pixelRatio) * tileScale,
+      (tile.width / tile.mapWidth) * tileScale,
+      (tile.height / tile.mapHeight) * tileScale,
     ];
 
     return [
-      ...getWaterFeatures(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverFeatures(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverFeatures(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
-      ...getBoundaryFeatures(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
-      ...getTransportationFeatures(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
-      ...getBuildingFeatures(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
+      // ...getWaterGlPrograms(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
+      // ...getLandCoverGlPrograms(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
+      // ...getLandCoverGlPrograms(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
+      // ...getBoundaryGlPrograms(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
+      ...getTransportationGlPrograms(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
+      // ...getBuildingGlPrograms(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
     ];
   }
 
@@ -148,13 +160,13 @@ export class GlMapRenderer implements MapRenderer {
     ];
   }
 
-  private getTileScale({ zoom, center }: MapState): number {
+  protected getTileScale({ zoom, center }: MapState): number {
     const tileZoom = this.getTileZoom(zoom);
 
     return this.map.getZoomScale(zoom, tileZoom);
   }
 
-  private getTileZoom(mapZoom: number): number | undefined {
+  protected getTileZoom(mapZoom: number): number | undefined {
     let tileZoom = Math.round(mapZoom);
 
     if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
@@ -164,7 +176,7 @@ export class GlMapRenderer implements MapRenderer {
     return this.clampZoom(tileZoom);
   }
 
-  private clampZoom(zoom: number) {
+  protected clampZoom(zoom: number) {
     const minZoom = this.map.getMinZoom();
     const maxZoom = this.map.getMaxZoom();
 

@@ -22,6 +22,12 @@ export const ButtonMapOptions: ButtonOption[] = [{
   resizable: true,
   tilesMetaUrl: MAPTILER_VT_META_URL,
 }, {
+  name: 'VT threejs',
+  id: 'threejs_vt_maptiler',
+  renderer: MapRendererType.threejs,
+  resizable: true,
+  tilesMetaUrl: MAPTILER_VT_META_URL,
+}, {
   name: 'Png image osm',
   id: 'html_png_osm',
   renderer: MapRendererType.png,
