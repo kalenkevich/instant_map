@@ -9,7 +9,7 @@
     "test": "jest",
     "test:unit": "jest --selectProjects unit",
     "test:build": "webpack",
-    "test:server": "ts-node ./tests/integration/server.ts",
+    "test:server": "ts-node ./tests/integration/server.ts &",
     "test:integration": "jest --selectProjects integration"
   },
   "keywords": [],
