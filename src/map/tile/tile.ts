@@ -26,6 +26,7 @@ export interface TileLayersMap {
 export interface TileLayer {
   name: string;
   features: TileFeature[];
+  properties?: Record<string, FeatureProperty>;
 }
 
 export enum TileFeatureType {
@@ -38,11 +39,11 @@ export interface TileFeature {
   type?: TileFeatureType;
   bbox?: BBox;
   geometry: Array<Array<[number, number]>>;
-  properties: Record<string, TileFeatureProperty>;
+  properties: Record<string, FeatureProperty>;
 }
 
-type BasicTileFeatureProperty = string | number | boolean | undefined;
-export type TileFeatureProperty = BasicTileFeatureProperty | Array<BasicTileFeatureProperty> | Record<string, BasicTileFeatureProperty>;
+type BasicFeatureProperty = string | number | boolean | undefined;
+export type FeatureProperty = BasicFeatureProperty | Array<BasicFeatureProperty> | Record<string, BasicFeatureProperty>;
 
 export const DEFAULT_TILE_SIZE = 256;
 

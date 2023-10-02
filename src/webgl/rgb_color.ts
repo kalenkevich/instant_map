@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Color } from 'three';
 import { GlColor } from './types';
 
 export class RGBColor {
@@ -18,8 +18,8 @@ export class RGBColor {
     return [this.r / 256, this.g / 256, this.b / 256, this.a];
   }
 
-  toThreeJsColor(): THREE.Color {
-    return new THREE.Color(this.r / 256, this.g / 256, this.b / 256);
+  toThreeJsColor(): Color {
+    return new Color(this.r / 256, this.g / 256, this.b / 256);
   }
 
   static toGLColor(r: number, g: number, b: number, a: number = 1): GlColor {

@@ -15,7 +15,7 @@ export class GlMapRenderer implements MapRenderer {
 
   constructor(
     protected readonly map: GlideMap,
-    private readonly devicePixelRatio = 1,
+    protected readonly devicePixelRatio = 1,
   ) {
     this.map = map;
     this.resizeEventListener = this.resizeEventListener.bind(this);
@@ -118,11 +118,14 @@ export class GlMapRenderer implements MapRenderer {
       tolerance: 10,
     };
 
-    const tileX = tile.x;
-    const tileY = tile.y;
-    const scale: v2 = [
-      tile.width / tile.mapWidth / tile.pixelRatio,
-      tile.height / tile.mapHeight / tile.pixelRatio,
+    const tileScale = this.getTileScale(mapState);
+    const xScale = 1/32 * (tileScale);
+    const yScale = 1/32 * (tileScale);
+    const tileX = tile.x * (tileScale / 2);
+    const tileY = tile.y * (tileScale / 2);
+    const scale: [number, number] = [
+      xScale,
+      yScale,
     ];
 
     return [
@@ -136,14 +139,14 @@ export class GlMapRenderer implements MapRenderer {
   }
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
-    const tileScale = this.getTileScale(mapState);
-    const tileX = tile.x * tileScale * tile.pixelRatio;
-    const tileY = tile.y * tileScale * tile.pixelRatio;
+    const tileScale = this.getTileScale(mapState) * tile.pixelRatio;
+    const tileX = tile.x * tileScale;
+    const tileY = tile.y * tileScale;
 
     return [
       new WebGlImage({
-        width: tile.width * tile.pixelRatio,
-        height: tile.height * tile.pixelRatio,
+        width: tile.width,
+        height: tile.height,
         image: tile.image!,
         scale: [tileScale, tileScale],
         translation: [tileX, tileY],
@@ -151,10 +154,10 @@ export class GlMapRenderer implements MapRenderer {
     ];
   }
 
-  protected getTileScale({ zoom, center }: MapState): number {
-    const tileZoom = this.getTileZoom(zoom);
+  protected getTileScale(mapState: MapState): number {
+    const tileZoom = this.getTileZoom(mapState.zoom);
 
-    return this.map.getZoomScale(zoom, tileZoom);
+    return this.map.getZoomScale(mapState.zoom, tileZoom);
   }
 
   protected getTileZoom(mapZoom: number): number | undefined {

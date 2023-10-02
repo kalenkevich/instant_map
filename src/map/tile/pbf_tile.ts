@@ -31,8 +31,8 @@ export class PbfMapTile implements MapTile {
     this.mapWidth = options.mapWidth;
     this.mapHeight = options.mapHeight;
     this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
-    this.width = options.width * this.pixelRatio;
-    this.height = options.height * this.pixelRatio;
+    this.width = options.width;
+    this.height = options.height;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
   }
@@ -85,7 +85,14 @@ export class PbfMapTile implements MapTile {
 
     const tileLayersMap: TileLayersMap = {};
 
-    return ['water', 'globallandcover', 'landcover', 'boundary', 'transportation', 'building'].reduce((layersMap: TileLayersMap, layerName: string) => {
+    return [
+      'water',
+      'globallandcover',
+      'landcover',
+      'boundary',
+      'transportation',
+      'building',
+    ].reduce((layersMap: TileLayersMap, layerName: string) => {
       const layer: VectorTileLayer | undefined = this.tileData?.layers[layerName];
 
       if (!layer) {

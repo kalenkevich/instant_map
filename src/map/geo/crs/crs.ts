@@ -26,9 +26,9 @@ export abstract class CoordinateReferenceSystem {
   abstract distance(latlng1: LatLng, latlng2: LatLng): number;
 
   // Projects geographical coordinates into pixel coordinates for a given zoom.
-  latLngToPoint(latlng: LatLng, zoom: number): Point {
+  latLngToPoint(latlng: LatLng, zoom: number, scaleFactor?: number): Point {
     const projectedPoint = this.projection.project(latlng);
-    const scale = this.scale(zoom);
+    const scale = this.scale(zoom, scaleFactor);
 
     return this.transformation.transform(projectedPoint, scale);
   }
