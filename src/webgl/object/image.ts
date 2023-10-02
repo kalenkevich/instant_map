@@ -1,5 +1,5 @@
-import { ProgramInfo, createProgramInfo, createTexture, setUniforms, drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
-import { GlProgram, GlProgramProps } from './program';
+import { setUniforms, drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
+import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
 
 export interface GlImageProps extends GlProgramProps {
   width: number;
@@ -8,6 +8,8 @@ export interface GlImageProps extends GlProgramProps {
 }
 
 export class WebGlImage extends GlProgram {
+  type = GlProgramType.IMAGE;
+
   protected width: number;
   protected height: number;
   image: HTMLImageElement;
@@ -20,8 +22,8 @@ export class WebGlImage extends GlProgram {
     this.image = props.image;
   }
 
-  public draw(gl: WebGLRenderingContext) {
-    const programInfo = this.getProgramInfo(gl);
+  public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
+    const programInfo = this.getProgramInfo(gl, cache);
     const uniforms = this.getUniforms(gl);
     const buffers = this.getBufferInfo(gl);
 

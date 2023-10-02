@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, ProgramCache } from './program';
 import { v2 } from '../types';
 
 /**
@@ -17,9 +17,9 @@ export abstract class GlMultiProgram extends GlProgram {
     super(props);
   }
 
-  public draw(gl: WebGLRenderingContext) {
+  public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     for (const subprogram of this.subPrograms) {
-      subprogram.draw(gl);
+      subprogram.draw(gl, cache);
     }
   }
 

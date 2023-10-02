@@ -8,6 +8,10 @@ import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
 
+const simplifyOptions = {
+  ...DefaultSipmlifyGeometryOptions,
+  tolerance: 10,
+};
 export class GlMapRenderer extends MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
   protected canvasEl?: HTMLCanvasElement;
@@ -63,18 +67,13 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {
-    for (const tile of tiles) {
-      const taskId = requestAnimationFrame(() => {
-        const glPrograms = this.getRenderPrograms(tile, mapState);
+    const glPrograms = tiles
+      .map(tile => this.getRenderPrograms(tile, mapState))
+      .flatMap(obj => obj);
 
-        console.time('gl map_render');
-        this.glPainter?.draw(glPrograms);
-        console.timeEnd('gl map_render');
-
-        this.animationFrameTaskIdSet.delete(taskId);
-      });
-      this.animationFrameTaskIdSet.add(taskId);
-    }
+    console.time('gl map_render');
+    this.glPainter.draw(glPrograms);
+    console.timeEnd('gl map_render');
   }
 
   public stopRender(): void {
@@ -113,28 +112,23 @@ export class GlMapRenderer extends MapRenderer {
       return [] as GlProgram[];
     }
 
-    const simplifyOptions = {
-      ...DefaultSipmlifyGeometryOptions,
-      tolerance: 10,
-    };
-
     const tileScale = this.getTileScale(mapState);
-    const xScale = 1/16 * tileScale;
-    const yScale = 1/16 * tileScale;
-    const tileX = tile.x * tileScale;
-    const tileY = tile.y * tileScale;
+    const xScale = 1/8 * tileScale;
+    const yScale = 1/8 * tileScale;
+    const tileX = tile.x * (tileScale * 2);
+    const tileY = tile.y * (tileScale * 2);
     const scale: [number, number] = [
       xScale,
       yScale,
     ];
 
     return [
-      // ...getWaterGlPrograms(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
-      // ...getLandCoverGlPrograms(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
-      // ...getLandCoverGlPrograms(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
-      // ...getBoundaryGlPrograms(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
+      ...getWaterGlPrograms(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
+      ...getLandCoverGlPrograms(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
+      ...getLandCoverGlPrograms(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
+      ...getBoundaryGlPrograms(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
       ...getTransportationGlPrograms(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
-      // ...getBuildingGlPrograms(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
+      ...getBuildingGlPrograms(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
     ];
   }
 

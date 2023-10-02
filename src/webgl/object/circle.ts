@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, GlProgramType } from './program';
 import { v2 } from '../types';
 
 export interface GlCircleProps extends GlProgramProps {
@@ -8,6 +8,8 @@ export interface GlCircleProps extends GlProgramProps {
 }
 
 export class WebGlCircle extends GlProgram {
+  type = GlProgramType.CIRCLE;
+
   protected p: v2;
   protected radius: number;
   protected components: number;

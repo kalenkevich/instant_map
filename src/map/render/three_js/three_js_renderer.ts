@@ -13,6 +13,11 @@ import {
   getLandCoverThreeJsObjects,
 } from './three_js_utils';
 
+const simplifyOptions = {
+  ...DefaultSipmlifyGeometryOptions,
+  tolerance: 10,
+};
+
 export class ThreeJsMapRenderer extends GlMapRenderer {
   public init() {
     this.canvasEl = this.createCanvasEl();
@@ -42,12 +47,6 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       return [] as Object3D[];
     }
 
-    const simplifyOptions = {
-      ...DefaultSipmlifyGeometryOptions,
-      tolerance: 10,
-      enabled: false,
-    };
-
     const tileScale = this.getTileScale(mapState);
     const xScale = 1/16 * tileScale;
     const yScale = 1/16 * tileScale;
@@ -59,12 +58,12 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     ];
 
     return [
-      ...getWaterThreeJsObjects(tileLayers['water'], tileX, tileY, scale, simplifyOptions),
-      ...getLandCoverThreeJsObjects(tileLayers['globallandcover'], tileX, tileY, scale, simplifyOptions),
-      ...getLandCoverThreeJsObjects(tileLayers['landcover'], tileX, tileY, scale, simplifyOptions),
+      ...getWaterThreeJsObjects(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
+      ...getLandCoverThreeJsObjects(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
+      ...getLandCoverThreeJsObjects(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
       ...getBoundaryThreeJsObjects(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
       ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, this.map.getWidth(), this.map.getHeight(), simplifyOptions),
-      ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, {enabled: false}),
+      ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
     ];
   }
 }

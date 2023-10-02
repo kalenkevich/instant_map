@@ -1,6 +1,6 @@
-import { GlProgramProps } from './program';
+import { GlProgramProps, GlProgramType, ProgramCache } from './program';
 import { GlMultiProgram } from './multi_program';
-import { WebGlNativeLineStrip, WebGlNativeLine } from './line';
+import { WebGlNativeLineStrip } from './line';
 import { WebGlMiterLineCap } from './path';
 import { v2 } from '../types';
 
@@ -13,6 +13,8 @@ export interface GlPathGroupProps extends GlProgramProps {
  * Check the draw method desription for more info.
  */
 export class WebGlPathGroup extends GlMultiProgram {
+  type = GlProgramType.PATH_GROUP;
+
   paths: v2[][];
   subPrograms: [WebGlNativeLineStrip, WebGlMiterLineCap];
 
@@ -42,13 +44,13 @@ export class WebGlPathGroup extends GlMultiProgram {
    * We need to loop through the list of paths twice as we need to render all line strips first,
    * change the program and render all line caps.
    */
-  public draw(gl: WebGLRenderingContext) {
+  public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     const [lineStripProgram, lineCapProgram] = this.subPrograms;
 
     // Draw all line strips
     for (const path of this.paths) {
       lineStripProgram.setPoints(path);
-      lineStripProgram.draw(gl);
+      lineStripProgram.draw(gl, cache);
     }
 
     // // Draw all line caps

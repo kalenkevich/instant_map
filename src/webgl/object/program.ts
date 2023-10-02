@@ -20,14 +20,23 @@ export interface GlUniforms {
 }
 
 export enum GlProgramType {
-  PROGRAM = 'PROGRAM',
-  TRIANGLE = 'TRIANGLE',
-  AREA = 'AREA',
-  CIRCLE = 'CIRCLE',
-  LINE = 'LINE',
-  PATH = 'PATH',
-  RECTANGLE = 'RECTANGLE'
+  TRIANGLE,
+  AREA,
+  CIRCLE,
+  PATH,
+  PATH_GROUP,
+  RECTANGLE,
+  LINE,
+  LINE_STRIP,
+  NATIVE_LINE,
+  NATIVE_LINE_STRIP,
+  MITER_LINE_CAP,
+  IMAGE,
 }
+
+export type ProgramCache = {
+  [key in GlProgramType]?: ProgramInfo
+};
 
 let usedProgram: ProgramInfo | undefined;
 
@@ -42,7 +51,9 @@ export abstract class GlProgram {
   protected translation: v2;
   protected scale: v2;
 
-  private uniformsCache?: GlUniforms; 
+  private uniformsCache?: GlUniforms;
+
+  abstract type: GlProgramType;
 
   protected constructor(props: GlProgramProps) {
     this.color = props.color ? this.normalizeColor(props.color) : GL_COLOR_BLACK as v4;
@@ -101,30 +112,26 @@ export abstract class GlProgram {
     return gl.TRIANGLES;
   }
 
-  public getType(): GlProgramType {
-    return GlProgramType.PROGRAM;
-  }
-
-  public draw(gl: WebGLRenderingContext) {
-    const programInfo = this.getProgramInfo(gl);
+  public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
+    const programInfo = this.getProgramInfo(gl, cache);
     const buffer = this.getBufferInfo(gl);
     const uniforms = this.getUniforms(gl);
 
     if (programInfo !== usedProgram) {
       gl.useProgram(programInfo.program);
-      this.consoleGlError(gl, 'Use program');
+      // this.consoleGlError(gl, 'Use program');
       usedProgram = programInfo;
     }
 
     setBuffersAndAttributes(gl, programInfo, buffer);
-    this.consoleGlError(gl, 'setBuffersAndAttributes');
+    // this.consoleGlError(gl, 'setBuffersAndAttributes');
 
     setUniforms(programInfo, uniforms);
-    this.consoleGlError(gl, 'setUniforms');
+    // this.consoleGlError(gl, 'setUniforms');
 
     const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
     drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
-    this.consoleGlError(gl, 'Draw');
+    // this.consoleGlError(gl, 'Draw');
   }
 
   public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
@@ -166,8 +173,15 @@ export abstract class GlProgram {
     `;
   }
 
-  public getProgramInfo(gl: WebGLRenderingContext): ProgramInfo {
-    return createProgramInfo(gl, [this.getVertexShaderSource(), this.getFragmentShaderSource()]);
+  public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
+    if (cache[this.type]) {
+      return cache[this.type];
+    }
+
+    return cache[this.type] = createProgramInfo(
+      gl,
+      [this.getVertexShaderSource(), this.getFragmentShaderSource()],
+    );
   }
 
   public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;
@@ -199,8 +213,6 @@ export abstract class GlProgram {
 
     return m3.multiply(scaledMatrix, moveOriginMatrix);
   }
-
-  public drawWithExt(...args: any[]) {}
 
   protected normalizeColor(color: GlColor): v4 {
     const typeErrorMessage = 'Color should be one of type string or rgb/rgba array';

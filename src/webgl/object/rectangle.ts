@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, GlProgramType } from './program';
 import { v2 } from '../types';
 
 export interface GlRectangleProps extends GlProgramProps {
@@ -8,6 +8,8 @@ export interface GlRectangleProps extends GlProgramProps {
 }
 
 export class WebGlRectangle extends GlProgram {
+  type = GlProgramType.RECTANGLE;
+
   protected p: v2;
   protected width: number;
   protected height: number;
