@@ -57,13 +57,32 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       yScale,
     ];
 
+    const waterLayer = tileLayers['water'];
+    const globallandcoverLayer = tileLayers['globallandcover'];
+    const landcoverLayer = tileLayers['landcover'];
+    const boundaryLayer = tileLayers['boundary'];
+    const transportationLayer = tileLayers['transportation'];
+    const buildingLayer = tileLayers['building'];
+
     return [
-      ...getWaterThreeJsObjects(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverThreeJsObjects(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverThreeJsObjects(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
-      ...getBoundaryThreeJsObjects(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
-      ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, this.map.getWidth(), this.map.getHeight(), simplifyOptions),
-      ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
+      ...(waterLayer?.shouldBeRendered(mapState.zoom) 
+        ? getWaterThreeJsObjects(waterLayer, tileX, tileY, scale, {enabled: false})
+        : []),
+      ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
+        ? getLandCoverThreeJsObjects(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
+        : []),
+      ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
+        ? getLandCoverThreeJsObjects(landcoverLayer, tileX, tileY, scale, {enabled: false})
+        :[]),
+      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+       ? getBoundaryThreeJsObjects(boundaryLayer, tileX, tileY, scale, simplifyOptions)
+       : []),
+      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+        ? getTransportationThreeJsObjects(transportationLayer, tileX, tileY, scale, simplifyOptions)
+        : []),
+      ...(buildingLayer?.shouldBeRendered(mapState.zoom)
+       ? getBuildingThreeJsObjects(buildingLayer, tileX, tileY, scale, simplifyOptions)
+       : []),
     ];
   }
 }

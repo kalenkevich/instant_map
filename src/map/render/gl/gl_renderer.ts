@@ -122,13 +122,32 @@ export class GlMapRenderer extends MapRenderer {
       yScale,
     ];
 
+    const waterLayer = tileLayers['water'];
+    const globallandcoverLayer = tileLayers['globallandcover'];
+    const landcoverLayer = tileLayers['landcover'];
+    const boundaryLayer = tileLayers['boundary'];
+    const transportationLayer = tileLayers['transportation'];
+    const buildingLayer = tileLayers['building'];
+
     return [
-      ...getWaterGlPrograms(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverGlPrograms(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
-      ...getLandCoverGlPrograms(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
-      ...getBoundaryGlPrograms(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
-      ...getTransportationGlPrograms(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
-      ...getBuildingGlPrograms(tileLayers['building'], tileX, tileY, scale, simplifyOptions),
+      ...(waterLayer?.shouldBeRendered(mapState.zoom) 
+        ? getWaterGlPrograms(waterLayer, tileX, tileY, scale, {enabled: false})
+        : []),
+      ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
+        ? getLandCoverGlPrograms(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
+        : []),
+      ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
+        ? getLandCoverGlPrograms(landcoverLayer, tileX, tileY, scale, {enabled: false})
+        :[]),
+      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+       ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, simplifyOptions)
+       : []),
+      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+        ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, simplifyOptions)
+        : []),
+      ...(buildingLayer?.shouldBeRendered(mapState.zoom)
+       ? getBuildingGlPrograms(buildingLayer, tileX, tileY, scale, simplifyOptions)
+       : []),
     ];
   }
 

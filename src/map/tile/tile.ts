@@ -26,6 +26,7 @@ export interface TileLayersMap {
 export interface TileLayer {
   name: string;
   features: TileFeature[];
+  shouldBeRendered(zoom: number): boolean;
   properties?: Record<string, FeatureProperty>;
 }
 

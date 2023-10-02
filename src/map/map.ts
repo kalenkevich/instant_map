@@ -127,6 +127,7 @@ export class GlideMap {
         pixel_scale: this.mapMeta.pixel_scale,
         tileset_type: this.mapMeta.tileset_type,
         tiles: this.mapMeta.tiles,
+        vector_layers: this.mapMeta.vector_layers,
       },
     });
 

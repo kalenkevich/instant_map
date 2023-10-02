@@ -105,9 +105,13 @@ export class PbfMapTile implements MapTile {
         features.push(this.getTileFeature(layer.feature(i)));
       }
 
+      const layerConfig = this.tilesMeta.vector_layers?.find(vl => vl.id === layerName);
       layersMap[layerName] = {
         name: layerName,
         features,
+        shouldBeRendered(zoom: number) {
+          return zoom >= layerConfig.minzoom && zoom <= layerConfig.maxzoom;
+        }
       };
 
       return layersMap;

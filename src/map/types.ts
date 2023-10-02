@@ -43,6 +43,13 @@ export interface MapMeta {
       attributes: Array<{ type: string; attribute: string; values?: string[] }>;
     }>;
   };
+  vector_layers?: Array<{
+    id: string;
+    maxzoom: number;
+    minzoom: number;
+    description: string;
+    fields: Record<string, string>;
+  }>;
   pixel_scale?: string;
   crs?: string;
   crs_wkt?: string;
@@ -63,4 +70,11 @@ export interface MapTilesMeta {
   pixel_scale?: string;
   tileset_type: 'mbtiles';
   tiles: string[];
+  vector_layers?: Array<{
+    id: string;
+    maxzoom: number;
+    minzoom: number;
+    description: string;
+    fields: Record<string, string>;
+  }>;
 }

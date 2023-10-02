@@ -1,5 +1,4 @@
 import { Object3D, BackSide, MeshPhongMaterial, ShapeGeometry, Group, Mesh, Shape, LineBasicMaterial, BufferGeometry, Line, Vector2 } from 'three';
-import { MeshLineGeometry, MeshLineMaterial, raycast } from 'meshline';
 import { Feature, LineString, Polygon } from 'geojson';
 import { WaterFeatureClass, LandCoverFeatureClass } from '../../features/map_features';
 import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TRANSPORTATION_COLOR } from '../../features/map_features_styles';
@@ -93,7 +92,7 @@ export const getLandCoverThreeJsObjects = (
 
 const boundaryMaterial = new LineBasicMaterial({
   color: BOUNDARY_COLOR.toThreeJsColor(),
-  linewidth: 3,
+  linewidth: 1,
 });
 
 export const getBoundaryThreeJsObjects = (
@@ -133,8 +132,6 @@ export const getTransportationThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
-  mapWidth: number,
-  mapHeight: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
   const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
@@ -159,30 +156,6 @@ export const getTransportationThreeJsObjects = (
 
     return line;
   });
-
-  // return fc.features.map((feature: Feature) => {
-  //   const points: Vector2[] = [];
-
-  //   for (const point of (feature.geometry as LineString).coordinates) {
-  //     points.push(new Vector2(point[0], point[1]));
-  //   }
-
-  //   const geometry = new MeshLineGeometry();
-  //   geometry.setPoints(points)
-  //   const material = new MeshLineMaterial({
-  //     color: TRANSPORTATION_COLOR.toThreeJsColor(),
-  //     lineWidth: 1,
-  //     resolution: new Vector2(mapWidth, mapHeight),
-  //   })
-  //   const mesh = new Mesh(geometry, material)
-
-  //   mesh.translateX(x);
-  //   mesh.translateY(y);
-  //   mesh.scale.set(scale[0], scale[1], 1);
-  //   mesh.raycast = raycast;
-
-  //   return mesh;
-  // });
 }
 
 const buildingMaterial = new MeshPhongMaterial({

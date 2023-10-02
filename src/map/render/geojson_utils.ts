@@ -165,7 +165,6 @@ export const getLandCoverFeatureCollection = (
     return EmptyFC;
   }
 
-  // const geometryFeatures: { [WaterFeatures: string]: Array<Feature> } = {};
   const geometryFeatures: Feature[] = [];
 
   for (const feature of landCoverLayer.features) {
@@ -177,11 +176,6 @@ export const getLandCoverFeatureCollection = (
 
     const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
 
-    // if (landClass in geometryFeatures) {
-    //   geometryFeatures[landClass].push(geometryFeature);
-    // } else {
-    //   geometryFeatures[landClass] = [geometryFeature];
-    // }
     geometryFeatures.push(geometryFeature);
   }
 
