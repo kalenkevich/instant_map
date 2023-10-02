@@ -1,5 +1,4 @@
-import { ProgramInfo } from 'twgl.js';
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
 import { v2 } from '../types';
 
 export interface GlLineProps extends GlProgramProps {
@@ -12,6 +11,10 @@ export interface GlLineStripProps extends GlProgramProps {
 }
 
 export class WebGlLine extends GlProgram {
+  get type() {
+    return this.line.type;
+  }
+
   line: WebGlNativeLine | WebGlLineStrip;
 
   constructor(props: GlLineProps) {
@@ -52,8 +55,8 @@ export class WebGlLine extends GlProgram {
     this.line.setScale(scale);
   }
 
-  public draw(gl: WebGLRenderingContext) {
-    return this.line.draw(gl);
+  public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
+    return this.line.draw(gl, cache);
   }
 
   public getBufferAttrs(): Record<string, any> {
@@ -66,6 +69,8 @@ export class WebGlLine extends GlProgram {
  * It support only lineWidth = 1.
  */
 export class WebGlNativeLine extends GlProgram {
+  type = GlProgramType.NATIVE_LINE;
+
   protected p1: v2;
   protected p2: v2;
 
@@ -100,6 +105,8 @@ export class WebGlNativeLine extends GlProgram {
  * It support only lineWidth = 1.
  */
 export class WebGlNativeLineStrip extends GlProgram {
+  type = GlProgramType.NATIVE_LINE_STRIP;
+
   protected points: v2[];
 
   constructor(props: GlLineStripProps) {
@@ -130,6 +137,8 @@ export class WebGlNativeLineStrip extends GlProgram {
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
 export class WebGlLineStrip extends GlProgram {
+  type: GlProgramType.LINE_STRIP;
+
   protected points: v2[];
 
   protected segmentInstanceGeometry = [

@@ -11,7 +11,7 @@ export class PngMapTile implements MapTile {
   mapWidth: number;
   mapHeight: number;
   tileCoords: TileCoordinate;
-  pixelRatio: number;
+  devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
   tileUrl: string;
   image?: HTMLImageElement;
@@ -52,7 +52,7 @@ export class PngMapTile implements MapTile {
     this.height = options.height;
     this.mapWidth = options.mapWidth;
     this.mapHeight = options.mapHeight;
-    this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
+    this.devicePixelRatio = options.devicePixelRatio;
     this.tileCoords = options.tileCoords;
     this.tilesMeta = options.tilesMeta;
     this.tileUrl = this.tilesMeta.tiles[0]
@@ -63,5 +63,9 @@ export class PngMapTile implements MapTile {
 
   getLayers(): TileLayersMap {
     return {};
+  }
+
+  download(): Promise<void> {
+    return Promise.resolve();
   }
 }

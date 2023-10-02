@@ -7,6 +7,8 @@ export interface GlAreaPorps extends GlProgramProps {
 }
 
 export class WebGlArea extends GlProgram {
+  type = GlProgramType.AREA;
+
   protected points: v2[];
 
   constructor(props: GlAreaPorps) {

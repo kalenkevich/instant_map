@@ -34,10 +34,10 @@ describe('Webgl render ', () => {
     });
   });
 
-  describe.skip('Vector tiles.', () => {
-    it('should render osm images on canvas as a map background.', async () => {
+  describe('Vector tiles.', () => {
+    it('should render vector tile data using native webgl.', async () => {
       await page.goto('http://localhost:3000/?sm=webgl_vt_maptiler&ls');
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(2000);
   
       const image = await page.screenshot();
   
@@ -46,6 +46,20 @@ describe('Webgl render ', () => {
         failureThreshold: 0.02,
         failureThresholdType: 'percent',
         customSnapshotIdentifier: 'webgl_render_vt_maptiler',
+      });
+    });
+
+    it('should render vector tile data using threejs.', async () => {
+      await page.goto('http://localhost:3000/?sm=threejs_vt_maptiler&ls');
+      await page.waitForTimeout(2000);
+  
+      const image = await page.screenshot();
+  
+      //@ts-ignore
+      expect(image).toMatchImageSnapshot({
+        failureThreshold: 0.02,
+        failureThresholdType: 'percent',
+        customSnapshotIdentifier: 'threejs_render_vt_maptiler',
       });
     });
   });

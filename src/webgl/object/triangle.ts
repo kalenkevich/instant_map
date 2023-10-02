@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps } from './program';
+import { GlProgram, GlProgramProps, GlProgramType } from './program';
 import { v2 } from '../types';
 
 export interface GlTriangleProps extends GlProgramProps {
@@ -8,6 +8,8 @@ export interface GlTriangleProps extends GlProgramProps {
 }
 
 export class WebGlTriangle extends GlProgram {
+  type = GlProgramType.TRIANGLE;
+
   protected p1: v2;
   protected p2: v2;
   protected p3: v2;

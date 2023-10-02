@@ -1,4 +1,4 @@
-import { BBox } from "geojson";
+import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
 
 export type MapTileId = string;
@@ -26,10 +26,12 @@ export interface TileLayersMap {
 export interface TileLayer {
   name: string;
   features: TileFeature[];
+  shouldBeRendered(zoom: number): boolean;
+  properties?: Record<string, FeatureProperty>;
 }
 
 export enum TileFeatureType {
-  some_type = 'some_type'
+  some_type = 'some_type',
 }
 
 export interface TileFeature {
@@ -38,13 +40,11 @@ export interface TileFeature {
   type?: TileFeatureType;
   bbox?: BBox;
   geometry: Array<Array<[number, number]>>;
-  properties: Record<string, TileFeatureProperty>;
+  properties: Record<string, FeatureProperty>;
 }
 
-type BasicTileFeatureProperty = string | number | boolean | undefined;
-export type TileFeatureProperty = BasicTileFeatureProperty
-  | Array<BasicTileFeatureProperty>
-  | Record<string, BasicTileFeatureProperty>;
+type BasicFeatureProperty = string | number | boolean | undefined;
+export type FeatureProperty = BasicFeatureProperty | Array<BasicFeatureProperty> | Record<string, BasicFeatureProperty>;
 
 export const DEFAULT_TILE_SIZE = 256;
 
@@ -74,7 +74,7 @@ export interface MapTileOptions {
   mapWidth: number;
   mapHeight: number;
   tileCoords: TileCoordinate;
-  pixelRatio?: number;
+  devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
 }
 
@@ -83,4 +83,5 @@ export interface MapTile extends MapTileOptions {
   isReady(): boolean;
   getLayers(): TileLayersMap;
   resetState(tileState: MapTileOptions): void;
+  download(): Promise<void>;
 }

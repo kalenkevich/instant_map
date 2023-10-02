@@ -1,7 +1,35 @@
+import { Position } from 'geojson';
 import { v2 } from '../../webgl';
 
+export interface SipmlifyGeometryOptions {
+    tolerance?: number;
+    highQuality?: boolean;
+    mutate?: boolean;
+    enabled: boolean;
+};
+  
+export const DefaultSipmlifyGeometryOptions = {
+    highQuality: false,
+    mutate: true, // performance increase
+    enabled: true,
+};
+
+// both algorithms combined for awesome performance
+export function simplify(points: v2[] | Position[], tolerance?: number, highestQuality?: boolean): v2[] | Position[] {
+    if (points.length <= 2) {
+      return points;
+    }
+
+    const sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
+
+    points = highestQuality ? points : simplifyRadialDist(points, sqTolerance);
+    points = simplifyDouglasPeucker(points, sqTolerance);
+
+    return points;
+}
+
 // square distance between 2 points
-function getSqDist(p1: v2, p2: v2): number {
+function getSqDist(p1: v2 | Position, p2: v2 | Position): number {
   const dx = p1[0] - p2[0];
   const dy = p1[0] - p2[0];
 
@@ -9,7 +37,7 @@ function getSqDist(p1: v2, p2: v2): number {
 }
 
 // square distance from a point to a segment
-function getSqSegDist(p: v2, p1: v2, p2: v2): number {
+function getSqSegDist(p: v2 | Position, p1: v2 | Position, p2: v2 | Position): number {
     let x = p1[0];
     let y = p1[1];
     let dx = p2[0] - x;
@@ -37,7 +65,7 @@ function getSqSegDist(p: v2, p1: v2, p2: v2): number {
 // rest of the code doesn't care about point format
 
 // basic distance-based simplification
-function simplifyRadialDist(points: v2[], sqTolerance: number): v2[] {
+function simplifyRadialDist(points: v2[] | Position[], sqTolerance: number): v2[] | Position[] {
     let prevPoint = points[0];
     let newPoints = [prevPoint];
     let point;
@@ -57,11 +85,11 @@ function simplifyRadialDist(points: v2[], sqTolerance: number): v2[] {
 }
 
 function simplifyDPStep(
-  points: v2[],
+  points: v2[] | Position[],
   first: number,
   last: number,
   sqTolerance: number,
-  simplified: v2[],
+  simplified: v2[] | Position[],
 ): void {
     let maxSqDist = sqTolerance;
     let index;
@@ -77,13 +105,13 @@ function simplifyDPStep(
 
     if (maxSqDist > sqTolerance) {
         if (index - first > 1) simplifyDPStep(points, first, index, sqTolerance, simplified);
-        simplified.push(points[index]);
+        simplified.push(points[index] as v2);
         if (last - index > 1) simplifyDPStep(points, index, last, sqTolerance, simplified);
     }
 }
 
 // simplification using Ramer-Douglas-Peucker algorithm
-function simplifyDouglasPeucker(points: v2[], sqTolerance: number): v2[] {
+function simplifyDouglasPeucker(points: v2[] | Position[], sqTolerance: number): v2[] | Position[] {
     const last = points.length - 1;
     const simplified = [points[0]];
 
@@ -91,18 +119,4 @@ function simplifyDouglasPeucker(points: v2[], sqTolerance: number): v2[] {
     simplified.push(points[last]);
 
     return simplified;
-}
-
-// both algorithms combined for awesome performance
-export function simplify(points: v2[], tolerance?: number, highestQuality?: boolean): v2[] {
-    if (points.length <= 2) {
-      return points;
-    }
-
-    const sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
-
-    points = highestQuality ? points : simplifyRadialDist(points, sqTolerance);
-    points = simplifyDouglasPeucker(points, sqTolerance);
-
-    return points;
 }

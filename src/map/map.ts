@@ -15,6 +15,7 @@ import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/gl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer'; 
+import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
@@ -126,6 +127,7 @@ export class GlideMap {
         pixel_scale: this.mapMeta.pixel_scale,
         tileset_type: this.mapMeta.tileset_type,
         tiles: this.mapMeta.tiles,
+        vector_layers: this.mapMeta.vector_layers,
       },
     });
 
@@ -250,6 +252,10 @@ export class GlideMap {
 
   public getOptions(): MapOptions {
     return this.options;
+  }
+
+  public downloadTiles() {
+    return this.tilesGrid.downloadTiles();
   }
 
   limitZoom(zoom: number): number {
@@ -467,11 +473,15 @@ export const getRenderer = (
   const type = renderer as MapRendererType;
 
   if (type === MapRendererType.webgl) {
-    return new GlMapRenderer(map);
+    return new GlMapRenderer(map, map.devicePixelRatio);
+  }
+
+  if (type === MapRendererType.threejs) {
+    return new ThreeJsMapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {
-    return new PngMapRenderer(map);
+    return new PngMapRenderer(map, map.devicePixelRatio);
   }
 
   throw new Error(`Renderer ${type} is not supported.`);

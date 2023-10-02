@@ -1,5 +1,4 @@
-import { ProgramInfo } from 'twgl.js';
-import { GlProgram } from './program';
+import { GlProgram, GlProgramType } from './program';
 import { GlMultiProgram } from './multi_program';
 import { v2 } from '../types';
 import { WebGlLineStrip, GlLineStripProps } from './line';
@@ -7,6 +6,8 @@ import { WebGlLineStrip, GlLineStripProps } from './line';
 export interface GlPathProps extends GlLineStripProps {}
 
 export class WebGlPath extends GlMultiProgram {
+  type = GlProgramType.PATH;
+
   constructor(props: GlPathProps) {
     super(props);
 
@@ -19,6 +20,8 @@ export class WebGlPath extends GlMultiProgram {
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
 export class WebGlMiterLineCap extends GlProgram {
+  type = GlProgramType.MITER_LINE_CAP;
+
   protected points: v2[];
   protected instanceMiterJoin = [
     [0, 0, 0],

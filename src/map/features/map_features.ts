@@ -69,3 +69,51 @@ export enum LandCoverFeatureClass {
   forest = 'forest',
   snow = 'snow',
 }
+
+/**
+ * List of the supported transportation features.
+ * TODO: Support more features.
+ */
+export const SUPPORTED_TRANSPORTATION_FEATURES = [
+  TransportationFeatureType.primary,
+  TransportationFeatureType.secondary,
+  TransportationFeatureType.motorway,
+  TransportationFeatureType.service,
+  TransportationFeatureType.path,
+  TransportationFeatureType.minor,
+];
+
+export const SUPPORTED_BOUNDARY_FEATURES = [
+  BoudaryAdminLevel.ADMIN_LEVEL_2,
+  BoudaryAdminLevel.ADMIN_LEVEL_3,
+  BoudaryAdminLevel.ADMIN_LEVEL_4,
+  BoudaryAdminLevel.ADMIN_LEVEL_5,
+  BoudaryAdminLevel.ADMIN_LEVEL_6,
+  BoudaryAdminLevel.ADMIN_LEVEL_7,
+  BoudaryAdminLevel.ADMIN_LEVEL_8,
+  BoudaryAdminLevel.ADMIN_LEVEL_9,
+  BoudaryAdminLevel.ADMIN_LEVEL_10,
+];
+
+export const SUPPORTED_WATER_FEATURES = [
+  WaterFeatureClass.ocean,
+  WaterFeatureClass.dock,
+  WaterFeatureClass.river,
+  WaterFeatureClass.lake,
+  WaterFeatureClass.swimming_pool,
+];
+
+export const SUPPORTED_LAND_COVER_FEATURES = [
+  LandCoverFeatureClass.farmland,
+  LandCoverFeatureClass.ice,
+  LandCoverFeatureClass.wood,
+  LandCoverFeatureClass.rock,
+  LandCoverFeatureClass.grass,
+  LandCoverFeatureClass.wetland,
+  LandCoverFeatureClass.sand,
+  LandCoverFeatureClass.crop,
+  LandCoverFeatureClass.scrub,
+  LandCoverFeatureClass.tree,
+  LandCoverFeatureClass.forest,
+  LandCoverFeatureClass.snow,
+];

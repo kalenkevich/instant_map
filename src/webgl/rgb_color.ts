@@ -1,3 +1,4 @@
+import { Color } from 'three';
 import { GlColor } from './types';
 
 export class RGBColor {
@@ -15,6 +16,10 @@ export class RGBColor {
 
   toGlColor(): GlColor {
     return [this.r / 256, this.g / 256, this.b / 256, this.a];
+  }
+
+  toThreeJsColor(): Color {
+    return new Color(this.r / 256, this.g / 256, this.b / 256);
   }
 
   static toGLColor(r: number, g: number, b: number, a: number = 1): GlColor {
