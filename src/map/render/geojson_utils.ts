@@ -25,7 +25,6 @@ export const getTransportationFeatureCollection = (
     return EmptyFC;
   }
 
-  // const features: { [transportationFeatureType: string]: Feature[] } = {};
   const features: Feature[] = [];
 
   for (const feature of transportationLayer.features) {
@@ -53,12 +52,6 @@ export const getTransportationFeatureCollection = (
       };
 
       features.push(geoJsonFeature);
-
-      // if (transportationFeatureType in features) {
-      //   features[transportationFeatureType].push(geoJsonFeature);
-      // } else {
-      //   features[transportationFeatureType] = [geoJsonFeature];
-      // }
     }
   }
 
@@ -130,7 +123,6 @@ export const getWaterFeatureCollection = (
     return EmptyFC;
   }
 
-  // const geometryFeatures: { [WaterFeatures: string]: Feature[] } = {};
   const geometryFeatures: Feature[] = [];
 
   for (const feature of waterLayer.features) {
@@ -141,12 +133,6 @@ export const getWaterFeatureCollection = (
     }
 
     const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
-
-    // if (waterClass in geometryFeatures) {
-    //   geometryFeatures[waterClass].push(geometryFeature);
-    // } else {
-    //   geometryFeatures[waterClass] = [geometryFeature];
-    // }
 
     geometryFeatures.push(geometryFeature);
   }

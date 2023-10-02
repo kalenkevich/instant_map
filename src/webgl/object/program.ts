@@ -119,19 +119,15 @@ export abstract class GlProgram {
 
     if (programInfo !== usedProgram) {
       gl.useProgram(programInfo.program);
-      // this.consoleGlError(gl, 'Use program');
       usedProgram = programInfo;
     }
 
     setBuffersAndAttributes(gl, programInfo, buffer);
-    // this.consoleGlError(gl, 'setBuffersAndAttributes');
 
     setUniforms(programInfo, uniforms);
-    // this.consoleGlError(gl, 'setUniforms');
 
     const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
     drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
-    // this.consoleGlError(gl, 'Draw');
   }
 
   public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
