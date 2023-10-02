@@ -5,7 +5,7 @@ import { GlideMap } from '../map';
 export abstract class MapRenderer {
   constructor(
     protected readonly map: GlideMap,
-    protected readonly devicePixelRatio = 1,
+    protected readonly devicePixelRatio: number,
   ) {}
 
   public abstract init(): void;

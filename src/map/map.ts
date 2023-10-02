@@ -254,6 +254,10 @@ export class GlideMap {
     return this.options;
   }
 
+  public downloadTiles() {
+    return this.tilesGrid.downloadTiles();
+  }
+
   limitZoom(zoom: number): number {
     const min = this.getMinZoom();
     const max = this.getMaxZoom();

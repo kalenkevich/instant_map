@@ -11,7 +11,7 @@ import { PngMapTile } from './png_tile';
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
   tileFormatType: MapTileFormatType;
-  devicePixelRatio?: number;
+  devicePixelRatio: number;
 }
 
 /**
@@ -35,7 +35,7 @@ export class TilesGrid {
     this.map = map;
     this.tilesMeta = options.tilesMeta;
     this.tileFormatType = options.tileFormatType;
-    this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
+    this.devicePixelRatio = options.devicePixelRatio;
     this.tilesCache = new Map<MapTileId, MapTile>();
   }
 
@@ -43,16 +43,15 @@ export class TilesGrid {
     this.defaultTileSize = DEFAULT_TILE_SIZE;
   }
 
-  getTileRange(tileZoom: number, mapState: MapState) {
-    const bounds = this.map.getPixelWorldBounds(tileZoom);
-
-    return this.pxBoundsToTileRange(bounds, mapState);
-  }
-
   public async update(mapState: MapState): Promise<MapTile[]> {
     const tilesToRender = this.getTilesToRender(mapState);
+    this.renderedTiles = tilesToRender;
 
     return this.fetchTiles(tilesToRender);
+  }
+
+  public async downloadTiles(): Promise<void> {
+    await Promise.all(this.renderedTiles.map(tile => tile.download()));
   }
 
   private async fetchTiles(tilesToRender: MapTile[]): Promise<MapTile[]> {
@@ -114,11 +113,11 @@ export class TilesGrid {
     }
   }
 
-  getTileZoom(mapState: MapState): number | undefined {
+  private getTileZoom(mapState: MapState): number | undefined {
     return this.clampZoom(Math.round(mapState.zoom));
   }
 
-  clampZoom(zoom: number) {
+  private clampZoom(zoom: number) {
     const minZoom = this.map.getMinZoom();
     const maxZoom = this.map.getMaxZoom();
 
@@ -173,7 +172,7 @@ export class TilesGrid {
           y: tileCoords.y,
           z: tileCoords.z,
         },
-        pixelRatio: this.devicePixelRatio,
+        devicePixelRatio: this.devicePixelRatio,
         tilesMeta: this.tilesMeta,
       })
     );
@@ -189,7 +188,7 @@ export class TilesGrid {
     }
   }
 
-  isValidTile(coords: TileCoordinate, tileZoom: number, mapState: MapState): boolean {
+  private isValidTile(coords: TileCoordinate, tileZoom: number, mapState: MapState): boolean {
     const crs = this.map.crs;
 
     if (!crs.infinite) {
@@ -214,13 +213,19 @@ export class TilesGrid {
     return bounds.overlaps(tileBounds);
   }
 
-  tileCoordsToBounds(tileCoords: TileCoordinate, mapState: MapState) {
+  private getTileRange(tileZoom: number, mapState: MapState) {
+    const bounds = this.map.getPixelWorldBounds(tileZoom);
+
+    return this.pxBoundsToTileRange(bounds, mapState);
+  }
+
+  private tileCoordsToBounds(tileCoords: TileCoordinate, mapState: MapState) {
     const bounds = this.tileCoordsToNwSe(tileCoords, mapState);
 
     return this.map.wrapLatLngBounds(bounds);
   }
 
-  tileCoordsToNwSe(tileCoords: TileCoordinate, mapState: MapState): LatLngBounds {
+  private tileCoordsToNwSe(tileCoords: TileCoordinate, mapState: MapState): LatLngBounds {
     const map = this.map;
     const coords = new Point(tileCoords.x, tileCoords.y);
     const tileSize = this.getTileSize(mapState);
@@ -233,7 +238,7 @@ export class TilesGrid {
     return new LatLngBounds(nw, se);
   }
 
-  pxBoundsToTileRange(bounds: Bounds, mapState: MapState): Bounds {
+  private pxBoundsToTileRange(bounds: Bounds, mapState: MapState): Bounds {
     const tileSize = this.defaultTileSize;
     const tileSizePoint = new Point(tileSize, tileSize);
 
@@ -243,7 +248,7 @@ export class TilesGrid {
     );
   }
 
-  getTileSize({ zoom }: MapState): number {
+  private getTileSize({ zoom }: MapState): number {
     const tileSize = (parseInt(this.tilesMeta.pixel_scale) || this.defaultTileSize);
 
     if (zoom > 1) {
@@ -257,7 +262,7 @@ export class TilesGrid {
     return tileSize * 4;
   }
 
-  getTiledPixelBounds(mapState: MapState): Bounds {
+  private getTiledPixelBounds(mapState: MapState): Bounds {
     const tileZoom = this.getTileZoom(mapState);
     const scale = this.map.getZoomScale(mapState.zoom, tileZoom);
     const pixelCenter = this.map.project(mapState.center, tileZoom).floor();

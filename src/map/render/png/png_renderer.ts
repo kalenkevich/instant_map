@@ -11,7 +11,7 @@ export class PngMapRenderer extends MapRenderer {
 
   constructor(
     protected readonly map: GlideMap,
-    protected readonly devicePixelRatio = 1,
+    protected readonly devicePixelRatio: number,
   ) {
     super(map, devicePixelRatio);
     this.el = this.createDivEl();

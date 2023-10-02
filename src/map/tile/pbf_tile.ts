@@ -2,6 +2,7 @@ import Protobuf from 'pbf';
 import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-tile';
 import { MapTile, MapTileOptions, MapTileFormatType, TileCoordinate, TileFeature, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
+import { downloadFile } from '../utils';
 
 export class PbfMapTile implements MapTile {
   id: string;
@@ -13,12 +14,13 @@ export class PbfMapTile implements MapTile {
   mapWidth: number;
   mapHeight: number;
   tileCoords: TileCoordinate;
-  pixelRatio: number;
+  devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
 
   private tileData?: VectorTile;
   private isDataLoading: boolean = false;
   private tileDataPromise?: Promise<void>;
+  private tileDataBuffer?: ArrayBuffer;
 
   constructor(options: MapTileOptions) {
     this.resetState(options);
@@ -30,7 +32,7 @@ export class PbfMapTile implements MapTile {
     this.y = options.y;
     this.mapWidth = options.mapWidth;
     this.mapHeight = options.mapHeight;
-    this.pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
+    this.devicePixelRatio = options.devicePixelRatio;
     this.width = options.width;
     this.height = options.height;
     this.tileCoords = options.tileCoords;
@@ -40,7 +42,7 @@ export class PbfMapTile implements MapTile {
   /**
    * Loads tile data if it was not loaded yet. Returns the promise of the success load.
    */
-  async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
+  public async fetchTileData(abortSignal?: AbortSignal): Promise<void> {
     if (this.tileData) {
       return Promise.resolve();
     }
@@ -57,11 +59,11 @@ export class PbfMapTile implements MapTile {
         .replace('{x}', this.tileCoords.x.toString())
         .replace('{y}', this.tileCoords.y.toString());
 
-      return (this.tileDataPromise = fetch(tileUrl, { signal: abortSignal }).then(async data => {
-        const buffer = await data.arrayBuffer();
+      return this.tileDataPromise = fetch(tileUrl, { signal: abortSignal }).then(async data => {
+        this.tileDataBuffer = await data.arrayBuffer();
 
-        this.tileData = new VectorTile(new Protobuf(buffer));
-      }));
+        this.tileData = new VectorTile(new Protobuf(this.tileDataBuffer));
+      });
     } catch (e) {
       if (e.type === 'AbortError') {
         // skip error;
@@ -74,11 +76,11 @@ export class PbfMapTile implements MapTile {
     }
   }
 
-  isReady() {
+  public isReady() {
     return !!this.tileData;
   }
 
-  getLayers(): TileLayersMap {
+  public getLayers(): TileLayersMap {
     if (!this.tileData) {
       return {};
     }
@@ -118,12 +120,23 @@ export class PbfMapTile implements MapTile {
     }, tileLayersMap);
   }
 
-  getTileFeature(vectorTileFeature: VectorTileFeature): TileFeature {
+  public getTileFeature(vectorTileFeature: VectorTileFeature): TileFeature {
     return {
       id: vectorTileFeature.id,
       bbox: vectorTileFeature.bbox(),
       geometry: vectorTileFeature.loadGeometry().map(points => points.map(p => [p.x, p.y])),
       properties: vectorTileFeature.properties,
     };
+  }
+
+  public download(): Promise<void> {
+    const tileUrl = new URL(this.tilesMeta.tiles[0]);
+    const safeHostName = tileUrl.host
+      .split('')
+      .map(c => c === '.' ? '_' : c)
+      .join('');
+    const fileName = `${safeHostName}_${this.tileCoords.z.toString()}_${this.tileCoords.x.toString()}_${this.tileCoords.y.toString()}.pbf`;
+
+    return downloadFile(fileName, this.tileDataBuffer, 'application/x-protobuf');
   }
 }

@@ -74,7 +74,7 @@ export interface MapTileOptions {
   mapWidth: number;
   mapHeight: number;
   tileCoords: TileCoordinate;
-  pixelRatio: number;
+  devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
 }
 
@@ -83,4 +83,5 @@ export interface MapTile extends MapTileOptions {
   isReady(): boolean;
   getLayers(): TileLayersMap;
   resetState(tileState: MapTileOptions): void;
+  download(): Promise<void>;
 }

@@ -8,7 +8,7 @@ export class ThreeJsPainter {
   private width: number;
   private height: number;
 
-  constructor(canvas: HTMLCanvasElement, private readonly devicePixelRatio = 1) {
+  constructor(canvas: HTMLCanvasElement, private readonly devicePixelRatio: number) {
     this.renderer = new WebGLRenderer({ canvas });
     this.scene = new Scene();
     this.width = canvas.offsetWidth;

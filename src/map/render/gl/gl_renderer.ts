@@ -19,7 +19,7 @@ export class GlMapRenderer extends MapRenderer {
 
   constructor(
     protected readonly map: GlideMap,
-    protected readonly devicePixelRatio = 1,
+    protected readonly devicePixelRatio: number,
   ) {
     super(map, devicePixelRatio);
     this.resizeEventListener = this.resizeEventListener.bind(this);
@@ -113,10 +113,10 @@ export class GlMapRenderer extends MapRenderer {
     }
 
     const tileScale = this.getTileScale(mapState);
-    const xScale = 1/8 * tileScale;
-    const yScale = 1/8 * tileScale;
-    const tileX = tile.x * (tileScale * 2);
-    const tileY = tile.y * (tileScale * 2);
+    const xScale = tile.devicePixelRatio / 16 * tileScale;
+    const yScale = tile.devicePixelRatio / 16 * tileScale;
+    const tileX = tile.x * (tileScale * tile.devicePixelRatio);
+    const tileY = tile.y * (tileScale * tile.devicePixelRatio);
     const scale: [number, number] = [
       xScale,
       yScale,
@@ -152,7 +152,7 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
-    const tileScale = this.getTileScale(mapState) * tile.pixelRatio;
+    const tileScale = this.getTileScale(mapState) * tile.devicePixelRatio;
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
 

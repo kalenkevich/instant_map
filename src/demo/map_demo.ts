@@ -80,7 +80,11 @@ export const ButtonMapOptions: ButtonOption[] = [{
 let currentMap: GlideMap | undefined;
 let rootEl: HTMLElement | undefined;
 
-function createRootEl(width: number, height: number, margin: number) {
+function createRootEl() {
+  const margin = 20;
+  const width = window.innerWidth - (margin * 2) - 2;
+  const height = window.innerHeight - (margin * 2) - 2 - 50;
+
   const div = document.createElement('div');
 
   div.id = 'glide-gl';
@@ -172,13 +176,23 @@ function unsubscribeFromEvents(map: GlideMap) {
   });
 }
 
-const createSelect = () => {
-  const div = document.createElement('select');
+const createMapViewsSelect = () => {
+  const select = document.createElement('select');
 
-  div.style.margin = '20px 20px 0 20px';
-  document.body.appendChild(div);
+  select.style.margin = '20px 20px 0 20px';
+  document.body.appendChild(select);
 
-  return div;
+  return select;
+};
+
+const createDownloadTilesButton = () => {
+  const button = document.createElement('button');
+
+  button.style.margin = '20px 20px 0 20px';
+  button.innerText = 'Download tiles';
+  document.body.appendChild(button);
+
+  return button;
 };
 
 const showMap = (options: ButtonOption[], optionId: string) => {
@@ -204,12 +218,10 @@ const showMap = (options: ButtonOption[], optionId: string) => {
 
 export const renderMapOptions = (options: ButtonOption[]) => {
   const startMapViewOptionId = getStartMapViewId();
-  const select = createSelect();
-  const margin = 20;
-  const width = window.innerWidth - (margin * 2) - 2;
-  const height = window.innerHeight - (margin * 2) - 2 - 50;
+  const mapViewSelect = createMapViewsSelect();
+  const downloadTilesButton = createDownloadTilesButton();
 
-  rootEl = createRootEl(width, height, margin);
+  rootEl = createRootEl();
 
   for (const option of options) {
     const selectOption = document.createElement('option');
@@ -220,15 +232,19 @@ export const renderMapOptions = (options: ButtonOption[]) => {
       selectOption.selected = true;
     }
 
-    select.appendChild(selectOption);
+    mapViewSelect.appendChild(selectOption);
   }
 
-  select.addEventListener('change', (e) => {
+  mapViewSelect.addEventListener('change', (e) => {
     // @ts-ignore
     const id = e.target.value;
 
     showMap(options, id);
   });
+
+  downloadTilesButton.onclick = () => {
+    currentMap.downloadTiles();
+  };
   
   showMap(options, startMapViewOptionId);
 };
