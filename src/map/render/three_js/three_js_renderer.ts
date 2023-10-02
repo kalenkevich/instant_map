@@ -63,7 +63,7 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       ...getLandCoverThreeJsObjects(tileLayers['globallandcover'], tileX, tileY, scale, simplifyOptions),
       ...getLandCoverThreeJsObjects(tileLayers['landcover'], tileX, tileY, scale, simplifyOptions),
       ...getBoundaryThreeJsObjects(tileLayers['boundary'], tileX, tileY, scale, simplifyOptions),
-      ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
+      ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, this.map.getWidth(), this.map.getHeight(), simplifyOptions),
       ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, {enabled: false}),
     ];
   }
