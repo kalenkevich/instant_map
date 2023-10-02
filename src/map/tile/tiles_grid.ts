@@ -139,11 +139,6 @@ export class TilesGrid {
     const pixelBounds = this.getTiledPixelBounds(mapState);
     const tileRange = this.pxBoundsToTileRange(pixelBounds, mapState);
 
-    // const dx = tileRange.max.x - tileRange.min.x;
-    // const dy = tileRange.max.y - tileRange.min.y;
-    // tileRange.max.x += dx * (this.devicePixelRatio - 1);
-    // tileRange.max.y += dy * (this.devicePixelRatio - 1);
-
     const tilesCoords: TileCoordinate[] = [];
     for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
       for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {

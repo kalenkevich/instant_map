@@ -476,7 +476,7 @@ export const getRenderer = (
   }
 
   if (type === MapRendererType.png) {
-    return new PngMapRenderer(map);
+    return new PngMapRenderer(map, map.devicePixelRatio);
   }
 
   throw new Error(`Renderer ${type} is not supported.`);

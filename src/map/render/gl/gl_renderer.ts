@@ -4,11 +4,11 @@ import { Painter } from '../painter';
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
-import { WebGlPainter, GlProgram, v2, WebGlImage } from '../../../webgl';
+import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
 
-export class GlMapRenderer implements MapRenderer {
+export class GlMapRenderer extends MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
   protected canvasEl?: HTMLCanvasElement;
   protected glPainter?: Painter;
@@ -17,7 +17,7 @@ export class GlMapRenderer implements MapRenderer {
     protected readonly map: GlideMap,
     protected readonly devicePixelRatio = 1,
   ) {
-    this.map = map;
+    super(map, devicePixelRatio);
     this.resizeEventListener = this.resizeEventListener.bind(this);
   }
 
@@ -119,10 +119,10 @@ export class GlMapRenderer implements MapRenderer {
     };
 
     const tileScale = this.getTileScale(mapState);
-    const xScale = 1/32 * (tileScale);
-    const yScale = 1/32 * (tileScale);
-    const tileX = tile.x * (tileScale / 2);
-    const tileY = tile.y * (tileScale / 2);
+    const xScale = 1/16 * tileScale;
+    const yScale = 1/16 * tileScale;
+    const tileX = tile.x * tileScale;
+    const tileY = tile.y * tileScale;
     const scale: [number, number] = [
       xScale,
       yScale,
@@ -152,36 +152,5 @@ export class GlMapRenderer implements MapRenderer {
         translation: [tileX, tileY],
       }),
     ];
-  }
-
-  protected getTileScale(mapState: MapState): number {
-    const tileZoom = this.getTileZoom(mapState.zoom);
-
-    return this.map.getZoomScale(mapState.zoom, tileZoom);
-  }
-
-  protected getTileZoom(mapZoom: number): number | undefined {
-    let tileZoom = Math.round(mapZoom);
-
-    if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
-      return undefined;
-    }
-
-    return this.clampZoom(tileZoom);
-  }
-
-  protected clampZoom(zoom: number) {
-    const minZoom = this.map.getMinZoom();
-    const maxZoom = this.map.getMaxZoom();
-
-    if (zoom < minZoom) {
-      return minZoom;
-    }
-
-    if (maxZoom < zoom) {
-      return maxZoom;
-    }
-
-    return zoom;
   }
 }

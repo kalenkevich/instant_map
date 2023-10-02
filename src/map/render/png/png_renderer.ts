@@ -4,15 +4,16 @@ import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { PngMapTile } from '../../tile/png_tile';
 
-export class PngMapRenderer implements MapRenderer {
+export class PngMapRenderer extends MapRenderer {
   animationFrameTaskIdSet = new Set<number>();
   el: HTMLElement;
   images: HTMLImageElement[] = [];
 
   constructor(
-    private readonly map: GlideMap,
+    protected readonly map: GlideMap,
+    protected readonly devicePixelRatio = 1,
   ) {
-    this.map = map;
+    super(map, devicePixelRatio);
     this.el = this.createDivEl();
     this.resizeEventListener = this.resizeEventListener.bind(this);
   }
@@ -113,36 +114,5 @@ export class PngMapRenderer implements MapRenderer {
     image.style.position = 'absolute';
     image.style.userSelect = 'none';
     image.style.transform = `translate3d(${tileX}px, ${tileY}px, 0)scale(${tileScale}, ${tileScale})`;
-  }
-
-  private getTileScale(mapState: MapState): number {
-    const tileZoom = this.getTileZoom(mapState);
-
-    return this.map.getZoomScale(mapState.zoom, tileZoom);
-  }
-
-  private getTileZoom(mapState: MapState): number | undefined {
-    let tileZoom = Math.round(mapState.zoom);
-
-    if (tileZoom > this.map.getMaxZoom() || tileZoom < this.map.getMinZoom()) {
-      return undefined;
-    }
-
-    return this.clampZoom(tileZoom);
-  }
-
-  private clampZoom(zoom: number) {
-    const minZoom = this.map.getMinZoom();
-    const maxZoom = this.map.getMaxZoom();
-
-    if (zoom < minZoom) {
-      return minZoom;
-    }
-
-    if (maxZoom < zoom) {
-      return maxZoom;
-    }
-
-    return zoom;
   }
 }
