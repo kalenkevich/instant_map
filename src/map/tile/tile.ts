@@ -1,4 +1,4 @@
-import { BBox } from "geojson";
+import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
 
 export type MapTileId = string;
@@ -29,7 +29,7 @@ export interface TileLayer {
 }
 
 export enum TileFeatureType {
-  some_type = 'some_type'
+  some_type = 'some_type',
 }
 
 export interface TileFeature {
@@ -42,9 +42,7 @@ export interface TileFeature {
 }
 
 type BasicTileFeatureProperty = string | number | boolean | undefined;
-export type TileFeatureProperty = BasicTileFeatureProperty
-  | Array<BasicTileFeatureProperty>
-  | Record<string, BasicTileFeatureProperty>;
+export type TileFeatureProperty = BasicTileFeatureProperty | Array<BasicTileFeatureProperty> | Record<string, BasicTileFeatureProperty>;
 
 export const DEFAULT_TILE_SIZE = 256;
 
@@ -74,7 +72,7 @@ export interface MapTileOptions {
   mapWidth: number;
   mapHeight: number;
   tileCoords: TileCoordinate;
-  pixelRatio?: number;
+  pixelRatio: number;
   tilesMeta: MapTilesMeta;
 }
 

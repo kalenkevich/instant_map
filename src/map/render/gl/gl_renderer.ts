@@ -1,18 +1,12 @@
 import { MapTile, MapTileFormatType } from '../../tile/tile';
-import { PngMapTile } from '../../tile/png_tile'
+import { PngMapTile } from '../../tile/png_tile';
 import { Painter } from '../painter';
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, v2, WebGlImage } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
-import {
-  getTransportationGlPrograms,
-  getBuildingGlPrograms,
-  getBoundaryGlPrograms,
-  getWaterGlPrograms,
-  getLandCoverGlPrograms,
-} from './gl_render_utils';
+import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
 
 export class GlMapRenderer implements MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
@@ -21,6 +15,7 @@ export class GlMapRenderer implements MapRenderer {
 
   constructor(
     protected readonly map: GlideMap,
+    private readonly devicePixelRatio = 1,
   ) {
     this.map = map;
     this.resizeEventListener = this.resizeEventListener.bind(this);
@@ -28,7 +23,7 @@ export class GlMapRenderer implements MapRenderer {
 
   public init() {
     this.canvasEl = this.createCanvasEl();
-    this.glPainter = new WebGlPainter(this.canvasEl);
+    this.glPainter = new WebGlPainter(this.canvasEl, this.devicePixelRatio);
 
     this.glPainter.init();
     this.map.addEventListener({
@@ -50,8 +45,8 @@ export class GlMapRenderer implements MapRenderer {
     this.canvasEl.style.width = `${width}px`;
     this.canvasEl.style.height = `${height}px`;
 
-    this.glPainter.setWidth(width);
-    this.glPainter.setHeight(height);
+    this.glPainter?.setWidth(width);
+    this.glPainter?.setHeight(height);
   }
 
   public destroy() {
@@ -71,7 +66,7 @@ export class GlMapRenderer implements MapRenderer {
     for (const tile of tiles) {
       const taskId = requestAnimationFrame(() => {
         const glPrograms = this.getRenderPrograms(tile, mapState);
-  
+
         console.time('gl map_render');
         this.glPainter?.draw(glPrograms);
         console.timeEnd('gl map_render');
@@ -123,12 +118,11 @@ export class GlMapRenderer implements MapRenderer {
       tolerance: 10,
     };
 
-    const tileScale = this.getTileScale(mapState);
-    const tileX = tile.x * tileScale;
-    const tileY = tile.y * tileScale;
+    const tileX = tile.x;
+    const tileY = tile.y;
     const scale: v2 = [
-      (tile.width / tile.mapWidth) * tileScale,
-      (tile.height / tile.mapHeight) * tileScale,
+      tile.width / tile.mapWidth / tile.pixelRatio,
+      tile.height / tile.mapHeight / tile.pixelRatio,
     ];
 
     return [
@@ -143,18 +137,15 @@ export class GlMapRenderer implements MapRenderer {
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState);
-    const tileX = tile.x * tileScale;
-    const tileY = tile.y * tileScale;
+    const tileX = tile.x * tileScale * tile.pixelRatio;
+    const tileY = tile.y * tileScale * tile.pixelRatio;
 
     return [
       new WebGlImage({
-        width: tile.width,
-        height: tile.height,
-        image: tile.image,
-        scale: [
-          tileScale,
-          tileScale,
-        ],
+        width: tile.width * tile.pixelRatio,
+        height: tile.height * tile.pixelRatio,
+        image: tile.image!,
+        scale: [tileScale, tileScale],
         translation: [tileX, tileY],
       }),
     ];

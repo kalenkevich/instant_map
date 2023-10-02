@@ -468,11 +468,11 @@ export const getRenderer = (
   const type = renderer as MapRendererType;
 
   if (type === MapRendererType.webgl) {
-    return new GlMapRenderer(map);
+    return new GlMapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.threejs) {
-    return new ThreeJsMapRenderer(map);
+    return new ThreeJsMapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {

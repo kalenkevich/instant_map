@@ -132,7 +132,6 @@ export const getTransportationThreeJsObjects = (
   y: number,
   scale: [number, number],
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-  reproject: (point: [number, number]) => [number, number],
 ): THREE.Object3D[] => {
   const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
 
@@ -140,17 +139,15 @@ export const getTransportationThreeJsObjects = (
     const points: THREE.Vector3[] = [];
 
     for (const point of (feature.geometry as LineString).coordinates) {
-      const [x, y] = reproject(point as [number, number]);
-      points.push(new THREE.Vector3(x, y, 0));
+      points.push(new THREE.Vector3(point[0], point[1], 0));
     }
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    // geometry.center();
     const line = new THREE.Line(geometry, transportationMaterial);
 
-    // line.translateX(x);
-    // line.translateY(y);
-    // line.scale.set(scale[0], scale[1], 1);
+    line.translateX(x);
+    line.translateY(y);
+    line.scale.set(scale[0], scale[1], 1);
 
     return line;
   });

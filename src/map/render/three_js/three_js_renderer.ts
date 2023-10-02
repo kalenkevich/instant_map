@@ -30,9 +30,11 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {
-    const objects = tiles
-      .map(tile => this.getThreeJsObjects(tile, mapState))
-      .flatMap(obj => obj);
+    // const objects = tiles
+    //   .map(tile => this.getThreeJsObjects(tile, mapState))
+    //   .flatMap(obj => obj);
+
+    const objects = this.getThreeJsObjects(tiles[0], mapState);
 
     console.time('three_js map_render');
     // console.log(cameraPos);
@@ -42,8 +44,6 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
 
   private getThreeJsObjects(tile: MapTile, mapState: MapState): THREE.Object3D[] {
     const tileLayers = tile.getLayers();
-    const tileTransform = getTileTransform(tile.tileCoords, this.map.crs.projection);
-    console.log(tileTransform);
 
     if (!tileLayers || Object.keys(tileLayers).length === 0) {
       return [] as THREE.Object3D[];
@@ -54,40 +54,20 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       tolerance: 10,
     };
 
-    const tileScale = this.getTileScale(mapState);
-    const tileX = tileTransform.x;
-    const tileY = tileTransform.y;
-    // const scale: [number, number] = [
-    //   (tile.width / tile.mapWidth / (tile.pixelRatio || 1)) * tileScale,
-    //   (tile.height / tile.mapHeight / (tile.pixelRatio || 1)) * tileScale,
-    // ];
+    const tileX = tile.x;
+    const tileY = tile.y;
     const scale: [number, number] = [
-      // tileScale,
-      // tileScale,
-      tileTransform.scale,
-      tileTransform.scale,
+      tile.width / tile.mapWidth / tile.pixelRatio,
+      tile.height / tile.mapHeight / tile.pixelRatio,
     ];
 
-    const z2 = 1 << tile.tileCoords.z;
-    // const {scale, x, y, projection} = tileTransform;
-
-    const reproject = (p: [number, number]): [number, number] => {
-        const lng = lngFromMercatorX((tileTransform.x + p[0] / 1) / z2);
-        const lat = latFromMercatorY((tileTransform.y + p[1] / 1) / z2);
-        const p2 = this.map.crs.projection.project(new LatLng(lng, lat));
-        const x = (p2.x * tileTransform.scale - tileTransform.x);
-        const y = (p2.y * tileTransform.scale - tileTransform.y);
-
-        return [x, y];
-    };
-
     return [
-      // ...getWaterThreeJsObjects(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
+      //...getWaterThreeJsObjects(tileLayers['water'], tileX, tileY, scale, {enabled: false}),
       // ...getLandCoverThreeJsObjects(tileLayers['globallandcover'], tileX, tileY, scale, {enabled: false}),
       // ...getLandCoverThreeJsObjects(tileLayers['landcover'], tileX, tileY, scale, {enabled: false}),
       // ...getBoundaryThreeJsObjects(tileLayers['boundary'], tileX, tileY, scale, {enabled: false}),
-      ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions, reproject),
-      ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, {enabled: false}),
+      ...getTransportationThreeJsObjects(tileLayers['transportation'], tileX, tileY, scale, simplifyOptions),
+      // ...getBuildingThreeJsObjects(tileLayers['building'], tileX, tileY, scale, {enabled: false}),
     ];
   }
 }

@@ -57,11 +57,11 @@ export class PbfMapTile implements MapTile {
         .replace('{x}', this.tileCoords.x.toString())
         .replace('{y}', this.tileCoords.y.toString());
 
-      return this.tileDataPromise = fetch(tileUrl, { signal: abortSignal }).then(async (data) => {
+      return (this.tileDataPromise = fetch(tileUrl, { signal: abortSignal }).then(async data => {
         const buffer = await data.arrayBuffer();
 
         this.tileData = new VectorTile(new Protobuf(buffer));
-      });
+      }));
     } catch (e) {
       if (e.type === 'AbortError') {
         // skip error;
@@ -85,15 +85,8 @@ export class PbfMapTile implements MapTile {
 
     const tileLayersMap: TileLayersMap = {};
 
-    return [
-      'water',
-      'globallandcover',
-      'landcover',
-      'boundary',
-      'transportation',
-      'building',
-    ].reduce((layersMap: TileLayersMap, layerName: string) => {
-      const layer: VectorTileLayer = this.tileData.layers[layerName];
+    return ['water', 'globallandcover', 'landcover', 'boundary', 'transportation', 'building'].reduce((layersMap: TileLayersMap, layerName: string) => {
+      const layer: VectorTileLayer | undefined = this.tileData?.layers[layerName];
 
       if (!layer) {
         return layersMap;
@@ -121,5 +114,5 @@ export class PbfMapTile implements MapTile {
       geometry: vectorTileFeature.loadGeometry().map(points => points.map(p => [p.x, p.y])),
       properties: vectorTileFeature.properties,
     };
-  } 
+  }
 }

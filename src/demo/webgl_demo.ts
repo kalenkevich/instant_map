@@ -506,7 +506,7 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
     requestAnimationFrame(renderScene);
   };
   
-  const painter = new WebGlPainter(canvas);
+  const painter = new WebGlPainter(canvas, window.devicePixelRatio);
 
   painter.init();
 
