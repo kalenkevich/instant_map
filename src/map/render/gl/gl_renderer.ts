@@ -142,7 +142,7 @@ export class GlMapRenderer extends MapRenderer {
       ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
        ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, simplifyOptions)
        : []),
-      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+      ...(transportationLayer?.shouldBeRendered(mapState.zoom)
         ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, simplifyOptions)
         : []),
       ...(buildingLayer?.shouldBeRendered(mapState.zoom)
