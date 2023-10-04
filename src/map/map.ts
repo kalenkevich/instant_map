@@ -20,6 +20,7 @@ import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
 import { ZoomControl } from './controls/zoom_control';
+import { CompassControl } from './controls/compass_control';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -162,7 +163,9 @@ export class GlideMap {
   private getMapControls() {
     const parentControl = new MapParentControl(this, MapControlPosition.BOTTOM_RIGHT);
     const zoomControl = new ZoomControl(this);
+    const compassControl = new CompassControl(this);
 
+    parentControl.addControl(compassControl);
     parentControl.addControl(zoomControl);
 
     return [parentControl];

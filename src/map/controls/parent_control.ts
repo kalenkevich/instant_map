@@ -28,6 +28,9 @@ export class MapParentControl extends MapControl {
     this.el.style.position = 'absolute';
     this.el.style.bottom = '0';
     this.el.style.right = '0';
+    this.el.style.display = 'flex';
+    this.el.style.flexDirection = 'column';
+    this.el.style.alignItems = 'center';
 
     for (const child of this.children) {
       child.init();
