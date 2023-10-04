@@ -10,7 +10,8 @@
     "test:unit": "jest --selectProjects unit",
     "test:build": "webpack",
     "test:server": "ts-node ./tests/integration/server.ts &",
-    "test:integration": "jest --selectProjects integration"
+    "test:integration": "jest --selectProjects integration",
+    "test:integration:local": "npm run build && npm run test:server && npm run test:integration"
   },
   "keywords": [],
   "author": "",

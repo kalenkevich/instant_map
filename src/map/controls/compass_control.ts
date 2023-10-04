@@ -11,7 +11,7 @@ export class CompassControl extends MapControl {
     private sLabel: HTMLElement;
     private wLabel: HTMLElement;
     private eLabel: HTMLElement;
-    private rotateDegree = 0;
+    private rotationDegree = 0;
 
     public init(): void {
         this.onNClick = this.onNClick.bind(this);
@@ -28,7 +28,7 @@ export class CompassControl extends MapControl {
         this.parentEl.style.width = '64px';
         this.parentEl.style.height = '64px';
         this.parentEl.style.borderRadius = '50%';
-        this.parentEl.style.backgroundColor = '#F2F9EC';
+        this.parentEl.style.backgroundColor = '#ffffff';
         this.parentEl.style.border = '1px solid #ADB8D0';
         this.parentEl.style.margin = '0 5px 5px 0';
         this.parentEl.style.fontFamily = 'sans-serif';
@@ -38,7 +38,7 @@ export class CompassControl extends MapControl {
         this.innerEl.style.position = 'absolute';
         this.innerEl.style.top = '50%';
         this.innerEl.style.left = '50%';
-        this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotateDegree}deg)`;
+        this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotationDegree}deg)`;
 
         this.arrowUp = document.createElement('div');
         this.arrowUp.style.width = '0px';
@@ -60,6 +60,7 @@ export class CompassControl extends MapControl {
         this.nLabel.style.left = 'calc(50% - 5px)';
         this.nLabel.style.fontSize = '14px';
         this.nLabel.style.cursor = 'pointer';
+        this.nLabel.style.userSelect = 'none';
         this.nLabel.innerText = 'N';
         this.nLabel.addEventListener('click', this.onNClick);
 
@@ -69,6 +70,7 @@ export class CompassControl extends MapControl {
         this.sLabel.style.left = 'calc(50% - 5px)';
         this.sLabel.style.fontSize = '14px';
         this.sLabel.style.cursor = 'pointer';
+        this.sLabel.style.userSelect = 'none';
         this.sLabel.innerText = 'S';
         this.sLabel.addEventListener('click', this.onSClick);
 
@@ -78,6 +80,7 @@ export class CompassControl extends MapControl {
         this.wLabel.style.left = '2px';
         this.wLabel.style.fontSize = '14px';
         this.wLabel.style.cursor = 'pointer';
+        this.wLabel.style.userSelect = 'none';
         this.wLabel.innerText = 'W';
         this.wLabel.addEventListener('click', this.onWClick);
 
@@ -87,6 +90,7 @@ export class CompassControl extends MapControl {
         this.eLabel.style.right = '2px';
         this.eLabel.style.fontSize = '14px';
         this.eLabel.style.cursor = 'pointer';
+        this.eLabel.style.userSelect = 'none';
         this.eLabel.innerText = 'E';
         this.eLabel.addEventListener('click', this.onEClick);
 
@@ -112,28 +116,28 @@ export class CompassControl extends MapControl {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        this.updateRotateDegree(0);
+        this.setRotationDegree(0);
     }
 
     private onEClick(e: MouseEvent): void {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        this.updateRotateDegree(90);
+        this.setRotationDegree(90);
     }
 
     private onSClick(e: MouseEvent): void {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        this.updateRotateDegree(180);
+        this.setRotationDegree(180);
     }
 
     private onWClick(e: MouseEvent): void {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        this.updateRotateDegree(270);
+        this.setRotationDegree(270);
     }
 
     private mousePos?: Point;
@@ -159,9 +163,7 @@ export class CompassControl extends MapControl {
         const nextMousePos = new Point(e.pageX, e.pageY);
         const degree = getDegree(this.mousePos, nextMousePos);
 
-        console.log(degree);
-
-        this.updateRotateDegree(degree);
+        this.setRotationDegree(degree);
     }
 
     private onMouseUp(e: MouseEvent) {
@@ -175,7 +177,7 @@ export class CompassControl extends MapControl {
         const nextMousePos = new Point(e.offsetX, e.offsetY);
 
         const degree = getDegree(this.mousePos, nextMousePos);
-        this.updateRotateDegree(degree);
+        this.setRotationDegree(degree);
 
         this.mousePos = null;
         this.updateCursor(false);
@@ -184,9 +186,9 @@ export class CompassControl extends MapControl {
         window.removeEventListener('mouseup', this.onMouseUp);
     }
 
-    private updateRotateDegree(degree: number) {
-        this.rotateDegree = degree;
-        this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotateDegree}deg)`;
+    private setRotationDegree(degree: number) {
+        this.rotationDegree = degree;
+        this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotationDegree}deg)`;
     }
 
     /** Adds global style for whole page to change cursor style to grabbing. */

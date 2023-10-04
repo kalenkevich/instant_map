@@ -6,6 +6,7 @@ import { MapTileFormatType } from './tile/tile';
 export interface MapOptions {
   rootEl: HTMLElement;
   zoom?: number;
+  rotation?: number;
   center?: LatLng;
   mapMeta?: MapMeta;
   tilesMetaUrl?: string;

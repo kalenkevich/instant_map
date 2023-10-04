@@ -87,8 +87,9 @@ export class GlideMap {
     this.height = this.rootEl.offsetHeight;
     this.devicePixelRatio = options.devicePixelRatio || window.devicePixelRatio || 1;
     this.state = {
-      zoom: options.zoom,
+      zoom: options.zoom || 0,
       center: options.center || new LatLng(0, 0),
+      rotation: options.rotation || 0,
     };
     this.mapMeta = options.mapMeta;
     this.tilesMetaUrl = options.tilesMetaUrl;
