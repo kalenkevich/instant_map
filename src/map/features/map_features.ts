@@ -2,7 +2,7 @@
  * Enum of all existing Transfortation features.
  * Based on https://api.maptiler.com/tiles/v3-openmaptiles/tiles.json?key=MfT8xhKONCRR9Ut0IKkt
  */
-export enum TransportationFeatureType {
+export enum TransportationFeatureClass {
   transit = 'transit',
   storage_tank = 'storage_tank',
   tertiary = 'tertiary',
@@ -75,12 +75,12 @@ export enum LandCoverFeatureClass {
  * TODO: Support more features.
  */
 export const SUPPORTED_TRANSPORTATION_FEATURES = [
-  TransportationFeatureType.primary,
-  TransportationFeatureType.secondary,
-  TransportationFeatureType.motorway,
-  TransportationFeatureType.service,
-  TransportationFeatureType.path,
-  TransportationFeatureType.minor,
+  TransportationFeatureClass.primary,
+  TransportationFeatureClass.secondary,
+  TransportationFeatureClass.motorway,
+  TransportationFeatureClass.service,
+  TransportationFeatureClass.path,
+  TransportationFeatureClass.minor,
 ];
 
 export const SUPPORTED_BOUNDARY_FEATURES = [

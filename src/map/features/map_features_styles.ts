@@ -1,6 +1,6 @@
 import { RGBColor } from '../../webgl';
 
-import {WaterFeatureClass, LandCoverFeatureClass,  } from './map_features';
+import {WaterFeatureClass, LandCoverFeatureClass, TransportationFeatureClass } from './map_features';
 
 export const WaterFeatureClassColorMap = {
   [WaterFeatureClass.ocean]: new RGBColor(95, 200, 255),
@@ -24,6 +24,33 @@ export const LandCoverClassColorMap = {
   [LandCoverFeatureClass.tree]: new RGBColor(194, 228, 187),
   [LandCoverFeatureClass.forest]: new RGBColor(194, 228, 187),
   [LandCoverFeatureClass.snow]: new RGBColor(233, 239, 244),
+};
+
+export const TranpostationClassStyleMap: {[key in TransportationFeatureClass]?: { lineWidth: number, color: RGBColor; }} = {
+  [TransportationFeatureClass.primary]: {
+    lineWidth: 50,
+    color: new RGBColor(233,201,43),
+  },
+  [TransportationFeatureClass.secondary]: {
+    lineWidth: 30,
+    color: new RGBColor(233,201,43),
+  },
+  [TransportationFeatureClass.motorway]: {
+    lineWidth: 30,
+    color: new RGBColor(233,201,43),
+  },
+  [TransportationFeatureClass.service]: {
+    lineWidth: 30,
+    color: new RGBColor(215,218,226),
+  },
+  [TransportationFeatureClass.path]: {
+    lineWidth: 30,
+    color: new RGBColor(215,218,226),
+  },
+  [TransportationFeatureClass.minor]: {
+    lineWidth: 30,
+    color: new RGBColor(215,218,226),
+  }
 };
 
 export const BOUNDARY_COLOR = new RGBColor(114, 113, 207);

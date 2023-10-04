@@ -17,6 +17,9 @@ import { GlMapRenderer } from './render/gl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer'; 
 import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
+import { MapControl } from './controls/map_control';
+import { MapParentControl, MapControlPosition } from './controls/parent_control';
+import { ZoomControl } from './controls/zoom_control';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -44,12 +47,10 @@ export enum MapEventType {
   DRAG_END = 'dragend',
   ZOOM = 'zoom',
   RESIZE = 'resize',
+  RENDER = 'render',
 }
 
-export interface EventListener {
-  eventType: MapEventType;
-  handler: (...eventArgs: any[]) => void;
-}
+export type EventListener = (...eventArgs: any[]) => void;
 
 /**
  * Visual Map class
@@ -77,6 +78,7 @@ export class GlideMap {
 
   private width: number;
   private height: number;
+  private controls: MapControl[] = [];
 
   constructor(private readonly options: MapOptions) {
     this.rootEl = options.rootEl;
@@ -95,6 +97,7 @@ export class GlideMap {
       new ZoomEventHandler(this),
       new DragEventHandler(this),
     ];
+    this.controls = this.getMapControls();
 
     this.resizeEventListener = this.resizeEventListener.bind(this);
     this.init();
@@ -107,13 +110,24 @@ export class GlideMap {
       window.addEventListener('resize', this.resizeEventListener);
     }
 
-    if (this.mapMeta) {
-      this.postInit();
-    } else {
+    if (this.tilesMetaUrl) {
+
       this.fetchMapMeta().then(mapMeta => {
-        this.mapMeta = mapMeta;
+        this.mapMeta = {
+          ...(this.options.mapMeta || {}),
+          ...mapMeta,
+        };
         this.postInit();
       });
+    } else if (this.mapMeta) {
+      this.postInit();
+    } else {
+      throw new Error('Map meta or/and map meta url should be provided.');
+    }
+
+    this.rootEl.style.position = 'relative';
+    for (const control of this.controls) {
+      control.init();
     }
   }
 
@@ -134,10 +148,24 @@ export class GlideMap {
     this.renderer.init();
     this.tilesGrid.init(this.state);
     this.triggerRerender();
-    setTimeout(() => {
-      this.fire(MapEventType.ZOOM);
-      this.fire(MapEventType.MOVE);
-    }, 0);
+
+    this.once(MapEventType.RENDER, () => {
+      for (const control of this.controls) {
+        control.attach(this.rootEl);
+
+        this.fire(MapEventType.ZOOM);
+        this.fire(MapEventType.MOVE);
+      }
+    });
+  }
+
+  private getMapControls() {
+    const parentControl = new MapParentControl(this, MapControlPosition.BOTTOM_RIGHT);
+    const zoomControl = new ZoomControl(this);
+
+    parentControl.addControl(zoomControl);
+
+    return [parentControl];
   }
 
   public destroy() {
@@ -149,6 +177,10 @@ export class GlideMap {
 
     for (const eventHandler of this.eventHandlers) {
       eventHandler.destroy();
+    }
+
+    for (const control of this.controls) {
+      control.destroy(this.rootEl);
     }
 
     this.eventListeners = [];
@@ -431,6 +463,7 @@ export class GlideMap {
       this.renderer.stopRender();
 
       this.renderer.renderTiles(tiles, this.state);
+      this.fire(MapEventType.RENDER);
     });
   }
 
@@ -438,21 +471,34 @@ export class GlideMap {
     return this.renderer.stopRender();
   }
 
-  private eventListeners: EventListener[] = [];
-  public addEventListener(listener: EventListener): void {
-    this.eventListeners.push(listener);
+  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; }> = [];
+  public on(eventType: MapEventType, handler: EventListener): void {
+    this.eventListeners.push({
+      eventType,
+      handler,
+    });
   }
+  public once(eventType: MapEventType, handler: EventListener): void {
+    const onceHandler: EventListener = (...eventArgs: any[]) => {
+      handler(...eventArgs);
 
-  public removeEventListener(listener: EventListener) {
+      this.off(eventType, onceHandler);
+    };
+
+    this.eventListeners.push({
+      eventType,
+      handler: onceHandler,
+    });
+  }
+  public off(eventType: MapEventType, handler: EventListener) {
     const index = this.eventListeners.findIndex(l => {
-      return l.eventType === listener.eventType && l.handler === listener.handler;
+      return l.eventType === eventType && l.handler === handler;
     });
 
     if (index > -1) {
-      this.eventListeners.splice(index);
+      this.eventListeners.splice(index, 1);
     }
   }
-
   private fire(eventType: MapEventType, ...eventArgs: any[]) {
     for (const listener of this.eventListeners) {
       if (listener.eventType === eventType) {
@@ -496,8 +542,10 @@ export const getCrs = (crs?: MapCrs): CoordinateReferenceSystem => {
 };
 
 export const getMapBounds = (mapMeta: MapMeta): LatLngBounds => {
-  const minLatLgn = new LatLng(mapMeta.bounds[0], mapMeta.bounds[1]);
-  const maxLanLng = new LatLng(mapMeta.bounds[2], mapMeta.bounds[3]);
+  const bounds = mapMeta.bounds || DEFAULT_MAP_METADATA.bounds;
+
+  const minLatLgn = new LatLng(bounds[0], bounds[1]);
+  const maxLanLng = new LatLng(bounds[2], bounds[3]);
 
   return new LatLngBounds(minLatLgn, maxLanLng);
 };

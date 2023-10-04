@@ -112,6 +112,10 @@ export class PbfMapTile implements MapTile {
         name: layerName,
         features,
         shouldBeRendered(zoom: number) {
+          if (!layerConfig) {
+            return true;
+          }
+
           return zoom >= layerConfig.minzoom && zoom <= layerConfig.maxzoom;
         }
       };

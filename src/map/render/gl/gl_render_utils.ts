@@ -1,9 +1,9 @@
 import { Feature, LineString, Polygon } from 'geojson';
 import { SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from '../simplify';
 import { TileLayer } from '../../tile/tile';
-import { GlProgram, WebGlPath, v2, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea } from '../../../webgl';
-import { WaterFeatureClass, LandCoverFeatureClass } from '../../features/map_features';
-import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TRANSPORTATION_COLOR } from '../../features/map_features_styles';
+import { GlProgram, WebGlPath, v2, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea, WebGlLineStrip } from '../../../webgl';
+import { WaterFeatureClass, LandCoverFeatureClass, TransportationFeatureClass } from '../../features/map_features';
+import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TranpostationClassStyleMap } from '../../features/map_features_styles';
 import {
   getWaterFeatureCollection,
   getLandCoverFeatureCollection,
@@ -98,9 +98,11 @@ export const getTransportationGlPrograms = (
 
   return fc.features.map((feature: Feature) => {
     const resultPoints: v2[] = (feature.geometry as LineString).coordinates as v2[];
+    const style = TranpostationClassStyleMap[feature.properties['class'] as TransportationFeatureClass];
 
-    return new WebGlNativeLineStrip({
-      color: TRANSPORTATION_COLOR.toGlColor(),
+    return new WebGlLineStrip({
+      lineWidth: style.lineWidth,
+      color: style.color.toGlColor(),
       points: resultPoints,
       translation: [x, y],
       scale,

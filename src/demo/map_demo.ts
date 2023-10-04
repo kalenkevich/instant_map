@@ -16,13 +16,13 @@ const MAPTILER_PNG_TILE_URL = `${useLocalServer ? '/maptiler/satellite' : 'https
 const MAPTILER_VT_META_URL = `${useLocalServer ? '/maptiler/tiles_meta.json' : 'https://api.maptiler.com/tiles/v3/tiles.json'}?key=MfT8xhKONCRR9Ut0IKkt`;
 
 export const ButtonMapOptions: ButtonOption[] = [{
-  name: 'VT webgl',
+  name: 'VT webgl maptiler',
   id: 'webgl_vt_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
   tilesMetaUrl: MAPTILER_VT_META_URL,
 }, {
-  name: 'VT threejs',
+  name: 'VT threejs maptiler',
   id: 'threejs_vt_maptiler',
   renderer: MapRendererType.threejs,
   resizable: true,
@@ -128,9 +128,9 @@ function getStartMapViewId(): string {
   return query.get(SELECTED_MAP_VIEW_PARAM_MNAME);
 }
 
-const syncQueryParamsWithMapState = (map: GlideMap = currentMap) => {
-  const center = map.getCenter();
-  const zoom = map.getZoom();
+const syncQueryParamsWithMapState = () => {
+  const center = currentMap.getCenter();
+  const zoom = currentMap.getZoom();
   
   const query = new URLSearchParams(document.location.search);
   const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
@@ -155,25 +155,13 @@ const syncQueryParamsWithSelectedMap = (selectdMapId: string) => {
 }
 
 function subscribeOnEvents(map: GlideMap) {
-  map.addEventListener({
-    eventType: MapEventType.MOVE,
-    handler: syncQueryParamsWithMapState,
-  });
-  map.addEventListener({
-    eventType: MapEventType.ZOOM,
-    handler: syncQueryParamsWithMapState,
-  });
+  map.on(MapEventType.MOVE, syncQueryParamsWithMapState);
+  map.on(MapEventType.ZOOM, syncQueryParamsWithMapState);
 }
 
 function unsubscribeFromEvents(map: GlideMap) {
-  map.removeEventListener({
-    eventType: MapEventType.MOVE,
-    handler: syncQueryParamsWithMapState,
-  });
-  map.removeEventListener({
-    eventType: MapEventType.ZOOM,
-    handler: syncQueryParamsWithMapState,
-  });
+  map.off(MapEventType.MOVE, syncQueryParamsWithMapState);
+  map.off(MapEventType.ZOOM, syncQueryParamsWithMapState);
 }
 
 const createMapViewsSelect = () => {
