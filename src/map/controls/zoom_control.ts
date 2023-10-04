@@ -32,6 +32,7 @@ export class ZoomControl extends MapControl {
     const button = document.createElement('button');
 
     button.classList.add(cssClass);
+    button.style.cursor = 'pointer';
     button.style.width = '30px';
     button.style.height = '30px';
     button.style.lineHeight = '24px';
