@@ -16,6 +16,7 @@ const config: Config = {
     testMatch: [
       "<rootDir>/tests/unit/**/**_test.ts",
     ],
+    setupFiles: ['<rootDir>/tests/unit/setup.ts'],
   }, {
     displayName: 'integration',
     preset: "jest-puppeteer",

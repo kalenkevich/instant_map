@@ -10,7 +10,7 @@ export class ZoomControl extends MapControl {
   private debounceTimeMs = 100;
 
   public init(): void {
-    this.parentEl = document.createElement('div');
+    this.parentEl = this.document.createElement('div');
     this.parentEl.style.display = 'flex';
     this.parentEl.style.flexDirection = 'column';
 
@@ -29,7 +29,7 @@ export class ZoomControl extends MapControl {
   }
 
   private createButton(text: string, cssClass?: string): HTMLButtonElement {
-    const button = document.createElement('button');
+    const button = this.document.createElement('button');
 
     button.classList.add(cssClass);
     button.style.cursor = 'pointer';

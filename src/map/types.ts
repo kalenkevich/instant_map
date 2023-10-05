@@ -16,6 +16,8 @@ export interface MapOptions {
   resizable?: boolean,
 }
 
+export { MapTileFormatType };
+
 export type MapCrs = CoordinateReferenceSystem | MapCrsType;
 
 export enum MapCrsType {
