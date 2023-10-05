@@ -30,10 +30,7 @@ export class GlMapRenderer extends MapRenderer {
     this.glPainter = new WebGlPainter(this.canvasEl, this.devicePixelRatio);
 
     this.glPainter.init();
-    this.map.addEventListener({
-      eventType: MapEventType.RESIZE,
-      handler: this.resizeEventListener,
-    });
+    this.map.on(MapEventType.RESIZE, this.resizeEventListener);
   }
 
   public resizeEventListener() {
@@ -56,10 +53,7 @@ export class GlMapRenderer extends MapRenderer {
   public destroy() {
     this.stopRender();
     this.glPainter?.destroy();
-    this.map.removeEventListener({
-      eventType: MapEventType.RESIZE,
-      handler: this.resizeEventListener,
-    });
+    this.map.off(MapEventType.RESIZE, this.resizeEventListener);
 
     if (this.canvasEl) {
       this.map.rootEl.removeChild(this.canvasEl);

@@ -24,10 +24,7 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     this.glPainter = new ThreeJsPainter(this.canvasEl, this.devicePixelRatio);
 
     this.glPainter.init();
-    this.map.addEventListener({
-      eventType: MapEventType.RESIZE,
-      handler: this.resizeEventListener,
-    });
+    this.map.on(MapEventType.RESIZE, this.resizeEventListener);
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {

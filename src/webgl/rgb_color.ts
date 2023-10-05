@@ -19,7 +19,7 @@ export class RGBColor {
   }
 
   toThreeJsColor(): Color {
-    return new Color(this.r / 256, this.g / 256, this.b / 256);
+    return new Color(this.r / 255, this.g / 255, this.b / 255);
   }
 
   static toGLColor(r: number, g: number, b: number, a: number = 1): GlColor {

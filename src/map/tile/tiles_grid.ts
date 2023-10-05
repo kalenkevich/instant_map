@@ -138,6 +138,20 @@ export class TilesGrid {
     const pixelBounds = this.getTiledPixelBounds(mapState);
     const tileRange = this.pxBoundsToTileRange(pixelBounds, mapState);
 
+    if (tileRange.min.x < 0) {
+      const delta = -tileRange.min.x;
+
+      tileRange.min.x += delta;
+      tileRange.max.x += delta;
+    }
+
+    if (tileRange.min.y < 0) {
+      const delta = -tileRange.min.y;
+
+      tileRange.min.y += delta;
+      tileRange.max.y += delta;
+    }
+
     const tilesCoords: TileCoordinate[] = [];
     for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
       for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
@@ -192,9 +206,12 @@ export class TilesGrid {
     const crs = this.map.crs;
 
     if (!crs.infinite) {
-      // don't load tile if it's out of bounds and not wrapped
       const bounds = this.getTileRange(tileZoom, mapState);
-      if ((!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) || (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))) {
+
+      if (
+        (!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x))
+        || (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))
+      ) {
         return false;
       }
     }

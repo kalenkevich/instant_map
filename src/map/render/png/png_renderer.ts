@@ -19,10 +19,7 @@ export class PngMapRenderer extends MapRenderer {
   }
 
   public init() {
-    this.map.addEventListener({
-      eventType: MapEventType.RESIZE,
-      handler: this.resizeEventListener,
-    });
+    this.map.on(MapEventType.RESIZE, this.resizeEventListener);
   }
 
   private resizeEventListener() {
@@ -34,10 +31,7 @@ export class PngMapRenderer extends MapRenderer {
   }
 
   public destroy() {
-    this.map.removeEventListener({
-      eventType: MapEventType.RESIZE,
-      handler: this.resizeEventListener,
-    });
+    this.map.off(MapEventType.RESIZE, this.resizeEventListener);
     this.map.rootEl.removeChild(this.el);
     this.stopRender();
   }

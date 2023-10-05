@@ -2,7 +2,7 @@ import { Feature, FeatureCollection, Geometry, Position } from 'geojson';
 import { simplify, SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from './simplify';
 import { TileLayer, TileFeature } from '../tile/tile';
 import {
-  TransportationFeatureType,
+  TransportationFeatureClass,
   BoudaryAdminLevel,
   WaterFeatureClass,
   LandCoverFeatureClass,
@@ -28,7 +28,7 @@ export const getTransportationFeatureCollection = (
   const features: Feature[] = [];
 
   for (const feature of transportationLayer.features) {
-    const transportationFeatureType = feature.properties['class'] as TransportationFeatureType;
+    const transportationFeatureType = feature.properties['class'] as TransportationFeatureClass;
 
     if (!SUPPORTED_TRANSPORTATION_FEATURES.includes(transportationFeatureType)) {
       continue;
