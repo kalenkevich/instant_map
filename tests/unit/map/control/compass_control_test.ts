@@ -18,6 +18,7 @@ describe('CompassControl', () => {
   });
 
   it('should be attached to the parent el as a child.', () => {
+    const getRotationSpy = jest.spyOn(fakeMap, 'getRotation').mockReturnValue(0);
     const rootElAppedChildSpy = jest.spyOn(rootEl, 'appendChild').mockReturnValue(null);
     const compassControl = new CompassControl(fakeMap, document);
 
@@ -25,5 +26,6 @@ describe('CompassControl', () => {
     compassControl.attach(rootEl);
 
     expect(rootElAppedChildSpy).toBeCalled();
+    expect(getRotationSpy).toBeCalled();
   });
 });
