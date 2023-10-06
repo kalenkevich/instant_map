@@ -145,7 +145,7 @@ export abstract class GlProgram {
       uniform mat3 u_matrix;
       
       void main() {
-        // Apply tranlation, rotation and scale.
+        // Apply translation, rotation and scale.
         vec2 position = (u_matrix * vec3(a_position, 1)).xy;
         
         // Apply resolution.

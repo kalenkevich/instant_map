@@ -7,7 +7,6 @@ import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
-import { Point } from '../../geometry/point';
 
 const simplifyOptions = {
   ...DefaultSipmlifyGeometryOptions,
@@ -149,7 +148,7 @@ export class GlMapRenderer extends MapRenderer {
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState) * tile.devicePixelRatio;
-
+    
     return [
       new WebGlImage({
         width: tile.width,

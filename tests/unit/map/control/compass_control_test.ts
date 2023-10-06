@@ -10,7 +10,11 @@ describe('CompassControl', () => {
 
   beforeEach(() => {
     rootEl = document.createElement('div');
-    fakeMap = {} as unknown as GlideMap;
+    fakeMap = {
+      getRotation() {
+        return 0;
+      }
+    } as unknown as GlideMap;
   });
 
   it('should be attached to the parent el as a child.', () => {
