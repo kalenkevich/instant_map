@@ -3,9 +3,8 @@ import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-t
 import { MapTile, MapTileOptions, MapTileFormatType, TileCoordinate, TileFeature, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
 import { downloadFile } from '../utils';
-import { RenderingCache } from '../render/renderer';
 
-export class PbfMapTile implements MapTile {
+export class PbfMapTile extends MapTile {
   id: string;
   formatType = MapTileFormatType.pbf;
   x: number;
@@ -24,6 +23,7 @@ export class PbfMapTile implements MapTile {
   private tileDataBuffer?: ArrayBuffer;
 
   constructor(options: MapTileOptions) {
+    super();
     this.resetState(options);
   }
 
@@ -143,22 +143,5 @@ export class PbfMapTile implements MapTile {
     const fileName = `${safeHostName}_${this.tileCoords.z.toString()}_${this.tileCoords.x.toString()}_${this.tileCoords.y.toString()}.pbf`;
 
     return downloadFile(fileName, this.tileDataBuffer, 'application/x-protobuf');
-  }
-
-  private renderingCache?: RenderingCache;
-  public hasRenderingCache(): boolean {
-    return !!this.renderingCache;
-  }
-
-  public getRenderingCache() {
-    return this.renderingCache;
-  }
-
-  public setRenderingCache(cache: RenderingCache) {
-    this.renderingCache = cache;
-  }
-
-  public pruneRenderingCache(): void {
-    this.renderingCache = undefined;
   }
 }
