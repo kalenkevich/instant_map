@@ -14,6 +14,7 @@ export class CompassControl extends MapControl {
     private rotationDegree = 0;
 
     public init(): void {
+        this.rotationDegree = getDegreeFromRadian(this.map.getRotation());
         this.onNClick = this.onNClick.bind(this);
         this.onEClick = this.onEClick.bind(this);
         this.onSClick = this.onSClick.bind(this);
@@ -189,6 +190,8 @@ export class CompassControl extends MapControl {
     private setRotationDegree(degree: number) {
         this.rotationDegree = degree;
         this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotationDegree}deg)`;
+
+        this.map.setRotation(getRadianFromDegree(degree));
     }
 
     /** Adds global style for whole page to change cursor style to grabbing. */
@@ -211,3 +214,11 @@ export class CompassControl extends MapControl {
 
 export const getDegree = (p1: Point, p2: Point): number =>
     Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+
+export const getDegreeFromRadian = (radian: number): number => {
+    return radian * 180 / Math.PI;
+}
+
+export const getRadianFromDegree = (degree: number): number => {
+    return degree * Math.PI / 180;
+};

@@ -17,6 +17,7 @@ export const getWaterThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
   const fc = getWaterFeatureCollection(waterLayer, simplifyOptions);
@@ -57,6 +58,7 @@ export const getLandCoverThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
 
@@ -100,6 +102,7 @@ export const getBoundaryThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
   const fc = getBoundaryFeatureCollection(boundaryLayer, simplifyOptions);
@@ -132,6 +135,7 @@ export const getTransportationThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
   const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
@@ -169,6 +173,7 @@ export const getBuildingThreeJsObjects = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): Object3D[] => {
   const fc = getBuildingFeatureCollection(buildingLayer, simplifyOptions);

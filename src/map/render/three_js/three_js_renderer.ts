@@ -60,25 +60,26 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     const boundaryLayer = tileLayers['boundary'];
     const transportationLayer = tileLayers['transportation'];
     const buildingLayer = tileLayers['building'];
+    const rotationInRadians = mapState.rotation;
 
     return [
       ...(waterLayer?.shouldBeRendered(mapState.zoom) 
-        ? getWaterThreeJsObjects(waterLayer, tileX, tileY, scale, {enabled: false})
+        ? getWaterThreeJsObjects(waterLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         : []),
       ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverThreeJsObjects(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
+        ? getLandCoverThreeJsObjects(globallandcoverLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         : []),
       ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverThreeJsObjects(landcoverLayer, tileX, tileY, scale, {enabled: false})
+        ? getLandCoverThreeJsObjects(landcoverLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         :[]),
       ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
-       ? getBoundaryThreeJsObjects(boundaryLayer, tileX, tileY, scale, simplifyOptions)
+       ? getBoundaryThreeJsObjects(boundaryLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
        : []),
       ...(transportationLayer?.shouldBeRendered(mapState.zoom)
-        ? getTransportationThreeJsObjects(transportationLayer, tileX, tileY, scale, simplifyOptions)
+        ? getTransportationThreeJsObjects(transportationLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
         : []),
       ...(buildingLayer?.shouldBeRendered(mapState.zoom)
-       ? getBuildingThreeJsObjects(buildingLayer, tileX, tileY, scale, simplifyOptions)
+       ? getBuildingThreeJsObjects(buildingLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
        : []),
     ];
   }

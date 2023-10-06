@@ -308,7 +308,12 @@ ANTARCTIDA_POINTS.unshift(centroid.geometry.coordinates as v2);
 /**
  * Render the demo scene with all available objects.
  */
-export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
+export const renderObjectsDemo = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1024;
+  document.body.appendChild(canvas);
+
   const cellWidth = 500;
   const cellHeight = 500;
   const grid = getGrid({
@@ -368,7 +373,7 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
     color: [0.3, 0.5, 1, 1],
     p: [0, 0],
     translation: [cellWidth * 3 + 250, cellHeight * 0 + 200],
-    origin: [-200, -150],
+    origin: [-cellWidth * 3 + 250, -cellHeight * 0 + 200],
     width: 400,
     height: 300,
   });
@@ -477,30 +482,29 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
   let areaRenderPoints = ANTARCTIDA_POINTS.slice(0, index);
 
   const renderScene = () => {
-    // for (const line of triangleLines) {
-    //   line.setRotationInRadians(line.getRotationInRadians() + 0.1);
-    // }
-    // rotatedRectangle.setRotationInRadians(rotatedRectangle.getRotationInRadians() + 0.1);
-    // rotatedRectangle.setRotationInRadians(rotatedRectangle.getRotationInRadians() + 0.1);
-    // rotatedTriangle.setRotationInRadians(rotatedTriangle.getRotationInRadians() + 0.1);
-    // rotatedPath.setRotationInRadians(rotatedPath.getRotationInRadians() + 0.1);
+    for (const line of triangleLines) {
+      line.setRotationInRadians(line.getRotationInRadians() + 0.1);
+    }
+    rotatedRectangle.setRotationInRadians(rotatedRectangle.getRotationInRadians() + 0.1);
+    rotatedTriangle.setRotationInRadians(rotatedTriangle.getRotationInRadians() + 0.1);
+    rotatedPath.setRotationInRadians(rotatedPath.getRotationInRadians() + 0.1);
 
-    //painter.clear();
+    // painter.clear();
 
     painter.draw([
-      // ...grid,
-      // ...nativeLines,
-      // ...triangleLines,
-      // rectangle,
-      // rotatedRectangle,
-      // triangle,
-      // rotatedTriangle,
-      // circle,
-      // rotatedCircle,
-      // path,
-      // rotatedPath,
-      // pathGroup,
-      area,
+      ...grid,
+      ...nativeLines,
+      ...triangleLines,
+      rectangle,
+      rotatedRectangle,
+      triangle,
+      rotatedTriangle,
+      circle,
+      rotatedCircle,
+      path,
+      rotatedPath,
+      pathGroup,
+      // area,
     ]);
 
     requestAnimationFrame(renderScene);

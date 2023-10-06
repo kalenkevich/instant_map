@@ -47,6 +47,7 @@ export enum MapEventType {
   DRAG = 'drag',
   DRAG_END = 'dragend',
   ZOOM = 'zoom',
+  ROTATION = 'rotation',
   RESIZE = 'resize',
   RENDER = 'render',
 }
@@ -245,6 +246,14 @@ export class GlideMap {
 
   public setZoom(zoom: number): Promise<void> {
     return this.setState({ zoom });
+  }
+
+  public getRotation() {
+    return this.state.rotation;
+  }
+
+  public setRotation(rotation: number): Promise<void> {
+    return this.setState({ rotation });
   }
 
   public getCenter(): LatLng {
@@ -457,6 +466,10 @@ export class GlideMap {
 
     if (partialState.center) {
       this.fire(MapEventType.MOVE);
+    }
+
+    if (partialState.rotation) {
+      this.fire(MapEventType.ROTATION);
     }
 
     return this.triggerRerender();

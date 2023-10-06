@@ -17,6 +17,7 @@ export const getWaterGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ) => {
   const fc = getWaterFeatureCollection(waterLayer, simplifyOptions);
@@ -27,8 +28,10 @@ export const getWaterGlPrograms = (
         new WebGlArea({
           color: WaterFeatureClassColorMap[feature.properties['class'] as WaterFeatureClass].toGlColor(),
           points: area as v2[],
-          translation: [x, y],
+          translation: [0, 0],
+          origin: [x, y],
           scale,
+          rotationInRadians,
         })
       );
     }
@@ -42,6 +45,7 @@ export const getLandCoverGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): GlProgram[] => {
   const fc = getLandCoverFeatureCollection(landCoverLayer, simplifyOptions);
@@ -52,8 +56,10 @@ export const getLandCoverGlPrograms = (
         new WebGlArea({
           color: LandCoverClassColorMap[feature.properties['class'] as LandCoverFeatureClass].toGlColor(),
           points: area as v2[],
-          translation: [x, y],
+          translation: [0, 0],
+          origin: [x, y],
           scale,
+          rotationInRadians,
         })
       );
     }
@@ -67,6 +73,7 @@ export const getBoundaryGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): GlProgram[] => {
   const fc = getBoundaryFeatureCollection(boundaryLayer, simplifyOptions);
@@ -77,8 +84,10 @@ export const getBoundaryGlPrograms = (
         new WebGlNativeLineStrip({
           color: BOUNDARY_COLOR.toGlColor(),
           points: lineStrip as v2[],
-          translation: [x, y],
+          translation: [0, 0],
+          origin: [x, y],
           scale,
+          rotationInRadians,
         })
       );
     }
@@ -92,6 +101,7 @@ export const getTransportationGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): GlProgram[] => {
   const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
@@ -104,8 +114,10 @@ export const getTransportationGlPrograms = (
       lineWidth: style.lineWidth,
       color: style.color.toGlColor(),
       points: resultPoints,
-      translation: [x, y],
+      translation: [0, 0],
+      origin: [x, y],
       scale,
+      rotationInRadians,
     });
   });
 }
@@ -115,6 +127,7 @@ export const getBuildingGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
+  rotationInRadians: number,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
 ): GlProgram[] => {
   const fc = getBuildingFeatureCollection(buildingLayer, simplifyOptions);
@@ -125,8 +138,10 @@ export const getBuildingGlPrograms = (
         new WebGlArea({
           color: BUILDING_COLOR.toGlColor(),
           points: area as v2[],
-          translation: [x, y],
+          translation: [0, 0],
+          origin: [x, y],
           scale,
+          rotationInRadians,
         })
       );
     }

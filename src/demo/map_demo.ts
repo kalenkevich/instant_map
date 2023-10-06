@@ -9,6 +9,7 @@ type ButtonOption = Partial<MapOptions & {name: string; id: string}>;
 const MAP_LOCATION_PARAM_NAME = 'l';
 const USE_LOCAL_SERVER_PARAM_NAME = 'ls';
 const SELECTED_MAP_VIEW_PARAM_MNAME = 'sm';
+const MAP_ROTATION_PARAM_NAME = 'r';
 
 const useLocalServer = new URLSearchParams(document.location.search).has(USE_LOCAL_SERVER_PARAM_NAME);
 const OSM_TILE_URL = `${useLocalServer ? '/osm' : 'https://tile.openstreetmap.org'}/{z}/{x}/{y}.png`;
@@ -118,6 +119,16 @@ function getStartMapLocation(): [number, number, number] {
   return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
 }
 
+function getStartMapRotation(): number {
+  const query = new URLSearchParams(document.location.search);
+
+  if (!query.has(MAP_ROTATION_PARAM_NAME)) {
+    return 0;
+  }
+
+  return parseFloat(query.get(MAP_ROTATION_PARAM_NAME));
+}
+
 function getStartMapViewId(): string {
   const query = new URLSearchParams(document.location.search);
 
@@ -131,6 +142,7 @@ function getStartMapViewId(): string {
 const syncQueryParamsWithMapState = () => {
   const center = currentMap.getCenter();
   const zoom = currentMap.getZoom();
+  const rotation = currentMap.getRotation();
   
   const query = new URLSearchParams(document.location.search);
   const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
@@ -139,6 +151,11 @@ const syncQueryParamsWithMapState = () => {
     query.delete(MAP_LOCATION_PARAM_NAME);
   }
   query.append(MAP_LOCATION_PARAM_NAME, safeLocation);
+
+  if (query.has(MAP_ROTATION_PARAM_NAME)) {
+    query.delete(MAP_ROTATION_PARAM_NAME);
+  }
+  query.append(MAP_ROTATION_PARAM_NAME, Number(rotation).toFixed(4));
 
   history.replaceState(null, '', '?' + query.toString());
 };
@@ -157,11 +174,13 @@ const syncQueryParamsWithSelectedMap = (selectdMapId: string) => {
 function subscribeOnEvents(map: GlideMap) {
   map.on(MapEventType.MOVE, syncQueryParamsWithMapState);
   map.on(MapEventType.ZOOM, syncQueryParamsWithMapState);
+  map.on(MapEventType.ROTATION, syncQueryParamsWithMapState);
 }
 
 function unsubscribeFromEvents(map: GlideMap) {
   map.off(MapEventType.MOVE, syncQueryParamsWithMapState);
   map.off(MapEventType.ZOOM, syncQueryParamsWithMapState);
+  map.off(MapEventType.ROTATION, syncQueryParamsWithMapState);
 }
 
 const createMapViewsSelect = () => {
@@ -192,11 +211,13 @@ const showMap = (options: ButtonOption[], optionId: string) => {
   }
 
   const [zoom, lat, lng] = getStartMapLocation();
+  const rotation = getStartMapRotation();
 
   currentMap = new GlideMap({
     rootEl,
     zoom,
     center: new LatLng(lat, lng),
+    rotation,
     ...option,
   });
 

@@ -7,6 +7,7 @@ import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
+import { Point } from '../../geometry/point';
 
 const simplifyOptions = {
   ...DefaultSipmlifyGeometryOptions,
@@ -109,8 +110,8 @@ export class GlMapRenderer extends MapRenderer {
     const tileScale = this.getTileScale(mapState);
     const xScale = tile.devicePixelRatio / 16 * tileScale;
     const yScale = tile.devicePixelRatio / 16 * tileScale;
-    const tileX = tile.x * (tileScale * tile.devicePixelRatio);
-    const tileY = tile.y * (tileScale * tile.devicePixelRatio);
+    const tileX = tile.x * 16;
+    const tileY = tile.y * 16;
     const scale: [number, number] = [
       xScale,
       yScale,
@@ -122,33 +123,32 @@ export class GlMapRenderer extends MapRenderer {
     const boundaryLayer = tileLayers['boundary'];
     const transportationLayer = tileLayers['transportation'];
     const buildingLayer = tileLayers['building'];
+    const rotationInRadians = mapState.rotation;
 
     return [
       ...(waterLayer?.shouldBeRendered(mapState.zoom) 
-        ? getWaterGlPrograms(waterLayer, tileX, tileY, scale, {enabled: false})
+        ? getWaterGlPrograms(waterLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         : []),
       ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverGlPrograms(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
+        ? getLandCoverGlPrograms(globallandcoverLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         : []),
       ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverGlPrograms(landcoverLayer, tileX, tileY, scale, {enabled: false})
+        ? getLandCoverGlPrograms(landcoverLayer, tileX, tileY, scale, rotationInRadians, {enabled: false})
         :[]),
       ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
-       ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, simplifyOptions)
+       ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
        : []),
       ...(transportationLayer?.shouldBeRendered(mapState.zoom)
-        ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, simplifyOptions)
+        ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
         : []),
       ...(buildingLayer?.shouldBeRendered(mapState.zoom)
-       ? getBuildingGlPrograms(buildingLayer, tileX, tileY, scale, simplifyOptions)
+       ? getBuildingGlPrograms(buildingLayer, tileX, tileY, scale, rotationInRadians, simplifyOptions)
        : []),
     ];
   }
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState) * tile.devicePixelRatio;
-    const tileX = tile.x * tileScale;
-    const tileY = tile.y * tileScale;
 
     return [
       new WebGlImage({
@@ -156,7 +156,9 @@ export class GlMapRenderer extends MapRenderer {
         height: tile.height,
         image: tile.image!,
         scale: [tileScale, tileScale],
-        translation: [tileX, tileY],
+        translation: [0, 0],
+        origin: [tile.x, tile.y],
+        rotationInRadians: mapState.rotation,
       }),
     ];
   }
