@@ -1,5 +1,6 @@
 import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
+import { RenderingCache } from '../render/renderer';
 
 export type MapTileId = string;
 
@@ -84,4 +85,8 @@ export interface MapTile extends MapTileOptions {
   getLayers(): TileLayersMap;
   resetState(tileState: MapTileOptions): void;
   download(): Promise<void>;
+  hasRenderingCache(): boolean;
+  getRenderingCache(): RenderingCache | undefined;
+  setRenderingCache(cache: RenderingCache): void;
+  pruneRenderingCache(): void;
 }

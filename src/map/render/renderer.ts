@@ -2,6 +2,17 @@ import { MapTile } from '../tile/tile';
 import { MapState } from '../map_state';
 import { GlideMap } from '../map';
 
+export enum MapRendererType {
+  webgl = 'webgl',
+  threejs = 'threejs',
+  png = 'png',
+  // svg = 'svg', // not supported yet.
+  // webgl2 = 'webgl2', // not supported yet.
+  // webgpu = 'webgpu', // not supported yet.
+}
+
+export interface RenderingCache {}
+
 export abstract class MapRenderer {
   constructor(
     protected readonly map: GlideMap,
@@ -46,13 +57,4 @@ export abstract class MapRenderer {
 
     return zoom;
   }
-}
-
-export enum MapRendererType {
-  webgl = 'webgl',
-  threejs = 'threejs',
-  png = 'png',
-  svg = 'svg', // not supported yet.
-  webgl2 = 'webgl2', // not supported yet.
-  webgpu = 'webgpu', // not supported yet.
 }

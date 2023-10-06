@@ -1,5 +1,6 @@
 import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
+import { RenderingCache } from '../render/renderer';
 
 export class PngMapTile implements MapTile {
   id: string;
@@ -67,5 +68,22 @@ export class PngMapTile implements MapTile {
 
   download(): Promise<void> {
     return Promise.resolve();
+  }
+
+  private renderingCache?: RenderingCache;
+  public hasRenderingCache(): boolean {
+    return !!this.renderingCache;
+  }
+
+  public getRenderingCache() {
+    return this.renderingCache;
+  }
+
+  public setRenderingCache(cache: RenderingCache) {
+    this.renderingCache = cache;
+  }
+
+  public pruneRenderingCache(): void {
+    this.renderingCache = undefined;
   }
 }
