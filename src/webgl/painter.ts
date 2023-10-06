@@ -30,6 +30,10 @@ export class WebGlPainter {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
+  public preheat(program: GlProgram) {
+    program.preheat(this.gl);
+  }
+
   public draw(programs: GlProgram[]): void {
     const gl = this.gl;
 

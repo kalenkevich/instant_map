@@ -3,7 +3,7 @@ import {toMatchImageSnapshot} from 'jest-image-snapshot';
 
 expect.extend({ toMatchImageSnapshot });
 
-describe('Webgl render ', () => {
+describe('Webgl render', () => {
   describe('PNG images.', () => {
     it('should render osm images on canvas as a map background.', async () => {
       await page.goto('http://localhost:3000/?sm=webgl_png_osm&ls');

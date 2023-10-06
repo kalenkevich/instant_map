@@ -12,6 +12,7 @@ export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
   tileFormatType: MapTileFormatType;
   devicePixelRatio: number;
+  preheatTiles?: boolean;
 }
 
 /**
@@ -50,6 +51,17 @@ export class TilesGrid {
     return this.fetchTiles(tilesToRender);
   }
 
+  public async getTilesToPreheat(mapState: MapState): Promise<MapTile[]> {
+    console.log('preheat tiles');
+    const tilesToPreheat = [
+      ...this.getTilesToRender({...mapState, zoom: mapState.zoom - 1}),
+      ...this.getTilesToRender({...mapState, zoom: mapState.zoom + 1}),
+      // TODO add left right up bottom
+    ];
+
+    return this.fetchTiles(tilesToPreheat);
+  }
+
   public async downloadTiles(): Promise<void> {
     await Promise.all(this.renderedTiles.map(tile => tile.download()));
   }
@@ -63,15 +75,15 @@ export class TilesGrid {
 
     this.fetchInProgress = true;
 
-    for (const alreadyFetchingTileId of this.fetchingTilesMap.keys()) {
-      const tileToFetch = tilesToRender.find(tile => tile.id === alreadyFetchingTileId);
+    // for (const alreadyFetchingTileId of this.fetchingTilesMap.keys()) {
+    //   const tileToFetch = tilesToRender.find(tile => tile.id === alreadyFetchingTileId);
 
-      if (!tileToFetch) {
-        this.fetchingTilesMap.get(alreadyFetchingTileId).abort();
-        this.fetchingTilesMap.delete(alreadyFetchingTileId);
-        this.tilesCache.delete(alreadyFetchingTileId);
-      }
-    }
+    //   if (!tileToFetch) {
+    //     //this.fetchingTilesMap.get(alreadyFetchingTileId).abort();
+    //     //this.fetchingTilesMap.delete(alreadyFetchingTileId);
+    //     //this.tilesCache.delete(alreadyFetchingTileId);
+    //   }
+    // }
 
     for (const tile of tilesToRender) {
       if (this.tilesCache.has(tile.id) || this.fetchingTilesMap.has(tile.id)) {

@@ -1,6 +1,6 @@
 import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
-import { RenderingCache } from '../render/renderer';
+import { RenderingCache, MapRendererType } from '../render/renderer';
 
 export type MapTileId = string;
 
@@ -108,4 +108,5 @@ export abstract class MapTile implements MapTileOptions {
   public pruneRenderingCache(): void {
     this.renderingCache = undefined;
   }
+
 }

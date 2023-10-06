@@ -23,6 +23,8 @@ export abstract class MapRenderer {
 
   public abstract renderTiles(tiles: MapTile[], mapState: MapState): void;
 
+  public abstract preheatTiles(tiles: MapTile[], mapState: MapState): void;
+
   public abstract stopRender(): void;
 
   public abstract destroy(): void;

@@ -60,6 +60,10 @@ export class PngMapRenderer extends MapRenderer {
     }
   }
 
+  public preheatTiles(tiles: MapTile[], mapState: MapState): void {
+    // TODO
+  }
+
   public stopRender(): void {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);

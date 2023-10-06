@@ -74,6 +74,12 @@ export class GlMapRenderer extends MapRenderer {
     console.timeEnd('gl map_render');
   }
 
+  public preheatTiles(tiles: MapTile[], mapState: MapState) {
+    for (const tile of tiles) {
+      this.preheatTile(tile, mapState);
+    }
+  }
+
   public stopRender(): void {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);
@@ -93,6 +99,19 @@ export class GlMapRenderer extends MapRenderer {
     this.map.rootEl.appendChild(canvas);
 
     return canvas;
+  }
+
+  private preheatTile(tile: MapTile, mapState: MapState) {
+    if (tile.hasRenderingCache()) {
+      return;
+    }
+
+    // will set rendering context cache inside
+    const programs = this.getRenderPrograms(tile, mapState);
+
+    for (const program of programs) {
+      this.glPainter.preheat(program);
+    }
   }
 
   private getRenderPrograms(tile: MapTile, mapState: MapState): GlProgram[] {

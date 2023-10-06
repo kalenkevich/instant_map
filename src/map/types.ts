@@ -13,7 +13,8 @@ export interface MapOptions {
   devicePixelRatio?: number;
   renderer?: MapRendererType | MapRendererOptions;
   crs?: MapCrs;
-  resizable?: boolean,
+  resizable?: boolean;
+  preheatTiles?: boolean;
 }
 
 export { MapTileFormatType };

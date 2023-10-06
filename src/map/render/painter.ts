@@ -5,6 +5,8 @@ export interface Painter {
 
   draw(...args: any[]): void;
 
+  preheat(...args: any[]): void;
+
   setWidth(w: number): void;
 
   setHeight(h: number): void;
