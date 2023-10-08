@@ -1,7 +1,7 @@
 import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
 
-export class PngMapTile implements MapTile {
+export class PngMapTile extends MapTile {
   id: string;
   formatType = MapTileFormatType.png;
   x: number;
@@ -20,6 +20,7 @@ export class PngMapTile implements MapTile {
   private fetchDataPromise?: Promise<void>;
 
   constructor(options: MapTileOptions) {
+    super();
     this.resetState(options);
   }
 

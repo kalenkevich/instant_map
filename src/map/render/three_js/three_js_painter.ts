@@ -48,6 +48,10 @@ export class ThreeJsPainter {
 
   destroy() {}
 
+  preheat(object: Object3D) {
+    // TODO investigate threejs rendering prepare.
+  }
+
   draw(objects: Object3D[]) {
     this.scene.clear();
     this.scene.add(...objects);

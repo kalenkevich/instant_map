@@ -20,6 +20,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
   id: 'webgl_vt_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
+  preheatTiles: true,
   tilesMetaUrl: MAPTILER_VT_META_URL,
 }, {
   name: 'VT threejs maptiler',
@@ -56,6 +57,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
   id: 'webgl_png_osm',
   renderer: MapRendererType.webgl,
   resizable: true,
+  preheatTiles: true,
   mapMeta: {
     ...DEFAULT_MAP_METADATA,
     maxzoom: 19,
@@ -68,6 +70,7 @@ export const ButtonMapOptions: ButtonOption[] = [{
   id: 'webgl_png_maptiler',
   renderer: MapRendererType.webgl,
   resizable: true,
+  preheatTiles: true,
   mapMeta: {
     ...DEFAULT_MAP_METADATA,
     maxzoom: 19,
@@ -203,6 +206,9 @@ const showMap = (options: ButtonOption[], optionId: string) => {
   subscribeOnEvents(currentMap);
   syncQueryParamsWithSelectedMap(option.id);
 };
+
+
+export const getCurrentMap = (): GlideMap => currentMap;
 
 export const renderMapOptions = (options: ButtonOption[]) => {
   const startMapViewOptionId = getStartMapViewId();

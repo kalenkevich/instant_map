@@ -52,6 +52,7 @@ export abstract class GlProgram {
   protected scale: v2;
 
   private uniformsCache?: GlUniforms;
+  private bufferInfoCache?: BufferInfo;
 
   abstract type: GlProgramType;
 
@@ -89,27 +90,53 @@ export abstract class GlProgram {
   }
 
   public setRotationInRadians(rotationInRadians: number) {
+    if (this.rotationInRadians === rotationInRadians) {
+      return;
+    }
+
     this.rotationInRadians = rotationInRadians;
-    this.uniformsCache = undefined;
+    this.pruneCache();
   }
 
   public setOrigin(origin: v2) {
+    if (this.origin[0] === origin[0] && this.origin[1] === origin[1]) {
+      return;
+    }
+
     this.origin = origin;
-    this.uniformsCache = undefined;
+    this.pruneCache();
   }
 
   public setTranslation(translation: v2) {
+    if (this.translation[0] === translation[0] && this.translation[1] === translation[1]) {
+      return;
+    }
+
     this.translation = translation;
-    this.uniformsCache = undefined;
+    this.pruneCache();
   }
 
   public setScale(scale: v2) {
+    if (this.scale[0] === scale[0] && this.scale[1] === scale[1]) {
+      return;
+    }
+
     this.scale = scale;
-    this.uniformsCache = undefined;
+    this.pruneCache();
   }
 
   public getPrimitiveType(gl: WebGLRenderingContext): GLenum {
     return gl.TRIANGLES;
+  }
+
+  public pruneCache() {
+    this.uniformsCache = undefined;
+  }
+
+  // Combute buffer info and uniforms
+  public preheat(gl: WebGLRenderingContext) {
+    this.getBufferInfo(gl);
+    this.getUniforms(gl);
   }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
@@ -183,7 +210,11 @@ export abstract class GlProgram {
   public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;
 
   public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
-    return createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
+    if (this.bufferInfoCache) {
+      return this.bufferInfoCache;
+    }
+
+    return this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
   }
 
   public getUniforms(gl: WebGLRenderingContext): GlUniforms {

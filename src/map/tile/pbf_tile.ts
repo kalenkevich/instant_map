@@ -4,7 +4,7 @@ import { MapTile, MapTileOptions, MapTileFormatType, TileCoordinate, TileFeature
 import { MapTilesMeta } from '../types';
 import { downloadFile } from '../utils';
 
-export class PbfMapTile implements MapTile {
+export class PbfMapTile extends MapTile {
   id: string;
   formatType = MapTileFormatType.pbf;
   x: number;
@@ -23,6 +23,7 @@ export class PbfMapTile implements MapTile {
   private tileDataBuffer?: ArrayBuffer;
 
   constructor(options: MapTileOptions) {
+    super();
     this.resetState(options);
   }
 

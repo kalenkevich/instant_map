@@ -1,5 +1,6 @@
 import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
+import { RenderingCache, MapRendererType } from '../render/renderer';
 
 export type MapTileId = string;
 
@@ -55,15 +56,6 @@ export enum MapTileFormatType {
   png = 'png', // tile data stored as image
 }
 
-/**
- * Base class for tiles:
- *  - pbf
- *  - json
- *  - xml
- *  - img
- *  - ...
- */
-
 export interface MapTileOptions {
   id: MapTileId;
   formatType: MapTileFormatType;
@@ -78,10 +70,43 @@ export interface MapTileOptions {
   tilesMeta: MapTilesMeta;
 }
 
-export interface MapTile extends MapTileOptions {
-  fetchTileData(abortSignal?: AbortSignal): Promise<void>;
-  isReady(): boolean;
-  getLayers(): TileLayersMap;
-  resetState(tileState: MapTileOptions): void;
-  download(): Promise<void>;
+/**
+ * Base class for tiles.
+ */
+export abstract class MapTile implements MapTileOptions {
+  id: MapTileId;
+  formatType: MapTileFormatType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  mapWidth: number;
+  mapHeight: number;
+  tileCoords: TileCoordinate;
+  devicePixelRatio: number;
+  tilesMeta: MapTilesMeta;
+
+  abstract fetchTileData(abortSignal?: AbortSignal): Promise<void>;
+  abstract isReady(): boolean;
+  abstract getLayers(): TileLayersMap;
+  abstract resetState(tileState: MapTileOptions): void;
+  abstract download(): Promise<void>;
+
+  private renderingCache?: RenderingCache;
+  public hasRenderingCache(): boolean {
+    return !!this.renderingCache;
+  }
+
+  public getRenderingCache() {
+    return this.renderingCache;
+  }
+
+  public setRenderingCache(cache: RenderingCache) {
+    this.renderingCache = cache;
+  }
+
+  public pruneRenderingCache(): void {
+    this.renderingCache = undefined;
+  }
+
 }
