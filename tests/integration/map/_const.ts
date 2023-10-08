@@ -1,0 +1,1 @@
+export const BASE_TEST_LOCATION = `l=14.3218%2F53.0875%2F25.3183`;

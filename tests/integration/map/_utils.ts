@@ -8,6 +8,17 @@ export const goToPageAndWaitForMapRender = (
 ) => {
   const page = p as Page;
 
+  return interactAndWaitForMapEvent(p, () => page.goto(url), MapEventType.RENDER, waitTimeout);
+};
+
+export const interactAndWaitForMapEvent = async (
+  p: any,
+  asyncFun: () => Promise<any>,
+  eventType: string,
+  waitTimeout: number = 5000,
+) => {
+  const page = p as Page;
+
   return new Promise<void>(async (resolve, reject) => {
     let rejected = false;
     let rejectedTimeoutId = setTimeout(() => {
@@ -29,41 +40,8 @@ export const goToPageAndWaitForMapRender = (
         // @ts-ignore
         window.onCustomEvent({type, detail: e.detail});
       });
-    }, MapEventType.RENDER);
-
-    await page.goto(url);
-  }).then(async () => await page.removeExposedFunction('onCustomEvent'));
-};
-
-export const waitForMapRender = (p: any, waitTimeout?: number) =>
-  waitForEvent(p as Page, MapEventType.RENDER, waitTimeout);
-
-export const waitForEvent = async (
-  page: Page,
-  eventType: string,
-  waitTimeout: number = 5000,
-) => {
-  return new Promise<void>(async (resolve, reject) => {
-    let rejected = false;
-    let rejectedTimeoutId = setTimeout(() => {
-      rejected = true;
-      reject(new Error('Timeout exited.'));
-    }, waitTimeout);
-
-    await page.exposeFunction('onCustomEvent', () => {
-      if (rejected) {
-        return;
-      }
-
-      clearTimeout(rejectedTimeoutId);
-      resolve();
-    });
-
-    await page.evaluate(type => {
-      document.addEventListener(type, e => {
-        // @ts-ignore
-        window.onCustomEvent({type, detail: e.detail});
-      });
     }, eventType);
+
+    await asyncFun();
   }).then(async () => await page.removeExposedFunction('onCustomEvent'));
 };

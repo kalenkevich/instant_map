@@ -1,5 +1,6 @@
 import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
+import { downloadFile } from '../utils';
 
 export class PngMapTile extends MapTile {
   id: string;
@@ -66,7 +67,18 @@ export class PngMapTile extends MapTile {
     return {};
   }
 
-  download(): Promise<void> {
-    return Promise.resolve();
+  async download(): Promise<void> {
+    const tileUrl = new URL(this.tileUrl);
+    const safeHostName = tileUrl.host
+      .split('')
+      .map(c => c === '.' ? '_' : c)
+      .join('');
+    const fileName = `${safeHostName}_${this.tileCoords.z.toString()}_${this.tileCoords.x.toString()}_${this.tileCoords.y.toString()}.png`;
+
+    return fetch(this.tileUrl).then(async (response) => {
+      const blob = await response.blob();
+
+      return downloadFile(fileName, blob, 'image/png');
+    });
   }
 }

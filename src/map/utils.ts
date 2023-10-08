@@ -41,3 +41,21 @@ export const downloadFile = async (
     };
   });
 };
+
+export const downloadImage = (
+  filename: string,
+  url: string,
+): Promise<void> => {
+  return new Promise<void>((resolve) => {
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.target = '_blank';
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    resolve();
+  });
+}
