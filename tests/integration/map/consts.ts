@@ -1,3 +1,0 @@
-export const SAMPLE_MAP_ZOOM = 14.3218;
-export const SAMPLE_MAP_CENTER_LAT = 53.0875;
-export const SAMPLE_MAP_CENTER_LNG = 25.3183;

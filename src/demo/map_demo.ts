@@ -157,12 +157,18 @@ const syncQueryParamsWithSelectedMap = (selectdMapId: string) => {
   history.replaceState(null, '', '?' + query.toString());
 }
 
+function fireMapEvent(eventType: MapEventType) {
+  document.dispatchEvent(new Event(eventType));
+}
+
 function subscribeOnEvents(map: GlideMap) {
+  map.on(MapEventType.ANY, fireMapEvent);
   map.on(MapEventType.MOVE, syncQueryParamsWithMapState);
   map.on(MapEventType.ZOOM, syncQueryParamsWithMapState);
 }
 
 function unsubscribeFromEvents(map: GlideMap) {
+  map.off(MapEventType.ANY, fireMapEvent);
   map.off(MapEventType.MOVE, syncQueryParamsWithMapState);
   map.off(MapEventType.ZOOM, syncQueryParamsWithMapState);
 }
@@ -206,9 +212,6 @@ const showMap = (options: ButtonOption[], optionId: string) => {
   subscribeOnEvents(currentMap);
   syncQueryParamsWithSelectedMap(option.id);
 };
-
-
-export const getCurrentMap = (): GlideMap => currentMap;
 
 export const renderMapOptions = (options: ButtonOption[]) => {
   const startMapViewOptionId = getStartMapViewId();

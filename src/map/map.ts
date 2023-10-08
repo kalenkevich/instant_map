@@ -41,18 +41,19 @@ export interface MapPanOptions {
 }
 
 export enum MapEventType {
-  MOVE_START = 'movestart',
-  MOVE = 'move',
-  MOVE_END = 'moveend',
-  DRAG_START = 'dragstart',
-  DRAG = 'drag',
-  DRAG_END = 'dragend',
-  ZOOM = 'zoom',
-  RESIZE = 'resize',
-  RENDER = 'render',
+  ANY = '*',
+  MOVE_START = 'map_movestart',
+  MOVE = 'map_move',
+  MOVE_END = 'map_moveend',
+  DRAG_START = 'map_dragstart',
+  DRAG = 'map_drag',
+  DRAG_END = 'map_dragend',
+  ZOOM = 'map_zoom',
+  RESIZE = 'map_resize',
+  RENDER = 'map_render',
 }
 
-export type EventListener = (...eventArgs: any[]) => void;
+export type EventListener = (eventType: MapEventType, ...eventArgs: any[]) => void;
 
 /**
  * Visual Map class
@@ -155,10 +156,10 @@ export class GlideMap {
     this.once(MapEventType.RENDER, () => {
       for (const control of this.controls) {
         control.attach(this.rootEl);
-
-        this.fire(MapEventType.ZOOM);
-        this.fire(MapEventType.MOVE);
       }
+
+      this.fire(MapEventType.ZOOM);
+      this.fire(MapEventType.MOVE);
     });
   }
 
@@ -488,38 +489,47 @@ export class GlideMap {
     return this.renderer.stopRender();
   }
 
-  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; }> = [];
+  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; enabled: boolean; }> = [];
   public on(eventType: MapEventType, handler: EventListener): void {
     this.eventListeners.push({
       eventType,
       handler,
+      enabled: true,
     });
   }
+
   public once(eventType: MapEventType, handler: EventListener): void {
     const onceHandler: EventListener = (...eventArgs: any[]) => {
-      handler(...eventArgs);
-
       this.off(eventType, onceHandler);
+
+      handler(eventType, ...eventArgs);
     };
 
     this.eventListeners.push({
       eventType,
       handler: onceHandler,
+      enabled: true,
     });
   }
+
   public off(eventType: MapEventType, handler: EventListener) {
     const index = this.eventListeners.findIndex(l => {
       return l.eventType === eventType && l.handler === handler;
     });
 
     if (index > -1) {
-      this.eventListeners.splice(index, 1);
+      this.eventListeners[index].enabled = false;
     }
   }
+
   private fire(eventType: MapEventType, ...eventArgs: any[]) {
     for (const listener of this.eventListeners) {
-      if (listener.eventType === eventType) {
-        listener.handler(...eventArgs);
+      if (!listener.enabled) {
+        continue;
+      }
+
+      if (listener.eventType === eventType || listener.eventType === MapEventType.ANY) {
+        listener.handler(eventType, ...eventArgs);
       }
     }
   }

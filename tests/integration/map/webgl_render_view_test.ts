@@ -1,5 +1,6 @@
 import {describe, expect, it} from '@jest/globals';
 import {toMatchImageSnapshot} from 'jest-image-snapshot';
+import { goToPageAndWaitForMapRender } from './_utils';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -36,8 +37,7 @@ describe('Webgl render', () => {
 
   describe('Vector tiles.', () => {
     it('should render vector tile data using native webgl.', async () => {
-      await page.goto('http://localhost:3000/?sm=webgl_vt_maptiler&ls');
-      await page.waitForTimeout(2000);
+      await goToPageAndWaitForMapRender(page, 'http://localhost:3000/?sm=webgl_vt_maptiler&ls');
   
       const image = await page.screenshot();
   
@@ -50,8 +50,7 @@ describe('Webgl render', () => {
     });
 
     it('should render vector tile data using threejs.', async () => {
-      await page.goto('http://localhost:3000/?sm=threejs_vt_maptiler&ls');
-      await page.waitForTimeout(2000);
+      await goToPageAndWaitForMapRender(page, 'http://localhost:3000/?sm=threejs_vt_maptiler&ls');
   
       const image = await page.screenshot();
   
