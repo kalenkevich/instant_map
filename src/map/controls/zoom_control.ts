@@ -33,9 +33,6 @@ export class ZoomControl extends MapControl {
   }
 
   public destroy(rootEl: HTMLElement): void {
-    this.parentEl.removeChild(this.plusButton);
-    this.parentEl.removeChild(this.minusButton);
-
     rootEl.removeChild(this.parentEl);
   }
 
