@@ -30,6 +30,7 @@ export class TilesGrid {
   tileZoom: number;
 
   fetchInProgress = false;
+  // TODO use LRU cache instead.
   fetchingTilesMap: Map<string, AbortController> = new Map();
 
   constructor(map: GlideMap, options: TilesGridOptions) {
@@ -52,7 +53,6 @@ export class TilesGrid {
   }
 
   public async getTilesToPreheat(mapState: MapState): Promise<MapTile[]> {
-    console.log('preheat tiles');
     const tilesToPreheat = [
       ...this.getTilesToRender({...mapState, zoom: mapState.zoom - 1}),
       ...this.getTilesToRender({...mapState, zoom: mapState.zoom + 1}),
@@ -74,16 +74,6 @@ export class TilesGrid {
     const tilesPromises: Promise<MapTile>[] = [];
 
     this.fetchInProgress = true;
-
-    // for (const alreadyFetchingTileId of this.fetchingTilesMap.keys()) {
-    //   const tileToFetch = tilesToRender.find(tile => tile.id === alreadyFetchingTileId);
-
-    //   if (!tileToFetch) {
-    //     //this.fetchingTilesMap.get(alreadyFetchingTileId).abort();
-    //     //this.fetchingTilesMap.delete(alreadyFetchingTileId);
-    //     //this.tilesCache.delete(alreadyFetchingTileId);
-    //   }
-    // }
 
     for (const tile of tilesToRender) {
       if (this.tilesCache.has(tile.id) || this.fetchingTilesMap.has(tile.id)) {

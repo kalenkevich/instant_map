@@ -468,15 +468,17 @@ export class GlideMap {
 
       this.renderer.renderTiles(tiles, this.state);
       this.fire(MapEventType.RENDER);
+
+      if (this.options.preheatTiles) {
+        const state = {...this.state};
+  
+        console.time('preheat');
+        this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
+          this.renderer.preheatTiles(tilesToPreheat, state);
+          console.timeEnd('preheat');
+        });
+      }
     });
-
-    if (this.options.preheatTiles) {
-      const state = {...this.state};
-
-      this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-        this.renderer.preheatTiles(tilesToPreheat, state);
-      });
-    }
 
     return mainRenderPromise;
   }
