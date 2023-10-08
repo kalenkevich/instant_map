@@ -53,10 +53,19 @@ export class TilesGrid {
   }
 
   public async getTilesToPreheat(mapState: MapState): Promise<MapTile[]> {
+    const mapPanePos = this.map.getMapPanePos();
+    const up = this.map.getLatLngFromPoint(mapPanePos.add(new Point(0, -256)));
+    const down = this.map.getLatLngFromPoint(mapPanePos.add(new Point(0, 256)));
+    const right = this.map.getLatLngFromPoint(mapPanePos.add(new Point(256, 0)));
+    const left = this.map.getLatLngFromPoint(mapPanePos.add(new Point(-256, 0)));
+
     const tilesToPreheat = [
       ...this.getTilesToRender({...mapState, zoom: mapState.zoom - 1}),
       ...this.getTilesToRender({...mapState, zoom: mapState.zoom + 1}),
-      // TODO add left right up bottom
+      ...this.getTilesToRender({...mapState, center: up}),
+      ...this.getTilesToRender({...mapState, center: down}),
+      ...this.getTilesToRender({...mapState, center: right}),
+      ...this.getTilesToRender({...mapState, center: left}),
     ];
 
     return this.fetchTiles(tilesToPreheat);

@@ -28,6 +28,17 @@ export class ZoomControl extends MapControl {
     this.parentEl.appendChild(this.minusButton);
   }
 
+  public attach(rootEl: HTMLElement): void {
+    rootEl.appendChild(this.parentEl);
+  }
+
+  public destroy(rootEl: HTMLElement): void {
+    this.parentEl.removeChild(this.plusButton);
+    this.parentEl.removeChild(this.minusButton);
+
+    rootEl.removeChild(this.parentEl);
+  }
+
   private createButton(text: string, cssClass?: string): HTMLButtonElement {
     const button = this.document.createElement('button');
 
@@ -42,16 +53,5 @@ export class ZoomControl extends MapControl {
     button.innerText = text;
 
     return button;
-  }
-
-  public attach(rootEl: HTMLElement): void {
-    rootEl.appendChild(this.parentEl);
-  }
-
-  public destroy(rootEl: HTMLElement): void {
-    this.parentEl.removeChild(this.plusButton);
-    this.parentEl.removeChild(this.minusButton);
-
-    rootEl.removeChild(this.parentEl);
   }
 }

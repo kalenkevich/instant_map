@@ -109,6 +109,12 @@ export class CompassControl extends MapControl {
     }
     
     public destroy(rootEl: HTMLElement): void {
+        this.parentEl.removeChild(this.innerEl);
+        this.parentEl.removeChild(this.nLabel);
+        this.parentEl.removeChild(this.sLabel);
+        this.parentEl.removeChild(this.wLabel);
+        this.parentEl.removeChild(this.eLabel);
+
         rootEl.removeChild(this.parentEl);
     }
 
