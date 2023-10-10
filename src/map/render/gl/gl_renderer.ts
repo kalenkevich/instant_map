@@ -4,7 +4,7 @@ import { Painter } from '../painter';
 import { MapRenderer, RenderingCache } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
-import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
+import { WebGlPainter, GlProgram, WebGlImage, WebGlRectangle, GL_COLOR_WHITE } from '../../../webgl';
 import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
 
@@ -101,7 +101,7 @@ export class GlMapRenderer extends MapRenderer {
     return canvas;
   }
 
-  private preheatTile(tile: MapTile, mapState: MapState) {
+  protected preheatTile(tile: MapTile, mapState: MapState) {
     if (tile.hasRenderingCache()) {
       return;
     }
@@ -115,6 +115,10 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   private getRenderPrograms(tile: MapTile, mapState: MapState): GlProgram[] {
+    if (!tile.isReady()) {
+      return [this.getEmptyTile(tile, mapState)];
+    }
+
     if (tile.formatType === MapTileFormatType.png) {
       return this.getImagePrograms(tile as PngMapTile, mapState);
     }
@@ -211,5 +215,28 @@ export class GlMapRenderer extends MapRenderer {
     tile.setRenderingCache({ programs });
 
     return programs;
+  }
+
+  private _emptyTile: GlProgram;
+  private getEmptyTile(tile: MapTile, mapState: MapState): GlProgram {
+    const tileScale = this.getTileScale(mapState) * tile.devicePixelRatio;
+    const tileX = tile.x * tileScale;
+    const tileY = tile.y * tileScale;
+
+    if (this._emptyTile) {
+      this._emptyTile.setScale([tileScale, tileScale]);
+      this._emptyTile.setTranslation([tileX, tileY]);
+
+      return this._emptyTile;
+    }
+
+    return this._emptyTile = new WebGlRectangle({
+      color: GL_COLOR_WHITE,
+      p: [0, 0],
+      width: tile.width,
+      height: tile.height,
+      scale: [tileScale, tileScale],
+      translation: [tileX, tileY],
+    });
   }
 }

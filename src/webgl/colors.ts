@@ -6,6 +6,11 @@ import { GlColor } from './types';
 export const GL_COLOR_BLACK: GlColor = [0, 0, 0, 1];
 
 /**
+ * Represents while color in WebGL.
+ * */
+export const GL_COLOR_WHITE: GlColor = [1, 1, 1, 1];
+
+/**
  * Represents red color in WebGL.
  * */
 export const GL_COLOR_RED: GlColor = [1, 0, 0, 1];

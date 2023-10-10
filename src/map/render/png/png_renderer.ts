@@ -72,7 +72,7 @@ export class PngMapRenderer extends MapRenderer {
 
   private renderTile(tile: PngMapTile, tileIndex: number, mapState: MapState) {
     if (!tile.isReady()) {
-      throw new Error('Png tile is not ready yet.');
+      return;
     }
 
     if (this.images[tileIndex] === undefined) {

@@ -42,6 +42,19 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     console.timeEnd('three_js map_render');
   }
 
+  protected preheatTile(tile: MapTile, mapState: MapState) {
+    if (tile.hasRenderingCache()) {
+      return;
+    }
+
+    // // will set rendering context cache inside
+    // const objects = this.getThreeJsObjects(tile, mapState);
+
+    // for (const object of objects) {
+    //   this.glPainter.preheat(object);
+    // }
+  }
+
   private getThreeJsObjects(tile: MapTile, mapState: MapState): Object3D[] {
     const tileScale = this.getTileScale(mapState);
     const xScale = 1/16 * tileScale;
@@ -59,6 +72,7 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       for (const object of cachedObjects) {
         object.translateX(tileX);
         object.translateY(tileY);
+        object.translateZ(1);
         object.scale.set(scale[0], scale[1], 1);
       }
 

@@ -52,6 +52,12 @@ export class TilesGrid {
     return this.fetchTiles(tilesToRender);
   }
 
+  public getTiles(mapState: MapState): MapTile[] {
+    const tilesToRender = this.getTilesToRender(mapState);
+
+    return this.getTilesFromCache(tilesToRender);
+  }
+
   public async getTilesToPreheat(mapState: MapState): Promise<MapTile[]> {
     const mapPanePos = this.map.getMapPanePos();
     const up = this.map.getLatLngFromPoint(mapPanePos.add(new Point(0, -512)));
@@ -122,6 +128,20 @@ export class TilesGrid {
 
       return [];
     }
+  }
+
+  private getTilesFromCache(tilesToRender: MapTile[]): MapTile[] {
+    return tilesToRender.map(tile => {
+      if (this.tilesCache.has(tile.id)) {
+        const cachedTile = this.tilesCache.get(tile.id);
+
+        cachedTile.resetState(tile);
+
+        return cachedTile;
+      }
+
+      return tile;
+    });
   }
 
   private getTileZoom(mapState: MapState): number | undefined {

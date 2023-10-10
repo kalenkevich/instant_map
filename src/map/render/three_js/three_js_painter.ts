@@ -9,7 +9,11 @@ export class ThreeJsPainter {
   private height: number;
 
   constructor(canvas: HTMLCanvasElement, private readonly devicePixelRatio: number) {
-    this.renderer = new WebGLRenderer({ canvas });
+    this.renderer = new WebGLRenderer({
+      canvas,
+      antialias: devicePixelRatio < 1,
+      powerPreference: "high-performance",
+    });
     this.scene = new Scene();
     this.width = canvas.offsetWidth;
     this.height = canvas.offsetHeight;
@@ -49,7 +53,7 @@ export class ThreeJsPainter {
   destroy() {}
 
   preheat(object: Object3D) {
-    // TODO investigate threejs rendering prepare.
+    // this.scene.add(object);
   }
 
   draw(objects: Object3D[]) {

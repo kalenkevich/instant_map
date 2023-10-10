@@ -23,6 +23,10 @@ import { ZoomControl } from './controls/zoom_control';
 import { CompassControl } from './controls/compass_control';
 import { MoveControl } from './controls/move_control';
 
+export interface SetStateOptions {
+  async?: boolean;
+}
+
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
   center: [0, 0, 1],
@@ -248,7 +252,7 @@ export class GlideMap {
   }
 
   public setZoom(zoom: number): Promise<void> {
-    return this.setState({ zoom });
+    return this.setState({ zoom }, { async: true }) as Promise<void>;
   }
 
   public getCenter(): LatLng {
@@ -257,29 +261,32 @@ export class GlideMap {
 
   public setCenter(center: LatLng | Point): Promise<void> {
     if (center instanceof LatLng) {
-      return this.setState({ center });
+      return this.setState({ center }, { async: true }) as Promise<void>;
     }
 
-    return this.setState({ center: this.getLatLngFromPoint(center) });
+    return this.setState({ center: this.getLatLngFromPoint(center) }, { async: true }) as Promise<void>;
   }
 
   public zoomToPoint(newZoom: number, point: LatLng | Point): Promise<void> {
     const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, newZoom);
 
-    if (Math.abs(newZoom - this.state.zoom) > 1) {
-      const currentZoom = this.state.zoom;
-      const diff = newZoom - currentZoom;
-      const animation = new EasyAnimation(this,
-        (progress: number) => {
-          return this.setZoom(currentZoom + diff * progress);
-        }, {
-        durationInSec: 0.5,
-      });
-  
-      return animation.run();
-    }
+    // if (Math.abs(newZoom - this.state.zoom) > 1) {
+    //   const currentZoom = this.state.zoom;
+    //   const diff = newZoom - currentZoom;
+    //   const animation = new EasyAnimation(this,
+    //     (progress: number) => {
+    //       return this.setState({
+    //         zoom: currentZoom + diff * progress,
+    //       }, { async: false });
+    //     }, {
+    //     durationInSec: 1,
+    //   });
+    //   animation.run();
 
-    return this.setState({ zoom: newZoom, center: newCenter });
+    //   return this.triggerRerender();
+    // }
+
+    return this.setState({ zoom: newZoom, center: newCenter }, { async: true }) as Promise<void>;
   }
 
   public getPixelWorldBounds(zoom?: number): Bounds {
@@ -429,24 +436,27 @@ export class GlideMap {
 		if (!options.animate || !this.getSize().contains(offset)) {
       const newLatLng = this.unproject(this.project(this.getCenter()).add(offset));
 
-      return this.zoomToPoint(this.getZoom(), newLatLng);
+      return this.setCenter(newLatLng);
 		}
 
-    const newPos = this.getMapPanePos().subtract(offset).round();
+    const newPos = this.project(this.getCenter()).round();
     const animation = new EasyAnimation(this,
       (progress: number) => {
         const nextPosition = newPos.add(offset.multiplyBy(progress));
 
-        return this.setCenter(nextPosition);
+        return this.setState({
+          center: this.unproject(nextPosition),
+        }, { async: false }) as void;
       }, {
       durationInSec: options.duration,
       easeLinearity: options.easeLinearity,
     });
+    animation.run();
 
-    return animation.run();
+    return this.triggerRerender();
   }
 
-  private setState(partialState: Partial<MapState>): Promise<void> {
+  private setState(partialState: Partial<MapState>, option: SetStateOptions): Promise<void> | void {
     this.state = {
       ...this.state,
       ...partialState,
@@ -460,26 +470,33 @@ export class GlideMap {
       this.fire(MapEventType.MOVE);
     }
 
-    return this.triggerRerender();
+    if (option.async) {
+      return this.triggerRerender();
+    }
+
+    return this.triggerRerenderSync();
   }
 
-  private triggerRerender() {
+  private async triggerRerender() {
     const state = {...this.state};
 
-    return this.tilesGrid.update(state).then(tiles => {
-      this.renderer.stopRender();
+    const tiles = await this.tilesGrid.update(state)
+    this.renderer.stopRender();
 
-      this.renderer.renderTiles(tiles, state);
-      this.fire(MapEventType.RENDER);
+    this.renderer.renderTiles(tiles, state);
+    this.fire(MapEventType.RENDER);
 
-      if (this.options.preheatTiles) {
-        console.time('preheat');
-        this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-          this.renderer.preheatTiles(tilesToPreheat, state);
-          console.timeEnd('preheat');
-        });
-      }
-    });
+    if (this.options.preheatTiles) {
+      console.time('preheat');
+      const tilesToPreheat = await this.tilesGrid.getTilesToPreheat(state);
+      this.renderer.preheatTiles(tilesToPreheat, state);
+      console.timeEnd('preheat');
+    }
+  }
+
+  private triggerRerenderSync() {
+    const tiles = this.tilesGrid.getTiles(this.state);
+    this.renderer.renderTiles(tiles, this.state);
   }
 
   public stopRender(): void {
