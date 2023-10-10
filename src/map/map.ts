@@ -21,6 +21,7 @@ import { MapControl } from './controls/map_control';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
 import { ZoomControl } from './controls/zoom_control';
 import { CompassControl } from './controls/compass_control';
+import { MoveControl } from './controls/move_control';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -33,25 +34,26 @@ export const DEFAULT_MAP_METADATA: MapMeta = {
 };
 
 export interface MapPanOptions {
-  duration: number;
-  easeLinearity: number;
+  duration?: number;
+  easeLinearity?: number;
   noMoveStart?: boolean;
   animate?: boolean;
 }
 
 export enum MapEventType {
-  MOVE_START = 'movestart',
-  MOVE = 'move',
-  MOVE_END = 'moveend',
-  DRAG_START = 'dragstart',
-  DRAG = 'drag',
-  DRAG_END = 'dragend',
-  ZOOM = 'zoom',
-  RESIZE = 'resize',
-  RENDER = 'render',
+  ANY = '*',
+  MOVE_START = 'map_movestart',
+  MOVE = 'map_move',
+  MOVE_END = 'map_moveend',
+  DRAG_START = 'map_dragstart',
+  DRAG = 'map_drag',
+  DRAG_END = 'map_dragend',
+  ZOOM = 'map_zoom',
+  RESIZE = 'map_resize',
+  RENDER = 'map_render',
 }
 
-export type EventListener = (...eventArgs: any[]) => void;
+export type EventListener = (eventType: MapEventType, ...eventArgs: any[]) => void;
 
 /**
  * Visual Map class
@@ -154,10 +156,10 @@ export class GlideMap {
     this.once(MapEventType.RENDER, () => {
       for (const control of this.controls) {
         control.attach(this.rootEl);
-
-        this.fire(MapEventType.ZOOM);
-        this.fire(MapEventType.MOVE);
       }
+
+      this.fire(MapEventType.ZOOM);
+      this.fire(MapEventType.MOVE);
     });
   }
 
@@ -165,8 +167,10 @@ export class GlideMap {
     const parentControl = new MapParentControl(this, MapControlPosition.BOTTOM_RIGHT);
     const zoomControl = new ZoomControl(this);
     const compassControl = new CompassControl(this);
+    const moveControl = new MoveControl(this);
 
     parentControl.addControl(compassControl);
+    parentControl.addControl(moveControl);
     parentControl.addControl(zoomControl);
 
     return [parentControl];
@@ -349,7 +353,6 @@ export class GlideMap {
 	}
 
   getLatLngFromPoint(point: Point, zoom?: number): LatLng {
-    console.log('getLatLngFromPoint', point);
     const scale = this.getZoomScale(zoom || this.state.zoom);
     const viewHalf = this.getSize().divideBy(2);
     const containerPoint = point instanceof Point ? point : this.getPointFromLatLng(point);
@@ -421,8 +424,6 @@ export class GlideMap {
       return;
 		}
 
-    console.log('offset', offset);
-
 		// If we pan too far, Chrome gets issues with tiles
 		// and makes them disappear or appear in the wrong place (slightly offset)
 		if (!options.animate || !this.getSize().contains(offset)) {
@@ -485,38 +486,47 @@ export class GlideMap {
     return this.renderer.stopRender();
   }
 
-  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; }> = [];
+  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; enabled: boolean; }> = [];
   public on(eventType: MapEventType, handler: EventListener): void {
     this.eventListeners.push({
       eventType,
       handler,
+      enabled: true,
     });
   }
+
   public once(eventType: MapEventType, handler: EventListener): void {
     const onceHandler: EventListener = (...eventArgs: any[]) => {
-      handler(...eventArgs);
-
       this.off(eventType, onceHandler);
+
+      handler(eventType, ...eventArgs);
     };
 
     this.eventListeners.push({
       eventType,
       handler: onceHandler,
+      enabled: true,
     });
   }
+
   public off(eventType: MapEventType, handler: EventListener) {
     const index = this.eventListeners.findIndex(l => {
       return l.eventType === eventType && l.handler === handler;
     });
 
     if (index > -1) {
-      this.eventListeners.splice(index, 1);
+      this.eventListeners[index].enabled = false;
     }
   }
+
   private fire(eventType: MapEventType, ...eventArgs: any[]) {
     for (const listener of this.eventListeners) {
-      if (listener.eventType === eventType) {
-        listener.handler(...eventArgs);
+      if (!listener.enabled) {
+        continue;
+      }
+
+      if (listener.eventType === eventType || listener.eventType === MapEventType.ANY) {
+        listener.handler(eventType, ...eventArgs);
       }
     }
   }

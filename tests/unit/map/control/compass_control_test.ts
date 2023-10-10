@@ -22,4 +22,15 @@ describe('CompassControl', () => {
 
     expect(rootElAppedChildSpy).toBeCalled();
   });
+
+  it('should be removed from the parent el as a child on destroy.', () => {
+    jest.spyOn(rootEl, 'appendChild').mockReturnValue(null);
+    const rootElRemoveChild = jest.spyOn(rootEl, 'removeChild').mockReturnValue(null);
+    const zoomControl = new CompassControl(fakeMap, document);
+
+    zoomControl.attach(rootEl);
+    zoomControl.destroy(rootEl);
+
+    expect(rootElRemoveChild).toBeCalled();
+  });
 });
