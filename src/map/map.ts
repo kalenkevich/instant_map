@@ -353,7 +353,6 @@ export class GlideMap {
 	}
 
   getLatLngFromPoint(point: Point, zoom?: number): LatLng {
-    console.log('getLatLngFromPoint', point);
     const scale = this.getZoomScale(zoom || this.state.zoom);
     const viewHalf = this.getSize().divideBy(2);
     const containerPoint = point instanceof Point ? point : this.getPointFromLatLng(point);
@@ -424,8 +423,6 @@ export class GlideMap {
 			this.fire(MapEventType.MOVE_END);
       return;
 		}
-
-    console.log('offset', offset);
 
 		// If we pan too far, Chrome gets issues with tiles
 		// and makes them disappear or appear in the wrong place (slightly offset)

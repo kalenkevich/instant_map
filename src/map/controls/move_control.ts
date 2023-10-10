@@ -12,7 +12,7 @@ export class MoveControl extends MapControl {
   private rightButton: HTMLButtonElement;
 
   private debounceTimeMs = 20;
-  private stepDeltaInPx = 256;
+  private stepDeltaInPx = 512;
 
   public init(): void {
     this.parentEl = this.document.createElement('div');

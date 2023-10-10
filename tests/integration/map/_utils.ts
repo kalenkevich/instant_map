@@ -43,5 +43,5 @@ export const interactAndWaitForMapEvent = async (
     }, eventType);
 
     await asyncFun();
-  }).then(async () => await page.removeExposedFunction('onCustomEvent'));
+  }).finally(async () => await page.removeExposedFunction('onCustomEvent'));
 };

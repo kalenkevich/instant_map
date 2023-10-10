@@ -48,7 +48,7 @@ describe('MoveControl', () => {
 
     expect(panBySpy).toBeCalledWith(expect.objectContaining({
       x: 0,
-      y: -256,
+      y: -512,
     }), { animate: false });
   });
 
@@ -64,7 +64,7 @@ describe('MoveControl', () => {
 
     expect(panBySpy).toBeCalledWith(expect.objectContaining({
       x: 0,
-      y: 256,
+      y: 512,
     }), { animate: false });
   });
 
@@ -79,7 +79,7 @@ describe('MoveControl', () => {
     upMoveButton.click();
 
     expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: -256,
+      x: -512,
       y: 0,
     }), { animate: false });
   });
@@ -95,7 +95,7 @@ describe('MoveControl', () => {
     upMoveButton.click();
 
     expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: 256,
+      x: 512,
       y: 0,
     }), { animate: false });
   });
