@@ -1,6 +1,6 @@
 import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
-import { downloadFile } from '../utils';
+import { downloadFile } from '../utils/download_utils';
 
 export class PngMapTile extends MapTile {
   id: string;

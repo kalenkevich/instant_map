@@ -2,7 +2,7 @@ import Protobuf from 'pbf';
 import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-tile';
 import { MapTile, MapTileOptions, MapTileFormatType, TileCoordinate, TileFeature, TileLayersMap } from './tile';
 import { MapTilesMeta } from '../types';
-import { downloadFile } from '../utils';
+import { downloadFile } from '../utils/download_utils';
 
 export class PbfMapTile extends MapTile {
   id: string;
