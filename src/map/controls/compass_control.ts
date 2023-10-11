@@ -1,6 +1,6 @@
 import { Point } from "../geometry/point";
 import { MapControl } from "./map_control";
-import { throttle } from "../utils";
+import { throttle } from "../utils/trottle";
 
 export class CompassControl extends MapControl {
     private parentEl: HTMLElement;

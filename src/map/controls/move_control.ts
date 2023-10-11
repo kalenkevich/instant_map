@@ -1,5 +1,5 @@
 import { MapControl } from "./map_control";
-import { throttle } from "../utils";
+import { throttle } from "../utils/trottle";
 import { Point } from "../geometry/point";
 
 export class MoveControl extends MapControl {

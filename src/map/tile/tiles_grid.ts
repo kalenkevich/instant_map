@@ -7,6 +7,7 @@ import { GlideMap } from '../map';
 import { LatLngBounds } from '../geo/lat_lng_bounds';
 import { PbfMapTile } from './pbf_tile';
 import { PngMapTile } from './png_tile';
+import { LRUCache } from '../utils/lru_cache';
 
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
@@ -21,7 +22,7 @@ export interface TilesGridOptions {
 export class TilesGrid {
   map: GlideMap;
   tileFormatType: MapTileFormatType;
-  tilesCache: Map<MapTileId, MapTile>;
+  tilesCache: LRUCache<MapTileId, MapTile>;
   renderedTiles: Array<MapTile> = [];
   tilesMeta: MapTilesMeta;
   devicePixelRatio: number;
@@ -38,7 +39,7 @@ export class TilesGrid {
     this.tilesMeta = options.tilesMeta;
     this.tileFormatType = options.tileFormatType;
     this.devicePixelRatio = options.devicePixelRatio;
-    this.tilesCache = new Map<MapTileId, MapTile>();
+    this.tilesCache = new LRUCache<MapTileId, MapTile>(120);
   }
 
   public async init(mapState: MapState) {
