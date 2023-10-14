@@ -15,6 +15,7 @@ import {
   AndCondition,
   ValueStatement,
   FeatureValue,
+  HasCondition,
 } from '../../../../src/map/styles/styles';
 import {
   compileStatement,
@@ -31,6 +32,7 @@ import {
   compileOrCondition,
   compileAndCondition,
   compileOneOfCondition,
+  compileHasCondition,
   compileValueStatement,
   compileFeatureValueStatement,
   compileConstantValueStatement,
@@ -167,7 +169,7 @@ describe('compileStatement', () => {
     ).toBe('else result');
   });
 
-  it('should compile switch value', () => {
+  it('should compile $switch value', () => {
     const switchCaseStatement: SwitchCaseStatement<string> = [
       '$switch',
       ['$get', 'properties.class'],
@@ -530,6 +532,25 @@ describe('compileConditionStatement', () => {
         SampleWaterFeature
       )
     ).toBe(true);
+  });
+
+  it('should treat statement as an "$oneOf" condition statement', () => {
+    expect(
+      compileConditionStatement(
+        ['$oneOf', ['$get', 'properties.class'], 'water', 'land', 'transportation'],
+        SampleWaterFeature
+      )
+    ).toBe(true);
+  });
+
+  it('should treat statement as an "$has" condition statement', () => {
+    expect(compileConditionStatement(['$has', 'properties.class'], SampleWaterFeature)).toBe(true);
+  });
+
+  it('should treat statement as an "$!" condition statement', () => {
+    expect(compileConditionStatement(['$!', ['$eq', ['$get', 'properties.class'], 'land']], SampleWaterFeature)).toBe(
+      true
+    );
   });
 });
 
@@ -1007,6 +1028,26 @@ describe('compileOneOfCondition', () => {
     expect(() => {
       compileOneOfCondition(['$oneOf', 1] as unknown as OneOfCondition<string>, SampleWaterFeature);
     }).toThrowError('OneOfCondition is invalid: ["$oneOf",1]');
+  });
+});
+
+describe('compileHasCondition', () => {
+  it('should return true for truthy "HAS" condition', () => {
+    expect(compileHasCondition(['$has', 'properties.class'], SampleWaterFeature)).toBe(true);
+  });
+
+  it('should return false for falthy "HAS" condition', () => {
+    expect(compileHasCondition(['$has', 'properties.undefinedProp'], SampleWaterFeature)).toBe(false);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileHasCondition([] as unknown as HasCondition<string>, SampleWaterFeature);
+    }).toThrowError('HasCondition is invalid: []');
+
+    expect(() => {
+      compileHasCondition(['$has'] as unknown as HasCondition<string>, SampleWaterFeature);
+    }).toThrowError('HasCondition is invalid: ["$has"]');
   });
 });
 

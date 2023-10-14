@@ -16,6 +16,8 @@ import {
   OrCondition,
   AndCondition,
   OneOfCondition,
+  HasCondition,
+  NegativeStatement,
 } from './styles';
 
 export function compileStatement<V>(statement: Statement<V>, feature: Feature): V {
@@ -126,6 +128,10 @@ export function compileConditionStatement<V>(statement: ConditionStatement<V>, f
     return !!compileFeatureValueStatement<boolean>(statement, feature);
   }
 
+  if (statement[0] === '$!') {
+    return !!compileNegativeStatement(statement, feature);
+  }
+
   if (statement[0] === '$==' || statement[0] === '$eq') {
     return compileEqualCondition(statement, feature);
   }
@@ -158,7 +164,23 @@ export function compileConditionStatement<V>(statement: ConditionStatement<V>, f
     return compileAndCondition(statement, feature);
   }
 
+  if (statement[0] === '$oneOf') {
+    return compileOneOfCondition(statement, feature);
+  }
+
+  if (statement[0] === '$has') {
+    return compileHasCondition(statement, feature);
+  }
+
   throw new Error('Unrecognised condition statement: ' + JSON.stringify(statement));
+}
+
+export function compileNegativeStatement<V>(statement: NegativeStatement<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || statement[0] !== '$!' || statement.length < 2) {
+    throw new Error('NegativeStatement is invalid: ' + JSON.stringify(statement));
+  }
+
+  return !compileConditionStatement(statement[1], feature);
 }
 
 export function compileEqualCondition<V>(statement: EqualCondition<V>, feature: Feature): boolean {
@@ -279,6 +301,14 @@ export function compileOneOfCondition<V>(statement: OneOfCondition<V>, feature: 
   return false;
 }
 
+export function compileHasCondition<V>(statement: HasCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || statement[0] !== '$has' || statement.length !== 2) {
+    throw new Error('HasCondition is invalid: ' + JSON.stringify(statement));
+  }
+
+  return hasPropertyValue(feature, statement[1]);
+}
+
 export function compileFeatureValueStatement<V>(statement: FeatureValue<V>, feature: Feature): V {
   if (!Array.isArray(statement) || statement[0] !== '$get' || statement.length !== 2) {
     throw new Error('FeatureValue statement is invalid: ' + JSON.stringify(statement));
@@ -322,7 +352,40 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$and',
       '$&&',
       '$oneOf',
+      '$has',
+      '$!',
     ].includes(statement[0]);
+  }
+
+  return true;
+}
+
+export function hasPropertyValue(source: any, property?: string | number): boolean {
+  if (property === undefined || property === null) {
+    return false;
+  }
+
+  if (!['number', 'string'].includes(typeof property)) {
+    throw new Error('Cannot get value from: ' + JSON.stringify(property));
+  }
+
+  let currentSource = source;
+  const propertyPath = typeof property === 'string' ? property.split('.') : [`${property}`];
+
+  for (const pathItem of propertyPath) {
+    if (currentSource === null || currentSource == undefined) {
+      return false;
+    }
+
+    try {
+      if (pathItem in currentSource) {
+        currentSource = currentSource[pathItem];
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   return true;
