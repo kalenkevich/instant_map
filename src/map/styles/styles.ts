@@ -4,52 +4,50 @@ export interface DataLayerStyle {
   styleLayerName: string; // style layer name;
   sourceLayerName: string; // tile feature layer;
   paint: DataLayerPaint;
-  hide?: PaintStatement<boolean>;
+  hide?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
   background?: DataLayerBackground;
 }
 
 export interface DataLayerBackground {
-  color?: PaintStatement<string>; // default white
-  opacity?: PaintStatement<number>; // from 0..1
+  color?: Statement<string>; // default white
+  opacity?: Statement<number>; // from 0..1
 }
 
 export type DataLayerPaint = LinePaint | PolygonPaint | TextPaint | ImagePaint;
 
 export interface LinePaint {
   type: 'line';
-  color: PaintStatement<string>;
-  width?: PaintStatement<number>; // default 1
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<string>;
+  width?: Statement<number>; // default 1
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface PolygonPaint {
   type: 'polygon'; // <- polygon
-  color: PaintStatement<string>;
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<string>;
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface TextPaint {
   type: 'text';
-  color: PaintStatement<string>;
-  font: PaintStatement<string>;
-  fontSize: PaintStatement<number>;
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<string>;
+  font: Statement<string>;
+  fontSize: Statement<number>;
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface ImagePaint {
   type: 'image';
-  width: PaintStatement<number>;
-  height: PaintStatement<number>;
-  opacity?: PaintStatement<number>; // from 0..1
+  width: Statement<number>;
+  height: Statement<number>;
+  opacity?: Statement<number>; // from 0..1
 }
 
-export type PaintStatement<V> = IfStatement<V> | SwitchCaseStatement<V> | ValueStatement<V>;
+export type Statement<V> = IfStatement<V> | SwitchCaseStatement<V> | ValueStatement<V>;
 
-export type IfStatement<V> = ['$if', ConditionStatement<V>, IfStatementFork<V>, IfStatementFork<V>?];
-
-export type IfStatementFork<V> = IfStatement<V> | FeatureValue<V> | ConstantValue<V>;
+export type IfStatement<V> = ['$if', ConditionStatement<V>, Statement<V>, Statement<V>?];
 
 export type SwitchCaseStatement<V> = [
   '$switch',

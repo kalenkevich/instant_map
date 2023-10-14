@@ -1,8 +1,7 @@
 import { Feature } from 'geojson';
 import {
-  PaintStatement,
+  Statement,
   IfStatement,
-  IfStatementFork,
   SwitchCaseStatement,
   ValueStatement,
   ConditionStatement,
@@ -18,7 +17,7 @@ import {
   AndCondition,
 } from './styles';
 
-export function compileStatement<V>(statement: PaintStatement<V>, feature: Feature): V {
+export function compileStatement<V>(statement: Statement<V>, feature: Feature): V {
   if (isConstantValue(statement)) {
     return compileConstantValueStatement(statement) as V;
   }
@@ -27,16 +26,16 @@ export function compileStatement<V>(statement: PaintStatement<V>, feature: Featu
     throw new Error('Statement is invalid: ' + JSON.stringify(statement));
   }
 
+  if (statement[0] === '$get') {
+    return compileFeatureValueStatement<V>(statement, feature);
+  }
+
   if (statement[0] === '$if') {
     return compileIfStatement<V>(statement, feature);
   }
 
   if (statement[0] === '$switch') {
     return compileSwitchCaseStatement<V>(statement, feature);
-  }
-
-  if (statement[0] === '$get') {
-    return compileFeatureValueStatement<V>(statement, feature);
   }
 
   throw new Error('Statement is invalid: ' + JSON.stringify(statement));
@@ -52,34 +51,14 @@ export function compileIfStatement<V>(statement: IfStatement<V>, feature: Featur
   const elseStatement = statement[3];
 
   if (conditionResult) {
-    return compileIfStatementFork<V>(thenStatement, feature);
+    return compileStatement<V>(thenStatement, feature);
   }
 
   if (elseStatement !== undefined) {
-    return compileIfStatementFork<V>(elseStatement, feature);
+    return compileStatement<V>(elseStatement, feature);
   }
 
   return undefined;
-}
-
-export function compileIfStatementFork<V>(statement: IfStatementFork<V>, feature: Feature): V {
-  if (isConstantValue(statement)) {
-    return compileValueStatement(statement, feature) as V;
-  }
-
-  if (!Array.isArray(statement)) {
-    throw new Error('IfStatementFork is invalid: ' + JSON.stringify(statement));
-  }
-
-  if (statement[0] === '$if') {
-    return compileIfStatement<V>(statement, feature);
-  }
-
-  if (statement[0] === '$get') {
-    return compileFeatureValueStatement<V>(statement, feature);
-  }
-
-  throw new Error('IfStatementFork is invalid: ' + JSON.stringify(statement));
 }
 
 export function compileSwitchCaseStatement<V>(statement: SwitchCaseStatement<V>, feature: Feature): V {
@@ -298,7 +277,7 @@ export function compileConstantValueStatement<V>(statement: ConstantValue<V>): V
   return statement as V;
 }
 
-export function isConstantValue<V>(statement: PaintStatement<V>): boolean {
+export function isConstantValue<V>(statement: Statement<V>): boolean {
   if (['boolean', 'string', 'number'].includes(typeof statement)) {
     return true;
   }

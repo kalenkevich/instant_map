@@ -1,6 +1,7 @@
 import { Feature } from 'geojson';
 import { describe, expect, it } from '@jest/globals';
 import {
+  Statement,
   IfStatement,
   SwitchCaseStatement,
   EqualCondition,
@@ -17,7 +18,6 @@ import {
 import {
   compileStatement,
   compileIfStatement,
-  compileIfStatementFork,
   compileSwitchCaseStatement,
   compileConditionStatement,
   compileConditionStatementOrValue,
@@ -49,6 +49,150 @@ const SampleWaterFeature: Feature = {
     maxzoom: 5,
   },
 };
+
+describe('compileStatement', () => {
+  it('should return value if it is a contant value', () => {
+    expect(
+      compileStatement('value', {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe('value');
+
+    expect(
+      compileStatement(123, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(123);
+
+    expect(
+      compileStatement(true, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(true);
+
+    expect(
+      compileStatement(false, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(false);
+
+    expect(
+      compileStatement(
+        {},
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [],
+          },
+          properties: {},
+        }
+      )
+    ).toEqual({});
+
+    expect(
+      compileStatement([], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toEqual([]);
+  });
+
+  it('should return value if it is a feature value', () => {
+    expect(
+      compileStatement(['$get', 'properties.class'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('water');
+  });
+
+  it('should return value if it is another if statement', () => {
+    expect(
+      compileStatement(['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'then result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('then result');
+
+    expect(
+      compileStatement(['$if', ['$eq', ['$get', 'properties.class'], 'notwater'], 'then result', 'else result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('else result');
+  });
+
+  it('should compile switch value', () => {
+    const switchCaseStatement: SwitchCaseStatement<string> = [
+      '$switch',
+      ['$get', 'properties.class'],
+      ['water', 'water case'],
+      ['land', 'land case'],
+      ['$default', 'default case'],
+    ];
+
+    expect(compileStatement(switchCaseStatement, SampleWaterFeature)).toBe('water case');
+  });
+
+  it('should throw an error otherwise', () => {
+    expect(() => {
+      // @ts-ignore
+      compileStatement(['$and', 1, 1], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      });
+    }).toThrowError('Statement is invalid: ["$and",1,1]');
+  });
+});
 
 describe('compileIfStatement', () => {
   it('should compile condition and return then fork', () => {
@@ -82,12 +226,15 @@ describe('compileIfStatement', () => {
   });
 
   it('should compile complex statement', () => {
+    const thenStatement: Statement<string> = ['$get', 'properties.thenValue'];
+    const elseStatement: Statement<string> = ['$get', 'properties.elseValue'];
+
     const orCondition1: OrCondition<string> = [
       '$or',
       ['$eq', ['$get', 'properties.class'], 'water'],
       ['$eq', ['$get', 'properties.class'], 'land'],
     ];
-    const ifStatement1: IfStatement<string> = ['$if', orCondition1, 'then result', 'else result'];
+    const ifStatement1: IfStatement<string> = ['$if', orCondition1, thenStatement, elseStatement];
     expect(
       compileIfStatement(ifStatement1, {
         type: 'Feature',
@@ -97,6 +244,8 @@ describe('compileIfStatement', () => {
         },
         properties: {
           class: 'water',
+          thenValue: 'then result',
+          elseValue: 'else result',
         },
       })
     ).toBe('then result');
@@ -106,7 +255,7 @@ describe('compileIfStatement', () => {
       ['$eq', ['$get', 'properties.class'], 'water'],
       ['$eq', ['$get', 'properties.class'], 'land'],
     ];
-    const ifStatement2: IfStatement<string> = ['$if', andCondition1, 'then result', 'else result'];
+    const ifStatement2: IfStatement<string> = ['$if', andCondition1, thenStatement, elseStatement];
     expect(
       compileIfStatement(ifStatement2, {
         type: 'Feature',
@@ -116,131 +265,44 @@ describe('compileIfStatement', () => {
         },
         properties: {
           class: 'water',
-        },
-      })
-    ).toBe('else result');
-  });
-});
-
-describe('compileIfStatementFork', () => {
-  it('should return value if fork is a contant value', () => {
-    expect(
-      compileIfStatementFork('value', {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {},
-      })
-    ).toBe('value');
-
-    expect(
-      compileIfStatementFork(123, {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {},
-      })
-    ).toBe(123);
-
-    expect(
-      compileIfStatementFork(true, {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {},
-      })
-    ).toBe(true);
-
-    expect(
-      compileIfStatementFork(false, {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {},
-      })
-    ).toBe(false);
-
-    expect(
-      compileIfStatementFork(
-        {},
-        {
-          type: 'Feature',
-          geometry: {
-            type: 'Polygon',
-            coordinates: [],
-          },
-          properties: {},
-        }
-      )
-    ).toEqual({});
-
-    expect(
-      compileIfStatementFork([], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {},
-      })
-    ).toEqual([]);
-  });
-
-  it('should return value if fork is a feature value', () => {
-    expect(
-      compileIfStatementFork(['$get', 'properties.class'], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {
-          class: 'water',
-        },
-      })
-    ).toBe('water');
-  });
-
-  it('should return value if fork is another if statement', () => {
-    expect(
-      compileIfStatementFork(['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'then result'], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {
-          class: 'water',
-        },
-      })
-    ).toBe('then result');
-
-    expect(
-      compileIfStatementFork(['$if', ['$eq', ['$get', 'properties.class'], 'notwater'], 'then result', 'else result'], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {
-          class: 'water',
+          thenValue: 'then result',
+          elseValue: 'else result',
         },
       })
     ).toBe('else result');
   });
 
-  it('should throw an error otherwise', () => {
+  it('should cast condition value', () => {
+    expect(
+      compileIfStatement(['$if', 1, 2, 3] as unknown as IfStatement<string>, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe(2);
+
+    expect(
+      compileIfStatement(['$if', 0, 2, 3] as unknown as IfStatement<string>, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe(3);
+  });
+
+  it('should throw an error if statement is invalid', () => {
     expect(() => {
-      // @ts-ignore
-      compileIfStatementFork(['$and', 1, 1], {
+      compileIfStatement('hello' as unknown as IfStatement<string>, {
         type: 'Feature',
         geometry: {
           type: 'Polygon',
@@ -250,7 +312,46 @@ describe('compileIfStatementFork', () => {
           class: 'water',
         },
       });
-    }).toThrowError('IfStatementFork is invalid: ["$and",1,1]');
+    }).toThrowError('If statement is invalid: "hello"');
+
+    expect(() => {
+      compileIfStatement([] as unknown as IfStatement<string>, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      });
+    }).toThrowError('If statement is invalid: []');
+
+    expect(() => {
+      compileIfStatement({} as unknown as IfStatement<string>, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      });
+    }).toThrowError('If statement is invalid: {}');
+
+    expect(() => {
+      compileIfStatement(['$if', 1, 2, 3, 4] as unknown as IfStatement<string>, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      });
+    }).toThrowError('If statement is invalid: ["$if",1,2,3,4]');
   });
 });
 
