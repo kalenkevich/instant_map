@@ -53,7 +53,7 @@ const SampleWaterFeature: Feature = {
 };
 
 describe('compileStatement', () => {
-  it('should return value if it is a contant value', () => {
+  it('should compile a contant value', () => {
     expect(
       compileStatement('value', {
         type: 'Feature',
@@ -124,7 +124,7 @@ describe('compileStatement', () => {
     ).toEqual([]);
   });
 
-  it('should return value if it is a feature value', () => {
+  it('should compile a feature value', () => {
     expect(
       compileStatement(['$get', 'properties.class'], {
         type: 'Feature',
@@ -139,7 +139,7 @@ describe('compileStatement', () => {
     ).toBe('water');
   });
 
-  it('should return value if it is another if statement', () => {
+  it('should compile $if statement', () => {
     expect(
       compileStatement(['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'then result'], {
         type: 'Feature',
