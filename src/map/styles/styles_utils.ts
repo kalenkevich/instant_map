@@ -19,27 +19,31 @@ import {
 } from './styles';
 
 export function compileStatement<V>(statement: PaintStatement<V>, feature: Feature): V {
-  if (Array.isArray(statement)) {
-    if (statement[0] === '$if') {
-      return compileIfStatement<V>(statement, feature);
-    }
-
-    if (statement[0] === '$switch') {
-      return compileSwitchCaseStatement<V>(statement, feature);
-    }
-
-    if (statement[0] === '$get') {
-      return compileFeatureValueStatement<V>(statement, feature);
-    }
-
-    throw new Error('Paint statement is invalid: ' + JSON.stringify(statement));
+  if (isConstantValue(statement)) {
+    return compileConstantValueStatement(statement) as V;
   }
 
-  return statement as V;
+  if (!Array.isArray(statement)) {
+    throw new Error('Statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  if (statement[0] === '$if') {
+    return compileIfStatement<V>(statement, feature);
+  }
+
+  if (statement[0] === '$switch') {
+    return compileSwitchCaseStatement<V>(statement, feature);
+  }
+
+  if (statement[0] === '$get') {
+    return compileFeatureValueStatement<V>(statement, feature);
+  }
+
+  throw new Error('Statement is invalid: ' + JSON.stringify(statement));
 }
 
-export function compileIfStatement<V>(statement: IfStatement<V>, feature: Feature): V {
-  if (!Array.isArray(statement) || statement[0] === '$if' || !(statement.length === 3 || statement.length === 4)) {
+export function compileIfStatement<V>(statement: IfStatement<V>, feature: Feature): V | undefined {
+  if (!Array.isArray(statement) || statement[0] !== '$if' || !(statement.length === 3 || statement.length === 4)) {
     throw new Error('If statement is invalid: ' + JSON.stringify(statement));
   }
 
@@ -49,11 +53,13 @@ export function compileIfStatement<V>(statement: IfStatement<V>, feature: Featur
 
   if (conditionResult) {
     return compileIfStatementFork<V>(thenStatement, feature);
-  } else if (elseStatement !== undefined) {
+  }
+
+  if (elseStatement !== undefined) {
     return compileIfStatementFork<V>(elseStatement, feature);
   }
 
-  throw new Error('If statement is invalid: ' + JSON.stringify(thenStatement));
+  return undefined;
 }
 
 export function compileIfStatementFork<V>(statement: IfStatementFork<V>, feature: Feature): V {
@@ -111,6 +117,22 @@ export function compileSwitchCaseStatement<V>(statement: SwitchCaseStatement<V>,
   return undefined;
 }
 
+export function compileConditionStatementOrValue<V>(statement: ConditionStatement<V>, feature: Feature): V {
+  if (['boolean', 'string', 'number'].includes(typeof statement)) {
+    return statement as V;
+  }
+
+  if (!Array.isArray(statement)) {
+    throw new Error('Condition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  if (statement[0] === '$get') {
+    return compileFeatureValueStatement<V>(statement, feature);
+  }
+
+  return compileConditionStatement<V>(statement, feature) as V;
+}
+
 export function compileConditionStatement<V>(statement: ConditionStatement<V>, feature: Feature): boolean {
   if (['boolean', 'string', 'number'].includes(typeof statement)) {
     return !!statement;
@@ -157,22 +179,6 @@ export function compileConditionStatement<V>(statement: ConditionStatement<V>, f
   }
 
   throw new Error('Unrecognised condition statement: ' + JSON.stringify(statement));
-}
-
-export function compileConditionStatementOrValue<V>(statement: ConditionStatement<V>, feature: Feature): V {
-  if (['boolean', 'string', 'number'].includes(typeof statement)) {
-    return statement as V;
-  }
-
-  if (!Array.isArray(statement)) {
-    throw new Error('Condition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  if (statement[0] === '$get') {
-    return compileFeatureValueStatement<V>(statement, feature);
-  }
-
-  return compileConditionStatement<V>(statement, feature) as V;
 }
 
 export function compileEqualCondition<V>(statement: EqualCondition<V>, feature: Feature): boolean {
@@ -298,7 +304,27 @@ export function isConstantValue<V>(statement: PaintStatement<V>): boolean {
   }
 
   if (Array.isArray(statement) && typeof statement[0] === 'string') {
-    return !['$if', '$switch', '$get'].includes(statement[0]);
+    return ![
+      '$if',
+      '$switch',
+      '$get',
+      '$eq',
+      '$==',
+      '$neq',
+      '$!=',
+      '$lt',
+      '$<',
+      '$lte',
+      '$<=',
+      '$gt',
+      '$>',
+      '$gte',
+      '$>=',
+      '$or',
+      '$||',
+      '$and',
+      '$&&',
+    ].includes(statement[0]);
   }
 
   return true;

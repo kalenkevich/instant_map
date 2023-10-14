@@ -50,7 +50,209 @@ const SampleWaterFeature: Feature = {
   },
 };
 
-const SampleIfStatement: IfStatement<string> = ['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'blue', 'green'];
+describe('compileIfStatement', () => {
+  it('should compile condition and return then fork', () => {
+    expect(
+      compileIfStatement(['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'then result', 'else result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('then result');
+  });
+
+  it('should compile condition and return else fork', () => {
+    expect(
+      compileIfStatement(['$if', ['$eq', ['$get', 'properties.class'], 'land'], 'then result', 'else result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('else result');
+  });
+
+  it('should compile complex statement', () => {
+    const orCondition1: OrCondition<string> = [
+      '$or',
+      ['$eq', ['$get', 'properties.class'], 'water'],
+      ['$eq', ['$get', 'properties.class'], 'land'],
+    ];
+    const ifStatement1: IfStatement<string> = ['$if', orCondition1, 'then result', 'else result'];
+    expect(
+      compileIfStatement(ifStatement1, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('then result');
+
+    const andCondition1: AndCondition<string> = [
+      '$and',
+      ['$eq', ['$get', 'properties.class'], 'water'],
+      ['$eq', ['$get', 'properties.class'], 'land'],
+    ];
+    const ifStatement2: IfStatement<string> = ['$if', andCondition1, 'then result', 'else result'];
+    expect(
+      compileIfStatement(ifStatement2, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('else result');
+  });
+});
+
+describe('compileIfStatementFork', () => {
+  it('should return value if fork is a contant value', () => {
+    expect(
+      compileIfStatementFork('value', {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe('value');
+
+    expect(
+      compileIfStatementFork(123, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(123);
+
+    expect(
+      compileIfStatementFork(true, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(true);
+
+    expect(
+      compileIfStatementFork(false, {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toBe(false);
+
+    expect(
+      compileIfStatementFork(
+        {},
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [],
+          },
+          properties: {},
+        }
+      )
+    ).toEqual({});
+
+    expect(
+      compileIfStatementFork([], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {},
+      })
+    ).toEqual([]);
+  });
+
+  it('should return value if fork is a feature value', () => {
+    expect(
+      compileIfStatementFork(['$get', 'properties.class'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('water');
+  });
+
+  it('should return value if fork is another if statement', () => {
+    expect(
+      compileIfStatementFork(['$if', ['$eq', ['$get', 'properties.class'], 'water'], 'then result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('then result');
+
+    expect(
+      compileIfStatementFork(['$if', ['$eq', ['$get', 'properties.class'], 'notwater'], 'then result', 'else result'], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      })
+    ).toBe('else result');
+  });
+
+  it('should throw an error otherwise', () => {
+    expect(() => {
+      // @ts-ignore
+      compileIfStatementFork(['$and', 1, 1], {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [],
+        },
+        properties: {
+          class: 'water',
+        },
+      });
+    }).toThrowError('IfStatementFork is invalid: ["$and",1,1]');
+  });
+});
 
 describe('compileSwitchCaseStatement', () => {
   const SampleSwitchCaseStatement: SwitchCaseStatement<string> = [
@@ -728,6 +930,13 @@ describe('compileFeatureValueStatement', () => {
 });
 
 describe('compileConstantValueStatement', () => {
+  const SampleIfStatement: IfStatement<string> = [
+    '$if',
+    ['$eq', ['$get', 'properties.class'], 'water'],
+    'blue',
+    'green',
+  ];
+
   it('should return statement as a value if it is a constant', () => {
     expect(compileConstantValueStatement(true)).toBe(true);
     expect(compileConstantValueStatement(false)).toBe(false);
@@ -772,9 +981,25 @@ describe('isConstantValue', () => {
   });
 
   it('should return false for statement', () => {
-    expect(isConstantValue<any>(['$get', 'prop.prop'])).toBe(false);
     expect(isConstantValue<any>(['$if', ['$eq', 1, 1]])).toBe(false);
+    expect(isConstantValue<any>(['$get', 'prop.prop'])).toBe(false);
     expect(isConstantValue<any>(['$switch', ['$get', 'prop.prop'], ['water', 'water']])).toBe(false);
+    expect(isConstantValue<any>(['$eq', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$==', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$neq', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$!=', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$lt', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$<', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$lte', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$<=', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$gt', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$>', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$gte', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$>=', 1, 1])).toBe(false);
+    expect(isConstantValue<any>(['$or', true, true])).toBe(false);
+    expect(isConstantValue<any>(['$||', true, true])).toBe(false);
+    expect(isConstantValue<any>(['$and', true, true])).toBe(false);
+    expect(isConstantValue<any>(['$&&', true, true])).toBe(false);
   });
 });
 

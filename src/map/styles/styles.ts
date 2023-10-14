@@ -4,7 +4,7 @@ export interface DataLayerStyle {
   styleLayerName: string; // style layer name;
   sourceLayerName: string; // tile feature layer;
   paint: DataLayerPaint;
-  hide?: boolean;
+  hide?: PaintStatement<boolean>;
   minzoom?: number;
   maxzoom?: number;
   background?: DataLayerBackground;
