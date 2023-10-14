@@ -45,47 +45,51 @@ export interface ImagePaint {
   opacity?: PaintStatement<number>; // from 0..1
 }
 
-export type PaintStatement<V> = IfPaintStatement<V> | SwitchCasePaintStatement<V> | ValueStatement<V>;
+export type PaintStatement<V> = IfStatement<V> | SwitchCaseStatement<V> | ValueStatement<V>;
 
-export type IfPaintStatement<V> = ['$if', ConditionPaintStatement, IfStatementFork<V>, IfStatementFork<V>?];
+export type IfStatement<V> = ['$if', ConditionStatement<V>, IfStatementFork<V>, IfStatementFork<V>?];
 
-export type IfStatementFork<V> = IfPaintStatement<V> | FeatureValue | ConstantValue<V>;
+export type IfStatementFork<V> = IfStatement<V> | FeatureValue<V> | ConstantValue<V>;
 
-export type SwitchCasePaintStatement<V> = ['$switch', ValueStatement<V>, ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>];
+export type SwitchCaseStatement<V> = [
+  '$switch',
+  ValueStatement<V>,
+  ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>
+];
 
 export type CasePaintStatement<V> = [ValueStatement<V>, ValueStatement<V>];
 
 export type DefaultCasePaintStatement<V> = ['$default', ValueStatement<V>];
 
-export type ValueStatement<V> = FeatureValue | ConstantValue<V>;
+export type ValueStatement<V> = FeatureValue<V> | ConstantValue<V>;
 
-export type FeatureValue = ['$get', string];
+export type FeatureValue<V> = ['$get', string]; // object getter
 
 export type ConstantValue<V> = V;
 
-export type ConditionPaintStatement =
-  | ValueStatement<boolean>
-  | EqualCondition
-  | NotEqualCondition
-  | LessCondition
-  | LessOrEqualCondition
-  | GreaterCondition
-  | GreaterOrEqualCondition
-  | OrCondition
-  | AndCondition;
+export type ConditionStatement<V> =
+  | ValueStatement<V>
+  | EqualCondition<V>
+  | NotEqualCondition<V>
+  | LessCondition<V>
+  | LessOrEqualCondition<V>
+  | GreaterCondition<V>
+  | GreaterOrEqualCondition<V>
+  | OrCondition<V>
+  | AndCondition<V>;
 
-export type EqualCondition = ['$==' | '$eq', ConditionPaintStatement, ConditionPaintStatement];
+export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
 
-export type NotEqualCondition = ['$!=' | '$neq', ConditionPaintStatement, ConditionPaintStatement];
+export type NotEqualCondition<V> = ['$!=' | '$neq', ConditionStatement<V>, ConditionStatement<V>];
 
-export type LessCondition = ['$<' | '$lt', ConditionPaintStatement, ConditionPaintStatement];
+export type LessCondition<V> = ['$<' | '$lt', ConditionStatement<V>, ConditionStatement<V>];
 
-export type LessOrEqualCondition = ['$<=' | '$lte', ConditionPaintStatement, ConditionPaintStatement];
+export type LessOrEqualCondition<V> = ['$<=' | '$lte', ConditionStatement<V>, ConditionStatement<V>];
 
-export type GreaterCondition = ['$>' | '$gt', ConditionPaintStatement, ConditionPaintStatement];
+export type GreaterCondition<V> = ['$>' | '$gt', ConditionStatement<V>, ConditionStatement<V>];
 
-export type GreaterOrEqualCondition = ['$>=' | '$gte', ConditionPaintStatement, ConditionPaintStatement];
+export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>, ConditionStatement<V>];
 
-export type OrCondition = ['$||' | '&or', ConditionPaintStatement, ConditionPaintStatement];
+export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
 
-export type AndCondition = ['$&&' | '&and', ConditionPaintStatement, ConditionPaintStatement];
+export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];

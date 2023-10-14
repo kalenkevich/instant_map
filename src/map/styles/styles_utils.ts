@@ -1,11 +1,11 @@
 import { Feature } from 'geojson';
 import {
   PaintStatement,
-  IfPaintStatement,
+  IfStatement,
   IfStatementFork,
-  SwitchCasePaintStatement,
+  SwitchCaseStatement,
   ValueStatement,
-  ConditionPaintStatement,
+  ConditionStatement,
   FeatureValue,
   ConstantValue,
   EqualCondition,
@@ -18,14 +18,14 @@ import {
   AndCondition,
 } from './styles';
 
-export function compilePaintStatement<V>(statement: PaintStatement<V>, feature: Feature): V {
+export function compileStatement<V>(statement: PaintStatement<V>, feature: Feature): V {
   if (Array.isArray(statement)) {
     if (statement[0] === '$if') {
-      return compilePaintIfStatement<V>(statement, feature);
+      return compileIfStatement<V>(statement, feature);
     }
 
     if (statement[0] === '$switch') {
-      return compilePaintSwitchStatement<V>(statement, feature);
+      return compileSwitchCaseStatement<V>(statement, feature);
     }
 
     if (statement[0] === '$get') {
@@ -38,7 +38,7 @@ export function compilePaintStatement<V>(statement: PaintStatement<V>, feature: 
   return statement as V;
 }
 
-export function compilePaintIfStatement<V>(statement: IfPaintStatement<V>, feature: Feature): V {
+export function compileIfStatement<V>(statement: IfStatement<V>, feature: Feature): V {
   if (!Array.isArray(statement) || statement[0] === '$if' || !(statement.length === 3 || statement.length === 4)) {
     throw new Error('If statement is invalid: ' + JSON.stringify(statement));
   }
@@ -57,8 +57,8 @@ export function compilePaintIfStatement<V>(statement: IfPaintStatement<V>, featu
 }
 
 export function compileIfStatementFork<V>(statement: IfStatementFork<V>, feature: Feature): V {
-  if (['number', 'string', 'boolean'].includes(typeof statement)) {
-    return statement as V;
+  if (isConstantValue(statement)) {
+    return compileValueStatement(statement, feature) as V;
   }
 
   if (!Array.isArray(statement)) {
@@ -66,7 +66,7 @@ export function compileIfStatementFork<V>(statement: IfStatementFork<V>, feature
   }
 
   if (statement[0] === '$if') {
-    return compilePaintIfStatement<V>(statement, feature);
+    return compileIfStatement<V>(statement, feature);
   }
 
   if (statement[0] === '$get') {
@@ -76,8 +76,8 @@ export function compileIfStatementFork<V>(statement: IfStatementFork<V>, feature
   throw new Error('IfStatementFork is invalid: ' + JSON.stringify(statement));
 }
 
-export function compilePaintSwitchStatement<V>(statement: SwitchCasePaintStatement<V>, feature: Feature): V {
-  if (!Array.isArray(statement) || statement[0] === '$switch' || statement.length < 2) {
+export function compileSwitchCaseStatement<V>(statement: SwitchCaseStatement<V>, feature: Feature): V {
+  if (!Array.isArray(statement) || statement[0] !== '$switch' || statement.length < 3) {
     throw new Error('Switch statement is invalid: ' + JSON.stringify(statement));
   }
 
@@ -85,7 +85,7 @@ export function compilePaintSwitchStatement<V>(statement: SwitchCasePaintStateme
   const defaultStatementIndex = caseStatements.findIndex(s => s[0] === '$default');
 
   if (defaultStatementIndex !== -1 && defaultStatementIndex !== caseStatements.length - 1) {
-    throw new Error('Switch statement is invalid, $default should be last: ' + JSON.stringify(statement));
+    throw new Error('Switch statement is invalid, $default should be last case: ' + JSON.stringify(statement));
   }
 
   const switchValue = compileValueStatement(switchValueStatement, feature);
@@ -111,7 +111,7 @@ export function compilePaintSwitchStatement<V>(statement: SwitchCasePaintStateme
   return undefined;
 }
 
-export function compileConditionStatement(statement: ConditionPaintStatement, feature: Feature): boolean {
+export function compileConditionStatement<V>(statement: ConditionStatement<V>, feature: Feature): boolean {
   if (['boolean', 'string', 'number'].includes(typeof statement)) {
     return !!statement;
   }
@@ -148,15 +148,120 @@ export function compileConditionStatement(statement: ConditionPaintStatement, fe
     return compileGreaterOrEqualCondition(statement, feature);
   }
 
-  if (statement[0] === '$||' || statement[0] === '&or') {
+  if (statement[0] === '$||' || statement[0] === '$or') {
     return compileOrCondition(statement, feature);
   }
 
-  if (statement[0] === '$&&' || statement[0] === '&and') {
+  if (statement[0] === '$&&' || statement[0] === '$and') {
     return compileAndCondition(statement, feature);
   }
 
   throw new Error('Unrecognised condition statement: ' + JSON.stringify(statement));
+}
+
+export function compileConditionStatementOrValue<V>(statement: ConditionStatement<V>, feature: Feature): V {
+  if (['boolean', 'string', 'number'].includes(typeof statement)) {
+    return statement as V;
+  }
+
+  if (!Array.isArray(statement)) {
+    throw new Error('Condition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  if (statement[0] === '$get') {
+    return compileFeatureValueStatement<V>(statement, feature);
+  }
+
+  return compileConditionStatement<V>(statement, feature) as V;
+}
+
+export function compileEqualCondition<V>(statement: EqualCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$==', '$eq'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('EqualCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement === rightHandStatement;
+}
+
+export function compileNotEqualCondition<V>(statement: NotEqualCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$!=', '$neq'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('NotEqualCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement !== rightHandStatement;
+}
+
+export function compileLessCondition<V>(statement: LessCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$<', '$lt'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('LessCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement < rightHandStatement;
+}
+
+export function compileLessOrEqualCondition<V>(statement: LessOrEqualCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$<=', '$lte'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('LessOrEqualCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement <= rightHandStatement;
+}
+
+export function compileGreaterCondition<V>(statement: GreaterCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$>', '$gt'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('GreaterCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement > rightHandStatement;
+}
+
+export function compileGreaterOrEqualCondition<V>(statement: GreaterOrEqualCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$>=', '$gte'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('GreaterOrEqualCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return leftHandStatement >= rightHandStatement;
+}
+
+export function compileOrCondition<V>(statement: OrCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$||', '$or'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('OrCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  if (compileConditionStatementOrValue(statement[1], feature)) {
+    return true;
+  }
+
+  return !!compileConditionStatementOrValue(statement[2], feature);
+}
+
+export function compileAndCondition<V>(statement: AndCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || !['$&&', '$and'].includes(statement[0]) || statement.length !== 3) {
+    throw new Error('AndCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const leftHandStatement = compileConditionStatementOrValue(statement[1], feature);
+  const rightHandStatement = compileConditionStatementOrValue(statement[2], feature);
+
+  return !!(leftHandStatement && rightHandStatement);
 }
 
 export function compileValueStatement<V>(statement: ValueStatement<V>, feature: Feature): V {
@@ -165,103 +270,14 @@ export function compileValueStatement<V>(statement: ValueStatement<V>, feature: 
   }
 
   if (isConstantValue(statement)) {
-    return statement as V;
+    return compileConstantValueStatement(statement) as V;
   }
 
-  throw new Error('ValueStatement statement in invalid: ' + JSON.stringify(statement));
+  throw new Error('Value statement in invalid: ' + JSON.stringify(statement));
 }
 
-export function compileEqualCondition(statement: EqualCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$==', '$eq'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('EqualCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement === rightHandStatement;
-}
-
-export function compileNotEqualCondition(statement: NotEqualCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$!=', '$neq'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('EqualCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement !== rightHandStatement;
-}
-
-export function compileLessCondition(statement: LessCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$<', '$lt'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('LessCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement < rightHandStatement;
-}
-
-export function compileLessOrEqualCondition(statement: LessOrEqualCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$<=', '$lte'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('LessOrEqualCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement <= rightHandStatement;
-}
-
-export function compileGreaterCondition(statement: GreaterCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$>', '$ge'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('GreaterCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement > rightHandStatement;
-}
-
-export function compileGreaterOrEqualCondition(statement: GreaterOrEqualCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$>=', '$gte'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('GreaterOrEqualCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement >= rightHandStatement;
-}
-
-export function compileOrCondition(statement: OrCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$||', '$or'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('OrCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  if (compileConditionStatement(statement[1], feature)) {
-    return true;
-  }
-
-  return compileConditionStatement(statement[2], feature);
-}
-
-export function compileAndCondition(statement: AndCondition, feature: Feature): boolean {
-  if (!Array.isArray(statement) || !['$&&', '$and'].includes(statement[0]) || statement.length !== 3) {
-    throw new Error('AndCondition statement is invalid: ' + JSON.stringify(statement));
-  }
-
-  const leftHandStatement = compileConditionStatement(statement[1], feature);
-  const rightHandStatement = compileConditionStatement(statement[2], feature);
-
-  return leftHandStatement && rightHandStatement;
-}
-
-export function compileFeatureValueStatement<V>(statement: FeatureValue, feature: Feature): V {
-  if (!Array.isArray(statement) || statement[0] !== '$get') {
+export function compileFeatureValueStatement<V>(statement: FeatureValue<V>, feature: Feature): V {
+  if (!Array.isArray(statement) || statement[0] !== '$get' || statement.length !== 2) {
     throw new Error('FeatureValue statement is invalid: ' + JSON.stringify(statement));
   }
 
@@ -277,21 +293,41 @@ export function compileConstantValueStatement<V>(statement: ConstantValue<V>): V
 }
 
 export function isConstantValue<V>(statement: PaintStatement<V>): boolean {
-  return ['boolean', 'string', 'number'].includes(typeof statement);
+  if (['boolean', 'string', 'number'].includes(typeof statement)) {
+    return true;
+  }
+
+  if (Array.isArray(statement) && typeof statement[0] === 'string') {
+    return !['$if', '$switch', '$get'].includes(statement[0]);
+  }
+
+  return true;
 }
 
-export function getPropertyValue<V>(source: any, property: string): ConstantValue<V> {
+export function getPropertyValue<V>(source: any, property?: string | number): ConstantValue<V> {
+  if (property === undefined || property === null) {
+    return source;
+  }
+
+  if (!['number', 'string'].includes(typeof property)) {
+    throw new Error('Cannot get property name from: ' + JSON.stringify(property));
+  }
+
   let currentSource = source;
-  const propertyPath = property.split('.');
+  const propertyPath = typeof property === 'string' ? property.split('.') : [`${property}`];
 
   for (const pathItem of propertyPath) {
     if (currentSource === null || currentSource == undefined) {
       return currentSource;
     }
 
-    if (pathItem in currentSource) {
-      currentSource = currentSource[pathItem];
-    } else {
+    try {
+      if (pathItem in currentSource) {
+        currentSource = currentSource[pathItem];
+      } else {
+        return undefined;
+      }
+    } catch (e) {
       return undefined;
     }
   }
