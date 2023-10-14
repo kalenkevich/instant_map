@@ -15,6 +15,7 @@ import {
   GreaterOrEqualCondition,
   OrCondition,
   AndCondition,
+  OneOfCondition,
 } from './styles';
 
 export function compileStatement<V>(statement: Statement<V>, feature: Feature): V {
@@ -261,6 +262,23 @@ export function compileValueStatement<V>(statement: ValueStatement<V>, feature: 
   throw new Error('Value statement in invalid: ' + JSON.stringify(statement));
 }
 
+export function compileOneOfCondition<V>(statement: OneOfCondition<V>, feature: Feature): boolean {
+  if (!Array.isArray(statement) || statement[0] !== '$oneOf' || statement.length < 3) {
+    throw new Error('OneOfCondition is invalid: ' + JSON.stringify(statement));
+  }
+
+  const [, val, ...valueStatements] = statement;
+  const compiledVal = compileValueStatement(val, feature);
+
+  for (const valueStatement of valueStatements) {
+    if (compiledVal === compileValueStatement(valueStatement, feature)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function compileFeatureValueStatement<V>(statement: FeatureValue<V>, feature: Feature): V {
   if (!Array.isArray(statement) || statement[0] !== '$get' || statement.length !== 2) {
     throw new Error('FeatureValue statement is invalid: ' + JSON.stringify(statement));
@@ -303,6 +321,7 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$||',
       '$and',
       '$&&',
+      '$oneOf',
     ].includes(statement[0]);
   }
 

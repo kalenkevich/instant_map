@@ -11,6 +11,7 @@ import {
   GreaterCondition,
   GreaterOrEqualCondition,
   OrCondition,
+  OneOfCondition,
   AndCondition,
   ValueStatement,
   FeatureValue,
@@ -29,6 +30,7 @@ import {
   compileGreaterOrEqualCondition,
   compileOrCondition,
   compileAndCondition,
+  compileOneOfCondition,
   compileValueStatement,
   compileFeatureValueStatement,
   compileConstantValueStatement,
@@ -980,6 +982,34 @@ describe('compileAndCondition', () => {
   });
 });
 
+describe('compileOneOfCondition', () => {
+  it('should return true for truthy "ONE OF" condition', () => {
+    expect(
+      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'water', 'land', 'buildings'], SampleWaterFeature)
+    ).toBe(true);
+  });
+
+  it('should return false for falthy "ONE OF" condition', () => {
+    expect(
+      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'test', 'land', 'buildings'], SampleWaterFeature)
+    ).toBe(false);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileOneOfCondition([] as unknown as OneOfCondition<string>, SampleWaterFeature);
+    }).toThrowError('OneOfCondition is invalid: []');
+
+    expect(() => {
+      compileOneOfCondition(['$oneOf'] as unknown as OneOfCondition<string>, SampleWaterFeature);
+    }).toThrowError('OneOfCondition is invalid: ["$oneOf"]');
+
+    expect(() => {
+      compileOneOfCondition(['$oneOf', 1] as unknown as OneOfCondition<string>, SampleWaterFeature);
+    }).toThrowError('OneOfCondition is invalid: ["$oneOf",1]');
+  });
+});
+
 describe('compileValueStatement', () => {
   const valueStatement: ValueStatement<string> = ['$get', 'properties.class'];
 
@@ -1101,6 +1131,7 @@ describe('isConstantValue', () => {
     expect(isConstantValue<any>(['$||', true, true])).toBe(false);
     expect(isConstantValue<any>(['$and', true, true])).toBe(false);
     expect(isConstantValue<any>(['$&&', true, true])).toBe(false);
+    expect(isConstantValue<any>(['$oneOf', 'val', 'val1', 'val2'])).toBe(false);
   });
 });
 

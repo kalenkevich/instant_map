@@ -74,7 +74,8 @@ export type ConditionStatement<V> =
   | GreaterCondition<V>
   | GreaterOrEqualCondition<V>
   | OrCondition<V>
-  | AndCondition<V>;
+  | AndCondition<V>
+  | OneOfCondition<V>;
 
 export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
 
@@ -91,3 +92,5 @@ export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>,
 export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
 
 export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];
+
+export type OneOfCondition<V> = ['$oneOf', ValueStatement<V>, ...Array<ValueStatement<V>>];
