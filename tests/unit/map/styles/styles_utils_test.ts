@@ -16,6 +16,8 @@ import {
 } from '../../../../src/map/styles/styles';
 import {
   compileStatement,
+  compileIfStatement,
+  compileIfStatementFork,
   compileSwitchCaseStatement,
   compileConditionStatement,
   compileConditionStatementOrValue,
@@ -811,14 +813,14 @@ describe('getPropertyValue', () => {
     expect(() => {
       //@ts-ignore
       getPropertyValue<string>(object, true);
-    }).toThrowError('Cannot get property name from: true');
+    }).toThrowError('Cannot get value from: true');
     expect(() => {
       //@ts-ignore
       getPropertyValue<string>(object, {});
-    }).toThrowError('Cannot get property name from: {}');
+    }).toThrowError('Cannot get value from: {}');
     expect(() => {
       //@ts-ignore
       getPropertyValue<string>(object, []);
-    }).toThrowError('Cannot get property name from: []');
+    }).toThrowError('Cannot get value from: []');
   });
 });

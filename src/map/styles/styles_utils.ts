@@ -310,7 +310,7 @@ export function getPropertyValue<V>(source: any, property?: string | number): Co
   }
 
   if (!['number', 'string'].includes(typeof property)) {
-    throw new Error('Cannot get property name from: ' + JSON.stringify(property));
+    throw new Error('Cannot get value from: ' + JSON.stringify(property));
   }
 
   let currentSource = source;
