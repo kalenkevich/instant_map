@@ -3,89 +3,110 @@ export type DataTileStyles = Record<string, DataLayerStyle>;
 export interface DataLayerStyle {
   styleLayerName: string; // style layer name;
   sourceLayerName: string; // tile feature layer;
-  paint: DataLayerPaint;
-  hide?: boolean;
+  paint?: DataLayerPaint;
+  hide?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
   background?: DataLayerBackground;
 }
 
 export interface DataLayerBackground {
-  color?: PaintStatement<string>; // default white
-  opacity?: PaintStatement<number>; // from 0..1
+  color?: Statement<ColorValue>; // default white
+  opacity?: Statement<number>; // from 0..1
 }
 
 export type DataLayerPaint = LinePaint | PolygonPaint | TextPaint | ImagePaint;
 
+export type BorderPaint = LinePaint;
+
 export interface LinePaint {
   type: 'line';
-  color: PaintStatement<string>;
-  width?: PaintStatement<number>; // default 1
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<ColorValue>;
+  style?: 'solid' | 'dashed' | 'dotted'; // default 'solid'
+  width?: Statement<number>; // default 1
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface PolygonPaint {
   type: 'polygon'; // <- polygon
-  color: PaintStatement<string>;
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<ColorValue>;
+  border?: LinePaint;
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface TextPaint {
   type: 'text';
-  color: PaintStatement<string>;
-  font: PaintStatement<string>;
-  fontSize: PaintStatement<number>;
-  opacity?: PaintStatement<number>; // from 0..1
+  color: Statement<ColorValue>;
+  font: Statement<string>;
+  fontSize: Statement<number>;
+  opacity?: Statement<number>; // from 0..1
 }
 
 export interface ImagePaint {
   type: 'image';
-  width: PaintStatement<number>;
-  height: PaintStatement<number>;
-  opacity?: PaintStatement<number>; // from 0..1
+  width: Statement<number>;
+  height: Statement<number>;
+  opacity?: Statement<number>; // from 0..1
 }
 
-export type PaintStatement<V> = IfPaintStatement<V> | SwitchCasePaintStatement<V> | ValueStatement<V>;
+export type Statement<V> = IfStatement<V> | SwitchCaseStatement<V> | ConditionStatement<V> | ValueStatement<V>;
 
-export type IfPaintStatement<V> = ['$if', ConditionPaintStatement, IfStatementFork<V>, IfStatementFork<V>?];
+export type IfStatement<V> = ['$if', ConditionStatement<V>, Statement<V>, Statement<V>?];
 
-export type IfStatementFork<V> = IfPaintStatement<V> | FeatureValue | ConstantValue<V>;
+export type SwitchCaseStatement<V> = [
+  '$switch',
+  ValueStatement<V>,
+  ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>
+];
 
-export type SwitchCasePaintStatement<V> = ['$switch', ValueStatement<V>, ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>];
-
-export type CasePaintStatement<V> = [ValueStatement<V>, ValueStatement<V>];
+export type CasePaintStatement<V> = [ValueStatement<any>, ValueStatement<V>];
 
 export type DefaultCasePaintStatement<V> = ['$default', ValueStatement<V>];
 
-export type ValueStatement<V> = FeatureValue | ConstantValue<V>;
+export type ValueStatement<V> = FeatureValue<V> | ConstantValue<V> | ColorValue;
 
-export type FeatureValue = ['$get', string];
+export type FeatureValue<V> = ['$get', string]; // object getter
 
 export type ConstantValue<V> = V;
 
-export type ConditionPaintStatement =
-  | ValueStatement<boolean>
-  | EqualCondition
-  | NotEqualCondition
-  | LessCondition
-  | LessOrEqualCondition
-  | GreaterCondition
-  | GreaterOrEqualCondition
-  | OrCondition
-  | AndCondition;
+export type ConditionStatement<V> =
+  | ValueStatement<V>
+  | NegativeStatement<V>
+  | EqualCondition<V>
+  | NotEqualCondition<V>
+  | LessCondition<V>
+  | LessOrEqualCondition<V>
+  | GreaterCondition<V>
+  | GreaterOrEqualCondition<V>
+  | OrCondition<V>
+  | AndCondition<V>
+  | OneOfCondition<V>
+  | HasCondition<V>;
 
-export type EqualCondition = ['$==' | '$eq', ConditionPaintStatement, ConditionPaintStatement];
+export type NegativeStatement<V> = ['$!', ConditionStatement<any>];
 
-export type NotEqualCondition = ['$!=' | '$neq', ConditionPaintStatement, ConditionPaintStatement];
+export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
 
-export type LessCondition = ['$<' | '$lt', ConditionPaintStatement, ConditionPaintStatement];
+export type NotEqualCondition<V> = ['$!=' | '$neq', ConditionStatement<V>, ConditionStatement<V>];
 
-export type LessOrEqualCondition = ['$<=' | '$lte', ConditionPaintStatement, ConditionPaintStatement];
+export type LessCondition<V> = ['$<' | '$lt', ConditionStatement<V>, ConditionStatement<V>];
 
-export type GreaterCondition = ['$>' | '$gt', ConditionPaintStatement, ConditionPaintStatement];
+export type LessOrEqualCondition<V> = ['$<=' | '$lte', ConditionStatement<V>, ConditionStatement<V>];
 
-export type GreaterOrEqualCondition = ['$>=' | '$gte', ConditionPaintStatement, ConditionPaintStatement];
+export type GreaterCondition<V> = ['$>' | '$gt', ConditionStatement<V>, ConditionStatement<V>];
 
-export type OrCondition = ['$||' | '&or', ConditionPaintStatement, ConditionPaintStatement];
+export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>, ConditionStatement<V>];
 
-export type AndCondition = ['$&&' | '&and', ConditionPaintStatement, ConditionPaintStatement];
+export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
+
+export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];
+
+export type OneOfCondition<V> = ['$oneOf', ValueStatement<V>, ...Array<ValueStatement<V>>];
+
+export type HasCondition<V> = ['$has', string];
+
+export type ColorValue = RGBColorValue | RGBAColorValue;
+
+export type RGBColorValue = ['$rgb', number, number, number];
+
+export type RGBAColorValue = ['$rgba', number, number, number, number];
