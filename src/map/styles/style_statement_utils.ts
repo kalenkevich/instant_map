@@ -161,14 +161,14 @@ export function compileSwitchCaseStatement<V>(statement: SwitchCaseStatement<V>,
     const caseValue = compileValueStatement(caseStatement[0], feature);
 
     if (switchValue === caseValue) {
-      return compileValueStatement(caseStatement[1], feature);
+      return compileStatement(caseStatement[1], feature);
     }
   }
 
   if (defaultStatementIndex !== -1) {
     const defaultStatement = caseStatements[defaultStatementIndex];
 
-    return compileValueStatement(defaultStatement[1], feature);
+    return compileStatement(defaultStatement[1], feature);
   }
 
   return undefined;

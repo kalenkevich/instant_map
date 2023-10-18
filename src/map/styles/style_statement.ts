@@ -12,9 +12,9 @@ export type SwitchCaseStatement<V> = [
   ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>
 ];
 
-export type CasePaintStatement<V> = [ValueStatement<any>, ValueStatement<V>];
+export type CasePaintStatement<V> = [ValueStatement<any>, Statement<V>];
 
-export type DefaultCasePaintStatement<V> = ['$default', ValueStatement<V>];
+export type DefaultCasePaintStatement<V> = ['$default', Statement<V>];
 
 export type ValueStatement<V> = FeatureValue<V> | ConstantValue<V> | ColorValue;
 
@@ -52,9 +52,9 @@ export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>,
 
 export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
 
-export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];
+export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<any>, ConditionStatement<any>];
 
-export type OneOfCondition<V> = ['$oneOf', ValueStatement<V>, ...Array<ValueStatement<V>>];
+export type OneOfCondition<V> = ['$oneOf', ValueStatement<any>, ...Array<ValueStatement<any>>];
 
 export type HasCondition<V> = ['$has', string];
 
