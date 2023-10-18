@@ -1,13 +1,13 @@
-import { DataLayerStyle, DataLayerPaint, DataLayerPaintType } from './styles';
+import { DataLayerStyle, FeatureStyle, FeatureStyleType } from './styles';
 import { ContextLike } from './style_statement';
 import { compileStatement, isStatement } from './style_statement_utils';
 
-export function compileStyle(style: DataLayerStyle, feature: ContextLike): DataLayerStyle {
+export function compileLayerStyle(style: DataLayerStyle, feature: ContextLike): DataLayerStyle {
   const newStyleObject: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(style)) {
-    if (isPaint(value)) {
-      newStyleObject[key] = compilePaint(value, feature);
+    if (isFeatureStyle(value)) {
+      newStyleObject[key] = compileFeatureStyle(value, feature);
     } else {
       newStyleObject[key] = value;
     }
@@ -16,7 +16,7 @@ export function compileStyle(style: DataLayerStyle, feature: ContextLike): DataL
   return newStyleObject as DataLayerStyle;
 }
 
-export function compilePaint(paint: DataLayerPaint, feature: ContextLike): DataLayerPaint {
+export function compileFeatureStyle(paint: FeatureStyle, feature: ContextLike): FeatureStyle {
   const newPaintObject: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(paint)) {
@@ -27,15 +27,15 @@ export function compilePaint(paint: DataLayerPaint, feature: ContextLike): DataL
     }
   }
 
-  return newPaintObject as DataLayerPaint;
+  return newPaintObject as FeatureStyle;
 }
 
-export function isPaint(paint: DataLayerPaint): boolean {
+export function isFeatureStyle(paint: FeatureStyle): boolean {
   return [
-    DataLayerPaintType.line,
-    DataLayerPaintType.polygon,
-    DataLayerPaintType.text,
-    DataLayerPaintType.image,
-    DataLayerPaintType.background,
+    FeatureStyleType.line,
+    FeatureStyleType.polygon,
+    FeatureStyleType.text,
+    FeatureStyleType.image,
+    FeatureStyleType.background,
   ].includes(paint.type);
 }

@@ -1,4 +1,4 @@
-import { DataTileStyles, DataLayerPaintType } from '../map/styles/styles';
+import { DataTileStyles, FeatureStyleType } from '../map/styles/styles';
 
 export const MaptilerVtStyles: DataTileStyles = {
   water: {
@@ -6,7 +6,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'waterStyles',
     hide: false,
     feature: {
-      type: DataLayerPaintType.polygon,
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -27,7 +27,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'globallandcoverStyles',
     hide: true,
     feature: {
-      type: DataLayerPaintType.polygon,
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -73,7 +73,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     styleLayerName: 'landcover',
     sourceLayerName: 'landcoverStyles',
     feature: {
-      type: DataLayerPaintType.polygon,
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -120,7 +120,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'boundaryStyles',
     hide: false,
     feature: {
-      type: DataLayerPaintType.line,
+      type: FeatureStyleType.line,
       color: ['$rgb', 114, 113, 207],
     },
     maxzoom: 15,
@@ -131,7 +131,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'buildingStyles',
     hide: false,
     feature: {
-      type: DataLayerPaintType.polygon,
+      type: FeatureStyleType.polygon,
       color: ['$rgb', 222, 215, 211],
     },
     maxzoom: 15,
@@ -142,7 +142,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'transportationStyles',
     hide: false,
     feature: {
-      type: DataLayerPaintType.line,
+      type: FeatureStyleType.line,
       color: [
         '$switch',
         ['$get', 'properties.class'],

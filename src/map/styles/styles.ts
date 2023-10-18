@@ -8,11 +8,11 @@ export interface DataLayerStyle {
   hide?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
-  feature?: FeaturePaint;
-  background?: BackgroundPaint;
+  feature?: FeatureStyle;
+  background?: BackgroundStyle;
 }
 
-export enum DataLayerPaintType {
+export enum FeatureStyleType {
   line = 'line',
   polygon = 'polygon',
   text = 'text',
@@ -20,10 +20,10 @@ export enum DataLayerPaintType {
   background = 'background',
 }
 
-export type FeaturePaint = LinePaint | PolygonPaint | TextPaint | ImagePaint | BackgroundPaint;
+export type FeatureStyle = LineStyle | PolygonStyle | TextStyle | ImageStyle | BackgroundStyle;
 
-export interface LinePaint {
-  type: DataLayerPaintType.line;
+export interface LineStyle {
+  type: FeatureStyleType.line;
   color: Statement<ColorValue>;
   style?: Statement<'solid' | 'dashed' | 'dotted'>; // default 'solid'
   width?: Statement<number>; // default 1
@@ -31,16 +31,16 @@ export interface LinePaint {
   hide?: Statement<boolean>;
 }
 
-export interface PolygonPaint {
-  type: DataLayerPaintType.polygon;
+export interface PolygonStyle {
+  type: FeatureStyleType.polygon;
   color: Statement<ColorValue>;
-  border?: LinePaint;
+  border?: LineStyle;
   opacity?: Statement<number>; // from 0..1
   hide?: Statement<boolean>;
 }
 
-export interface TextPaint {
-  type: DataLayerPaintType.text;
+export interface TextStyle {
+  type: FeatureStyleType.text;
   color: Statement<ColorValue>;
   font: Statement<string>;
   fontSize: Statement<number>;
@@ -48,16 +48,16 @@ export interface TextPaint {
   hide?: Statement<boolean>;
 }
 
-export interface ImagePaint {
-  type: DataLayerPaintType.image;
+export interface ImageStyle {
+  type: FeatureStyleType.image;
   width: Statement<number>;
   height: Statement<number>;
   opacity?: Statement<number>; // from 0..1
   hide?: Statement<boolean>;
 }
 
-export interface BackgroundPaint {
-  type: DataLayerPaintType.background;
+export interface BackgroundStyle {
+  type: FeatureStyleType.background;
   color?: Statement<ColorValue>; // default white
   opacity?: Statement<number>; // from 0..1
   hide?: Statement<boolean>;

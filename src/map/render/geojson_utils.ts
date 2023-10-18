@@ -1,6 +1,7 @@
-import { Feature, FeatureCollection, Geometry, LineString, MultiLineString, Polygon, Position } from 'geojson';
+import { Feature, FeatureCollection, MultiLineString, Position } from 'geojson';
 import { simplify, SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from './simplify';
 import { TileLayer } from '../tile/tile_layer';
+import { TileFeature } from '../tile/tile_feature';
 import {
   TransportationFeatureClass,
   BoudaryAdminLevel,
@@ -28,13 +29,13 @@ export const getTransportationFeatureCollection = (
   const features: Feature[] = [];
 
   for (const feature of transportationLayer.getFeatures()) {
-    const transportationFeatureType = feature.properties['class'] as TransportationFeatureClass;
+    const transportationFeatureType = feature.getProperties()['class'] as TransportationFeatureClass;
 
     if (!SUPPORTED_TRANSPORTATION_FEATURES.includes(transportationFeatureType)) {
       continue;
     }
 
-    const lines = (feature.geometry as MultiLineString).coordinates;
+    const lines = feature.getGeometry().coordinates;
     for (const line of lines) {
       const geoJsonFeature: Feature = {
         type: 'Feature',
@@ -47,7 +48,7 @@ export const getTransportationFeatureCollection = (
         properties: {
           layer: 'transportation',
           class: transportationFeatureType,
-          ...feature.properties,
+          ...feature.getProperties(),
         },
       };
 
@@ -94,7 +95,7 @@ export const getBoundaryFeatureCollection = (
   const geometryFeatures: { [BoudaryAdminLevel: number]: Feature[] } = {};
 
   for (const feature of boundaryLayer.getFeatures()) {
-    const adminLevel = feature.properties['admin_level'] as BoudaryAdminLevel;
+    const adminLevel = feature.getProperties()['admin_level'] as BoudaryAdminLevel;
 
     if (!SUPPORTED_BOUNDARY_FEATURES.includes(adminLevel)) {
       continue;
@@ -126,7 +127,7 @@ export const getWaterFeatureCollection = (
   const geometryFeatures: Feature[] = [];
 
   for (const feature of waterLayer.getFeatures()) {
-    const waterClass = feature.properties['class'] as WaterFeatureClass;
+    const waterClass = feature.getProperties()['class'] as WaterFeatureClass;
 
     if (!SUPPORTED_WATER_FEATURES.includes(waterClass)) {
       continue;
@@ -154,7 +155,7 @@ export const getLandCoverFeatureCollection = (
   const geometryFeatures: Feature[] = [];
 
   for (const feature of landCoverLayer.getFeatures()) {
-    const landClass = feature.properties['class'] as LandCoverFeatureClass;
+    const landClass = feature.getProperties()['class'] as LandCoverFeatureClass;
 
     if (!SUPPORTED_LAND_COVER_FEATURES.includes(landClass)) {
       continue;
@@ -172,18 +173,20 @@ export const getLandCoverFeatureCollection = (
 };
 
 const getGeoJsonFeatureFromVectorTile = (
-  feature: Feature,
+  feature: TileFeature,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): Feature => {
+  const geojsonFeature = feature.getGeoJsonFeature();
+
   if (!simplifyOptions.enabled) {
-    return feature;
+    return geojsonFeature;
   }
 
-  if (feature.geometry.type === 'MultiLineString') {
-    for (const points of (feature.geometry as MultiLineString).coordinates) {
+  if (geojsonFeature.geometry.type === 'MultiLineString') {
+    for (const points of (geojsonFeature.geometry as MultiLineString).coordinates) {
       simplify(points, simplifyOptions.tolerance, simplifyOptions.highQuality);
     }
   }
 
-  return feature;
+  return geojsonFeature;
 };

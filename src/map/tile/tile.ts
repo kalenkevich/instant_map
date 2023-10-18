@@ -25,6 +25,10 @@ export interface TileLayers {
   [prop: string]: TileLayer;
 }
 
+export type BasicFeatureProperty = string | number | boolean | undefined;
+
+export type FeatureProperty = BasicFeatureProperty | Array<BasicFeatureProperty> | Record<string, BasicFeatureProperty>;
+
 export const DEFAULT_TILE_SIZE = 256;
 
 export enum MapTileFormatType {
