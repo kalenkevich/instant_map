@@ -5,10 +5,10 @@ export type DataTileStyles = Record<string, DataLayerStyle>;
 export interface DataLayerStyle {
   styleLayerName: string; // style layer name;
   sourceLayerName: string; // tile feature layer;
-  paint?: DataLayerPaint;
   hide?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
+  feature?: FeaturePaint;
   background?: BackgroundPaint;
 }
 
@@ -19,7 +19,8 @@ export enum DataLayerPaintType {
   image = 'image',
   background = 'background',
 }
-export type DataLayerPaint = LinePaint | PolygonPaint | TextPaint | ImagePaint | BackgroundPaint;
+
+export type FeaturePaint = LinePaint | PolygonPaint | TextPaint | ImagePaint | BackgroundPaint;
 
 export interface LinePaint {
   type: DataLayerPaintType.line;
@@ -27,6 +28,7 @@ export interface LinePaint {
   style?: Statement<'solid' | 'dashed' | 'dotted'>; // default 'solid'
   width?: Statement<number>; // default 1
   opacity?: Statement<number>; // from 0..1
+  hide?: Statement<boolean>;
 }
 
 export interface PolygonPaint {
@@ -34,6 +36,7 @@ export interface PolygonPaint {
   color: Statement<ColorValue>;
   border?: LinePaint;
   opacity?: Statement<number>; // from 0..1
+  hide?: Statement<boolean>;
 }
 
 export interface TextPaint {
@@ -42,6 +45,7 @@ export interface TextPaint {
   font: Statement<string>;
   fontSize: Statement<number>;
   opacity?: Statement<number>; // from 0..1
+  hide?: Statement<boolean>;
 }
 
 export interface ImagePaint {
@@ -49,10 +53,12 @@ export interface ImagePaint {
   width: Statement<number>;
   height: Statement<number>;
   opacity?: Statement<number>; // from 0..1
+  hide?: Statement<boolean>;
 }
 
 export interface BackgroundPaint {
   type: DataLayerPaintType.background;
   color?: Statement<ColorValue>; // default white
   opacity?: Statement<number>; // from 0..1
+  hide?: Statement<boolean>;
 }

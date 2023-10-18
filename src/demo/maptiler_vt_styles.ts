@@ -5,7 +5,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     styleLayerName: 'water',
     sourceLayerName: 'waterStyles',
     hide: false,
-    paint: {
+    feature: {
       type: DataLayerPaintType.polygon,
       color: [
         '$switch',
@@ -25,26 +25,8 @@ export const MaptilerVtStyles: DataTileStyles = {
   globallandcover: {
     styleLayerName: 'globallandcover',
     sourceLayerName: 'globallandcoverStyles',
-    hide: [
-      '$!',
-      [
-        '$oneOf',
-        ['$get', 'properties.class'],
-        'farmland',
-        'sand',
-        'ice',
-        'rock',
-        'wood',
-        'grass',
-        'wetland',
-        'crop',
-        'scrub',
-        'tree',
-        'forest',
-        'snow',
-      ],
-    ],
-    paint: {
+    hide: true,
+    feature: {
       type: DataLayerPaintType.polygon,
       color: [
         '$switch',
@@ -62,6 +44,25 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['forest', ['$rgb', 194, 228, 187]],
         ['snow', ['$rgb', 233, 239, 244]],
         ['$default', ['$rgb', 173, 226, 167]],
+      ],
+      hide: [
+        '$!',
+        [
+          '$oneOf',
+          ['$get', 'properties.class'],
+          'farmland',
+          'sand',
+          'ice',
+          'rock',
+          'wood',
+          'grass',
+          'wetland',
+          'crop',
+          'scrub',
+          'tree',
+          'forest',
+          'snow',
+        ],
       ],
       opacity: 1,
     },
@@ -71,26 +72,7 @@ export const MaptilerVtStyles: DataTileStyles = {
   landcover: {
     styleLayerName: 'landcover',
     sourceLayerName: 'landcoverStyles',
-    hide: [
-      '$!',
-      [
-        '$oneOf',
-        ['$get', 'properties.class'],
-        'farmland',
-        'sand',
-        'ice',
-        'rock',
-        'wood',
-        'grass',
-        'wetland',
-        'crop',
-        'scrub',
-        'tree',
-        'forest',
-        'snow',
-      ],
-    ],
-    paint: {
+    feature: {
       type: DataLayerPaintType.polygon,
       color: [
         '$switch',
@@ -108,6 +90,25 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['forest', ['$rgb', 194, 228, 187]],
         ['snow', ['$rgb', 233, 239, 244]],
         ['$default', ['$rgb', 173, 226, 167]],
+      ],
+      hide: [
+        '$!',
+        [
+          '$oneOf',
+          ['$get', 'properties.class'],
+          'farmland',
+          'sand',
+          'ice',
+          'rock',
+          'wood',
+          'grass',
+          'wetland',
+          'crop',
+          'scrub',
+          'tree',
+          'forest',
+          'snow',
+        ],
       ],
       opacity: 1,
     },
@@ -118,7 +119,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     styleLayerName: 'boundary',
     sourceLayerName: 'boundaryStyles',
     hide: false,
-    paint: {
+    feature: {
       type: DataLayerPaintType.line,
       color: ['$rgb', 114, 113, 207],
     },
@@ -129,7 +130,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     styleLayerName: 'building',
     sourceLayerName: 'buildingStyles',
     hide: false,
-    paint: {
+    feature: {
       type: DataLayerPaintType.polygon,
       color: ['$rgb', 222, 215, 211],
     },
@@ -139,11 +140,8 @@ export const MaptilerVtStyles: DataTileStyles = {
   transportation: {
     styleLayerName: 'transportation',
     sourceLayerName: 'transportationStyles',
-    hide: [
-      '$!',
-      ['$oneOf', ['$get', 'properties.class'], 'primary', 'secondary', 'motorway', 'service', 'path', 'minor'],
-    ],
-    paint: {
+    hide: false,
+    feature: {
       type: DataLayerPaintType.line,
       color: [
         '$switch',
@@ -164,6 +162,10 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['service', 30],
         ['path', 30],
         ['minor', 30],
+      ],
+      hide: [
+        '$!',
+        ['$oneOf', ['$get', 'properties.class'], 'primary', 'secondary', 'motorway', 'service', 'path', 'minor'],
       ],
     },
     maxzoom: 15,
