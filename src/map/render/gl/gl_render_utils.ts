@@ -1,9 +1,23 @@
 import { Feature, LineString, Polygon } from 'geojson';
 import { SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from '../simplify';
-import { TileLayer } from '../../tile/tile';
-import { GlProgram, WebGlPath, v2, GL_COLOR_BLACK, WebGlNativeLineStrip, WebGlArea, WebGlLineStrip } from '../../../webgl';
+import { TileLayer } from '../../tile/tile_layer';
+import {
+  GlProgram,
+  WebGlPath,
+  v2,
+  GL_COLOR_BLACK,
+  WebGlNativeLineStrip,
+  WebGlArea,
+  WebGlLineStrip,
+} from '../../../webgl';
 import { WaterFeatureClass, LandCoverFeatureClass, TransportationFeatureClass } from '../../features/map_features';
-import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TranpostationClassStyleMap } from '../../features/map_features_styles';
+import {
+  WaterFeatureClassColorMap,
+  LandCoverClassColorMap,
+  BUILDING_COLOR,
+  BOUNDARY_COLOR,
+  TranpostationClassStyleMap,
+} from '../../features/map_features_styles';
 import {
   getWaterFeatureCollection,
   getLandCoverFeatureCollection,
@@ -17,7 +31,7 @@ export const getWaterGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ) => {
   const fc = getWaterFeatureCollection(waterLayer, simplifyOptions);
 
@@ -42,7 +56,7 @@ export const getLandCoverGlPrograms = (
   x: number,
   y: number,
   scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): GlProgram[] => {
   const fc = getLandCoverFeatureCollection(landCoverLayer, simplifyOptions);
 
@@ -60,14 +74,14 @@ export const getLandCoverGlPrograms = (
 
     return programs;
   }, [] as GlProgram[]);
-}
+};
 
 export const getBoundaryGlPrograms = (
   boundaryLayer: TileLayer,
   x: number,
   y: number,
   scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): GlProgram[] => {
   const fc = getBoundaryFeatureCollection(boundaryLayer, simplifyOptions);
 
@@ -85,14 +99,14 @@ export const getBoundaryGlPrograms = (
 
     return programs;
   }, [] as GlProgram[]);
-}
+};
 
 export const getTransportationGlPrograms = (
   transportationLayer: TileLayer,
   x: number,
   y: number,
   scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): GlProgram[] => {
   const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
 
@@ -108,14 +122,14 @@ export const getTransportationGlPrograms = (
       scale,
     });
   });
-}
+};
 
 export const getBuildingGlPrograms = (
   buildingLayer: TileLayer,
   x: number,
   y: number,
   scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): GlProgram[] => {
   const fc = getBuildingFeatureCollection(buildingLayer, simplifyOptions);
 
@@ -133,7 +147,7 @@ export const getBuildingGlPrograms = (
 
     return programs;
   }, [] as GlProgram[]);
-}
+};
 
 export const getTileBorders = (x: number, y: number, width: number, height: number): GlProgram[] => {
   return [
@@ -150,4 +164,3 @@ export const getTileBorders = (x: number, y: number, width: number, height: numb
     }),
   ];
 };
-

@@ -1,6 +1,6 @@
-import { Feature, FeatureCollection, Geometry, Position } from 'geojson';
+import { Feature, FeatureCollection, Geometry, LineString, MultiLineString, Polygon, Position } from 'geojson';
 import { simplify, SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from './simplify';
-import { TileLayer, TileFeature } from '../tile/tile';
+import { TileLayer } from '../tile/tile_layer';
 import {
   TransportationFeatureClass,
   BoudaryAdminLevel,
@@ -19,22 +19,22 @@ const EmptyFC: FeatureCollection = {
 
 export const getTransportationFeatureCollection = (
   transportationLayer: TileLayer,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): FeatureCollection => {
-  if (!transportationLayer || !transportationLayer.features.length) {
+  if (!transportationLayer || transportationLayer.isEmpty()) {
     return EmptyFC;
   }
 
   const features: Feature[] = [];
 
-  for (const feature of transportationLayer.features) {
+  for (const feature of transportationLayer.getFeatures()) {
     const transportationFeatureType = feature.properties['class'] as TransportationFeatureClass;
 
     if (!SUPPORTED_TRANSPORTATION_FEATURES.includes(transportationFeatureType)) {
       continue;
     }
 
-    const lines = feature.geometry;
+    const lines = (feature.geometry as MultiLineString).coordinates;
     for (const line of lines) {
       const geoJsonFeature: Feature = {
         type: 'Feature',
@@ -42,7 +42,7 @@ export const getTransportationFeatureCollection = (
           type: 'LineString',
           coordinates: simplifyOptions.enabled
             ? simplify(line, simplifyOptions.tolerance, simplifyOptions.highQuality)
-            : line as Position[],
+            : (line as Position[]),
         },
         properties: {
           layer: 'transportation',
@@ -57,21 +57,21 @@ export const getTransportationFeatureCollection = (
 
   return {
     type: 'FeatureCollection',
-    features, 
+    features,
   };
 };
 
 export const getBuildingFeatureCollection = (
   buildingLayer: TileLayer,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): FeatureCollection => {
-  if (!buildingLayer || !buildingLayer.features.length) {
+  if (!buildingLayer || buildingLayer.isEmpty()) {
     return EmptyFC;
   }
 
   const geometryFeatures: Feature[] = [];
 
-  for (const feature of buildingLayer.features) {
+  for (const feature of buildingLayer.getFeatures()) {
     const geometryFeature = getGeoJsonFeatureFromVectorTile(feature, simplifyOptions);
 
     geometryFeatures.push(geometryFeature);
@@ -85,15 +85,15 @@ export const getBuildingFeatureCollection = (
 
 export const getBoundaryFeatureCollection = (
   boundaryLayer: TileLayer,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): FeatureCollection => {
-  if (!boundaryLayer || !boundaryLayer.features.length) {
+  if (!boundaryLayer || boundaryLayer.isEmpty()) {
     return EmptyFC;
   }
 
   const geometryFeatures: { [BoudaryAdminLevel: number]: Feature[] } = {};
 
-  for (const feature of boundaryLayer.features) {
+  for (const feature of boundaryLayer.getFeatures()) {
     const adminLevel = feature.properties['admin_level'] as BoudaryAdminLevel;
 
     if (!SUPPORTED_BOUNDARY_FEATURES.includes(adminLevel)) {
@@ -117,15 +117,15 @@ export const getBoundaryFeatureCollection = (
 
 export const getWaterFeatureCollection = (
   waterLayer: TileLayer,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): FeatureCollection => {
-  if (!waterLayer || !waterLayer.features.length) {
+  if (!waterLayer || waterLayer.isEmpty()) {
     return EmptyFC;
   }
 
   const geometryFeatures: Feature[] = [];
 
-  for (const feature of waterLayer.features) {
+  for (const feature of waterLayer.getFeatures()) {
     const waterClass = feature.properties['class'] as WaterFeatureClass;
 
     if (!SUPPORTED_WATER_FEATURES.includes(waterClass)) {
@@ -145,15 +145,15 @@ export const getWaterFeatureCollection = (
 
 export const getLandCoverFeatureCollection = (
   landCoverLayer: TileLayer,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): FeatureCollection => {
-  if (!landCoverLayer || !landCoverLayer.features.length) {
+  if (!landCoverLayer || landCoverLayer.isEmpty()) {
     return EmptyFC;
   }
 
   const geometryFeatures: Feature[] = [];
 
-  for (const feature of landCoverLayer.features) {
+  for (const feature of landCoverLayer.getFeatures()) {
     const landClass = feature.properties['class'] as LandCoverFeatureClass;
 
     if (!SUPPORTED_LAND_COVER_FEATURES.includes(landClass)) {
@@ -172,35 +172,18 @@ export const getLandCoverFeatureCollection = (
 };
 
 const getGeoJsonFeatureFromVectorTile = (
-  feature: TileFeature,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
+  feature: Feature,
+  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
 ): Feature => {
-  const geometryFeature: Feature = {
-    type: 'Feature',
-    bbox: feature.bbox,
-    geometry: getGeometryFromVectorTile(feature, simplifyOptions),
-    properties: feature.properties,
-  };
-  
-  return geometryFeature;
-};
-
-const getGeometryFromVectorTile = (
-  feature: TileFeature,
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Geometry => {
-  const coordinates: Array<Position[]> = [];
-
-  for (const points of feature.geometry) {
-    const simplifiedPoints = simplifyOptions.enabled
-      ? simplify(points, simplifyOptions.tolerance, simplifyOptions.highQuality)
-      : points;
-
-    coordinates.push(simplifiedPoints);
+  if (!simplifyOptions.enabled) {
+    return feature;
   }
 
-  return {
-    type: 'MultiLineString',
-    coordinates,
-  };
+  if (feature.geometry.type === 'MultiLineString') {
+    for (const points of (feature.geometry as MultiLineString).coordinates) {
+      simplify(points, simplifyOptions.tolerance, simplifyOptions.highQuality);
+    }
+  }
+
+  return feature;
 };

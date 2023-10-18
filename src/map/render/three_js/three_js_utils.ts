@@ -2,7 +2,7 @@ import { Object3D, BackSide, MeshPhongMaterial, ShapeGeometry, Group, Mesh, Shap
 import { Feature, LineString, Polygon } from 'geojson';
 import { WaterFeatureClass, LandCoverFeatureClass } from '../../features/map_features';
 import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TRANSPORTATION_COLOR } from '../../features/map_features_styles';
-import { TileLayer } from '../../tile/tile';
+import { TileLayer } from '../../tile/tile_layer';
 import { SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from '../simplify';
 import {
   getWaterFeatureCollection,

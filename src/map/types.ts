@@ -2,14 +2,16 @@ import { LatLng } from './geo/lat_lng';
 import { CoordinateReferenceSystem } from './geo/crs/crs';
 import { MapRenderer, MapRendererType } from './render/renderer';
 import { MapTileFormatType } from './tile/tile';
+import { DataTileStyles } from './styles/styles';
 
 export interface MapOptions {
   rootEl: HTMLElement;
+  styles?: DataTileStyles;
   zoom?: number;
   rotation?: number;
   center?: LatLng;
   mapMeta?: MapMeta;
-  tilesMetaUrl?: string;
+  tileMetaUrl?: string;
   devicePixelRatio?: number;
   renderer?: MapRendererType | MapRendererOptions;
   crs?: MapCrs;

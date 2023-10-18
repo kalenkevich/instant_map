@@ -78,22 +78,22 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     const buildingLayer = tileLayers['building'];
 
     const objects = [
-      ...(waterLayer?.shouldBeRendered(mapState.zoom) 
+      ...(waterLayer?.shouldBeRendered(mapState) 
         ? getWaterThreeJsObjects(waterLayer, tileX, tileY, scale, {enabled: false})
         : []),
-      ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
+      ...(globallandcoverLayer?.shouldBeRendered(mapState)
         ? getLandCoverThreeJsObjects(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
         : []),
-      ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
+      ...(landcoverLayer?.shouldBeRendered(mapState)
         ? getLandCoverThreeJsObjects(landcoverLayer, tileX, tileY, scale, {enabled: false})
         :[]),
-      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
+      ...(boundaryLayer?.shouldBeRendered(mapState)
        ? getBoundaryThreeJsObjects(boundaryLayer, tileX, tileY, scale, simplifyOptions)
        : []),
-      ...(transportationLayer?.shouldBeRendered(mapState.zoom)
+      ...(transportationLayer?.shouldBeRendered(mapState)
         ? getTransportationThreeJsObjects(transportationLayer, tileX, tileY, scale, simplifyOptions)
         : []),
-      ...(buildingLayer?.shouldBeRendered(mapState.zoom)
+      ...(buildingLayer?.shouldBeRendered(mapState)
        ? getBuildingThreeJsObjects(buildingLayer, tileX, tileY, scale, simplifyOptions)
        : []),
     ];

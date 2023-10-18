@@ -1,4 +1,4 @@
-import { DataTileStyles } from '../map/styles/styles';
+import { DataTileStyles, DataLayerPaintType } from '../map/styles/styles';
 
 export const MaptilerVtStyles: DataTileStyles = {
   water: {
@@ -6,7 +6,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'waterStyles',
     hide: false,
     paint: {
-      type: 'polygon',
+      type: DataLayerPaintType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -45,7 +45,7 @@ export const MaptilerVtStyles: DataTileStyles = {
       ],
     ],
     paint: {
-      type: 'polygon',
+      type: DataLayerPaintType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -91,7 +91,7 @@ export const MaptilerVtStyles: DataTileStyles = {
       ],
     ],
     paint: {
-      type: 'polygon',
+      type: DataLayerPaintType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -119,7 +119,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'boundaryStyles',
     hide: false,
     paint: {
-      type: 'line',
+      type: DataLayerPaintType.line,
       color: ['$rgb', 114, 113, 207],
     },
     maxzoom: 15,
@@ -130,7 +130,7 @@ export const MaptilerVtStyles: DataTileStyles = {
     sourceLayerName: 'buildingStyles',
     hide: false,
     paint: {
-      type: 'polygon',
+      type: DataLayerPaintType.polygon,
       color: ['$rgb', 222, 215, 211],
     },
     maxzoom: 15,
@@ -144,7 +144,7 @@ export const MaptilerVtStyles: DataTileStyles = {
       ['$oneOf', ['$get', 'properties.class'], 'primary', 'secondary', 'motorway', 'service', 'path', 'minor'],
     ],
     paint: {
-      type: 'line',
+      type: DataLayerPaintType.line,
       color: [
         '$switch',
         ['$get', 'properties.class'],

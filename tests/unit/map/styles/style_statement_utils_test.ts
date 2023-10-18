@@ -16,7 +16,7 @@ import {
   ValueStatement,
   FeatureValue,
   HasCondition,
-} from '../../../../src/map/styles/styles';
+} from '../../../../src/map/styles/style_statement';
 import {
   compileStatement,
   compileIfStatement,
@@ -38,7 +38,7 @@ import {
   compileConstantValueStatement,
   isConstantValue,
   getPropertyValue,
-} from '../../../../src/map/styles/styles_utils';
+} from '../../../../src/map/styles/style_statement_utils';
 
 const SampleWaterFeature: Feature = {
   type: 'Feature',

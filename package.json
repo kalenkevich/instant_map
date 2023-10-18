@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rm -rf dist && node ./esbuild.mjs",
     "start": "node ./esbuild.mjs --serve",
+    "compile": "rm -rf dist && tsc",
     "test": "jest",
     "test:unit": "jest --selectProjects unit",
     "test:build": "node ./esbuild.mjs",

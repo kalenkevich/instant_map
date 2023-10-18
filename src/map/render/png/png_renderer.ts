@@ -2,17 +2,14 @@ import { MapTile } from '../../tile/tile';
 import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
-import { PngMapTile } from '../../tile/png_tile';
+import { PngMapTile } from '../../tile/png/png_tile';
 
 export class PngMapRenderer extends MapRenderer {
   animationFrameTaskIdSet = new Set<number>();
   el: HTMLElement;
   images: HTMLImageElement[] = [];
 
-  constructor(
-    protected readonly map: GlideMap,
-    protected readonly devicePixelRatio: number,
-  ) {
+  constructor(protected readonly map: GlideMap, protected readonly devicePixelRatio: number) {
     super(map, devicePixelRatio);
     this.el = this.createDivEl();
     this.resizeEventListener = this.resizeEventListener.bind(this);
@@ -87,12 +84,7 @@ export class PngMapRenderer extends MapRenderer {
     }
   }
 
-  private setupImage(
-    image: HTMLImageElement,
-    tile: PngMapTile,
-    imageSrc: string,
-    mapState: MapState,
-  ) {
+  private setupImage(image: HTMLImageElement, tile: PngMapTile, imageSrc: string, mapState: MapState) {
     const tileScale = this.getTileScale(mapState);
     let tileX = tile.x * tileScale;
     let tileY = tile.y * tileScale;
