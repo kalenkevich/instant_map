@@ -1,6 +1,6 @@
 import { DataTileStyles, FeatureStyleType } from '../map/styles/styles';
 
-export const MaptilerVtStyles: DataTileStyles = {
+export const VectorStyles: DataTileStyles = {
   water: {
     styleLayerName: 'water',
     sourceLayerName: 'waterStyles',
@@ -17,7 +17,6 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['swimming_pool', ['$rgb', 95, 200, 255]],
         ['$default', ['$rgb', 95, 200, 255]],
       ],
-      opacity: 1,
     },
     maxzoom: 15,
     minzoom: 0,
@@ -64,7 +63,6 @@ export const MaptilerVtStyles: DataTileStyles = {
           'snow',
         ],
       ],
-      opacity: 1,
     },
     maxzoom: 9,
     minzoom: 0,
@@ -91,26 +89,22 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['snow', ['$rgb', 233, 239, 244]],
         ['$default', ['$rgb', 173, 226, 167]],
       ],
-      hide: [
-        '$!',
-        [
-          '$oneOf',
-          ['$get', 'properties.class'],
-          'farmland',
-          'sand',
-          'ice',
-          'rock',
-          'wood',
-          'grass',
-          'wetland',
-          'crop',
-          'scrub',
-          'tree',
-          'forest',
-          'snow',
-        ],
+      show: [
+        '$oneOf',
+        ['$get', 'properties.class'],
+        'farmland',
+        'sand',
+        'ice',
+        'rock',
+        'wood',
+        'grass',
+        'wetland',
+        'crop',
+        'scrub',
+        'tree',
+        'forest',
+        'snow',
       ],
-      opacity: 1,
     },
     maxzoom: 15,
     minzoom: 0,
@@ -122,6 +116,12 @@ export const MaptilerVtStyles: DataTileStyles = {
     feature: {
       type: FeatureStyleType.line,
       color: ['$rgb', 114, 113, 207],
+      show: [
+        '$switch',
+        ['$get', 'properties.admin_level'],
+        [2, ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]]],
+        // [2, ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]]],
+      ],
     },
     maxzoom: 15,
     minzoom: 0,
@@ -133,9 +133,8 @@ export const MaptilerVtStyles: DataTileStyles = {
     feature: {
       type: FeatureStyleType.polygon,
       color: ['$rgb', 222, 215, 211],
+      minzoom: 15,
     },
-    maxzoom: 15,
-    minzoom: 13,
   },
   transportation: {
     styleLayerName: 'transportation',

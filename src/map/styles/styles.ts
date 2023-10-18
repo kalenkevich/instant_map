@@ -5,7 +5,7 @@ export type DataTileStyles = Record<string, DataLayerStyle>;
 export interface DataLayerStyle {
   styleLayerName: string; // style layer name;
   sourceLayerName: string; // tile feature layer;
-  hide?: Statement<boolean>;
+  show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
   feature?: FeatureStyle;
@@ -27,16 +27,18 @@ export interface LineStyle {
   color: Statement<ColorValue>;
   style?: Statement<'solid' | 'dashed' | 'dotted'>; // default 'solid'
   width?: Statement<number>; // default 1
-  opacity?: Statement<number>; // from 0..1
-  hide?: Statement<boolean>;
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
 }
 
 export interface PolygonStyle {
   type: FeatureStyleType.polygon;
   color: Statement<ColorValue>;
   border?: LineStyle;
-  opacity?: Statement<number>; // from 0..1
-  hide?: Statement<boolean>;
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
 }
 
 export interface TextStyle {
@@ -44,21 +46,24 @@ export interface TextStyle {
   color: Statement<ColorValue>;
   font: Statement<string>;
   fontSize: Statement<number>;
-  opacity?: Statement<number>; // from 0..1
-  hide?: Statement<boolean>;
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
 }
 
 export interface ImageStyle {
   type: FeatureStyleType.image;
   width: Statement<number>;
   height: Statement<number>;
-  opacity?: Statement<number>; // from 0..1
-  hide?: Statement<boolean>;
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
 }
 
 export interface BackgroundStyle {
   type: FeatureStyleType.background;
-  color?: Statement<ColorValue>; // default white
-  opacity?: Statement<number>; // from 0..1
-  hide?: Statement<boolean>;
+  color?: Statement<ColorValue>; // default transparent
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
 }

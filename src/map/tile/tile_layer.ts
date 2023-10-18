@@ -2,8 +2,8 @@ import { Feature } from 'geojson';
 import { FeatureProperty } from './tile';
 import { MapState } from '../map_state';
 import { DataLayerStyle } from '../styles/styles';
-import { compileLayerStyle } from '../styles/styles_utils';
 import { TileFeature } from './tile_feature';
+import { compileLayerStyle } from '../styles/styles_utils';
 
 export interface TileLayerProps {
   name: string;
@@ -52,10 +52,26 @@ export class TileLayer {
   }
 
   public shouldBeRendered(mapState: MapState): boolean {
-    return !this.compiledStyles.hide;
+    if (!this.compiledStyles || !this.inZoomRange(mapState)) {
+      return false;
+    }
+
+    return !this.compiledStyles.show;
   }
 
   public getStyles(): DataLayerStyle {
     return this.styles;
+  }
+
+  private inZoomRange(mapState: MapState): boolean {
+    if (this.styles.minzoom !== undefined) {
+      return this.styles.minzoom <= mapState.zoom;
+    }
+
+    if (this.styles.maxzoom !== undefined) {
+      return this.styles.maxzoom >= mapState.zoom;
+    }
+
+    return true;
   }
 }

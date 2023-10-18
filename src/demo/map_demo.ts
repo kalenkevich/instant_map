@@ -3,7 +3,7 @@ import { LatLng } from '../map/geo/lat_lng';
 import { GlideMap, MapEventType, DEFAULT_MAP_METADATA } from '../map/map';
 import { MapTileFormatType } from '../map/tile/tile';
 import { MapRendererType } from '../map/render/renderer';
-import { MaptilerVtStyles } from './maptiler_vt_styles';
+import { VectorStyles } from './vector_styles';
 
 type ButtonOption = Partial<MapOptions & { name: string; id: string }>;
 
@@ -28,7 +28,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     resizable: true,
     preheatTiles: true,
     tileMetaUrl: MAPTILER_VT_META_URL,
-    styles: MaptilerVtStyles,
+    styles: VectorStyles,
   },
   {
     name: 'VT threejs maptiler',

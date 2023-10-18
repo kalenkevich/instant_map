@@ -35,14 +35,30 @@ export class TileFeature {
   }
 
   public shouldBeRendered(mapState: MapState): boolean {
-    if (!this.compiledStyles) {
+    if (!this.compiledStyles || !this.inZoomRange(mapState)) {
       return false;
     }
 
-    return !this.compiledStyles.hide;
+    if (this.compiledStyles.show === false) {
+      return false;
+    }
+
+    return true;
   }
 
   public getStyles(): FeatureStyle {
     return this.styles;
+  }
+
+  private inZoomRange(mapState: MapState): boolean {
+    if (this.styles.minzoom !== undefined) {
+      return this.styles.minzoom <= mapState.zoom;
+    }
+
+    if (this.styles.maxzoom !== undefined) {
+      return this.styles.maxzoom >= mapState.zoom;
+    }
+
+    return true;
   }
 }

@@ -5,23 +5,12 @@ import { MapRenderer, RenderingCache } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
-import { DefaultSipmlifyGeometryOptions } from '../simplify';
-import {
-  getTransportationGlPrograms,
-  getBuildingGlPrograms,
-  getBoundaryGlPrograms,
-  getWaterGlPrograms,
-  getLandCoverGlPrograms,
-} from './gl_render_utils';
+import { getLayerGlPrograms } from './gl_render_utils';
 
 export interface WebGlRenderingCache extends RenderingCache {
   programs: GlProgram[];
 }
 
-const simplifyOptions = {
-  ...DefaultSipmlifyGeometryOptions,
-  tolerance: 10,
-};
 export class GlMapRenderer extends MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
   protected canvasEl?: HTMLCanvasElement;
@@ -147,33 +136,21 @@ export class GlMapRenderer extends MapRenderer {
       return [] as GlProgram[];
     }
 
-    const waterLayer = tileLayers['water'];
-    const globallandcoverLayer = tileLayers['globallandcover'];
-    const landcoverLayer = tileLayers['landcover'];
-    const boundaryLayer = tileLayers['boundary'];
-    const transportationLayer = tileLayers['transportation'];
-    const buildingLayer = tileLayers['building'];
+    const programs: GlProgram[] = [];
 
-    const programs = [
-      ...(waterLayer?.shouldBeRendered(mapState)
-        ? getWaterGlPrograms(waterLayer, tileX, tileY, scale, { enabled: false })
-        : []),
-      ...(globallandcoverLayer?.shouldBeRendered(mapState)
-        ? getLandCoverGlPrograms(globallandcoverLayer, tileX, tileY, scale, { enabled: false })
-        : []),
-      ...(landcoverLayer?.shouldBeRendered(mapState)
-        ? getLandCoverGlPrograms(landcoverLayer, tileX, tileY, scale, { enabled: false })
-        : []),
-      ...(boundaryLayer?.shouldBeRendered(mapState)
-        ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, simplifyOptions)
-        : []),
-      ...(transportationLayer?.shouldBeRendered(mapState)
-        ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, simplifyOptions)
-        : []),
-      ...(buildingLayer?.shouldBeRendered(mapState)
-        ? getBuildingGlPrograms(buildingLayer, tileX, tileY, scale, simplifyOptions)
-        : []),
-    ];
+    for (const layer of Object.values(tileLayers)) {
+      programs.push(
+        ...getLayerGlPrograms({
+          layer,
+          mapState,
+          x: tileX,
+          y: tileY,
+          scale,
+          width: tile.width,
+          height: tile.height,
+        })
+      );
+    }
 
     tile.setRenderingCache({ programs });
 

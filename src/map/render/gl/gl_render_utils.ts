@@ -1,166 +1,154 @@
-import { Feature, LineString, Polygon } from 'geojson';
-import { SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from '../simplify';
+import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
+import { ColorValue } from '../../styles/style_statement';
 import {
-  GlProgram,
-  WebGlPath,
   v2,
+  GlProgram,
+  WebGlImage,
   GL_COLOR_BLACK,
   WebGlNativeLineStrip,
+  WebGlRectangle,
   WebGlArea,
   WebGlLineStrip,
+  GlLineStripProps,
+  GlColor,
 } from '../../../webgl';
-import { WaterFeatureClass, LandCoverFeatureClass, TransportationFeatureClass } from '../../features/map_features';
-import {
-  WaterFeatureClassColorMap,
-  LandCoverClassColorMap,
-  BUILDING_COLOR,
-  BOUNDARY_COLOR,
-  TranpostationClassStyleMap,
-} from '../../features/map_features_styles';
-import {
-  getWaterFeatureCollection,
-  getLandCoverFeatureCollection,
-  getBoundaryFeatureCollection,
-  getTransportationFeatureCollection,
-  getBuildingFeatureCollection,
-} from '../geojson_utils';
+import { compileStatement } from '../../styles/style_statement_utils';
+import { TileFeature } from '../../tile/tile_feature';
+import { LineStyle, FeatureStyleType } from '../../styles/styles';
 
-export const getWaterGlPrograms = (
-  waterLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
-) => {
-  const fc = getWaterFeatureCollection(waterLayer, simplifyOptions);
+export interface LayerGlProgramsProps {
+  layer: TileLayer;
+  mapState: MapState;
+  x: number;
+  y: number;
+  scale: [number, number];
+  width: number;
+  height: number;
+  image?: HTMLImageElement;
+}
 
-  return fc.features.reduce((programs: GlProgram[], feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      programs.push(
-        new WebGlArea({
-          color: WaterFeatureClassColorMap[feature.properties['class'] as WaterFeatureClass].toGlColor(),
-          points: area as v2[],
-          translation: [x, y],
-          scale,
-        })
-      );
+export const getLayerGlPrograms = (props: LayerGlProgramsProps): GlProgram[] => {
+  if (!props.layer.shouldBeRendered(props.mapState)) {
+    return [];
+  }
+
+  const programs: GlProgram[] = [];
+  const backgroundProgram = getLayerBackground(props);
+
+  if (backgroundProgram) {
+    programs.push(backgroundProgram);
+  }
+
+  for (const feature of props.layer.getFeatures()) {
+    const featureGlGrogram = getFeatureGlProgram(feature, props);
+
+    if (featureGlGrogram) {
+      programs.push(...featureGlGrogram);
     }
+  }
 
-    return programs;
-  }, [] as GlProgram[]);
+  return programs;
 };
 
-export const getLandCoverGlPrograms = (
-  landCoverLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
-): GlProgram[] => {
-  const fc = getLandCoverFeatureCollection(landCoverLayer, simplifyOptions);
+export const getFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  const featureStyle = feature.getStyles();
 
-  return fc.features.reduce((programs: GlProgram[], feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      programs.push(
-        new WebGlArea({
-          color: LandCoverClassColorMap[feature.properties['class'] as LandCoverFeatureClass].toGlColor(),
-          points: area as v2[],
-          translation: [x, y],
-          scale,
-        })
-      );
-    }
+  if (!feature.shouldBeRendered(props.mapState) || !featureStyle) {
+    return [];
+  }
 
-    return programs;
-  }, [] as GlProgram[]);
+  switch (featureStyle.type) {
+    case FeatureStyleType.line:
+      return getLineFeatureGlProgram(feature, props);
+    case FeatureStyleType.polygon:
+      return getPolygonFeatureGlProgram(feature, props);
+    case FeatureStyleType.image:
+      return getImageFeatureGlProgram(feature, props);
+    case FeatureStyleType.text:
+    default:
+      console.info(`${featureStyle.type} is not supported by WebGL rendrer.`);
+      return [];
+  }
 };
 
-export const getBoundaryGlPrograms = (
-  boundaryLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
-): GlProgram[] => {
-  const fc = getBoundaryFeatureCollection(boundaryLayer, simplifyOptions);
+export const getLineFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  const featureStyle = feature.getStyles()! as LineStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const lineWidth = featureStyle.width ? compileStatement(featureStyle.width, geojsonFeature) : 1;
+  const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
-  return fc.features.reduce((programs: GlProgram[], feature: Feature) => {
-    for (const lineStrip of (feature.geometry as Polygon).coordinates) {
-      programs.push(
-        new WebGlNativeLineStrip({
-          color: BOUNDARY_COLOR.toGlColor(),
-          points: lineStrip as v2[],
-          translation: [x, y],
-          scale,
-        })
-      );
-    }
+  const programs: GlProgram[] = [];
+  for (const lineStrip of feature.getGeometry().coordinates) {
+    const lineStripProps: GlLineStripProps = {
+      color,
+      lineWidth,
+      points: lineStrip as v2[],
+      translation: [props.x, props.y],
+      scale: props.scale,
+    };
 
-    return programs;
-  }, [] as GlProgram[]);
+    programs.push(lineWidth === 1 ? new WebGlNativeLineStrip(lineStripProps) : new WebGlLineStrip(lineStripProps));
+  }
+
+  return programs;
 };
 
-export const getTransportationGlPrograms = (
-  transportationLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
-): GlProgram[] => {
-  const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
+export const getPolygonFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  const featureStyle = feature.getStyles()! as LineStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
-  return fc.features.map((feature: Feature) => {
-    const resultPoints: v2[] = (feature.geometry as LineString).coordinates as v2[];
-    const style = TranpostationClassStyleMap[feature.properties['class'] as TransportationFeatureClass];
+  const programs: GlProgram[] = [];
 
-    return new WebGlLineStrip({
-      lineWidth: style.lineWidth,
-      color: style.color.toGlColor(),
-      points: resultPoints,
-      translation: [x, y],
-      scale,
-    });
+  for (const area of feature.getGeometry().coordinates) {
+    programs.push(
+      new WebGlArea({
+        color,
+        points: area as v2[],
+        translation: [props.x, props.y],
+        scale: props.scale,
+      })
+    );
+  }
+
+  return programs;
+};
+
+export const getImageFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  return [
+    new WebGlImage({
+      width: props.width,
+      height: props.height,
+      image: props.image!,
+      translation: [props.x, props.y],
+      scale: props.scale,
+    }),
+  ];
+};
+
+export const getLayerBackground = (props: LayerGlProgramsProps): GlProgram | undefined => {
+  const backgroundStyle = props.layer.getStyles().background;
+  if (!backgroundStyle || !backgroundStyle.color) {
+    return;
+  }
+
+  return new WebGlRectangle({
+    p: [0, 0],
+    translation: [props.x, props.y],
+    scale: props.scale,
+    width: props.width,
+    height: props.height,
+    color: getGlColor(compileStatement(backgroundStyle.color, props.layer)),
   });
 };
 
-export const getBuildingGlPrograms = (
-  buildingLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
-): GlProgram[] => {
-  const fc = getBuildingFeatureCollection(buildingLayer, simplifyOptions);
+export const getGlColor = (stylesColor: ColorValue): GlColor => {
+  if (stylesColor[0] === '$rgb') {
+    return [stylesColor[1] / 255, stylesColor[2] / 255, stylesColor[3] / 255];
+  }
 
-  return fc.features.reduce((programs, feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      programs.push(
-        new WebGlArea({
-          color: BUILDING_COLOR.toGlColor(),
-          points: area as v2[],
-          translation: [x, y],
-          scale,
-        })
-      );
-    }
-
-    return programs;
-  }, [] as GlProgram[]);
-};
-
-export const getTileBorders = (x: number, y: number, width: number, height: number): GlProgram[] => {
-  return [
-    new WebGlPath({
-      color: GL_COLOR_BLACK,
-      points: [
-        [0, 0],
-        [width, 0],
-        [width, height],
-        [0, height],
-        [0, 0],
-      ],
-      translation: [x, y],
-    }),
-  ];
+  if (stylesColor[0] === '$rgba') {
+    return [stylesColor[1] / 255, stylesColor[2] / 255, stylesColor[3] / 255, stylesColor[4]];
+  }
 };
