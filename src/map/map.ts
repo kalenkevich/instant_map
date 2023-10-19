@@ -14,7 +14,7 @@ import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/gl/gl_renderer';
-import { PngMapRenderer } from './render/png/png_renderer'; 
+import { PngMapRenderer } from './render/png/png_renderer';
 import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
@@ -22,6 +22,7 @@ import { MapParentControl, MapControlPosition } from './controls/parent_control'
 import { ZoomControl } from './controls/zoom_control';
 import { CompassControl } from './controls/compass_control';
 import { MoveControl } from './controls/move_control';
+import { DataTileStyles } from './styles/styles';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -72,7 +73,8 @@ export class GlideMap {
   bounds?: LatLngBounds;
 
   mapMeta?: MapMeta;
-  tilesMetaUrl?: string;
+  tileMetaUrl?: string;
+  tileStyles?: DataTileStyles;
 
   renderer: MapRenderer;
   tilesGrid: TilesGrid;
@@ -94,13 +96,11 @@ export class GlideMap {
       rotation: options.rotation || 0,
     };
     this.mapMeta = options.mapMeta;
-    this.tilesMetaUrl = options.tilesMetaUrl;
+    this.tileStyles = options.styles;
+    this.tileMetaUrl = options.tileMetaUrl;
     this.renderer = getRenderer(this, options.renderer || MapRendererType.webgl);
     this.crs = getCrs(options.crs);
-    this.eventHandlers = [
-      new ZoomEventHandler(this),
-      new DragEventHandler(this),
-    ];
+    this.eventHandlers = [new ZoomEventHandler(this), new DragEventHandler(this)];
     this.controls = this.getMapControls();
 
     this.resizeEventListener = this.resizeEventListener.bind(this);
@@ -114,8 +114,7 @@ export class GlideMap {
       window.addEventListener('resize', this.resizeEventListener);
     }
 
-    if (this.tilesMetaUrl) {
-
+    if (this.tileMetaUrl) {
       this.fetchMapMeta().then(mapMeta => {
         this.mapMeta = {
           ...(this.options.mapMeta || {}),
@@ -147,6 +146,7 @@ export class GlideMap {
         tiles: this.mapMeta.tiles,
         vector_layers: this.mapMeta.vector_layers,
       },
+      tileStyles: this.tileStyles,
     });
 
     this.renderer.init();
@@ -223,7 +223,7 @@ export class GlideMap {
 
   private async fetchMapMeta(): Promise<MapMeta | undefined> {
     try {
-      return (await fetch(this.tilesMetaUrl).then(data => data.json())) as MapMeta;
+      return (await fetch(this.tileMetaUrl).then(data => data.json())) as MapMeta;
     } catch (e) {
       console.log(e);
 
@@ -269,13 +269,16 @@ export class GlideMap {
     if (Math.abs(newZoom - this.state.zoom) > 1) {
       const currentZoom = this.state.zoom;
       const diff = newZoom - currentZoom;
-      const animation = new EasyAnimation(this,
+      const animation = new EasyAnimation(
+        this,
         (progress: number) => {
           return this.setZoom(currentZoom + diff * progress);
-        }, {
-        durationInSec: 0.5,
-      });
-  
+        },
+        {
+          durationInSec: 0.5,
+        }
+      );
+
       return animation.run();
     }
 
@@ -311,46 +314,46 @@ export class GlideMap {
   }
 
   limitOffset(offset: Point, bounds: LatLngBounds) {
-		if (!bounds) {
+    if (!bounds) {
       return offset;
     }
 
-		const viewBounds = this.getPixelBounds();
-		const newBounds = new Bounds(viewBounds.min.add(offset), viewBounds.max.add(offset));
+    const viewBounds = this.getPixelBounds();
+    const newBounds = new Bounds(viewBounds.min.add(offset), viewBounds.max.add(offset));
 
-		return offset.add(this.getBoundsOffset(newBounds, bounds));
-	}
+    return offset.add(this.getBoundsOffset(newBounds, bounds));
+  }
 
   getPixelBounds() {
-		const topLeftPoint = this.getTopLeftPoint();
+    const topLeftPoint = this.getTopLeftPoint();
 
-		return new Bounds(topLeftPoint, topLeftPoint.add(this.getSize()));
-	}
+    return new Bounds(topLeftPoint, topLeftPoint.add(this.getSize()));
+  }
 
   getBoundsOffset(pxBounds: Bounds, maxBounds: LatLngBounds, zoom?: number) {
-		const projectedMaxBounds = new Bounds(
-        this.project(maxBounds.getNorthEast(), zoom),
-        this.project(maxBounds.getSouthWest(), zoom),
+    const projectedMaxBounds = new Bounds(
+      this.project(maxBounds.getNorthEast(), zoom),
+      this.project(maxBounds.getSouthWest(), zoom)
     );
     const minOffset = projectedMaxBounds.min.subtract(pxBounds.min);
     const maxOffset = projectedMaxBounds.max.subtract(pxBounds.max);
     const dx = this.rebound(minOffset.x, -maxOffset.x);
     const dy = this.rebound(minOffset.y, -maxOffset.y);
 
-		return new Point(dx, dy);
-	}
+    return new Point(dx, dy);
+  }
 
   rebound(left: number, right: number): number {
-		return left + right > 0 ?
-			Math.round(left - right) / 2 :
-			Math.max(0, Math.ceil(left)) - Math.max(0, Math.floor(right));
-	}
+    return left + right > 0
+      ? Math.round(left - right) / 2
+      : Math.max(0, Math.ceil(left)) - Math.max(0, Math.floor(right));
+  }
 
   getTopLeftPoint() {
-		const pixelOrigin = this.getPixelOrigin();
+    const pixelOrigin = this.getPixelOrigin();
 
-		return pixelOrigin.subtract(this.getMapPanePos());
-	}
+    return pixelOrigin.subtract(this.getMapPanePos());
+  }
 
   getLatLngFromPoint(point: Point, zoom?: number): LatLng {
     const scale = this.getZoomScale(zoom || this.state.zoom);
@@ -420,28 +423,31 @@ export class GlideMap {
 
   panBy(offset: Point, options: MapPanOptions): Promise<void> {
     if (!offset.x && !offset.y) {
-			this.fire(MapEventType.MOVE_END);
+      this.fire(MapEventType.MOVE_END);
       return;
-		}
+    }
 
-		// If we pan too far, Chrome gets issues with tiles
-		// and makes them disappear or appear in the wrong place (slightly offset)
-		if (!options.animate || !this.getSize().contains(offset)) {
+    // If we pan too far, Chrome gets issues with tiles
+    // and makes them disappear or appear in the wrong place (slightly offset)
+    if (!options.animate || !this.getSize().contains(offset)) {
       const newLatLng = this.unproject(this.project(this.getCenter()).add(offset));
 
       return this.zoomToPoint(this.getZoom(), newLatLng);
-		}
+    }
 
     const newPos = this.getMapPanePos().subtract(offset).round();
-    const animation = new EasyAnimation(this,
+    const animation = new EasyAnimation(
+      this,
       (progress: number) => {
         const nextPosition = newPos.add(offset.multiplyBy(progress));
 
         return this.setCenter(nextPosition);
-      }, {
-      durationInSec: options.duration,
-      easeLinearity: options.easeLinearity,
-    });
+      },
+      {
+        durationInSec: options.duration,
+        easeLinearity: options.easeLinearity,
+      }
+    );
 
     return animation.run();
   }
@@ -464,7 +470,7 @@ export class GlideMap {
   }
 
   private triggerRerender() {
-    const state = {...this.state};
+    const state = { ...this.state };
 
     return this.tilesGrid.update(state).then(tiles => {
       this.renderer.stopRender();
@@ -486,7 +492,7 @@ export class GlideMap {
     return this.renderer.stopRender();
   }
 
-  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; enabled: boolean; }> = [];
+  private eventListeners: Array<{ eventType: MapEventType; handler: EventListener; enabled: boolean }> = [];
   public on(eventType: MapEventType, handler: EventListener): void {
     this.eventListeners.push({
       eventType,
@@ -532,10 +538,7 @@ export class GlideMap {
   }
 }
 
-export const getRenderer = (
-  map: GlideMap,
-  renderer: MapRendererType | MapRendererOptions,
-): MapRenderer => {
+export const getRenderer = (map: GlideMap, renderer: MapRendererType | MapRendererOptions): MapRenderer => {
   if ((renderer as MapRendererOptions).renderer) {
     return (renderer as MapRendererOptions).renderer;
   }

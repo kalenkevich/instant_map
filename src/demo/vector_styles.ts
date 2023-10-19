@@ -1,12 +1,11 @@
-import { DataTileStyles } from '../map/styles/styles';
+import { DataTileStyles, FeatureStyleType } from '../map/styles/styles';
 
-export const MaptilerVtStyles: DataTileStyles = {
+export const VectorStyles: DataTileStyles = {
   water: {
     styleLayerName: 'water',
     sourceLayerName: 'waterStyles',
-    hide: false,
-    paint: {
-      type: 'polygon',
+    feature: {
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -17,7 +16,6 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['swimming_pool', ['$rgb', 95, 200, 255]],
         ['$default', ['$rgb', 95, 200, 255]],
       ],
-      opacity: 1,
     },
     maxzoom: 15,
     minzoom: 0,
@@ -25,27 +23,8 @@ export const MaptilerVtStyles: DataTileStyles = {
   globallandcover: {
     styleLayerName: 'globallandcover',
     sourceLayerName: 'globallandcoverStyles',
-    hide: [
-      '$!',
-      [
-        '$oneOf',
-        ['$get', 'properties.class'],
-        'farmland',
-        'sand',
-        'ice',
-        'rock',
-        'wood',
-        'grass',
-        'wetland',
-        'crop',
-        'scrub',
-        'tree',
-        'forest',
-        'snow',
-      ],
-    ],
-    paint: {
-      type: 'polygon',
+    feature: {
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -63,7 +42,22 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['snow', ['$rgb', 233, 239, 244]],
         ['$default', ['$rgb', 173, 226, 167]],
       ],
-      opacity: 1,
+      show: [
+        '$oneOf',
+        ['$get', 'properties.class'],
+        'farmland',
+        'sand',
+        'ice',
+        'rock',
+        'wood',
+        'grass',
+        'wetland',
+        'crop',
+        'scrub',
+        'tree',
+        'forest',
+        'snow',
+      ],
     },
     maxzoom: 9,
     minzoom: 0,
@@ -71,27 +65,8 @@ export const MaptilerVtStyles: DataTileStyles = {
   landcover: {
     styleLayerName: 'landcover',
     sourceLayerName: 'landcoverStyles',
-    hide: [
-      '$!',
-      [
-        '$oneOf',
-        ['$get', 'properties.class'],
-        'farmland',
-        'sand',
-        'ice',
-        'rock',
-        'wood',
-        'grass',
-        'wetland',
-        'crop',
-        'scrub',
-        'tree',
-        'forest',
-        'snow',
-      ],
-    ],
-    paint: {
-      type: 'polygon',
+    feature: {
+      type: FeatureStyleType.polygon,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -109,7 +84,22 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['snow', ['$rgb', 233, 239, 244]],
         ['$default', ['$rgb', 173, 226, 167]],
       ],
-      opacity: 1,
+      show: [
+        '$oneOf',
+        ['$get', 'properties.class'],
+        'farmland',
+        'sand',
+        'ice',
+        'rock',
+        'wood',
+        'grass',
+        'wetland',
+        'crop',
+        'scrub',
+        'tree',
+        'forest',
+        'snow',
+      ],
     },
     maxzoom: 15,
     minzoom: 0,
@@ -117,10 +107,95 @@ export const MaptilerVtStyles: DataTileStyles = {
   boundary: {
     styleLayerName: 'boundary',
     sourceLayerName: 'boundaryStyles',
-    hide: false,
-    paint: {
-      type: 'line',
+    show: false,
+    feature: {
+      type: FeatureStyleType.line,
       color: ['$rgb', 114, 113, 207],
+      show: [
+        '$switch',
+        ['$get', 'properties.admin_level'],
+        [
+          2,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]],
+            true,
+            false,
+          ],
+        ],
+        [
+          3,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 2], ['$lte', ['$get', 'mapState.zoom'], 3]],
+            true,
+            false,
+          ],
+        ],
+        [
+          4,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 3], ['$lte', ['$get', 'mapState.zoom'], 4]],
+            true,
+            false,
+          ],
+        ],
+        [
+          5,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 4], ['$lte', ['$get', 'mapState.zoom'], 5]],
+            true,
+            false,
+          ],
+        ],
+        [
+          6,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 5], ['$lte', ['$get', 'mapState.zoom'], 6]],
+            true,
+            false,
+          ],
+        ],
+        [
+          7,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 6], ['$lte', ['$get', 'mapState.zoom'], 7]],
+            true,
+            false,
+          ],
+        ],
+        [
+          8,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 7], ['$lte', ['$get', 'mapState.zoom'], 8]],
+            true,
+            false,
+          ],
+        ],
+        [
+          9,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 8], ['$lte', ['$get', 'mapState.zoom'], 9]],
+            true,
+            false,
+          ],
+        ],
+        [
+          10,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 9], ['$lte', ['$get', 'mapState.zoom'], 20]],
+            true,
+            false,
+          ],
+        ],
+      ],
     },
     maxzoom: 15,
     minzoom: 0,
@@ -128,23 +203,18 @@ export const MaptilerVtStyles: DataTileStyles = {
   building: {
     styleLayerName: 'building',
     sourceLayerName: 'buildingStyles',
-    hide: false,
-    paint: {
-      type: 'polygon',
+    feature: {
+      type: FeatureStyleType.polygon,
       color: ['$rgb', 222, 215, 211],
+      minzoom: 15,
     },
-    maxzoom: 15,
-    minzoom: 13,
   },
   transportation: {
     styleLayerName: 'transportation',
     sourceLayerName: 'transportationStyles',
-    hide: [
-      '$!',
-      ['$oneOf', ['$get', 'properties.class'], 'primary', 'secondary', 'motorway', 'service', 'path', 'minor'],
-    ],
-    paint: {
-      type: 'line',
+    show: true,
+    feature: {
+      type: FeatureStyleType.line,
       color: [
         '$switch',
         ['$get', 'properties.class'],
@@ -165,84 +235,95 @@ export const MaptilerVtStyles: DataTileStyles = {
         ['path', 30],
         ['minor', 30],
       ],
+      show: ['$oneOf', ['$get', 'properties.class'], 'primary', 'secondary', 'motorway', 'service', 'path', 'minor'],
     },
     maxzoom: 15,
     minzoom: 4,
   },
+  poi: {
+    styleLayerName: 'poi',
+    sourceLayerName: 'poiStyles',
+    show: false,
+    feature: {
+      type: FeatureStyleType.point,
+      radius: 50,
+      color: ['$rgb', 250, 185, 57],
+      border: {
+        type: FeatureStyleType.line,
+        color: ['$rgb', 0, 0, 0],
+        width: 5,
+      },
+    },
+    maxzoom: 15,
+    minzoom: 12,
+  },
   aerodrome_label: {
     styleLayerName: 'aerodrome_label',
     sourceLayerName: 'aerodromeLabelStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 8,
   },
   aeroway: {
     styleLayerName: 'aeroway',
     sourceLayerName: 'aerowayStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 10,
   },
   housenumber: {
     styleLayerName: 'housenumber',
     sourceLayerName: 'housenumberStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 14,
   },
   landuse: {
     styleLayerName: 'landuse',
     sourceLayerName: 'landuseStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 4,
   },
   mountain_peak: {
     styleLayerName: 'mountain_peak',
     sourceLayerName: 'mountain_peakStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 7,
   },
   park: {
     styleLayerName: 'park',
     sourceLayerName: 'parkStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 4,
   },
   place: {
     styleLayerName: 'place',
     sourceLayerName: 'placeStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 0,
-  },
-  poi: {
-    styleLayerName: 'poi',
-    sourceLayerName: 'poiStyles',
-    hide: true,
-    maxzoom: 15,
-    minzoom: 12,
   },
   transportation_name: {
     styleLayerName: 'transportation_name',
     sourceLayerName: 'transportation_nameStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 6,
   },
   water_name: {
     styleLayerName: 'water_name',
     sourceLayerName: 'water_nameStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 0,
   },
   waterway: {
     styleLayerName: 'waterway',
     sourceLayerName: 'waterwayStyles',
-    hide: true,
+    show: false,
     maxzoom: 15,
     minzoom: 3,
   },

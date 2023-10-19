@@ -1,6 +1,6 @@
-import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayersMap } from './tile';
-import { MapTilesMeta } from '../types';
-import { downloadFile } from '../utils/download_utils';
+import { MapTile, MapTileFormatType, MapTileOptions, TileCoordinate, TileLayers } from '../tile';
+import { MapTilesMeta } from '../../types';
+import { downloadFile } from '../../utils/download_utils';
 
 export class PngMapTile extends MapTile {
   id: string;
@@ -63,7 +63,7 @@ export class PngMapTile extends MapTile {
       .replace('{y}', this.tileCoords.y.toString());
   }
 
-  getLayers(): TileLayersMap {
+  getLayers(): TileLayers {
     return {};
   }
 

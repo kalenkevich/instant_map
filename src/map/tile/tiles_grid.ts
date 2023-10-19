@@ -5,12 +5,14 @@ import { Point } from '../geometry/point';
 import { Bounds } from '../geometry/bounds';
 import { GlideMap } from '../map';
 import { LatLngBounds } from '../geo/lat_lng_bounds';
-import { PbfMapTile } from './pbf_tile';
-import { PngMapTile } from './png_tile';
+import { PbfMapTile } from './pbf/pbf_tile';
+import { PngMapTile } from './png/png_tile';
 import { LRUCache } from '../utils/lru_cache';
+import { DataTileStyles } from '../styles/styles';
 
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
+  tileStyles?: DataTileStyles;
   tileFormatType: MapTileFormatType;
   devicePixelRatio: number;
   preheatTiles?: boolean;
@@ -22,7 +24,7 @@ export interface TilesGridOptions {
 export class TilesGrid {
   map: GlideMap;
   tileFormatType: MapTileFormatType;
-  tilesCache: LRUCache<MapTileId, MapTile>;
+  tilesCache: LRUCache<MapTileId, MapTile> = new LRUCache<MapTileId, MapTile>(120);
   renderedTiles: Array<MapTile> = [];
   tilesMeta: MapTilesMeta;
   devicePixelRatio: number;
@@ -31,15 +33,16 @@ export class TilesGrid {
   tileZoom: number;
 
   fetchInProgress = false;
-  // TODO use LRU cache instead.
   fetchingTilesMap: Map<string, AbortController> = new Map();
+
+  tileStyles?: DataTileStyles;
 
   constructor(map: GlideMap, options: TilesGridOptions) {
     this.map = map;
     this.tilesMeta = options.tilesMeta;
+    this.tileStyles = options.tileStyles;
     this.tileFormatType = options.tileFormatType;
     this.devicePixelRatio = options.devicePixelRatio;
-    this.tilesCache = new LRUCache<MapTileId, MapTile>(120);
   }
 
   public async init(mapState: MapState) {
@@ -61,12 +64,12 @@ export class TilesGrid {
     const left = this.map.getLatLngFromPoint(mapPanePos.add(new Point(-512, 0)));
 
     const tilesToPreheat = [
-      ...this.getTilesToRender({...mapState, zoom: mapState.zoom - 1}),
-      ...this.getTilesToRender({...mapState, zoom: mapState.zoom + 1}),
-      ...this.getTilesToRender({...mapState, center: up}),
-      ...this.getTilesToRender({...mapState, center: down}),
-      ...this.getTilesToRender({...mapState, center: right}),
-      ...this.getTilesToRender({...mapState, center: left}),
+      ...this.getTilesToRender({ ...mapState, zoom: mapState.zoom - 1 }),
+      ...this.getTilesToRender({ ...mapState, zoom: mapState.zoom + 1 }),
+      ...this.getTilesToRender({ ...mapState, center: up }),
+      ...this.getTilesToRender({ ...mapState, center: down }),
+      ...this.getTilesToRender({ ...mapState, center: right }),
+      ...this.getTilesToRender({ ...mapState, center: left }),
     ];
 
     return this.fetchTiles(tilesToPreheat);
@@ -145,7 +148,7 @@ export class TilesGrid {
   }
 
   private getTilesToRender(mapState: MapState): MapTile[] {
-    const tileSize = (parseInt(this.tilesMeta.pixel_scale) || DEFAULT_TILE_SIZE);
+    const tileSize = parseInt(this.tilesMeta.pixel_scale) || DEFAULT_TILE_SIZE;
     const tileZoom = this.getTileZoom(mapState);
     const pixelBounds = this.getTiledPixelBounds(mapState);
     const tileRange = this.pxBoundsToTileRange(pixelBounds, mapState);
@@ -200,6 +203,7 @@ export class TilesGrid {
         },
         devicePixelRatio: this.devicePixelRatio,
         tilesMeta: this.tilesMeta,
+        tileStyles: this.tileStyles,
       })
     );
   }
@@ -221,8 +225,8 @@ export class TilesGrid {
       const bounds = this.getTileRange(tileZoom, mapState);
 
       if (
-        (!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x))
-        || (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))
+        (!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) ||
+        (!crs.wrapLat && (coords.y < bounds.min.y || coords.y > bounds.max.y))
       ) {
         return false;
       }
@@ -273,12 +277,12 @@ export class TilesGrid {
 
     return new Bounds(
       bounds.min.unscaleBy(tileSizePoint).floor(),
-      bounds.max.unscaleBy(tileSizePoint).ceil().subtract(new Point(1, 1)),
+      bounds.max.unscaleBy(tileSizePoint).ceil().subtract(new Point(1, 1))
     );
   }
 
   private getTileSize({ zoom }: MapState): number {
-    const tileSize = (parseInt(this.tilesMeta.pixel_scale) || this.defaultTileSize);
+    const tileSize = parseInt(this.tilesMeta.pixel_scale) || this.defaultTileSize;
 
     if (zoom > 1) {
       return tileSize;

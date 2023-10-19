@@ -1,196 +1,248 @@
-import { Object3D, BackSide, MeshPhongMaterial, ShapeGeometry, Group, Mesh, Shape, LineBasicMaterial, BufferGeometry, Line, Vector2 } from 'three';
-import { Feature, LineString, Polygon } from 'geojson';
-import { WaterFeatureClass, LandCoverFeatureClass } from '../../features/map_features';
-import { WaterFeatureClassColorMap, LandCoverClassColorMap, BUILDING_COLOR, BOUNDARY_COLOR, TRANSPORTATION_COLOR } from '../../features/map_features_styles';
-import { TileLayer } from '../../tile/tile';
-import { SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from '../simplify';
+import { Point, Polygon, MultiLineString } from 'geojson';
 import {
-  getWaterFeatureCollection,
-  getLandCoverFeatureCollection,
-  getBoundaryFeatureCollection,
-  getTransportationFeatureCollection,
-  getBuildingFeatureCollection,
-} from '../geojson_utils';
+  Object3D,
+  Vector2,
+  Group,
+  Mesh,
+  Shape,
+  MeshPhongMaterial,
+  PlaneGeometry,
+  CircleGeometry,
+  ShapeGeometry,
+  Color,
+  BackSide,
+  SRGBColorSpace,
+} from 'three';
+import { MeshLineGeometry, MeshLineMaterial, raycast } from 'meshline';
+import { MapState } from '../../map_state';
+import { TileLayer } from '../../tile/tile_layer';
+import { ColorValue } from '../../styles/style_statement';
+import { compileStatement } from '../../styles/style_statement_utils';
+import { TileFeature } from '../../tile/tile_feature';
+import { LineStyle, PointStyle, FeatureStyleType } from '../../styles/styles';
 
-export const getWaterThreeJsObjects = (
-  waterLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Object3D[] => {
-  const fc = getWaterFeatureCollection(waterLayer, simplifyOptions);
-
-  return fc.features.reduce((objects: Object3D[], feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      const material = new MeshPhongMaterial({
-        emissive: WaterFeatureClassColorMap[feature.properties['class'] as WaterFeatureClass].toThreeJsColor(),
-        side: BackSide,
-        flatShading: true
-      });
-
-      const shape = new Shape();
-      shape.moveTo(area[0][0], area[0][1]);
-      for (let i = 1; i < area.length; i++) {
-        shape.lineTo(area[i][0], area[i][1]);
-      }
-
-      const geometry = new ShapeGeometry(shape, 12);
-
-      geometry.computeBoundingBox();
-
-      const group = new Group();
-      group.add(new Mesh(geometry, material));
-      group.translateX(x);
-      group.translateY(y);
-      group.scale.set(scale[0], scale[1], 1);
-
-      objects.push(group);
-    }
-
-    return objects;
-  }, [] as Object3D[]);
+export interface LayerObjectsProps {
+  layer: TileLayer;
+  mapState: MapState;
+  x: number;
+  y: number;
+  scale: [number, number];
+  width: number;
+  height: number;
+  mapWidth: number;
+  mapHeight: number;
+  image?: HTMLImageElement;
 }
 
-export const getLandCoverThreeJsObjects = (
-  landCoverLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Object3D[] => {
+export const THREEJS_COLOR_WHITE = new Color(0xffffff);
+export const THREEJS_COLOR_BLACK = new Color(0x000000);
+export const THREEJS_COLOR_GREY = new Color(0x808080);
 
-  const fc = getLandCoverFeatureCollection(landCoverLayer, simplifyOptions);
+export const getLayerObjects = (props: LayerObjectsProps): Object3D[] => {
+  if (!props.layer.shouldBeRendered(props.mapState)) {
+    return [];
+  }
 
-  return fc.features.reduce((objects: Object3D[], feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      const material = new MeshPhongMaterial({
-        emissive: LandCoverClassColorMap[feature.properties['class'] as LandCoverFeatureClass].toThreeJsColor(),
-        side: BackSide,
-        flatShading: true
-      });
+  const objects: Object3D[] = [];
+  const backgroundObject = getLayerBackground(props);
 
-      const shape = new Shape();
-      shape.moveTo(area[0][0], area[0][1]);
-      for (let i = 1; i < area.length; i++) {
-        shape.lineTo(area[i][0], area[i][1]);
-      }
+  if (backgroundObject) {
+    objects.push(backgroundObject);
+  }
 
-      const geometry = new ShapeGeometry(shape, 12);
-      const group = new Group();
-      group.add(new Mesh(geometry, material));
-      group.translateX(x);
-      group.translateY(y);
-      group.scale.set(scale[0], scale[1], 1);
+  for (const feature of props.layer.getFeatures()) {
+    const featureObjects = getFeatureObjects(feature, props);
 
-      objects.push(group);
+    if (featureObjects) {
+      objects.push(...featureObjects);
     }
+  }
 
-    return objects;
-  }, [] as Object3D[]);
-}
+  return objects;
+};
 
-const boundaryMaterial = new LineBasicMaterial({
-  color: BOUNDARY_COLOR.toThreeJsColor(),
-  linewidth: 1,
-});
+export const getFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
+  const featureStyle = feature.getStyles();
 
-export const getBoundaryThreeJsObjects = (
-  boundaryLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Object3D[] => {
-  const fc = getBoundaryFeatureCollection(boundaryLayer, simplifyOptions);
+  if (!feature.shouldBeRendered(props.mapState) || !featureStyle) {
+    return [];
+  }
 
-  return fc.features.reduce((objects: Object3D[], feature: Feature) => {
-    for (const lineStrip of (feature.geometry as Polygon).coordinates) {
-      const points: Vector2[] = [];
-      
-      for (const point of lineStrip) {
-        points.push(new Vector2(point[0], point[1]));
-      }
-  
-      const geometry = new BufferGeometry().setFromPoints(points);
-      const line = new Line(geometry, boundaryMaterial);
-  
-      line.translateX(x);
-      line.translateY(y);
-      line.scale.set(scale[0], scale[1], 1);
+  switch (featureStyle.type) {
+    case FeatureStyleType.point:
+      return getPointFeatureObjects(feature, props);
+    case FeatureStyleType.line:
+      return getLineFeatureObjects(feature, props);
+    case FeatureStyleType.polygon:
+      return getPolygonFeatureObjects(feature, props);
+    case FeatureStyleType.image:
+      return getImageFeatureObjects(feature, props);
+    case FeatureStyleType.text:
+    default:
+      console.info(`${featureStyle.type} is not supported by ThreeJs rendrer.`);
+      return [];
+  }
+};
 
-      objects.push(line);
-    }
+export const getPointFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
+  const featureStyle = feature.getStyles()! as PointStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const radius = featureStyle.radius ? compileStatement(featureStyle.radius, geojsonFeature) : 50;
+  const color = featureStyle.color
+    ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
+    : THREEJS_COLOR_WHITE;
+  const center = feature.getGeometry() as Point;
+  const objects: Object3D[] = [];
 
-    return objects;
-  }, [] as Object3D[]);
-}
+  if (featureStyle.border) {
+    const borderStyle = featureStyle.border;
+    const borderRadius = radius + (featureStyle.radius ? compileStatement(borderStyle.width, geojsonFeature) : 5) * 2;
+    const borderColor = borderStyle.color
+      ? getThreeJsColor(compileStatement(borderStyle.color, geojsonFeature))
+      : THREEJS_COLOR_BLACK;
 
+    const geometry = new CircleGeometry(borderRadius, 32);
+    const material = new MeshPhongMaterial({
+      emissive: borderColor,
+      side: BackSide,
+      flatShading: true,
+    });
+    const borderCircle = new Mesh(geometry, material);
 
-export const getTransportationThreeJsObjects = (
-  transportationLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Object3D[] => {
-  const fc = getTransportationFeatureCollection(transportationLayer, simplifyOptions);
+    borderCircle.translateX(props.x);
+    borderCircle.translateY(props.y);
+    borderCircle.scale.set(props.scale[0], props.scale[1], 1);
+    borderCircle.position.set(center.coordinates[0], center.coordinates[1], 0);
 
-  return fc.features.map((feature: Feature) => {
+    objects.push(borderCircle);
+  }
+
+  const geometry = new CircleGeometry(radius, 32);
+  const material = new MeshPhongMaterial({
+    emissive: color,
+    side: BackSide,
+    flatShading: true,
+  });
+  const circle = new Mesh(geometry, material);
+
+  circle.translateX(props.x);
+  circle.translateY(props.y);
+  circle.scale.set(props.scale[0], props.scale[1], 1);
+  circle.position.set(center.coordinates[0], center.coordinates[1], 0);
+
+  objects.push(circle);
+
+  return objects;
+};
+
+export const getLineFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
+  const featureStyle = feature.getStyles()! as LineStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const lineWidth = featureStyle.width ? compileStatement(featureStyle.width, geojsonFeature) : 1;
+  const color = featureStyle.color
+    ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
+    : THREEJS_COLOR_BLACK;
+
+  const aspect = props.mapWidth / props.mapHeight;
+  const material = new MeshLineMaterial({
+    color,
+    lineWidth: lineWidth / (5000 * aspect),
+    sizeAttenuation: 1,
+    resolution: new Vector2(props.mapWidth, props.mapHeight),
+  });
+
+  const objects: Object3D[] = [];
+  for (const line of (feature.getGeometry() as MultiLineString).coordinates) {
     const points: Vector2[] = [];
-
-    for (const point of (feature.geometry as LineString).coordinates) {
+    for (const point of line) {
       points.push(new Vector2(point[0], point[1]));
     }
 
-    const material = new LineBasicMaterial({
-      color: TRANSPORTATION_COLOR.toThreeJsColor(),
-      linewidth: 1,
+    const geometry = new MeshLineGeometry();
+    geometry.setPoints(points);
+    const lineObject = new Mesh(geometry, material);
+
+    lineObject.translateX(props.x);
+    lineObject.translateY(props.y);
+    lineObject.scale.set(props.scale[0], props.scale[1], 1);
+    lineObject.raycast = raycast;
+
+    objects.push(lineObject);
+  }
+
+  return objects;
+};
+
+export const getPolygonFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
+  const featureStyle = feature.getStyles()! as LineStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const color = featureStyle.color
+    ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
+    : THREEJS_COLOR_BLACK;
+
+  const objects: Object3D[] = [];
+
+  for (const area of (feature.getGeometry() as Polygon).coordinates) {
+    const material = new MeshPhongMaterial({
+      emissive: color,
+      side: BackSide,
+      flatShading: true,
     });
-    const geometry = new BufferGeometry().setFromPoints(points);
-    const line = new Line(geometry, material);
 
-    line.translateX(x);
-    line.translateY(y);
-    line.scale.set(scale[0], scale[1], 1);
-
-    return line;
-  });
-}
-
-const buildingMaterial = new MeshPhongMaterial({
-  color: 0x156289,
-  emissive: BUILDING_COLOR.toThreeJsColor(),
-  side: BackSide,
-  flatShading: true
-});
-export const getBuildingThreeJsObjects = (
-  buildingLayer: TileLayer,
-  x: number,
-  y: number,
-  scale: [number, number],
-  simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions,
-): Object3D[] => {
-  const fc = getBuildingFeatureCollection(buildingLayer, simplifyOptions);
-
-  return fc.features.reduce((objects: Object3D[], feature: Feature) => {
-    for (const area of (feature.geometry as Polygon).coordinates) {
-      const shape = new Shape();
-      shape.moveTo(area[0][0], area[0][1]);
-      for (let i = 1; i < area.length; i++) {
-        shape.lineTo(area[i][0], area[i][1]);
-      }
-
-      const geometry = new ShapeGeometry(shape, 12);
-      const group = new Group();
-      group.add(new Mesh(geometry, buildingMaterial));
-      group.translateX(x);
-      group.translateY(y);
-      group.scale.set(scale[0], scale[1], 1);
-
-      objects.push(group);
+    const shape = new Shape();
+    shape.moveTo(area[0][0], area[0][1]);
+    for (let i = 1; i < area.length; i++) {
+      shape.lineTo(area[i][0], area[i][1]);
     }
 
-    return objects;
-  }, [] as Object3D[]);
-}
+    const geometry = new ShapeGeometry(shape, 12);
+
+    geometry.computeBoundingBox();
+
+    const group = new Group();
+    group.add(new Mesh(geometry, material));
+    group.translateX(props.x);
+    group.translateY(props.y);
+    group.scale.set(props.scale[0], props.scale[1], 1);
+
+    objects.push(group);
+  }
+
+  return objects;
+};
+
+// TODO support images
+export const getImageFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
+  return [];
+};
+
+export const getLayerBackground = (props: LayerObjectsProps): Object3D | undefined => {
+  const backgroundStyle = props.layer.getStyles().background;
+  if (!backgroundStyle || !backgroundStyle.color) {
+    return;
+  }
+
+  const color = backgroundStyle.color
+    ? getThreeJsColor(compileStatement(backgroundStyle.color, props.layer))
+    : THREEJS_COLOR_GREY;
+  const geometry = new PlaneGeometry(props.width, props.height);
+  const material = new MeshPhongMaterial({ emissive: color, side: BackSide, flatShading: true });
+  const rectangle = new Mesh(geometry, material);
+
+  rectangle.translateX(props.x);
+  rectangle.translateY(props.y);
+  rectangle.scale.set(props.scale[0], props.scale[1], 1);
+
+  return rectangle;
+};
+
+// TODO support alpha channel.
+export const getThreeJsColor = (stylesColor: ColorValue): Color => {
+  const color = new Color();
+
+  if (stylesColor[0] === '$rgb' || stylesColor[0] === '$rgba') {
+    color.setRGB(stylesColor[1] / 255, stylesColor[2] / 255, stylesColor[3] / 255, SRGBColorSpace);
+  }
+
+  return color;
+};

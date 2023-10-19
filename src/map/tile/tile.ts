@@ -1,6 +1,7 @@
-import { BBox } from 'geojson';
 import { MapTilesMeta } from '../types';
-import { RenderingCache, MapRendererType } from '../render/renderer';
+import { RenderingCache } from '../render/renderer';
+import { DataTileStyles } from '../styles/styles';
+import { TileLayer } from './tile_layer';
 
 export type MapTileId = string;
 
@@ -20,31 +21,12 @@ export interface MapTileRenderOptions {
   pixelRatio?: number;
 }
 
-export interface TileLayersMap {
+export interface TileLayers {
   [prop: string]: TileLayer;
 }
 
-export interface TileLayer {
-  name: string;
-  features: TileFeature[];
-  shouldBeRendered(zoom: number): boolean;
-  properties?: Record<string, FeatureProperty>;
-}
+export type BasicFeatureProperty = string | number | boolean | undefined;
 
-export enum TileFeatureType {
-  some_type = 'some_type',
-}
-
-export interface TileFeature {
-  id: string | number;
-  name?: string;
-  type?: TileFeatureType;
-  bbox?: BBox;
-  geometry: Array<Array<[number, number]>>;
-  properties: Record<string, FeatureProperty>;
-}
-
-type BasicFeatureProperty = string | number | boolean | undefined;
 export type FeatureProperty = BasicFeatureProperty | Array<BasicFeatureProperty> | Record<string, BasicFeatureProperty>;
 
 export const DEFAULT_TILE_SIZE = 256;
@@ -68,6 +50,7 @@ export interface MapTileOptions {
   tileCoords: TileCoordinate;
   devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
+  tileStyles?: DataTileStyles;
 }
 
 /**
@@ -88,7 +71,7 @@ export abstract class MapTile implements MapTileOptions {
 
   abstract fetchTileData(abortSignal?: AbortSignal): Promise<void>;
   abstract isReady(): boolean;
-  abstract getLayers(): TileLayersMap;
+  abstract getLayers(): TileLayers;
   abstract resetState(tileState: MapTileOptions): void;
   abstract download(): Promise<void>;
 
@@ -108,5 +91,4 @@ export abstract class MapTile implements MapTileOptions {
   public pruneRenderingCache(): void {
     this.renderingCache = undefined;
   }
-
 }

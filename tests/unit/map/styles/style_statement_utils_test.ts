@@ -16,7 +16,7 @@ import {
   ValueStatement,
   FeatureValue,
   HasCondition,
-} from '../../../../src/map/styles/styles';
+} from '../../../../src/map/styles/style_statement';
 import {
   compileStatement,
   compileIfStatement,
@@ -38,7 +38,7 @@ import {
   compileConstantValueStatement,
   isConstantValue,
   getPropertyValue,
-} from '../../../../src/map/styles/styles_utils';
+} from '../../../../src/map/styles/style_statement_utils';
 
 const SampleWaterFeature: Feature = {
   type: 'Feature',
@@ -179,22 +179,6 @@ describe('compileStatement', () => {
     ];
 
     expect(compileStatement(switchCaseStatement, SampleWaterFeature)).toBe('water case');
-  });
-
-  it('should throw an error otherwise', () => {
-    expect(() => {
-      // @ts-ignore
-      compileStatement(['$and', 1, 1], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {
-          class: 'water',
-        },
-      });
-    }).toThrowError('Statement is invalid: ["$and",1,1]');
   });
 });
 

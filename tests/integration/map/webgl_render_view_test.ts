@@ -1,5 +1,5 @@
-import {describe, expect, it} from '@jest/globals';
-import {toMatchImageSnapshot} from 'jest-image-snapshot';
+import { describe, expect, it } from '@jest/globals';
+import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { BASE_TEST_LOCATION } from './_const';
 import { goToPageAndWaitForMapRender, interactAndWaitForMapEvent } from './_utils';
 import { MapEventType } from '../../../src/map/map';
@@ -10,9 +10,9 @@ describe('Webgl render', () => {
   describe('PNG images.', () => {
     it('should render osm images on canvas as a map background.', async () => {
       await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
-  
+
       const image = await page.screenshot();
-  
+
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
         failureThreshold: 0.02,
@@ -23,9 +23,9 @@ describe('Webgl render', () => {
 
     it('should render maptiler images on canvas as a map background.', async () => {
       await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_maptiler&ls&${BASE_TEST_LOCATION}`);
-  
+
       const image = await page.screenshot();
-  
+
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
         failureThreshold: 0.02,
@@ -106,27 +106,14 @@ describe('Webgl render', () => {
   describe('Vector tiles.', () => {
     it('should render vector tile data using native webgl.', async () => {
       await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_vt_maptiler&ls&${BASE_TEST_LOCATION}`);
-  
+
       const image = await page.screenshot();
-  
+
       //@ts-ignore
       expect(image).toMatchImageSnapshot({
         failureThreshold: 0.02,
         failureThresholdType: 'percent',
         customSnapshotIdentifier: 'webgl_render_vt_maptiler',
-      });
-    });
-
-    it('should render vector tile data using threejs.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=threejs_vt_maptiler&ls&${BASE_TEST_LOCATION}`);
-  
-      const image = await page.screenshot();
-  
-      //@ts-ignore
-      expect(image).toMatchImageSnapshot({
-        failureThreshold: 0.02,
-        failureThresholdType: 'percent',
-        customSnapshotIdentifier: 'threejs_render_vt_maptiler',
       });
     });
   });

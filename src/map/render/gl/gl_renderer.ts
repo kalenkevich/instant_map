@@ -1,30 +1,22 @@
 import { MapTile, MapTileFormatType } from '../../tile/tile';
-import { PngMapTile } from '../../tile/png_tile';
+import { PngMapTile } from '../../tile/png/png_tile';
 import { Painter } from '../painter';
 import { MapRenderer, RenderingCache } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
-import { DefaultSipmlifyGeometryOptions } from '../simplify';
-import { getTransportationGlPrograms, getBuildingGlPrograms, getBoundaryGlPrograms, getWaterGlPrograms, getLandCoverGlPrograms } from './gl_render_utils';
+import { getLayerGlPrograms } from './gl_render_utils';
 
 export interface WebGlRenderingCache extends RenderingCache {
   programs: GlProgram[];
 }
 
-const simplifyOptions = {
-  ...DefaultSipmlifyGeometryOptions,
-  tolerance: 10,
-};
 export class GlMapRenderer extends MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
   protected canvasEl?: HTMLCanvasElement;
   protected glPainter?: Painter;
 
-  constructor(
-    protected readonly map: GlideMap,
-    protected readonly devicePixelRatio: number,
-  ) {
+  constructor(protected readonly map: GlideMap, protected readonly devicePixelRatio: number) {
     super(map, devicePixelRatio);
     this.resizeEventListener = this.resizeEventListener.bind(this);
   }
@@ -65,9 +57,7 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {
-    const glPrograms = tiles
-      .map(tile => this.getRenderPrograms(tile, mapState))
-      .flatMap(obj => obj);
+    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, mapState)).flatMap(obj => obj);
 
     console.time('gl map_render');
     this.glPainter.draw(glPrograms);
@@ -124,14 +114,11 @@ export class GlMapRenderer extends MapRenderer {
 
   private getDataTilePrograms(tile: MapTile, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState);
-    const xScale = tile.devicePixelRatio / 16 * tileScale;
-    const yScale = tile.devicePixelRatio / 16 * tileScale;
+    const xScale = (tile.devicePixelRatio / 16) * tileScale;
+    const yScale = (tile.devicePixelRatio / 16) * tileScale;
     const tileX = tile.x * (tileScale * tile.devicePixelRatio);
     const tileY = tile.y * (tileScale * tile.devicePixelRatio);
-    const scale: [number, number] = [
-      xScale,
-      yScale,
-    ];
+    const scale: [number, number] = [xScale, yScale];
 
     if (tile.hasRenderingCache()) {
       const cachedPrograms = (tile.getRenderingCache() as WebGlRenderingCache).programs;
@@ -149,33 +136,21 @@ export class GlMapRenderer extends MapRenderer {
       return [] as GlProgram[];
     }
 
-    const waterLayer = tileLayers['water'];
-    const globallandcoverLayer = tileLayers['globallandcover'];
-    const landcoverLayer = tileLayers['landcover'];
-    const boundaryLayer = tileLayers['boundary'];
-    const transportationLayer = tileLayers['transportation'];
-    const buildingLayer = tileLayers['building'];
+    const programs: GlProgram[] = [];
 
-    const programs = [
-      ...(waterLayer?.shouldBeRendered(mapState.zoom) 
-        ? getWaterGlPrograms(waterLayer, tileX, tileY, scale, {enabled: false})
-        : []),
-      ...(globallandcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverGlPrograms(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
-        : []),
-      ...(landcoverLayer?.shouldBeRendered(mapState.zoom)
-        ? getLandCoverGlPrograms(landcoverLayer, tileX, tileY, scale, {enabled: false})
-        :[]),
-      ...(boundaryLayer?.shouldBeRendered(mapState.zoom)
-       ? getBoundaryGlPrograms(boundaryLayer, tileX, tileY, scale, simplifyOptions)
-       : []),
-      ...(transportationLayer?.shouldBeRendered(mapState.zoom)
-        ? getTransportationGlPrograms(transportationLayer, tileX, tileY, scale, simplifyOptions)
-        : []),
-      ...(buildingLayer?.shouldBeRendered(mapState.zoom)
-       ? getBuildingGlPrograms(buildingLayer, tileX, tileY, scale, simplifyOptions)
-       : []),
-    ];
+    for (const layer of Object.values(tileLayers)) {
+      programs.push(
+        ...getLayerGlPrograms({
+          layer,
+          mapState,
+          x: tileX,
+          y: tileY,
+          scale,
+          width: tile.width,
+          height: tile.height,
+        })
+      );
+    }
 
     tile.setRenderingCache({ programs });
 
