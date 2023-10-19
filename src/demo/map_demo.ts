@@ -36,6 +36,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     renderer: MapRendererType.threejs,
     resizable: true,
     tileMetaUrl: MAPTILER_VT_META_URL,
+    styles: VectorStyles,
   },
   {
     name: 'Png image osm',

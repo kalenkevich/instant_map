@@ -4,24 +4,12 @@ import { MapState } from '../../map_state';
 import { MapEventType } from '../../map';
 import { RenderingCache } from '../renderer';
 import { GlMapRenderer } from '../gl/gl_renderer';
-import { DefaultSipmlifyGeometryOptions } from '../simplify';
 import { ThreeJsPainter } from './three_js_painter';
-import {
-  getTransportationThreeJsObjects,
-  getBuildingThreeJsObjects,
-  getBoundaryThreeJsObjects,
-  getWaterThreeJsObjects,
-  getLandCoverThreeJsObjects,
-} from './three_js_utils';
+import { getLayerObjects } from './three_js_utils';
 
 export interface ThreeJsRenderingCache extends RenderingCache {
   objects: Object3D[];
 }
-
-const simplifyOptions = {
-  ...DefaultSipmlifyGeometryOptions,
-  tolerance: 10,
-};
 
 export class ThreeJsMapRenderer extends GlMapRenderer {
   public init() {
@@ -33,25 +21,20 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
   }
 
   public renderTiles(tiles: MapTile[], mapState: MapState) {
-    const objects = tiles
-      .map(tile => this.getThreeJsObjects(tile, mapState))
-      .flatMap(obj => obj);
+    const objects = tiles.map(tile => this.getThreeJsObjectsV2(tile, mapState)).flatMap(obj => obj);
 
     console.time('three_js map_render');
     this.glPainter.draw(objects);
     console.timeEnd('three_js map_render');
   }
 
-  private getThreeJsObjects(tile: MapTile, mapState: MapState): Object3D[] {
+  private getThreeJsObjectsV2(tile: MapTile, mapState: MapState): Object3D[] {
     const tileScale = this.getTileScale(mapState);
-    const xScale = 1/16 * tileScale;
-    const yScale = 1/16 * tileScale;
+    const xScale = (1 / 16) * tileScale;
+    const yScale = (1 / 16) * tileScale;
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
-    const scale: [number, number] = [
-      xScale,
-      yScale,
-    ];
+    const scale: [number, number] = [xScale, yScale];
 
     if (tile.hasRenderingCache()) {
       const cachedObjects = (tile.getRenderingCache() as ThreeJsRenderingCache).objects;
@@ -66,37 +49,25 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     }
 
     const tileLayers = tile.getLayers();
-
     if (!tileLayers || Object.keys(tileLayers).length === 0) {
       return [] as Object3D[];
     }
-    const waterLayer = tileLayers['water'];
-    const globallandcoverLayer = tileLayers['globallandcover'];
-    const landcoverLayer = tileLayers['landcover'];
-    const boundaryLayer = tileLayers['boundary'];
-    const transportationLayer = tileLayers['transportation'];
-    const buildingLayer = tileLayers['building'];
 
-    const objects = [
-      ...(waterLayer?.shouldBeRendered(mapState) 
-        ? getWaterThreeJsObjects(waterLayer, tileX, tileY, scale, {enabled: false})
-        : []),
-      ...(globallandcoverLayer?.shouldBeRendered(mapState)
-        ? getLandCoverThreeJsObjects(globallandcoverLayer, tileX, tileY, scale, {enabled: false})
-        : []),
-      ...(landcoverLayer?.shouldBeRendered(mapState)
-        ? getLandCoverThreeJsObjects(landcoverLayer, tileX, tileY, scale, {enabled: false})
-        :[]),
-      ...(boundaryLayer?.shouldBeRendered(mapState)
-       ? getBoundaryThreeJsObjects(boundaryLayer, tileX, tileY, scale, simplifyOptions)
-       : []),
-      ...(transportationLayer?.shouldBeRendered(mapState)
-        ? getTransportationThreeJsObjects(transportationLayer, tileX, tileY, scale, simplifyOptions)
-        : []),
-      ...(buildingLayer?.shouldBeRendered(mapState)
-       ? getBuildingThreeJsObjects(buildingLayer, tileX, tileY, scale, simplifyOptions)
-       : []),
-    ];
+    const objects: Object3D[] = [];
+
+    for (const layer of Object.values(tileLayers)) {
+      objects.push(
+        ...getLayerObjects({
+          layer,
+          mapState,
+          x: tileX,
+          y: tileY,
+          scale,
+          width: tile.width,
+          height: tile.height,
+        })
+      );
+    }
 
     tile.setRenderingCache({ objects });
 

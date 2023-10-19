@@ -1,3 +1,4 @@
+import { Point } from 'geojson';
 import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
 import { ColorValue } from '../../styles/style_statement';
@@ -18,7 +19,6 @@ import {
 import { compileStatement } from '../../styles/style_statement_utils';
 import { TileFeature } from '../../tile/tile_feature';
 import { LineStyle, PointStyle, FeatureStyleType } from '../../styles/styles';
-import { Point } from 'geojson';
 
 export interface LayerGlProgramsProps {
   layer: TileLayer;
@@ -44,17 +44,17 @@ export const getLayerGlPrograms = (props: LayerGlProgramsProps): GlProgram[] => 
   }
 
   for (const feature of props.layer.getFeatures()) {
-    const featureGlGrogram = getFeatureGlProgram(feature, props);
+    const featureGlGrograms = getFeatureGlPrograms(feature, props);
 
-    if (featureGlGrogram) {
-      programs.push(...featureGlGrogram);
+    if (featureGlGrograms.length) {
+      programs.push(...featureGlGrograms);
     }
   }
 
   return programs;
 };
 
-export const getFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+export const getFeatureGlPrograms = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
   const featureStyle = feature.getStyles();
 
   if (!feature.shouldBeRendered(props.mapState) || !featureStyle) {
@@ -94,6 +94,7 @@ export const getPointFeatureGlProgram = (feature: TileFeature, props: LayerGlPro
 
     programs.push(
       new WebGlCircle({
+        components: 32,
         p: center.coordinates as v2,
         radius: borderRadius,
         color: borderColor,
@@ -105,6 +106,7 @@ export const getPointFeatureGlProgram = (feature: TileFeature, props: LayerGlPro
 
   programs.push(
     new WebGlCircle({
+      components: 32,
       p: center.coordinates as v2,
       radius,
       color,
