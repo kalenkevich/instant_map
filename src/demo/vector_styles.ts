@@ -243,7 +243,7 @@ export const VectorStyles: DataTileStyles = {
   poi: {
     styleLayerName: 'poi',
     sourceLayerName: 'poiStyles',
-    show: true,
+    show: false,
     feature: {
       type: FeatureStyleType.point,
       radius: 50,

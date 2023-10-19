@@ -2,21 +2,18 @@ import { Point, Polygon, MultiLineString } from 'geojson';
 import {
   Object3D,
   Vector2,
-  Line,
   Group,
   Mesh,
   Shape,
-  LineBasicMaterial,
-  MeshBasicMaterial,
   MeshPhongMaterial,
   PlaneGeometry,
   CircleGeometry,
   ShapeGeometry,
-  BufferGeometry,
   Color,
   BackSide,
   SRGBColorSpace,
 } from 'three';
+import { MeshLineGeometry, MeshLineMaterial, raycast } from 'meshline';
 import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
 import { ColorValue } from '../../styles/style_statement';
@@ -32,6 +29,8 @@ export interface LayerObjectsProps {
   scale: [number, number];
   width: number;
   height: number;
+  mapWidth: number;
+  mapHeight: number;
   image?: HTMLImageElement;
 }
 
@@ -103,25 +102,33 @@ export const getPointFeatureObjects = (feature: TileFeature, props: LayerObjects
       : THREEJS_COLOR_BLACK;
 
     const geometry = new CircleGeometry(borderRadius, 32);
-    const material = new MeshBasicMaterial({ color: borderColor });
+    const material = new MeshPhongMaterial({
+      emissive: borderColor,
+      side: BackSide,
+      flatShading: true,
+    });
     const borderCircle = new Mesh(geometry, material);
 
     borderCircle.translateX(props.x);
     borderCircle.translateY(props.y);
     borderCircle.scale.set(props.scale[0], props.scale[1], 1);
-    borderCircle.position.set(center.coordinates[0], center.coordinates[1], 1);
+    borderCircle.position.set(center.coordinates[0], center.coordinates[1], 0);
 
     objects.push(borderCircle);
   }
 
   const geometry = new CircleGeometry(radius, 32);
-  const material = new MeshBasicMaterial({ color });
+  const material = new MeshPhongMaterial({
+    emissive: color,
+    side: BackSide,
+    flatShading: true,
+  });
   const circle = new Mesh(geometry, material);
 
   circle.translateX(props.x);
   circle.translateY(props.y);
   circle.scale.set(props.scale[0], props.scale[1], 1);
-  circle.position.set(center.coordinates[0], center.coordinates[1], 1);
+  circle.position.set(center.coordinates[0], center.coordinates[1], 0);
 
   objects.push(circle);
 
@@ -136,26 +143,29 @@ export const getLineFeatureObjects = (feature: TileFeature, props: LayerObjectsP
     ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
     : THREEJS_COLOR_BLACK;
 
-  const objects: Line[] = [];
-
-  const material = new LineBasicMaterial({
+  const aspect = props.mapWidth / props.mapHeight;
+  const material = new MeshLineMaterial({
     color,
-    linewidth: 1,
+    lineWidth: lineWidth / (5000 * aspect),
+    sizeAttenuation: 1,
+    resolution: new Vector2(props.mapWidth, props.mapHeight),
   });
 
+  const objects: Object3D[] = [];
   for (const line of (feature.getGeometry() as MultiLineString).coordinates) {
     const points: Vector2[] = [];
-
     for (const point of line) {
       points.push(new Vector2(point[0], point[1]));
     }
 
-    const geometry = new BufferGeometry().setFromPoints(points);
-    const lineObject = new Line(geometry, material);
+    const geometry = new MeshLineGeometry();
+    geometry.setPoints(points);
+    const lineObject = new Mesh(geometry, material);
 
     lineObject.translateX(props.x);
     lineObject.translateY(props.y);
     lineObject.scale.set(props.scale[0], props.scale[1], 1);
+    lineObject.raycast = raycast;
 
     objects.push(lineObject);
   }
@@ -216,7 +226,7 @@ export const getLayerBackground = (props: LayerObjectsProps): Object3D | undefin
     ? getThreeJsColor(compileStatement(backgroundStyle.color, props.layer))
     : THREEJS_COLOR_GREY;
   const geometry = new PlaneGeometry(props.width, props.height);
-  const material = new MeshBasicMaterial({ color, side: BackSide });
+  const material = new MeshPhongMaterial({ emissive: color, side: BackSide, flatShading: true });
   const rectangle = new Mesh(geometry, material);
 
   rectangle.translateX(props.x);

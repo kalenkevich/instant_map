@@ -35,6 +35,8 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
     const scale: [number, number] = [xScale, yScale];
+    const mapWidth = this.map.getWidth();
+    const mapHeight = this.map.getHeight();
 
     if (tile.hasRenderingCache()) {
       const cachedObjects = (tile.getRenderingCache() as ThreeJsRenderingCache).objects;
@@ -65,6 +67,8 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
           scale,
           width: tile.width,
           height: tile.height,
+          mapWidth,
+          mapHeight,
         })
       );
     }
