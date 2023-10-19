@@ -62,8 +62,10 @@ export interface TextStyle {
   maxzoom?: number;
 }
 
+// TODO support image style
 export interface ImageStyle {
   type: FeatureStyleType.image;
+  name: Statement<string>;
   width: Statement<number>;
   height: Statement<number>;
   show?: Statement<boolean>;

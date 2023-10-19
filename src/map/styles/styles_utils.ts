@@ -8,6 +8,8 @@ export function compileLayerStyle(style: DataLayerStyle, feature: ContextLike): 
   for (const [key, value] of Object.entries(style)) {
     if (isFeatureStyle(value)) {
       newStyleObject[key] = compileFeatureStyle(value, feature);
+    } else if (isStatement(value)) {
+      newStyleObject[key] = compileStatement(value, feature);
     } else {
       newStyleObject[key] = value;
     }
@@ -16,26 +18,33 @@ export function compileLayerStyle(style: DataLayerStyle, feature: ContextLike): 
   return newStyleObject as DataLayerStyle;
 }
 
-export function compileFeatureStyle(paint: FeatureStyle, feature: ContextLike): FeatureStyle {
-  const newPaintObject: Record<string, any> = {};
+export function compileFeatureStyle(featureStyle: FeatureStyle, feature: ContextLike): FeatureStyle {
+  const newStyleObject: Record<string, any> = {};
 
-  for (const [key, value] of Object.entries(paint)) {
-    if (isStatement(value)) {
-      newPaintObject[key] = compileStatement(value, feature);
+  for (const [key, value] of Object.entries(featureStyle)) {
+    if (isFeatureStyle(value)) {
+      newStyleObject[key] = compileFeatureStyle(value, feature);
+    } else if (isStatement(value)) {
+      newStyleObject[key] = compileStatement(value, feature);
     } else {
-      newPaintObject[key] = value;
+      newStyleObject[key] = value;
     }
   }
 
-  return newPaintObject as FeatureStyle;
+  return newStyleObject as FeatureStyle;
 }
 
-export function isFeatureStyle(paint: FeatureStyle): boolean {
+export function isFeatureStyle(featureStyle: unknown): boolean {
+  if (!featureStyle || !(featureStyle as FeatureStyle).type) {
+    return false;
+  }
+
   return [
+    FeatureStyleType.point,
     FeatureStyleType.line,
     FeatureStyleType.polygon,
     FeatureStyleType.text,
     FeatureStyleType.image,
     FeatureStyleType.background,
-  ].includes(paint.type);
+  ].includes((featureStyle as FeatureStyle).type);
 }

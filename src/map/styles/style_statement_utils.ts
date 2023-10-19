@@ -88,7 +88,7 @@ export function compileStatement<V>(statement: Statement<V>, feature: ContextLik
   throw new Error('Statement is invalid: ' + JSON.stringify(statement));
 }
 
-export function isStatement<V>(statement: Statement<V>): boolean {
+export function isStatement(statement: unknown): boolean {
   if (!Array.isArray(statement) || typeof statement[0] !== 'string') {
     return false;
   }

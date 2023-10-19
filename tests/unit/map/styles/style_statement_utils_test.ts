@@ -16,6 +16,7 @@ import {
   ValueStatement,
   FeatureValue,
   HasCondition,
+  ConditionStatement,
 } from '../../../../src/map/styles/style_statement';
 import {
   compileStatement,
@@ -169,7 +170,7 @@ describe('compileStatement', () => {
     ).toBe('else result');
   });
 
-  it('should compile $switch value', () => {
+  it('should compile $switch statement', () => {
     const switchCaseStatement: SwitchCaseStatement<string> = [
       '$switch',
       ['$get', 'properties.class'],
@@ -179,6 +180,86 @@ describe('compileStatement', () => {
     ];
 
     expect(compileStatement(switchCaseStatement, SampleWaterFeature)).toBe('water case');
+  });
+
+  it('should compile $eq condition statement', () => {
+    const conditionStatement: ConditionStatement<string> = ['$eq', ['$get', 'properties.class'], 'water'];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $neq condition statement', () => {
+    const conditionStatement: ConditionStatement<string> = ['$neq', ['$get', 'properties.class'], 'grass'];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $lt condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = ['$lt', ['$get', 'properties.minzoom'], 0];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(false);
+  });
+
+  it('should compile $lte condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = ['$lte', ['$get', 'properties.minzoom'], 0];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $gt condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = ['$gt', ['$get', 'properties.maxzoom'], 1];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $gte condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = ['$gte', ['$get', 'properties.maxzoom'], 5];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $and condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = [
+      '$and',
+      ['$eq', ['$get', 'properties.maxzoom'], 5],
+      ['$eq', ['$get', 'properties.minzoom'], 0],
+    ];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $or condition statement', () => {
+    const conditionStatement: ConditionStatement<number> = [
+      '$or',
+      ['$eq', ['$get', 'properties.maxzoom'], 6],
+      ['$eq', ['$get', 'properties.minzoom'], 0],
+    ];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $oneOf condition statement', () => {
+    const conditionStatement: ConditionStatement<string> = [
+      '$oneOf',
+      ['$get', 'properties.class'],
+      'water',
+      'land',
+      'transportation',
+    ];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $has condition statement', () => {
+    const conditionStatement: ConditionStatement<boolean> = ['$has', 'properties.class'];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
+  });
+
+  it('should compile $! condition statement', () => {
+    const conditionStatement: ConditionStatement<string> = ['$!', ['$eq', ['$get', 'properties.class'], 'land']];
+
+    expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 });
 
