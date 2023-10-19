@@ -38,7 +38,7 @@ export type ConditionStatement<V> =
 
 export type NegativeStatement<V> = ['$!', ConditionStatement<any>];
 
-export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
+export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<any>, ConditionStatement<any>];
 
 export type NotEqualCondition<V> = ['$!=' | '$neq', ConditionStatement<V>, ConditionStatement<V>];
 

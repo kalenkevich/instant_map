@@ -28,7 +28,7 @@ export class TileLayer {
       feature =>
         new TileFeature({
           feature,
-          styles: this.styles.feature,
+          styles: this.styles?.feature,
         })
     );
 
@@ -68,14 +68,16 @@ export class TileLayer {
   }
 
   private inZoomRange(mapState: MapState): boolean {
+    let inMinZoom = true;
     if (this.styles.minzoom !== undefined) {
-      return this.styles.minzoom <= mapState.zoom;
+      inMinZoom = this.styles.minzoom <= mapState.zoom;
     }
 
+    let inMaxZoom = true;
     if (this.styles.maxzoom !== undefined) {
-      return this.styles.maxzoom >= mapState.zoom;
+      inMaxZoom = this.styles.maxzoom >= mapState.zoom;
     }
 
-    return true;
+    return inMinZoom && inMaxZoom;
   }
 }
