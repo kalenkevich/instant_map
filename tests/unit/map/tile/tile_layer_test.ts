@@ -45,7 +45,7 @@ describe('TileLayer', () => {
     },
   };
 
-  it('should create Tile layer properly without styles.', () => {
+  it('should create TileLayer properly without styles.', () => {
     const tileLayer = new TileLayer({
       name: 'layer1',
       features: [sampleGeojsonFeature],
@@ -64,7 +64,7 @@ describe('TileLayer', () => {
     expect(tileLayer.getStyles()).toBeUndefined();
   });
 
-  it('should create Tile layer properly with styles.', () => {
+  it('should create TileLayer properly with styles.', () => {
     const tileLayer = new TileLayer({
       name: 'layer1',
       features: [sampleGeojsonFeature],
