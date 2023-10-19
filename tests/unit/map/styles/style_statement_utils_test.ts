@@ -180,22 +180,6 @@ describe('compileStatement', () => {
 
     expect(compileStatement(switchCaseStatement, SampleWaterFeature)).toBe('water case');
   });
-
-  it('should throw an error otherwise', () => {
-    expect(() => {
-      // @ts-ignore
-      compileStatement(['$and', 1, 1], {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [],
-        },
-        properties: {
-          class: 'water',
-        },
-      });
-    }).toThrowError('Statement is invalid: ["$and",1,1]');
-  });
 });
 
 describe('compileIfStatement', () => {

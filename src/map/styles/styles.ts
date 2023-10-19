@@ -13,6 +13,7 @@ export interface DataLayerStyle {
 }
 
 export enum FeatureStyleType {
+  point = 'point',
   line = 'line',
   polygon = 'polygon',
   text = 'text',
@@ -20,7 +21,17 @@ export enum FeatureStyleType {
   background = 'background',
 }
 
-export type FeatureStyle = LineStyle | PolygonStyle | TextStyle | ImageStyle | BackgroundStyle;
+export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | ImageStyle | BackgroundStyle;
+
+export interface PointStyle {
+  type: FeatureStyleType.point;
+  color: Statement<ColorValue>;
+  radius?: Statement<number>; // default 5
+  show?: Statement<boolean>;
+  border?: LineStyle;
+  minzoom?: number;
+  maxzoom?: number;
+}
 
 export interface LineStyle {
   type: FeatureStyleType.line;

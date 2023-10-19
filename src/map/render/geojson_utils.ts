@@ -1,3 +1,5 @@
+/** @deprecated please use pbf_tile_utils instead. */
+
 import { Feature, FeatureCollection, MultiLineString, Position } from 'geojson';
 import { simplify, SipmlifyGeometryOptions, DefaultSipmlifyGeometryOptions } from './simplify';
 import { TileLayer } from '../tile/tile_layer';
@@ -18,6 +20,7 @@ const EmptyFC: FeatureCollection = {
   features: [],
 };
 
+/** @deprecated please use pbf_tile_utils instead. */
 export const getTransportationFeatureCollection = (
   transportationLayer: TileLayer,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
@@ -35,7 +38,7 @@ export const getTransportationFeatureCollection = (
       continue;
     }
 
-    const lines = feature.getGeometry().coordinates;
+    const lines = (feature.getGeometry() as MultiLineString).coordinates;
     for (const line of lines) {
       const geoJsonFeature: Feature = {
         type: 'Feature',
@@ -62,6 +65,7 @@ export const getTransportationFeatureCollection = (
   };
 };
 
+/** @deprecated please use pbf_tile_utils instead. */
 export const getBuildingFeatureCollection = (
   buildingLayer: TileLayer,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
@@ -84,6 +88,7 @@ export const getBuildingFeatureCollection = (
   };
 };
 
+/** @deprecated please use pbf_tile_utils instead. */
 export const getBoundaryFeatureCollection = (
   boundaryLayer: TileLayer,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
@@ -116,6 +121,7 @@ export const getBoundaryFeatureCollection = (
   };
 };
 
+/** @deprecated please use pbf_tile_utils instead. */
 export const getWaterFeatureCollection = (
   waterLayer: TileLayer,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions
@@ -144,6 +150,7 @@ export const getWaterFeatureCollection = (
   };
 };
 
+/** @deprecated please use pbf_tile_utils instead. */
 export const getLandCoverFeatureCollection = (
   landCoverLayer: TileLayer,
   simplifyOptions: SipmlifyGeometryOptions = DefaultSipmlifyGeometryOptions

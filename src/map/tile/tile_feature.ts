@@ -1,15 +1,16 @@
-import { Feature, GeoJsonProperties, MultiLineString } from 'geojson';
+import { Feature, GeoJsonProperties, Point, MultiLineString, Polygon } from 'geojson';
 import { MapState } from '../map_state';
 import { FeatureStyle } from '../styles/styles';
 import { compileFeatureStyle } from '../styles/styles_utils';
+import { compileStatement } from '../styles/style_statement_utils';
 
 export interface TileFeatureProps {
-  feature: Feature;
+  feature: Feature<Point | MultiLineString | Polygon>;
   styles?: FeatureStyle;
 }
 
 export class TileFeature {
-  private readonly feature: Feature;
+  private readonly feature: Feature<Point | MultiLineString | Polygon>;
   private readonly styles?: FeatureStyle;
   private compiledStyles?: FeatureStyle;
 
@@ -26,8 +27,8 @@ export class TileFeature {
     return this.feature.properties;
   }
 
-  public getGeometry(): MultiLineString {
-    return this.feature.geometry as MultiLineString;
+  public getGeometry(): Point | MultiLineString | Polygon {
+    return this.feature.geometry;
   }
 
   public getGeoJsonFeature(): Feature {
@@ -39,8 +40,11 @@ export class TileFeature {
       return false;
     }
 
-    if (this.compiledStyles.show === false) {
-      return false;
+    if (this.styles.show !== undefined) {
+      return compileStatement(this.styles.show, {
+        ...this.feature,
+        mapState,
+      });
     }
 
     return true;

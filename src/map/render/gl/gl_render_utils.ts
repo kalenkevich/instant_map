@@ -5,17 +5,20 @@ import {
   v2,
   GlProgram,
   WebGlImage,
-  GL_COLOR_BLACK,
   WebGlNativeLineStrip,
   WebGlRectangle,
-  WebGlArea,
+  WebGlCircle,
   WebGlLineStrip,
+  WebGlArea,
   GlLineStripProps,
   GlColor,
+  GL_COLOR_WHITE,
+  GL_COLOR_BLACK,
 } from '../../../webgl';
 import { compileStatement } from '../../styles/style_statement_utils';
 import { TileFeature } from '../../tile/tile_feature';
-import { LineStyle, FeatureStyleType } from '../../styles/styles';
+import { LineStyle, PointStyle, FeatureStyleType } from '../../styles/styles';
+import { Point } from 'geojson';
 
 export interface LayerGlProgramsProps {
   layer: TileLayer;
@@ -59,6 +62,8 @@ export const getFeatureGlProgram = (feature: TileFeature, props: LayerGlPrograms
   }
 
   switch (featureStyle.type) {
+    case FeatureStyleType.point:
+      return getPointFeatureGlProgram(feature, props);
     case FeatureStyleType.line:
       return getLineFeatureGlProgram(feature, props);
     case FeatureStyleType.polygon:
@@ -70,6 +75,45 @@ export const getFeatureGlProgram = (feature: TileFeature, props: LayerGlPrograms
       console.info(`${featureStyle.type} is not supported by WebGL rendrer.`);
       return [];
   }
+};
+
+export const getPointFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  const featureStyle = feature.getStyles()! as PointStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const radius = featureStyle.radius ? compileStatement(featureStyle.radius, geojsonFeature) : 50;
+  const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_WHITE;
+  const center = feature.getGeometry() as Point;
+  const programs: GlProgram[] = [];
+
+  if (featureStyle.border) {
+    const borderStyle = featureStyle.border;
+    const borderRadius = radius + (featureStyle.radius ? compileStatement(borderStyle.width, geojsonFeature) : 5) * 2;
+    const borderColor = borderStyle.color
+      ? getGlColor(compileStatement(borderStyle.color, geojsonFeature))
+      : GL_COLOR_BLACK;
+
+    programs.push(
+      new WebGlCircle({
+        p: center.coordinates as v2,
+        radius: borderRadius,
+        color: borderColor,
+        translation: [props.x, props.y],
+        scale: props.scale,
+      })
+    );
+  }
+
+  programs.push(
+    new WebGlCircle({
+      p: center.coordinates as v2,
+      radius,
+      color,
+      translation: [props.x, props.y],
+      scale: props.scale,
+    })
+  );
+
+  return programs;
 };
 
 export const getLineFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {

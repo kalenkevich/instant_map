@@ -1,4 +1,4 @@
-import { Feature } from 'geojson';
+import { Feature, Point, MultiLineString, Polygon } from 'geojson';
 import { FeatureProperty } from './tile';
 import { MapState } from '../map_state';
 import { DataLayerStyle } from '../styles/styles';
@@ -7,7 +7,7 @@ import { compileLayerStyle } from '../styles/styles_utils';
 
 export interface TileLayerProps {
   name: string;
-  features: Feature[];
+  features: Feature<Point | MultiLineString | Polygon>[];
   properties: Record<string, FeatureProperty>;
   styles?: DataLayerStyle;
 }
@@ -56,7 +56,11 @@ export class TileLayer {
       return false;
     }
 
-    return !this.compiledStyles.show;
+    if (this.compiledStyles.show !== undefined) {
+      return !!this.compiledStyles.show;
+    }
+
+    return true;
   }
 
   public getStyles(): DataLayerStyle {

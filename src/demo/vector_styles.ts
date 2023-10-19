@@ -107,14 +107,94 @@ export const VectorStyles: DataTileStyles = {
   boundary: {
     styleLayerName: 'boundary',
     sourceLayerName: 'boundaryStyles',
+    show: false,
     feature: {
       type: FeatureStyleType.line,
       color: ['$rgb', 114, 113, 207],
       show: [
         '$switch',
         ['$get', 'properties.admin_level'],
-        [2, ['$if', ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]], true, false]],
-        // [2, ],
+        [
+          2,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]],
+            true,
+            false,
+          ],
+        ],
+        [
+          3,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 2], ['$lte', ['$get', 'mapState.zoom'], 3]],
+            true,
+            false,
+          ],
+        ],
+        [
+          4,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 3], ['$lte', ['$get', 'mapState.zoom'], 4]],
+            true,
+            false,
+          ],
+        ],
+        [
+          5,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 4], ['$lte', ['$get', 'mapState.zoom'], 5]],
+            true,
+            false,
+          ],
+        ],
+        [
+          6,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 5], ['$lte', ['$get', 'mapState.zoom'], 6]],
+            true,
+            false,
+          ],
+        ],
+        [
+          7,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 6], ['$lte', ['$get', 'mapState.zoom'], 7]],
+            true,
+            false,
+          ],
+        ],
+        [
+          8,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 7], ['$lte', ['$get', 'mapState.zoom'], 8]],
+            true,
+            false,
+          ],
+        ],
+        [
+          9,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 8], ['$lte', ['$get', 'mapState.zoom'], 9]],
+            true,
+            false,
+          ],
+        ],
+        [
+          10,
+          [
+            '$if',
+            ['$and', ['$gte', ['$get', 'mapState.zoom'], 9], ['$lte', ['$get', 'mapState.zoom'], 20]],
+            true,
+            false,
+          ],
+        ],
       ],
     },
     maxzoom: 15,
@@ -132,6 +212,7 @@ export const VectorStyles: DataTileStyles = {
   transportation: {
     styleLayerName: 'transportation',
     sourceLayerName: 'transportationStyles',
+    show: true,
     feature: {
       type: FeatureStyleType.line,
       color: [
@@ -158,6 +239,23 @@ export const VectorStyles: DataTileStyles = {
     },
     maxzoom: 15,
     minzoom: 4,
+  },
+  poi: {
+    styleLayerName: 'poi',
+    sourceLayerName: 'poiStyles',
+    show: true,
+    feature: {
+      type: FeatureStyleType.point,
+      radius: 50,
+      color: ['$rgb', 250, 185, 57],
+      border: {
+        type: FeatureStyleType.line,
+        color: ['$rgb', 0, 0, 0],
+        width: 5,
+      },
+    },
+    maxzoom: 15,
+    minzoom: 12,
   },
   aerodrome_label: {
     styleLayerName: 'aerodrome_label',
@@ -207,13 +305,6 @@ export const VectorStyles: DataTileStyles = {
     show: false,
     maxzoom: 15,
     minzoom: 0,
-  },
-  poi: {
-    styleLayerName: 'poi',
-    sourceLayerName: 'poiStyles',
-    show: false,
-    maxzoom: 15,
-    minzoom: 12,
   },
   transportation_name: {
     styleLayerName: 'transportation_name',
