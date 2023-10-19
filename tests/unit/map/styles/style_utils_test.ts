@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import {
+  DataLayerStyle,
   FeatureStyleType,
   PointStyle,
   LineStyle,
@@ -9,6 +10,85 @@ import {
   BackgroundStyle,
 } from '../../../../src/map/styles/styles';
 import { compileLayerStyle, compileFeatureStyle, isFeatureStyle } from '../../../../src/map/styles/styles_utils';
+
+describe('compileLayerStyle', () => {
+  it('should return compile data layer styles', () => {
+    const style: DataLayerStyle = {
+      styleLayerName: 'land',
+      sourceLayerName: 'landStyle',
+      show: true,
+      minzoom: 0,
+      maxzoom: 5,
+      feature: {
+        type: FeatureStyleType.polygon,
+        show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
+        color: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['land', ['$rgb', 1, 1, 1]],
+          ['water', ['$rgb', 1, 1, 2]],
+          ['ice', ['$rgb', 1, 1, 3]],
+        ],
+        border: {
+          type: FeatureStyleType.line,
+          color: ['$rgb', 1, 1, 3],
+          width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
+        },
+        minzoom: 0,
+        maxzoom: 5,
+      },
+      background: {
+        type: FeatureStyleType.background,
+        color: [
+          '$switch',
+          ['$get', 'properties.layerClass'],
+          ['empty', ['$rgb', 1, 1, 1]],
+          ['cover', ['$rgb', 1, 1, 2]],
+        ],
+        minzoom: 0,
+        maxzoom: 5,
+      },
+    };
+
+    const compiled = compileLayerStyle(style, {
+      properties: {
+        layerClass: 'cover',
+      },
+    });
+
+    expect(compiled).toEqual({
+      styleLayerName: 'land',
+      sourceLayerName: 'landStyle',
+      show: true,
+      minzoom: 0,
+      maxzoom: 5,
+      feature: {
+        type: FeatureStyleType.polygon,
+        show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
+        color: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['land', ['$rgb', 1, 1, 1]],
+          ['water', ['$rgb', 1, 1, 2]],
+          ['ice', ['$rgb', 1, 1, 3]],
+        ],
+        border: {
+          type: FeatureStyleType.line,
+          color: ['$rgb', 1, 1, 3],
+          width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
+        },
+        minzoom: 0,
+        maxzoom: 5,
+      },
+      background: {
+        type: FeatureStyleType.background,
+        color: ['$rgb', 1, 1, 2],
+        minzoom: 0,
+        maxzoom: 5,
+      },
+    });
+  });
+});
 
 describe('compileFeatureStyle', () => {
   it('should return compiled feature style for Point', () => {

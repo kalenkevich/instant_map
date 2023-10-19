@@ -2,14 +2,14 @@ import { DataLayerStyle, FeatureStyle, FeatureStyleType } from './styles';
 import { ContextLike } from './style_statement';
 import { compileStatement, isStatement } from './style_statement_utils';
 
-export function compileLayerStyle(style: DataLayerStyle, feature: ContextLike): DataLayerStyle {
+export function compileLayerStyle(style: DataLayerStyle, context: ContextLike): DataLayerStyle {
   const newStyleObject: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(style)) {
-    if (isFeatureStyle(value)) {
-      newStyleObject[key] = compileFeatureStyle(value, feature);
+    if (key === 'background' && isFeatureStyle(value)) {
+      newStyleObject[key] = compileFeatureStyle(value, context);
     } else if (isStatement(value)) {
-      newStyleObject[key] = compileStatement(value, feature);
+      newStyleObject[key] = compileStatement(value, context);
     } else {
       newStyleObject[key] = value;
     }
@@ -18,14 +18,14 @@ export function compileLayerStyle(style: DataLayerStyle, feature: ContextLike): 
   return newStyleObject as DataLayerStyle;
 }
 
-export function compileFeatureStyle(featureStyle: FeatureStyle, feature: ContextLike): FeatureStyle {
+export function compileFeatureStyle(featureStyle: FeatureStyle, context: ContextLike): FeatureStyle {
   const newStyleObject: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(featureStyle)) {
     if (isFeatureStyle(value)) {
-      newStyleObject[key] = compileFeatureStyle(value, feature);
+      newStyleObject[key] = compileFeatureStyle(value, context);
     } else if (isStatement(value)) {
-      newStyleObject[key] = compileStatement(value, feature);
+      newStyleObject[key] = compileStatement(value, context);
     } else {
       newStyleObject[key] = value;
     }
