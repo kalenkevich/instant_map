@@ -17,6 +17,8 @@ import {
   FeatureValue,
   HasCondition,
   ConditionStatement,
+  IsEmptyCondition,
+  IsNotEmptyCondition,
 } from '../../../../src/map/styles/style_statement';
 import {
   compileStatement,
@@ -39,6 +41,8 @@ import {
   compileConstantValueStatement,
   isConstantValue,
   getPropertyValue,
+  compileIsEmptyCondition,
+  compileIsNotEmptyCondition,
 } from '../../../../src/map/styles/style_statement_utils';
 
 const SampleWaterFeature: Feature = {
@@ -1116,6 +1120,48 @@ describe('compileHasCondition', () => {
   });
 });
 
+describe('compileIsEmptyCondition', () => {
+  it('should return true for truthy "empty" condition', () => {
+    expect(compileIsEmptyCondition(['$empty', ['$get', 'properties.undefinedProp']], SampleWaterFeature)).toBe(true);
+  });
+
+  it('should return false for falthy "empty" condition', () => {
+    expect(compileIsEmptyCondition(['$empty', ['$get', 'properties.class']], SampleWaterFeature)).toBe(false);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileIsEmptyCondition([] as unknown as IsEmptyCondition<string>, SampleWaterFeature);
+    }).toThrowError('IsEmptyCondition statement is invalid: []');
+
+    expect(() => {
+      compileIsEmptyCondition(['$empty'] as unknown as IsEmptyCondition<string>, SampleWaterFeature);
+    }).toThrowError('IsEmptyCondition statement is invalid: ["$empty"]');
+  });
+});
+
+describe('IsNotEmptyCondition', () => {
+  it('should return true for truthy "not empty" condition', () => {
+    expect(compileIsNotEmptyCondition(['$notEmpty', ['$get', 'properties.class']], SampleWaterFeature)).toBe(true);
+  });
+
+  it('should return false for falthy "not empty" condition', () => {
+    expect(compileIsNotEmptyCondition(['$notEmpty', ['$get', 'properties.undefinedProp']], SampleWaterFeature)).toBe(
+      false
+    );
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileIsNotEmptyCondition([] as unknown as IsNotEmptyCondition<string>, SampleWaterFeature);
+    }).toThrowError('IsNotEmptyCondition statement is invalid: []');
+
+    expect(() => {
+      compileIsNotEmptyCondition(['$notEmpty'] as unknown as IsNotEmptyCondition<string>, SampleWaterFeature);
+    }).toThrowError('IsNotEmptyCondition statement is invalid: ["$notEmpty"]');
+  });
+});
+
 describe('compileValueStatement', () => {
   const valueStatement: ValueStatement<string> = ['$get', 'properties.class'];
 
@@ -1238,6 +1284,8 @@ describe('isConstantValue', () => {
     expect(isConstantValue<any>(['$and', true, true])).toBe(false);
     expect(isConstantValue<any>(['$&&', true, true])).toBe(false);
     expect(isConstantValue<any>(['$oneOf', 'val', 'val1', 'val2'])).toBe(false);
+    expect(isConstantValue<any>(['$empty', 1])).toBe(false);
+    expect(isConstantValue<any>(['$notEmpty', 1])).toBe(false);
   });
 });
 
