@@ -51,17 +51,23 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
       return cachedObjects;
     }
 
-    const tileLayers = tile.getLayers();
-    if (!tileLayers || Object.keys(tileLayers).length === 0) {
+    const sourceLayers = tile.getLayers();
+    if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles).length === 0) {
       return [] as Object3D[];
     }
 
     const objects: Object3D[] = [];
 
     for (const styleLayer of Object.values(styles)) {
+      const sourceLayer = sourceLayers[styleLayer.styleLayerName];
+
+      if (!sourceLayer) {
+        continue;
+      }
+
       objects.push(
         ...getLayerObjects({
-          layer: tileLayers[styleLayer.sourceLayer],
+          layer: sourceLayer,
           mapState,
           x: tileX,
           y: tileY,
