@@ -24,23 +24,23 @@ export type ConstantValue<V> = V;
 
 export type ConditionStatement<V> =
   | ValueStatement<V>
-  | NegativeStatement<V>
-  | EqualCondition<V>
-  | NotEqualCondition<V>
-  | LessCondition<V>
-  | LessOrEqualCondition<V>
-  | GreaterCondition<V>
-  | GreaterOrEqualCondition<V>
-  | OrCondition<V>
-  | AndCondition<V>
-  | OneOfCondition<V>
-  | HasCondition<V>
-  | IsEmptyCondition<V>
-  | IsNotEmptyCondition<V>;
+  | NegativeStatement<any>
+  | EqualCondition<any>
+  | NotEqualCondition<any>
+  | LessCondition<any>
+  | LessOrEqualCondition<any>
+  | GreaterCondition<any>
+  | GreaterOrEqualCondition<any>
+  | OrCondition<any>
+  | AndCondition<any>
+  | OneOfCondition<any>
+  | HasCondition<any>
+  | IsEmptyCondition<any>
+  | IsNotEmptyCondition<any>;
 
-export type NegativeStatement<V> = ['$!', ConditionStatement<any>];
+export type NegativeStatement<V> = ['$!', ConditionStatement<V>];
 
-export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<any>, ConditionStatement<any>];
+export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
 
 export type NotEqualCondition<V> = ['$!=' | '$neq', ConditionStatement<V>, ConditionStatement<V>];
 
@@ -54,15 +54,15 @@ export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>,
 
 export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
 
-export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<any>, ConditionStatement<any>];
+export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];
 
-export type OneOfCondition<V> = ['$oneOf', ValueStatement<any>, ...Array<ValueStatement<any>>];
+export type OneOfCondition<V> = ['$oneOf', ValueStatement<V>, ...Array<ValueStatement<V>>];
 
 export type HasCondition<V> = ['$has', string];
 
-export type IsEmptyCondition<V> = ['$empty', ConditionStatement<any>];
+export type IsEmptyCondition<V> = ['$empty', ConditionStatement<V>];
 
-export type IsNotEmptyCondition<V> = ['$notEmpty', ConditionStatement<any>];
+export type IsNotEmptyCondition<V> = ['$notEmpty', ConditionStatement<V>];
 
 export type ColorValue = RGBColorValue | RGBAColorValue;
 
