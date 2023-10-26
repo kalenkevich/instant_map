@@ -1,5 +1,5 @@
 import earcut from 'earcut';
-import { Font, Path } from 'opentype.js';
+import { Font } from 'opentype.js';
 import { v2 } from '../../index';
 
 interface Point {
@@ -93,14 +93,30 @@ class Polygon {
   }
 }
 
+// TODO: remove this multiplier
+const SIZE_MULTIPLIER = 16;
+
+export const getTextRectangleSize = (
+  font: Font,
+  text: string,
+  p: v2,
+  fontSize: number
+): { width: number; height: number } => {
+  const path = font.getPath(text, p[0], p[1], fontSize * SIZE_MULTIPLIER);
+  const bbox = path.getBoundingBox();
+
+  return {
+    width: bbox.x2 - bbox.x1,
+    height: bbox.y2 - bbox.y1,
+  };
+};
+
 export const getVerticiesFromText = (font: Font, text: string, p: v2, fontSize: number) => {
   const polys: Polygon[] = [];
   const root = [];
   const indices: number[] = [];
-
-  // TODO: remove this multiplier
-  const sizeMultiplier = 16;
-  const path = font.getPath(text, p[0], p[1], fontSize * sizeMultiplier);
+  const size = getTextRectangleSize(font, text, p, fontSize);
+  const path = font.getPath(text, p[0] - size.width / 2, p[1] + size.height * 2, fontSize * SIZE_MULTIPLIER);
 
   path.commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
     switch (type) {
