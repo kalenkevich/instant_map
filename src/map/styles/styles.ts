@@ -3,8 +3,8 @@ import { Statement, ColorValue } from './style_statement';
 export type DataTileStyles = Record<string, DataLayerStyle>;
 
 export interface DataLayerStyle {
+  sourceLayer: string; // tile feature layer;
   styleLayerName: string; // style layer name;
-  sourceLayerName: string; // tile feature layer;
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
@@ -55,8 +55,9 @@ export interface PolygonStyle {
 export interface TextStyle {
   type: FeatureStyleType.text;
   color: Statement<ColorValue>;
-  font: Statement<string>;
-  fontSize: Statement<number>;
+  text: Statement<string>;
+  font?: Statement<string>; // default roboto
+  fontSize?: Statement<number>; // default 14
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;

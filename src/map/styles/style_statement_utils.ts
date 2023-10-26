@@ -18,6 +18,8 @@ import {
   OneOfCondition,
   HasCondition,
   NegativeStatement,
+  IsEmptyCondition,
+  IsNotEmptyCondition,
 } from './style_statement';
 
 export function compileStatement<V>(statement: Statement<V>, context: ContextLike): V {
@@ -83,6 +85,14 @@ export function compileStatement<V>(statement: Statement<V>, context: ContextLik
 
   if (statement[0] === '$has') {
     return compileHasCondition<V>(statement, context) as V;
+  }
+
+  if (statement[0] === '$empty') {
+    return compileIsEmptyCondition<V>(statement, context) as V;
+  }
+
+  if (statement[0] === '$notEmpty') {
+    return compileIsNotEmptyCondition<V>(statement, context) as V;
   }
 
   throw new Error('Statement is invalid: ' + JSON.stringify(statement));
@@ -247,6 +257,14 @@ export function compileConditionStatement<V>(statement: ConditionStatement<V>, c
     return compileHasCondition(statement, context);
   }
 
+  if (statement[0] === '$empty') {
+    return compileIsEmptyCondition<V>(statement, context);
+  }
+
+  if (statement[0] === '$notEmpty') {
+    return compileIsNotEmptyCondition<V>(statement, context);
+  }
+
   throw new Error('Unrecognised condition statement: ' + JSON.stringify(statement));
 }
 
@@ -387,6 +405,38 @@ export function compileHasCondition<V>(statement: HasCondition<V>, context: Cont
   return hasPropertyValue(context, statement[1]);
 }
 
+export function compileIsEmptyCondition<V>(statement: IsEmptyCondition<V>, context: ContextLike): boolean {
+  if (!Array.isArray(statement) || statement[0] !== '$empty' || statement.length !== 2) {
+    throw new Error('IsEmptyCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const value = compileStatement(statement[1], context);
+
+  return (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0) ||
+    Object.keys(value).length === 0
+  );
+}
+
+export function compileIsNotEmptyCondition<V>(statement: IsNotEmptyCondition<V>, context: ContextLike): boolean {
+  if (!Array.isArray(statement) || statement[0] !== '$notEmpty' || statement.length !== 2) {
+    throw new Error('IsNotEmptyCondition statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const value = compileStatement(statement[1], context);
+
+  return !(
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0) ||
+    Object.keys(value).length === 0
+  );
+}
+
 export function compileFeatureValueStatement<V>(statement: FeatureValue<V>, context: ContextLike): V {
   if (!Array.isArray(statement) || statement[0] !== '$get' || statement.length !== 2) {
     throw new Error('FeatureValue statement is invalid: ' + JSON.stringify(statement));
@@ -432,6 +482,8 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$oneOf',
       '$has',
       '$!',
+      '$empty',
+      '$notEmpty',
     ].includes(statement[0]);
   }
 

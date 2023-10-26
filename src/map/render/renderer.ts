@@ -1,6 +1,7 @@
 import { MapTile } from '../tile/tile';
 import { MapState } from '../map_state';
 import { GlideMap } from '../map';
+import { DataTileStyles } from '../styles/styles';
 
 export enum MapRendererType {
   webgl = 'webgl',
@@ -14,16 +15,13 @@ export enum MapRendererType {
 export interface RenderingCache {}
 
 export abstract class MapRenderer {
-  constructor(
-    protected readonly map: GlideMap,
-    protected readonly devicePixelRatio: number,
-  ) {}
+  constructor(protected readonly map: GlideMap, protected readonly devicePixelRatio: number) {}
 
   public abstract init(): void;
 
-  public abstract renderTiles(tiles: MapTile[], mapState: MapState): void;
+  public abstract renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void;
 
-  public abstract preheatTiles(tiles: MapTile[], mapState: MapState): void;
+  public abstract preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void;
 
   public abstract stopRender(): void;
 

@@ -1,4 +1,13 @@
-import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from 'twgl.js';
+import {
+  Arrays,
+  BufferInfo,
+  ProgramInfo,
+  createProgramInfo,
+  createBufferInfoFromArrays,
+  setUniforms,
+  drawBufferInfo,
+  setBuffersAndAttributes,
+} from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 import { GL_COLOR_BLACK } from '../colors';
@@ -20,25 +29,27 @@ export interface GlUniforms {
 }
 
 export enum GlProgramType {
-  TRIANGLE,
-  AREA,
-  CIRCLE,
-  PATH,
-  PATH_GROUP,
-  RECTANGLE,
-  LINE,
-  LINE_STRIP,
-  NATIVE_LINE,
-  NATIVE_LINE_STRIP,
-  MITER_LINE_CAP,
-  IMAGE,
+  TRIANGLE = 0,
+  AREA = 1,
+  CIRCLE = 2,
+  PATH = 3,
+  PATH_GROUP = 4,
+  RECTANGLE = 5,
+  LINE = 6,
+  LINE_STRIP = 7,
+  NATIVE_LINE = 8,
+  NATIVE_LINE_STRIP = 9,
+  MITER_LINE_CAP = 10,
+  IMAGE = 11,
+  TEXT = 12,
 }
 
 export type ProgramCache = {
-  [key in GlProgramType]?: ProgramInfo
+  programs: {
+    [key in GlProgramType]?: ProgramInfo;
+  };
+  currentProgram?: ProgramInfo;
 };
-
-let usedProgram: ProgramInfo | undefined;
 
 export abstract class GlProgram {
   public requireExt: boolean = false;
@@ -57,7 +68,7 @@ export abstract class GlProgram {
   abstract type: GlProgramType;
 
   protected constructor(props: GlProgramProps) {
-    this.color = props.color ? this.normalizeColor(props.color) : GL_COLOR_BLACK as v4;
+    this.color = props.color ? this.normalizeColor(props.color) : (GL_COLOR_BLACK as v4);
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
     this.origin = props.origin || [0, 0];
@@ -144,9 +155,9 @@ export abstract class GlProgram {
     const buffer = this.getBufferInfo(gl);
     const uniforms = this.getUniforms(gl);
 
-    if (programInfo !== usedProgram) {
+    if (programInfo !== cache.currentProgram) {
       gl.useProgram(programInfo.program);
-      usedProgram = programInfo;
+      cache.currentProgram = programInfo;
     }
 
     setBuffersAndAttributes(gl, programInfo, buffer);
@@ -167,10 +178,11 @@ export abstract class GlProgram {
 
   public getVertexShaderSource(...args: any[]): string {
     return `
+      precision mediump float;
       attribute vec2 a_position;
       uniform vec2 u_resolution;
       uniform mat3 u_matrix;
-      
+
       void main() {
         // Apply tranlation, rotation and scale.
         vec2 position = (u_matrix * vec3(a_position, 1)).xy;
@@ -197,24 +209,24 @@ export abstract class GlProgram {
   }
 
   public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
-    if (cache[this.type]) {
-      return cache[this.type];
+    if (cache.programs[this.type]) {
+      return cache.programs[this.type];
     }
 
-    return cache[this.type] = createProgramInfo(
-      gl,
-      [this.getVertexShaderSource(), this.getFragmentShaderSource()],
-    );
+    return (cache.programs[this.type] = createProgramInfo(gl, [
+      this.getVertexShaderSource(),
+      this.getFragmentShaderSource(),
+    ]));
   }
 
-  public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;
+  public abstract getBufferAttrs(gl: WebGLRenderingContext): Arrays;
 
   public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
     if (this.bufferInfoCache) {
       return this.bufferInfoCache;
     }
 
-    return this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
+    return (this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl)));
   }
 
   public getUniforms(gl: WebGLRenderingContext): GlUniforms {
@@ -222,12 +234,12 @@ export abstract class GlProgram {
       return this.uniformsCache;
     }
 
-    return this.uniformsCache = {
+    return (this.uniformsCache = {
       u_width: this.lineWidth,
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_matrix: this.getMatrix(),
-    };
+    });
   }
 
   public getMatrix(): number[] {
@@ -254,9 +266,6 @@ export abstract class GlProgram {
       }
 
       throw new Error(typeErrorMessage);
-    }
-
-    if (typeof color === 'string') {
     }
 
     throw new Error(typeErrorMessage);

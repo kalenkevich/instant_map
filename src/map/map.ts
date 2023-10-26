@@ -23,6 +23,7 @@ import { ZoomControl } from './controls/zoom_control';
 import { CompassControl } from './controls/compass_control';
 import { MoveControl } from './controls/move_control';
 import { DataTileStyles } from './styles/styles';
+import { FontManager } from './font/font_manager';
 
 export const DEFAULT_MAP_METADATA: MapMeta = {
   bounds: [-180, -85.0511, 180, 85.0511],
@@ -80,6 +81,7 @@ export class GlideMap {
   tilesGrid: TilesGrid;
   eventHandlers: EventHandler[];
   crs: CoordinateReferenceSystem;
+  fontManager: FontManager;
 
   private width: number;
   private height: number;
@@ -107,7 +109,7 @@ export class GlideMap {
     this.init();
   }
 
-  private init() {
+  private async init() {
     this.eventHandlers.forEach(eventHandler => eventHandler.subscribe());
 
     if (this.options.resizable) {
@@ -115,13 +117,13 @@ export class GlideMap {
     }
 
     if (this.tileMetaUrl) {
-      this.fetchMapMeta().then(mapMeta => {
-        this.mapMeta = {
-          ...(this.options.mapMeta || {}),
-          ...mapMeta,
-        };
-        this.postInit();
-      });
+      const mapMeta = await this.fetchMapMeta();
+      this.mapMeta = {
+        ...(this.options.mapMeta || {}),
+        ...mapMeta,
+      };
+
+      this.postInit();
     } else if (this.mapMeta) {
       this.postInit();
     } else {
@@ -148,8 +150,10 @@ export class GlideMap {
       },
       tileStyles: this.tileStyles,
     });
+    this.fontManager = new FontManager();
 
     this.renderer.init();
+    this.fontManager.init();
     this.tilesGrid.init(this.state);
     this.triggerRerender();
 
@@ -219,6 +223,14 @@ export class GlideMap {
     this.height = height;
     this.fire(MapEventType.RESIZE);
     this.triggerRerender();
+  }
+
+  public getFontManager(): FontManager {
+    return this.fontManager;
+  }
+
+  public getTileStyles(): DataTileStyles | undefined {
+    return this.tileStyles;
   }
 
   private async fetchMapMeta(): Promise<MapMeta | undefined> {
@@ -475,13 +487,13 @@ export class GlideMap {
     return this.tilesGrid.update(state).then(tiles => {
       this.renderer.stopRender();
 
-      this.renderer.renderTiles(tiles, state);
+      this.renderer.renderTiles(tiles, this.tileStyles!, state);
       this.fire(MapEventType.RENDER);
 
       if (this.options.preheatTiles) {
         console.time('preheat');
         this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-          this.renderer.preheatTiles(tilesToPreheat, state);
+          this.renderer.preheatTiles(tilesToPreheat, this.tileStyles!, state);
           console.timeEnd('preheat');
         });
       }

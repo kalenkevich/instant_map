@@ -11,6 +11,7 @@ export * from './rectangle';
 export * from './triangle';
 export * from './circle';
 export * from './image';
+export * from './text/text';
 
 /** Object Groups */
 export * from './path_group';

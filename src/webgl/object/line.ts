@@ -137,7 +137,7 @@ export class WebGlNativeLineStrip extends GlProgram {
  * Check out more here: https://wwwtyro.net/2019/11/18/instanced-lines.html
  */
 export class WebGlLineStrip extends GlProgram {
-  type: GlProgramType.LINE_STRIP;
+  type = GlProgramType.LINE_STRIP;
 
   protected points: v2[];
 

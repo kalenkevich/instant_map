@@ -11,6 +11,7 @@ import {
   WebGlCircle,
   WebGlLineStrip,
   WebGlArea,
+  WebGlText,
   GlLineStripProps,
   GlColor,
   GL_COLOR_WHITE,
@@ -18,7 +19,8 @@ import {
 } from '../../../webgl';
 import { compileStatement } from '../../styles/style_statement_utils';
 import { TileFeature } from '../../tile/tile_feature';
-import { LineStyle, PointStyle, FeatureStyleType } from '../../styles/styles';
+import { LineStyle, PointStyle, FeatureStyleType, TextStyle } from '../../styles/styles';
+import { FontManager } from '../../font/font_manager';
 
 export interface LayerGlProgramsProps {
   layer: TileLayer;
@@ -29,6 +31,7 @@ export interface LayerGlProgramsProps {
   width: number;
   height: number;
   image?: HTMLImageElement;
+  fontManager: FontManager;
 }
 
 export const getLayerGlPrograms = (props: LayerGlProgramsProps): GlProgram[] => {
@@ -71,6 +74,7 @@ export const getFeatureGlPrograms = (feature: TileFeature, props: LayerGlProgram
     case FeatureStyleType.image:
       return getImageFeatureGlProgram(feature, props);
     case FeatureStyleType.text:
+      return getTextFeatureGlPrograms(feature, props);
     default:
       console.info(`${featureStyle.type} is not supported by WebGL rendrer.`);
       return [];
@@ -167,6 +171,33 @@ export const getImageFeatureGlProgram = (feature: TileFeature, props: LayerGlPro
       width: props.width,
       height: props.height,
       image: props.image!,
+      translation: [props.x, props.y],
+      scale: props.scale,
+    }),
+  ];
+};
+
+export const getTextFeatureGlPrograms = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
+  const featureStyle = feature.getStyles()! as TextStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const text = compileStatement(featureStyle.text, geojsonFeature);
+
+  if (!text) {
+    return [];
+  }
+
+  const font = featureStyle.font ? compileStatement(featureStyle.font, geojsonFeature) : 'roboto';
+  const fontSize = featureStyle.fontSize ? compileStatement(featureStyle.fontSize, geojsonFeature) : 14;
+  const point = (feature.getGeometry() as Point).coordinates;
+  const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
+
+  return [
+    new WebGlText({
+      p: point as v2,
+      text,
+      font: props.fontManager.getFont(font),
+      fontSize,
+      color,
       translation: [props.x, props.y],
       scale: props.scale,
     }),

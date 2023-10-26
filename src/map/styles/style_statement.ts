@@ -34,7 +34,9 @@ export type ConditionStatement<V> =
   | OrCondition<V>
   | AndCondition<V>
   | OneOfCondition<V>
-  | HasCondition<V>;
+  | HasCondition<V>
+  | IsEmptyCondition<V>
+  | IsNotEmptyCondition<V>;
 
 export type NegativeStatement<V> = ['$!', ConditionStatement<any>];
 
@@ -57,6 +59,10 @@ export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<any>, Conditio
 export type OneOfCondition<V> = ['$oneOf', ValueStatement<any>, ...Array<ValueStatement<any>>];
 
 export type HasCondition<V> = ['$has', string];
+
+export type IsEmptyCondition<V> = ['$empty', ConditionStatement<any>];
+
+export type IsNotEmptyCondition<V> = ['$notEmpty', ConditionStatement<any>];
 
 export type ColorValue = RGBColorValue | RGBAColorValue;
 

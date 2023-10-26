@@ -19,8 +19,8 @@ describe('TileLayer', () => {
     },
   };
   const sampleLayerStyles: DataLayerStyle = {
-    styleLayerName: 'land',
-    sourceLayerName: 'landStyle',
+    sourceLayer: 'land',
+    styleLayerName: 'landStyle',
     show: true,
     minzoom: 0,
     maxzoom: 5,
