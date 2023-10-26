@@ -1,5 +1,5 @@
-import {describe, expect, it} from '@jest/globals';
-import {toMatchImageSnapshot} from 'jest-image-snapshot';
+import { describe, expect, it } from '@jest/globals';
+import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { BASE_TEST_LOCATION } from './_const';
 import { goToPageAndWaitForMapRender } from './_utils';
 
