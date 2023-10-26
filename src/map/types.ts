@@ -7,7 +7,6 @@ import { DataTileStyles } from './styles/styles';
 export interface MapOptions {
   rootEl: HTMLElement;
   styles?: DataTileStyles;
-  fonts?: Record<string, string>;
   zoom?: number;
   rotation?: number;
   center?: LatLng;

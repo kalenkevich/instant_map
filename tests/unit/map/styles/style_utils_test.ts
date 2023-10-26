@@ -57,8 +57,8 @@ describe('compileLayerStyle', () => {
     });
 
     expect(compiled).toEqual({
-      sourceLayer: 'landStyle',
-      styleLayerName: 'land',
+      sourceLayer: 'land',
+      styleLayerName: 'landStyle',
       show: true,
       minzoom: 0,
       maxzoom: 5,
