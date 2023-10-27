@@ -17,6 +17,12 @@ export interface MapOptions {
   crs?: MapCrs;
   resizable?: boolean;
   preheatTiles?: boolean;
+  controls?: {
+    zoom?: boolean;
+    move?: boolean;
+    compas?: boolean;
+    debug?: boolean;
+  };
 }
 
 export { MapTileFormatType };

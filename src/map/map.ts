@@ -171,15 +171,26 @@ export class GlideMap {
 
   private getMapControls() {
     const parentControl = new MapParentControl(this, MapControlPosition.BOTTOM_RIGHT);
-    const zoomControl = new ZoomControl(this);
-    const compassControl = new CompassControl(this);
-    const moveControl = new MoveControl(this);
-    const debugControl = new MapDebugControl(this);
 
-    parentControl.addControl(debugControl);
-    parentControl.addControl(compassControl);
-    parentControl.addControl(moveControl);
-    parentControl.addControl(zoomControl);
+    if (this.options.controls?.debug !== false) {
+      const debugControl = new MapDebugControl(this);
+      parentControl.addControl(debugControl);
+    }
+
+    if (this.options.controls?.compas !== false) {
+      const compassControl = new CompassControl(this);
+      parentControl.addControl(compassControl);
+    }
+
+    if (this.options.controls?.move !== false) {
+      const moveControl = new MoveControl(this);
+      parentControl.addControl(moveControl);
+    }
+
+    if (this.options.controls?.zoom !== false) {
+      const zoomControl = new ZoomControl(this);
+      parentControl.addControl(zoomControl);
+    }
 
     return [parentControl];
   }

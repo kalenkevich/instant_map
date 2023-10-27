@@ -9,7 +9,7 @@ expect.extend({ toMatchImageSnapshot });
 describe('Webgl render', () => {
   describe('PNG images.', () => {
     it('should render osm images on canvas as a map background.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const image = await page.screenshot();
 
@@ -22,7 +22,10 @@ describe('Webgl render', () => {
     });
 
     it('should render maptiler images on canvas as a map background.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_maptiler&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(
+        page,
+        `http://localhost:3000/?sm=webgl_png_maptiler&env=test&${BASE_TEST_LOCATION}`
+      );
 
       const image = await page.screenshot();
 
@@ -35,7 +38,7 @@ describe('Webgl render', () => {
     });
 
     it('should move up.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const upMoveButton = await page.$('.move-up');
 
@@ -52,7 +55,7 @@ describe('Webgl render', () => {
     });
 
     it('should move down.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const downMoveButton = await page.$('.move-down');
 
@@ -69,7 +72,7 @@ describe('Webgl render', () => {
     });
 
     it('should move left.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const leftMoveButton = await page.$('.move-left');
 
@@ -86,7 +89,7 @@ describe('Webgl render', () => {
     });
 
     it('should move right.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const rightMoveButton = await page.$('.move-right');
 
@@ -105,7 +108,10 @@ describe('Webgl render', () => {
 
   describe('Vector tiles.', () => {
     it('should render vector tile data using native webgl.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=webgl_vt_maptiler&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(
+        page,
+        `http://localhost:3000/?sm=webgl_vt_maptiler&env=test&${BASE_TEST_LOCATION}`
+      );
 
       const image = await page.screenshot();
 

@@ -7,17 +7,17 @@ import { VectorStyles } from './vector_styles';
 
 type ButtonOption = Partial<MapOptions & { name: string; id: string }>;
 
+const ENV_PARAM_NAME = 'env';
 const MAP_LOCATION_PARAM_NAME = 'l';
-const USE_LOCAL_SERVER_PARAM_NAME = 'ls';
 const SELECTED_MAP_VIEW_PARAM_MNAME = 'sm';
 
-const useLocalServer = new URLSearchParams(document.location.search).has(USE_LOCAL_SERVER_PARAM_NAME);
-const OSM_TILE_URL = `${useLocalServer ? '/osm' : 'https://tile.openstreetmap.org'}/{z}/{x}/{y}.png`;
+const isTestEnv = new URLSearchParams(document.location.search).get(ENV_PARAM_NAME) === 'test';
+const OSM_TILE_URL = `${isTestEnv ? '/osm' : 'https://tile.openstreetmap.org'}/{z}/{x}/{y}.png`;
 const MAPTILER_PNG_TILE_URL = `${
-  useLocalServer ? '/maptiler/satellite' : 'https://api.maptiler.com/maps/satellite/256'
+  isTestEnv ? '/maptiler/satellite' : 'https://api.maptiler.com/maps/satellite/256'
 }/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt`;
 const MAPTILER_VT_META_URL = `${
-  useLocalServer ? '/maptiler/tiles_meta.json' : 'https://api.maptiler.com/tiles/v3/tiles.json'
+  isTestEnv ? '/maptiler/tiles_meta.json' : 'https://api.maptiler.com/tiles/v3/tiles.json'
 }?key=MfT8xhKONCRR9Ut0IKkt`;
 
 export const ButtonMapOptions: ButtonOption[] = [
@@ -29,6 +29,9 @@ export const ButtonMapOptions: ButtonOption[] = [
     preheatTiles: true,
     tileMetaUrl: MAPTILER_VT_META_URL,
     styles: VectorStyles,
+    controls: {
+      debug: !isTestEnv,
+    },
   },
   {
     name: 'VT threejs maptiler',
@@ -37,6 +40,9 @@ export const ButtonMapOptions: ButtonOption[] = [
     resizable: true,
     tileMetaUrl: MAPTILER_VT_META_URL,
     styles: VectorStyles,
+    controls: {
+      debug: !isTestEnv,
+    },
   },
   {
     name: 'Png image osm',
@@ -50,6 +56,9 @@ export const ButtonMapOptions: ButtonOption[] = [
       format: MapTileFormatType.png,
       tiles: [OSM_TILE_URL],
     },
+    controls: {
+      debug: !isTestEnv,
+    },
   },
   {
     name: 'Png image maptiler',
@@ -62,6 +71,9 @@ export const ButtonMapOptions: ButtonOption[] = [
       minzoom: 0,
       format: MapTileFormatType.png,
       tiles: [MAPTILER_PNG_TILE_URL],
+    },
+    controls: {
+      debug: !isTestEnv,
     },
   },
   {
@@ -77,6 +89,9 @@ export const ButtonMapOptions: ButtonOption[] = [
       format: MapTileFormatType.png,
       tiles: [OSM_TILE_URL],
     },
+    controls: {
+      debug: !isTestEnv,
+    },
   },
   {
     name: 'Png webgl maptiler',
@@ -90,6 +105,9 @@ export const ButtonMapOptions: ButtonOption[] = [
       minzoom: 0,
       format: MapTileFormatType.png,
       tiles: [MAPTILER_PNG_TILE_URL],
+    },
+    controls: {
+      debug: !isTestEnv,
     },
   },
 ];

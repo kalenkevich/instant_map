@@ -8,7 +8,7 @@ expect.extend({ toMatchImageSnapshot });
 describe('HTML render', () => {
   describe('Png images', () => {
     it('should render osm png images', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=html_png_osm&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=html_png_osm&env=test&${BASE_TEST_LOCATION}`);
 
       const image = await page.screenshot();
 
@@ -21,7 +21,10 @@ describe('HTML render', () => {
     });
 
     it('should render satellite png images', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=html_png_maptiler&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(
+        page,
+        `http://localhost:3000/?sm=html_png_maptiler&env=test&${BASE_TEST_LOCATION}`
+      );
 
       const image = await page.screenshot();
 
