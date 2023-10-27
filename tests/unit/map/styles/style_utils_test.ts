@@ -16,7 +16,7 @@ describe('compileLayerStyle', () => {
     const style: DataLayerStyle = {
       sourceLayer: 'land',
       styleLayerName: 'landStyle',
-      layerIndex: 1,
+      zIndex: 1,
       show: true,
       minzoom: 0,
       maxzoom: 5,
@@ -61,7 +61,7 @@ describe('compileLayerStyle', () => {
       sourceLayer: 'land',
       styleLayerName: 'landStyle',
       show: true,
-      layerIndex: 1,
+      zIndex: 1,
       minzoom: 0,
       maxzoom: 5,
       feature: {

@@ -139,7 +139,7 @@ export class GlMapRenderer extends MapRenderer {
 
     const programs: GlProgram[] = [];
 
-    const styleLayers = Object.values(styles).sort((l1, l2) => l1.layerIndex - l2.layerIndex);
+    const styleLayers = Object.values(styles).sort((l1, l2) => l1.zIndex - l2.zIndex);
     for (const styleLayer of styleLayers) {
       const sourceLayer = sourceLayers[styleLayer.styleLayerName];
 

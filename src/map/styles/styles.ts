@@ -3,7 +3,7 @@ import { Statement, ColorValue } from './style_statement';
 export type DataTileStyles = Record<string, DataLayerStyle>;
 
 export interface DataLayerStyle {
-  layerIndex: number; // order number (like z-index in css);
+  zIndex: number; // order number (like z-index in css);
   sourceLayer: string; // tile feature layer;
   styleLayerName: string; // style layer name;
   show?: Statement<boolean>;

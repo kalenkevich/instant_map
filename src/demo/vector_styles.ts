@@ -4,7 +4,7 @@ export const VectorStyles: DataTileStyles = {
   water: {
     sourceLayer: 'water',
     styleLayerName: 'waterStyles',
-    layerIndex: 0,
+    zIndex: 0,
     feature: {
       type: FeatureStyleType.polygon,
       color: [
@@ -24,7 +24,7 @@ export const VectorStyles: DataTileStyles = {
   globallandcover: {
     sourceLayer: 'globallandcover',
     styleLayerName: 'globallandcoverStyles',
-    layerIndex: 1,
+    zIndex: 1,
     feature: {
       type: FeatureStyleType.polygon,
       color: [
@@ -67,7 +67,7 @@ export const VectorStyles: DataTileStyles = {
   landcover: {
     sourceLayer: 'landcover',
     styleLayerName: 'landcoverStyles',
-    layerIndex: 1,
+    zIndex: 1,
     feature: {
       type: FeatureStyleType.polygon,
       color: [
@@ -111,7 +111,7 @@ export const VectorStyles: DataTileStyles = {
     sourceLayer: 'boundary',
     styleLayerName: 'boundaryStyles',
     show: false,
-    layerIndex: 3,
+    zIndex: 3,
     feature: {
       type: FeatureStyleType.line,
       color: ['$rgba', 114, 113, 207, 1],
@@ -207,7 +207,7 @@ export const VectorStyles: DataTileStyles = {
   building: {
     sourceLayer: 'building',
     styleLayerName: 'buildingStyles',
-    layerIndex: 2,
+    zIndex: 2,
     feature: {
       type: FeatureStyleType.polygon,
       color: ['$rgba', 222, 215, 211, 1],
@@ -217,7 +217,7 @@ export const VectorStyles: DataTileStyles = {
   transportation: {
     sourceLayer: 'transportation',
     styleLayerName: 'transportationStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: true,
     feature: {
       type: FeatureStyleType.line,
@@ -250,7 +250,7 @@ export const VectorStyles: DataTileStyles = {
     sourceLayer: 'poi',
     styleLayerName: 'poiPoint',
     show: true,
-    layerIndex: 3,
+    zIndex: 3,
     feature: {
       type: FeatureStyleType.point,
       radius: 70,
@@ -268,7 +268,7 @@ export const VectorStyles: DataTileStyles = {
   poiLabel: {
     sourceLayer: 'poi',
     styleLayerName: 'poiText',
-    layerIndex: 3,
+    zIndex: 4,
     show: ['$notEmpty', ['$get', 'properties.name']],
     feature: {
       type: FeatureStyleType.text,
@@ -285,7 +285,7 @@ export const VectorStyles: DataTileStyles = {
     sourceLayer: 'place',
     styleLayerName: 'placeStyles',
     show: true,
-    layerIndex: 3,
+    zIndex: 3,
     feature: {
       type: FeatureStyleType.text,
       color: ['$rgba', 0, 0, 0, 1],
@@ -300,7 +300,7 @@ export const VectorStyles: DataTileStyles = {
   aerodrome_label: {
     sourceLayer: 'aerodrome_label',
     styleLayerName: 'aerodromeLabelStyles',
-    layerIndex: 3,
+    zIndex: 4,
     show: false,
     maxzoom: 15,
     minzoom: 8,
@@ -308,7 +308,7 @@ export const VectorStyles: DataTileStyles = {
   aeroway: {
     sourceLayer: 'aeroway',
     styleLayerName: 'aerowayStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: false,
     maxzoom: 15,
     minzoom: 10,
@@ -316,7 +316,7 @@ export const VectorStyles: DataTileStyles = {
   housenumber: {
     sourceLayer: 'housenumber',
     styleLayerName: 'housenumberStyles',
-    layerIndex: 3,
+    zIndex: 3,
     show: false,
     maxzoom: 15,
     minzoom: 14,
@@ -324,7 +324,7 @@ export const VectorStyles: DataTileStyles = {
   landuse: {
     sourceLayer: 'landuse',
     styleLayerName: 'landuseStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: false,
     maxzoom: 15,
     minzoom: 4,
@@ -332,7 +332,7 @@ export const VectorStyles: DataTileStyles = {
   mountain_peak: {
     sourceLayer: 'mountain_peak',
     styleLayerName: 'mountain_peakStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: false,
     maxzoom: 15,
     minzoom: 7,
@@ -340,7 +340,7 @@ export const VectorStyles: DataTileStyles = {
   park: {
     sourceLayer: 'park',
     styleLayerName: 'parkStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: false,
     maxzoom: 15,
     minzoom: 4,
@@ -348,7 +348,7 @@ export const VectorStyles: DataTileStyles = {
   transportation_name: {
     sourceLayer: 'transportation_name',
     styleLayerName: 'transportation_nameStyles',
-    layerIndex: 3,
+    zIndex: 4,
     show: false,
     maxzoom: 15,
     minzoom: 6,
@@ -356,7 +356,7 @@ export const VectorStyles: DataTileStyles = {
   water_name: {
     sourceLayer: 'water_name',
     styleLayerName: 'water_nameStyles',
-    layerIndex: 3,
+    zIndex: 4,
     show: false,
     maxzoom: 15,
     minzoom: 0,
@@ -364,7 +364,7 @@ export const VectorStyles: DataTileStyles = {
   waterway: {
     sourceLayer: 'waterway',
     styleLayerName: 'waterwayStyles',
-    layerIndex: 2,
+    zIndex: 2,
     show: false,
     maxzoom: 15,
     minzoom: 3,

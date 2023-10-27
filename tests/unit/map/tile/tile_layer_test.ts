@@ -24,7 +24,7 @@ describe('TileLayer', () => {
     show: true,
     minzoom: 0,
     maxzoom: 5,
-    layerIndex: 1,
+    zIndex: 1,
     feature: {
       type: FeatureStyleType.point,
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
