@@ -1,5 +1,5 @@
 import { MapTile } from '../../tile/tile';
-import { MapRenderer } from '../renderer';
+import { MapRenderer, RenderStats } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { PngMapTile } from '../../tile/png/png_tile';
@@ -48,7 +48,9 @@ export class PngMapRenderer extends MapRenderer {
     return div;
   }
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats {
+    const timeStart = Date.now();
+
     for (const image of this.images) {
       image.style.display = 'none';
     }
@@ -56,10 +58,18 @@ export class PngMapRenderer extends MapRenderer {
     for (let i = 0; i < tiles.length; i++) {
       this.renderTile(tiles[i] as PngMapTile, i, mapState);
     }
+
+    return {
+      timeInMs: Date.now() - timeStart,
+      tiles: tiles.length,
+    };
   }
 
-  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void {
-    // TODO
+  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats {
+    return {
+      timeInMs: 0,
+      tiles: tiles.length,
+    };
   }
 
   public stopRender(): void {

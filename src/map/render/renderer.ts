@@ -14,14 +14,19 @@ export enum MapRendererType {
 
 export interface RenderingCache {}
 
+export interface RenderStats {
+  timeInMs: number;
+  tiles: number;
+}
+
 export abstract class MapRenderer {
   constructor(protected readonly map: GlideMap, protected readonly devicePixelRatio: number) {}
 
   public abstract init(): void;
 
-  public abstract renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void;
+  public abstract renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats;
 
-  public abstract preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void;
+  public abstract preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats;
 
   public abstract stopRender(): void;
 

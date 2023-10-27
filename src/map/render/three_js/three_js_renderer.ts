@@ -3,7 +3,7 @@ import { MapTile } from '../../tile/tile';
 import { MapState } from '../../map_state';
 import { MapEventType } from '../../map';
 import { RenderingCache } from '../renderer';
-import { GlMapRenderer } from '../gl/gl_renderer';
+import { GlMapRenderer, GlRenderStats } from '../gl/gl_renderer';
 import { ThreeJsPainter } from './three_js_painter';
 import { getLayerObjects } from './three_js_utils';
 import { DataTileStyles } from '../../styles/styles';
@@ -21,12 +21,25 @@ export class ThreeJsMapRenderer extends GlMapRenderer {
     this.map.on(MapEventType.RESIZE, this.resizeEventListener);
   }
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
-    const objects = tiles.map(tile => this.getThreeJsObjects(tile, styles, mapState)).flatMap(obj => obj);
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
+    const timeStart = Date.now();
 
-    console.time('three_js map_render');
+    const objects = tiles.map(tile => this.getThreeJsObjects(tile, styles, mapState)).flatMap(obj => obj);
     this.glPainter.draw(objects);
-    console.timeEnd('three_js map_render');
+
+    return {
+      timeInMs: Date.now() - timeStart,
+      tiles: tiles.length,
+      objects: objects.length,
+    };
+  }
+
+  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
+    return {
+      timeInMs: 0,
+      tiles: tiles.length,
+      objects: 0,
+    };
   }
 
   private getThreeJsObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): Object3D[] {

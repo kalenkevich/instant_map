@@ -1,5 +1,5 @@
-import { throttle } from "../utils/trottle";
-import { MapControl } from "./map_control";
+import { throttle } from '../utils/trottle';
+import { MapControl } from './map_control';
 
 export class ZoomControl extends MapControl {
   private parentEl: HTMLElement;

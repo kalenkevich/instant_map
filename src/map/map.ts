@@ -22,6 +22,7 @@ import { MapParentControl, MapControlPosition } from './controls/parent_control'
 import { ZoomControl } from './controls/zoom_control';
 import { CompassControl } from './controls/compass_control';
 import { MoveControl } from './controls/move_control';
+import { MapDebugControl } from './controls/map_debug_control';
 import { DataTileStyles } from './styles/styles';
 import { FontManager } from './font/font_manager';
 
@@ -53,6 +54,7 @@ export enum MapEventType {
   ZOOM = 'map_zoom',
   RESIZE = 'map_resize',
   RENDER = 'map_render',
+  PREHEAT = 'map_tile_preheat',
 }
 
 export type EventListener = (eventType: MapEventType, ...eventArgs: any[]) => void;
@@ -172,7 +174,9 @@ export class GlideMap {
     const zoomControl = new ZoomControl(this);
     const compassControl = new CompassControl(this);
     const moveControl = new MoveControl(this);
+    const debugControl = new MapDebugControl(this);
 
+    parentControl.addControl(debugControl);
     parentControl.addControl(compassControl);
     parentControl.addControl(moveControl);
     parentControl.addControl(zoomControl);
@@ -487,14 +491,14 @@ export class GlideMap {
     return this.tilesGrid.update(state).then(tiles => {
       this.renderer.stopRender();
 
-      this.renderer.renderTiles(tiles, this.tileStyles!, state);
-      this.fire(MapEventType.RENDER);
+      const renderStats = this.renderer.renderTiles(tiles, this.tileStyles!, state);
+      this.fire(MapEventType.RENDER, renderStats);
 
       if (this.options.preheatTiles) {
-        console.time('preheat');
         this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-          this.renderer.preheatTiles(tilesToPreheat, this.tileStyles!, state);
-          console.timeEnd('preheat');
+          const preheatStats = this.renderer.preheatTiles(tilesToPreheat, this.tileStyles!, state);
+
+          this.fire(MapEventType.PREHEAT, preheatStats);
         });
       }
     });
