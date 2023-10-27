@@ -86,7 +86,7 @@ export const getFeatureObjects = (feature: TileFeature, props: LayerObjectsProps
 export const getPointFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
   const featureStyle = feature.getStyles()! as PointStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
-  const radius = featureStyle.radius ? compileStatement(featureStyle.radius, geojsonFeature) : 50;
+  const radius = featureStyle.radius ? compileStatement<number>(featureStyle.radius, geojsonFeature) : 50;
   const color = featureStyle.color
     ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
     : THREEJS_COLOR_WHITE;
@@ -95,7 +95,8 @@ export const getPointFeatureObjects = (feature: TileFeature, props: LayerObjects
 
   if (featureStyle.border) {
     const borderStyle = featureStyle.border;
-    const borderRadius = radius + (featureStyle.radius ? compileStatement(borderStyle.width, geojsonFeature) : 5) * 2;
+    const borderRadius =
+      radius + (featureStyle.radius ? compileStatement<number>(borderStyle.width, geojsonFeature) : 5) * 2;
     const borderColor = borderStyle.color
       ? getThreeJsColor(compileStatement(borderStyle.color, geojsonFeature))
       : THREEJS_COLOR_BLACK;
@@ -137,7 +138,7 @@ export const getPointFeatureObjects = (feature: TileFeature, props: LayerObjects
 export const getLineFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
   const featureStyle = feature.getStyles()! as LineStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
-  const lineWidth = featureStyle.width ? compileStatement(featureStyle.width, geojsonFeature) : 1;
+  const lineWidth = featureStyle.width ? compileStatement<number>(featureStyle.width, geojsonFeature) : 1;
   const color = featureStyle.color
     ? getThreeJsColor(compileStatement(featureStyle.color, geojsonFeature))
     : THREEJS_COLOR_BLACK;
