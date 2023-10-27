@@ -8,7 +8,10 @@ expect.extend({ toMatchImageSnapshot });
 describe('ThreeJS render', () => {
   describe('Vector tiles.', () => {
     it('should render vector tile data using threejs.', async () => {
-      await goToPageAndWaitForMapRender(page, `http://localhost:3000/?sm=threejs_vt_maptiler&ls&${BASE_TEST_LOCATION}`);
+      await goToPageAndWaitForMapRender(
+        page,
+        `http://localhost:3000/?sm=threejs_vt_maptiler&env=test&${BASE_TEST_LOCATION}`
+      );
 
       const image = await page.screenshot();
 

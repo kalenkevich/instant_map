@@ -1,7 +1,7 @@
 import { MapTile, MapTileFormatType } from '../../tile/tile';
 import { PngMapTile } from '../../tile/png/png_tile';
 import { Painter } from '../painter';
-import { MapRenderer, RenderingCache } from '../renderer';
+import { MapRenderer, RenderStats, RenderingCache } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
@@ -10,6 +10,10 @@ import { DataTileStyles } from '../../styles/styles';
 
 export interface WebGlRenderingCache extends RenderingCache {
   programs: GlProgram[];
+}
+
+export interface GlRenderStats extends RenderStats {
+  objects: number; // number of WebGl objects
 }
 
 export class GlMapRenderer extends MapRenderer {
@@ -57,18 +61,32 @@ export class GlMapRenderer extends MapRenderer {
     }
   }
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
-    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, styles, mapState)).flatMap(obj => obj);
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
+    const timeStart = Date.now();
 
-    console.time('gl map_render');
+    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, styles, mapState)).flatMap(obj => obj);
     this.glPainter.draw(glPrograms);
-    console.timeEnd('gl map_render');
+
+    return {
+      timeInMs: Date.now() - timeStart,
+      tiles: tiles.length,
+      objects: glPrograms.length,
+    };
   }
 
-  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
+  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
+    const timeStart = Date.now();
+
+    let objects: number = 0;
     for (const tile of tiles) {
-      this.preheatTile(tile, styles, mapState);
+      objects += this.preheatTile(tile, styles, mapState).length;
     }
+
+    return {
+      timeInMs: Date.now() - timeStart,
+      tiles: tiles.length,
+      objects,
+    };
   }
 
   public stopRender(): void {
@@ -92,9 +110,9 @@ export class GlMapRenderer extends MapRenderer {
     return canvas;
   }
 
-  private preheatTile(tile: MapTile, styles: DataTileStyles, mapState: MapState) {
+  private preheatTile(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
     if (tile.hasRenderingCache()) {
-      return;
+      return (tile.getRenderingCache() as WebGlRenderingCache).programs;
     }
 
     // will set rendering context cache inside
@@ -103,6 +121,8 @@ export class GlMapRenderer extends MapRenderer {
     for (const program of programs) {
       this.glPainter.preheat(program);
     }
+
+    return programs;
   }
 
   private getRenderPrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {

@@ -1,6 +1,6 @@
-import { MapControl } from "./map_control";
-import { throttle } from "../utils/trottle";
-import { Point } from "../geometry/point";
+import { MapControl } from './map_control';
+import { throttle } from '../utils/trottle';
+import { Point } from '../geometry/point';
 
 export class MoveControl extends MapControl {
   private parentEl: HTMLElement;
@@ -19,11 +19,7 @@ export class MoveControl extends MapControl {
     this.parentEl.style.marginRight = '5px';
     this.parentEl.style.marginBottom = '5px';
 
-    this.rows = [
-      this.createRow(),
-      this.createRow(),
-      this.createRow(),
-    ];
+    this.rows = [this.createRow(), this.createRow(), this.createRow()];
 
     this.upButton = this.createButton('▲', 'move-up', 0);
     this.rightButton = this.createButton('▲', 'move-right', 90);
