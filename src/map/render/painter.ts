@@ -7,7 +7,5 @@ export interface Painter {
 
   preheat(...args: any[]): void;
 
-  setWidth(w: number): void;
-
-  setHeight(h: number): void;
+  resize(w: number, h: number): void;
 }

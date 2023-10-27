@@ -1,4 +1,4 @@
-import { setUniforms, drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
+import { drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
 import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
 
 export interface GlImageProps extends GlProgramProps {
@@ -24,7 +24,6 @@ export class WebGlImage extends GlProgram {
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     const programInfo = this.getProgramInfo(gl, cache);
-    const uniforms = this.getUniforms(gl);
     const buffers = this.getBufferInfo(gl);
 
     // Create a texture.
@@ -42,7 +41,7 @@ export class WebGlImage extends GlProgram {
     }
 
     setBuffersAndAttributes(gl, programInfo, buffers);
-    setUniforms(programInfo, uniforms);
+    this.setUniforms(gl, programInfo);
 
     drawBufferInfo(gl, buffers, this.getPrimitiveType(gl), 6, 0);
   }
@@ -56,12 +55,18 @@ export class WebGlImage extends GlProgram {
         offset: 0,
         drawType: gl.STATIC_DRAW,
         data: new Float32Array([
-          0, 0,
-          this.width, 0,
-          0, this.height,
-          0, this.height,
-          this.width, 0,
-          this.width, this.height,
+          0,
+          0,
+          this.width,
+          0,
+          0,
+          this.height,
+          0,
+          this.height,
+          this.width,
+          0,
+          this.width,
+          this.height,
         ]),
       },
       a_texCoord: {
@@ -70,15 +75,8 @@ export class WebGlImage extends GlProgram {
         stride: 0,
         offset: 0,
         drawType: gl.STATIC_DRAW,
-        data: new Float32Array([
-          0.0,  0.0,
-          1.0,  0.0,
-          0.0,  1.0,
-          0.0,  1.0,
-          1.0,  0.0,
-          1.0,  1.0,
-      ]),
-      }
+        data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
+      },
     };
   }
 

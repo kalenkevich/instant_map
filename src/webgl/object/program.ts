@@ -4,7 +4,6 @@ import {
   ProgramInfo,
   createProgramInfo,
   createBufferInfoFromArrays,
-  setUniforms,
   drawBufferInfo,
   setBuffersAndAttributes,
 } from 'twgl.js';
@@ -22,11 +21,16 @@ export interface GlProgramProps {
 }
 
 export interface GlUniforms {
-  u_width: number;
-  u_color: v4;
-  u_resolution: [number, number];
-  u_matrix: number[];
-  u_is_line: boolean;
+  u_color: GlUniform<[number, number, number, number]>;
+  u_resolution: GlUniform<[number, number]>;
+  u_matrix: GlUniform<number[]>;
+  u_line_width: GlUniform<number>;
+  u_is_line: GlUniform<boolean>;
+}
+
+export interface GlUniform<T> {
+  value: T;
+  location: WebGLUniformLocation;
 }
 
 export enum GlProgramType {
@@ -144,24 +148,24 @@ export abstract class GlProgram {
   }
 
   // Combute buffer info and uniforms
-  public preheat(gl: WebGLRenderingContext) {
+  public preheat(gl: WebGLRenderingContext, cache: ProgramCache) {
+    const programInfo = this.getProgramInfo(gl, cache);
+
     this.getBufferInfo(gl);
-    this.getUniforms(gl);
+    this.getUniforms(gl, programInfo.program);
   }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     const programInfo = this.getProgramInfo(gl, cache);
     const buffer = this.getBufferInfo(gl);
-    const uniforms = this.getUniforms(gl);
 
     if (this.type !== cache.currentProgramType) {
       gl.useProgram(programInfo.program);
       cache.currentProgramType = this.type;
     }
 
+    this.setUniforms(gl, programInfo.program);
     setBuffersAndAttributes(gl, programInfo, buffer);
-
-    setUniforms(programInfo, uniforms);
 
     const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
     drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
@@ -175,14 +179,14 @@ export abstract class GlProgram {
     };
   }
 
-  public getVertexShaderSource(...args: any[]): string {
-    return `
+  public vertexShaderSource = `
       precision mediump float;
+
       attribute vec2 a_position;
       attribute vec2 point_a;
       attribute vec2 point_b;
       uniform bool u_is_line;
-      uniform float u_width;
+      uniform float u_line_width;
       uniform vec2 u_resolution;
       uniform mat3 u_matrix;
 
@@ -194,7 +198,7 @@ export abstract class GlProgram {
         vec2 xBasis = point_b - point_a;
         vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
 
-        return point_a + xBasis * a_position.x + yBasis * u_width * a_position.y;
+        return point_a + xBasis * a_position.x + yBasis * u_line_width * a_position.y;
       }
 
       void main() {
@@ -211,28 +215,23 @@ export abstract class GlProgram {
         gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
       }
     `;
-  }
 
-  public getFragmentShaderSource(): string {
-    return `
+  public fragmentShaderSource = `
       precision mediump float;
+
       uniform vec4 u_color;
 
       void main() {
         gl_FragColor = u_color;
       }
     `;
-  }
 
   public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
     if (cache.programs[this.type]) {
       return cache.programs[this.type];
     }
 
-    return (cache.programs[this.type] = createProgramInfo(gl, [
-      this.getVertexShaderSource(),
-      this.getFragmentShaderSource(),
-    ]));
+    return (cache.programs[this.type] = createProgramInfo(gl, [this.vertexShaderSource, this.fragmentShaderSource]));
   }
 
   public abstract getBufferAttrs(gl: WebGLRenderingContext): Arrays;
@@ -245,18 +244,62 @@ export abstract class GlProgram {
     return (this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl)));
   }
 
-  public getUniforms(gl: WebGLRenderingContext): GlUniforms {
-    if (this.uniformsCache) {
-      return this.uniformsCache;
+  protected isLine = false;
+  protected u_colorLocation?: WebGLUniformLocation;
+  protected u_resolutionLocation?: WebGLUniformLocation;
+  protected u_matrixLocation?: WebGLUniformLocation;
+  protected u_line_widthLocation?: WebGLUniformLocation;
+  protected u_is_lineLocation?: WebGLUniformLocation;
+
+  protected getUniforms(gl: WebGLRenderingContext, program: WebGLProgram): GlUniforms {
+    if (!this.u_colorLocation) {
+      this.u_colorLocation = gl.getUniformLocation(program, 'u_color');
+    }
+    if (!this.u_resolutionLocation) {
+      this.u_resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+    }
+    if (!this.u_matrixLocation) {
+      this.u_matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+    }
+    if (!this.u_line_widthLocation) {
+      this.u_line_widthLocation = gl.getUniformLocation(program, 'u_line_width');
+    }
+    if (!this.u_is_lineLocation) {
+      this.u_is_lineLocation = gl.getUniformLocation(program, 'u_is_line');
     }
 
     return (this.uniformsCache = {
-      u_width: this.lineWidth,
-      u_color: this.color,
-      u_resolution: [gl.canvas.width, gl.canvas.height],
-      u_matrix: this.getMatrix(),
-      u_is_line: false,
+      u_color: {
+        value: this.color,
+        location: this.u_colorLocation,
+      },
+      u_resolution: {
+        value: [gl.canvas.width, gl.canvas.height],
+        location: this.u_resolutionLocation,
+      },
+      u_matrix: {
+        value: this.getMatrix(),
+        location: this.u_matrixLocation,
+      },
+      u_line_width: {
+        value: this.lineWidth,
+        location: this.u_line_widthLocation,
+      },
+      u_is_line: {
+        value: this.isLine,
+        location: this.u_is_lineLocation,
+      },
     });
+  }
+
+  protected setUniforms(gl: WebGLRenderingContext, program: WebGLProgram) {
+    const uniforms = this.getUniforms(gl, program);
+
+    gl.uniform4fv(uniforms.u_color.location, uniforms.u_color.value);
+    gl.uniform2fv(uniforms.u_resolution.location, uniforms.u_resolution.value);
+    gl.uniformMatrix3fv(uniforms.u_matrix.location, false, uniforms.u_matrix.value);
+    gl.uniform1f(uniforms.u_line_width.location, uniforms.u_line_width.value);
+    gl.uniform1i(uniforms.u_is_line.location, uniforms.u_is_line.value ? 1 : 0);
   }
 
   public getMatrix(): number[] {

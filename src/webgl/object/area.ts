@@ -43,6 +43,7 @@ export class WebGlArea extends GlProgram {
         numComponents: 2,
         data: data,
       },
+      numElements: 3,
     };
   }
 }
