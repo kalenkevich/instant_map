@@ -6,6 +6,7 @@ import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { WebGlPainter, GlProgram, WebGlImage } from '../../../webgl';
 import { getLayerGlPrograms } from './gl_render_utils';
+import { DataTileStyles } from '../../styles/styles';
 
 export interface WebGlRenderingCache extends RenderingCache {
   programs: GlProgram[];
@@ -56,17 +57,17 @@ export class GlMapRenderer extends MapRenderer {
     }
   }
 
-  public renderTiles(tiles: MapTile[], mapState: MapState) {
-    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, mapState)).flatMap(obj => obj);
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
+    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, styles, mapState)).flatMap(obj => obj);
 
     console.time('gl map_render');
     this.glPainter.draw(glPrograms);
     console.timeEnd('gl map_render');
   }
 
-  public preheatTiles(tiles: MapTile[], mapState: MapState) {
+  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
     for (const tile of tiles) {
-      this.preheatTile(tile, mapState);
+      this.preheatTile(tile, styles, mapState);
     }
   }
 
@@ -91,28 +92,28 @@ export class GlMapRenderer extends MapRenderer {
     return canvas;
   }
 
-  private preheatTile(tile: MapTile, mapState: MapState) {
+  private preheatTile(tile: MapTile, styles: DataTileStyles, mapState: MapState) {
     if (tile.hasRenderingCache()) {
       return;
     }
 
     // will set rendering context cache inside
-    const programs = this.getRenderPrograms(tile, mapState);
+    const programs = this.getRenderPrograms(tile, styles, mapState);
 
     for (const program of programs) {
       this.glPainter.preheat(program);
     }
   }
 
-  private getRenderPrograms(tile: MapTile, mapState: MapState): GlProgram[] {
+  private getRenderPrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
     if (tile.formatType === MapTileFormatType.png) {
       return this.getImagePrograms(tile as PngMapTile, mapState);
     }
 
-    return this.getDataTilePrograms(tile, mapState);
+    return this.getDataTilePrograms(tile, styles, mapState);
   }
 
-  private getDataTilePrograms(tile: MapTile, mapState: MapState): GlProgram[] {
+  private getDataTilePrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState);
     const xScale = (tile.devicePixelRatio / 16) * tileScale;
     const yScale = (tile.devicePixelRatio / 16) * tileScale;
@@ -131,23 +132,31 @@ export class GlMapRenderer extends MapRenderer {
       return cachedPrograms;
     }
 
-    const tileLayers = tile.getLayers();
-    if (!tileLayers || Object.keys(tileLayers).length === 0) {
+    const sourceLayers = tile.getLayers();
+    if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles).length === 0) {
       return [] as GlProgram[];
     }
 
     const programs: GlProgram[] = [];
 
-    for (const layer of Object.values(tileLayers)) {
+    const styleLayers = Object.values(styles).sort((l1, l2) => l1.zIndex - l2.zIndex);
+    for (const styleLayer of styleLayers) {
+      const sourceLayer = sourceLayers[styleLayer.styleLayerName];
+
+      if (!sourceLayer) {
+        continue;
+      }
+
       programs.push(
         ...getLayerGlPrograms({
-          layer,
+          layer: sourceLayer,
           mapState,
           x: tileX,
           y: tileY,
           scale,
           width: tile.width,
           height: tile.height,
+          fontManager: this.map.getFontManager(),
         })
       );
     }

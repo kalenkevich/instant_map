@@ -19,19 +19,23 @@ export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles):
 
   const tileLayersMap: TileLayers = {};
 
-  for (const layerName of Object.keys(tileData.layers)) {
-    const layer: VectorTileLayer | undefined = tileData?.layers[layerName];
+  for (const styleLayer of Object.values(tileStyles)) {
+    const layer: VectorTileLayer | undefined = tileData.layers[styleLayer.sourceLayer];
+
+    if (!layer) {
+      continue;
+    }
 
     const features: Feature<Point | MultiLineString | Polygon>[] = [];
     for (let i = 0; i < layer.length; i++) {
       features.push(getGeoJsonFeatureFromVectorTile(layer.feature(i)));
     }
 
-    tileLayersMap[layerName] = new TileLayer({
-      name: layerName,
+    tileLayersMap[styleLayer.styleLayerName] = new TileLayer({
+      name: styleLayer.sourceLayer,
       features,
       properties: {},
-      styles: tileStyles?.[layerName],
+      styles: styleLayer,
     });
   }
 

@@ -76,7 +76,6 @@ export const getFeatureObjects = (feature: TileFeature, props: LayerObjectsProps
     case FeatureStyleType.polygon:
       return getPolygonFeatureObjects(feature, props);
     case FeatureStyleType.image:
-      return getImageFeatureObjects(feature, props);
     case FeatureStyleType.text:
     default:
       console.info(`${featureStyle.type} is not supported by ThreeJs rendrer.`);
@@ -209,11 +208,6 @@ export const getPolygonFeatureObjects = (feature: TileFeature, props: LayerObjec
   }
 
   return objects;
-};
-
-// TODO support images
-export const getImageFeatureObjects = (feature: TileFeature, props: LayerObjectsProps): Object3D[] => {
-  return [];
 };
 
 export const getLayerBackground = (props: LayerObjectsProps): Object3D | undefined => {

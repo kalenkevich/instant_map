@@ -3,12 +3,11 @@ import { GlProgram, ProgramCache } from './object/program';
 
 export class WebGlPainter {
   private readonly gl: WebGLRenderingContext;
-  private programInfoCache: ProgramCache = {};
+  private programInfoCache: ProgramCache = {
+    programs: {},
+  };
 
-  constructor(
-    private readonly canvas: HTMLCanvasElement,
-    private readonly devicePixelRatio: number,
-  ) {
+  constructor(private readonly canvas: HTMLCanvasElement, private readonly devicePixelRatio: number) {
     this.gl = canvas.getContext('webgl', {
       powerPreference: 'high-performance',
     });

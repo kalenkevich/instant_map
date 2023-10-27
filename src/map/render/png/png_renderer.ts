@@ -3,6 +3,7 @@ import { MapRenderer } from '../renderer';
 import { MapState } from '../../map_state';
 import { GlideMap, MapEventType } from '../../map';
 import { PngMapTile } from '../../tile/png/png_tile';
+import { DataTileStyles } from '../../styles/styles';
 
 export class PngMapRenderer extends MapRenderer {
   animationFrameTaskIdSet = new Set<number>();
@@ -47,7 +48,7 @@ export class PngMapRenderer extends MapRenderer {
     return div;
   }
 
-  public renderTiles(tiles: MapTile[], mapState: MapState) {
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState) {
     for (const image of this.images) {
       image.style.display = 'none';
     }
@@ -57,7 +58,7 @@ export class PngMapRenderer extends MapRenderer {
     }
   }
 
-  public preheatTiles(tiles: MapTile[], mapState: MapState): void {
+  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): void {
     // TODO
   }
 

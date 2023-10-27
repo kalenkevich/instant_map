@@ -19,11 +19,12 @@ describe('TileLayer', () => {
     },
   };
   const sampleLayerStyles: DataLayerStyle = {
-    styleLayerName: 'land',
-    sourceLayerName: 'landStyle',
+    sourceLayer: 'land',
+    styleLayerName: 'landStyle',
     show: true,
     minzoom: 0,
     maxzoom: 5,
+    zIndex: 1,
     feature: {
       type: FeatureStyleType.point,
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],

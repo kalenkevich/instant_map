@@ -14,8 +14,9 @@ import { compileLayerStyle, compileFeatureStyle, isFeatureStyle } from '../../..
 describe('compileLayerStyle', () => {
   it('should return compile data layer styles', () => {
     const style: DataLayerStyle = {
-      styleLayerName: 'land',
-      sourceLayerName: 'landStyle',
+      sourceLayer: 'land',
+      styleLayerName: 'landStyle',
+      zIndex: 1,
       show: true,
       minzoom: 0,
       maxzoom: 5,
@@ -57,9 +58,10 @@ describe('compileLayerStyle', () => {
     });
 
     expect(compiled).toEqual({
-      styleLayerName: 'land',
-      sourceLayerName: 'landStyle',
+      sourceLayer: 'land',
+      styleLayerName: 'landStyle',
       show: true,
+      zIndex: 1,
       minzoom: 0,
       maxzoom: 5,
       feature: {
@@ -208,6 +210,7 @@ describe('compileFeatureStyle', () => {
   it('should return compiled feature style for Text', () => {
     const featureStyle: TextStyle = {
       type: FeatureStyleType.text,
+      text: ['$get', 'properties.label'],
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       color: [
         '$switch',
@@ -225,12 +228,14 @@ describe('compileFeatureStyle', () => {
     const compiled = compileFeatureStyle(featureStyle, {
       properties: {
         class: 'water',
+        label: 'Shchara',
       },
     });
 
     expect(compiled).toEqual({
       type: FeatureStyleType.text,
       show: true,
+      text: 'Shchara',
       color: ['$rgb', 1, 1, 2],
       font: 'Arial',
       fontSize: 2,

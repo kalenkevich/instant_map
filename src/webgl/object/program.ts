@@ -1,4 +1,13 @@
-import { BufferInfo, ProgramInfo, createProgramInfo, createBufferInfoFromArrays, setUniforms, drawBufferInfo, setBuffersAndAttributes } from 'twgl.js';
+import {
+  Arrays,
+  BufferInfo,
+  ProgramInfo,
+  createProgramInfo,
+  createBufferInfoFromArrays,
+  setUniforms,
+  drawBufferInfo,
+  setBuffersAndAttributes,
+} from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 import { GL_COLOR_BLACK } from '../colors';
@@ -17,28 +26,29 @@ export interface GlUniforms {
   u_color: v4;
   u_resolution: [number, number];
   u_matrix: number[];
+  u_is_line: boolean;
 }
 
 export enum GlProgramType {
-  TRIANGLE,
-  AREA,
-  CIRCLE,
-  PATH,
-  PATH_GROUP,
-  RECTANGLE,
-  LINE,
-  LINE_STRIP,
-  NATIVE_LINE,
-  NATIVE_LINE_STRIP,
-  MITER_LINE_CAP,
-  IMAGE,
+  DEFAULT = 0,
+  TRIANGLE = DEFAULT,
+  CIRCLE = DEFAULT,
+  RECTANGLE = DEFAULT,
+  LINE = DEFAULT,
+  LINE_STRIP = DEFAULT,
+  AREA = DEFAULT,
+  TEXT = DEFAULT,
+  MITER_LINE_CAP = 10,
+  IMAGE = 11,
 }
 
 export type ProgramCache = {
-  [key in GlProgramType]?: ProgramInfo
+  programs: {
+    [key in GlProgramType]?: ProgramInfo;
+  };
+  currentProgram?: ProgramInfo;
+  currentProgramType?: GlProgramType;
 };
-
-let usedProgram: ProgramInfo | undefined;
 
 export abstract class GlProgram {
   public requireExt: boolean = false;
@@ -51,13 +61,13 @@ export abstract class GlProgram {
   protected translation: v2;
   protected scale: v2;
 
-  private uniformsCache?: GlUniforms;
-  private bufferInfoCache?: BufferInfo;
+  protected uniformsCache?: GlUniforms;
+  protected bufferInfoCache?: BufferInfo;
 
   abstract type: GlProgramType;
 
   protected constructor(props: GlProgramProps) {
-    this.color = props.color ? this.normalizeColor(props.color) : GL_COLOR_BLACK as v4;
+    this.color = props.color ? this.normalizeColor(props.color) : (GL_COLOR_BLACK as v4);
     this.lineWidth = props.lineWidth;
     this.rotationInRadians = props.rotationInRadians || 0;
     this.origin = props.origin || [0, 0];
@@ -144,9 +154,9 @@ export abstract class GlProgram {
     const buffer = this.getBufferInfo(gl);
     const uniforms = this.getUniforms(gl);
 
-    if (programInfo !== usedProgram) {
+    if (this.type !== cache.currentProgramType) {
       gl.useProgram(programInfo.program);
-      usedProgram = programInfo;
+      cache.currentProgramType = this.type;
     }
 
     setBuffersAndAttributes(gl, programInfo, buffer);
@@ -167,13 +177,31 @@ export abstract class GlProgram {
 
   public getVertexShaderSource(...args: any[]): string {
     return `
+      precision mediump float;
       attribute vec2 a_position;
+      attribute vec2 point_a;
+      attribute vec2 point_b;
+      uniform bool u_is_line;
+      uniform float u_width;
       uniform vec2 u_resolution;
       uniform mat3 u_matrix;
-      
+
+      vec2 get_position() {
+        if (!u_is_line) {
+          return a_position;
+        }
+
+        vec2 xBasis = point_b - point_a;
+        vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
+
+        return point_a + xBasis * a_position.x + yBasis * u_width * a_position.y;
+      }
+
       void main() {
+        vec2 pos = get_position();
+
         // Apply tranlation, rotation and scale.
-        vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+        vec2 position = (u_matrix * vec3(pos, 1)).xy;
         
         // Apply resolution.
         vec2 zeroToOne = position / u_resolution;
@@ -197,24 +225,24 @@ export abstract class GlProgram {
   }
 
   public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
-    if (cache[this.type]) {
-      return cache[this.type];
+    if (cache.programs[this.type]) {
+      return cache.programs[this.type];
     }
 
-    return cache[this.type] = createProgramInfo(
-      gl,
-      [this.getVertexShaderSource(), this.getFragmentShaderSource()],
-    );
+    return (cache.programs[this.type] = createProgramInfo(gl, [
+      this.getVertexShaderSource(),
+      this.getFragmentShaderSource(),
+    ]));
   }
 
-  public abstract getBufferAttrs(gl: WebGLRenderingContext): Record<string, any>;
+  public abstract getBufferAttrs(gl: WebGLRenderingContext): Arrays;
 
   public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
     if (this.bufferInfoCache) {
       return this.bufferInfoCache;
     }
 
-    return this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl));
+    return (this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl)));
   }
 
   public getUniforms(gl: WebGLRenderingContext): GlUniforms {
@@ -222,12 +250,13 @@ export abstract class GlProgram {
       return this.uniformsCache;
     }
 
-    return this.uniformsCache = {
+    return (this.uniformsCache = {
       u_width: this.lineWidth,
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_matrix: this.getMatrix(),
-    };
+      u_is_line: false,
+    });
   }
 
   public getMatrix(): number[] {
@@ -254,9 +283,6 @@ export abstract class GlProgram {
       }
 
       throw new Error(typeErrorMessage);
-    }
-
-    if (typeof color === 'string') {
     }
 
     throw new Error(typeErrorMessage);
