@@ -26,22 +26,20 @@ export interface GlUniforms {
   u_color: v4;
   u_resolution: [number, number];
   u_matrix: number[];
+  u_is_line: boolean;
 }
 
 export enum GlProgramType {
-  TRIANGLE = 0,
-  AREA = 1,
-  CIRCLE = 2,
-  PATH = 3,
-  PATH_GROUP = 4,
-  RECTANGLE = 5,
-  LINE = 6,
-  LINE_STRIP = 7,
-  NATIVE_LINE = 8,
-  NATIVE_LINE_STRIP = 9,
+  DEFAULT = 0,
+  TRIANGLE = DEFAULT,
+  CIRCLE = DEFAULT,
+  RECTANGLE = DEFAULT,
+  LINE = DEFAULT,
+  LINE_STRIP = DEFAULT,
+  AREA = DEFAULT,
+  TEXT = DEFAULT,
   MITER_LINE_CAP = 10,
   IMAGE = 11,
-  TEXT = 12,
 }
 
 export type ProgramCache = {
@@ -49,6 +47,7 @@ export type ProgramCache = {
     [key in GlProgramType]?: ProgramInfo;
   };
   currentProgram?: ProgramInfo;
+  currentProgramType?: GlProgramType;
 };
 
 export abstract class GlProgram {
@@ -62,8 +61,8 @@ export abstract class GlProgram {
   protected translation: v2;
   protected scale: v2;
 
-  private uniformsCache?: GlUniforms;
-  private bufferInfoCache?: BufferInfo;
+  protected uniformsCache?: GlUniforms;
+  protected bufferInfoCache?: BufferInfo;
 
   abstract type: GlProgramType;
 
@@ -155,9 +154,9 @@ export abstract class GlProgram {
     const buffer = this.getBufferInfo(gl);
     const uniforms = this.getUniforms(gl);
 
-    if (programInfo !== cache.currentProgram) {
+    if (this.type !== cache.currentProgramType) {
       gl.useProgram(programInfo.program);
-      cache.currentProgram = programInfo;
+      cache.currentProgramType = this.type;
     }
 
     setBuffersAndAttributes(gl, programInfo, buffer);
@@ -180,12 +179,29 @@ export abstract class GlProgram {
     return `
       precision mediump float;
       attribute vec2 a_position;
+      attribute vec2 point_a;
+      attribute vec2 point_b;
+      uniform bool u_is_line;
+      uniform float u_width;
       uniform vec2 u_resolution;
       uniform mat3 u_matrix;
 
+      vec2 get_position() {
+        if (!u_is_line) {
+          return a_position;
+        }
+
+        vec2 xBasis = point_b - point_a;
+        vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
+
+        return point_a + xBasis * a_position.x + yBasis * u_width * a_position.y;
+      }
+
       void main() {
+        vec2 pos = get_position();
+
         // Apply tranlation, rotation and scale.
-        vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+        vec2 position = (u_matrix * vec3(pos, 1)).xy;
         
         // Apply resolution.
         vec2 zeroToOne = position / u_resolution;
@@ -239,6 +255,7 @@ export abstract class GlProgram {
       u_color: this.color,
       u_resolution: [gl.canvas.width, gl.canvas.height],
       u_matrix: this.getMatrix(),
+      u_is_line: false,
     });
   }
 

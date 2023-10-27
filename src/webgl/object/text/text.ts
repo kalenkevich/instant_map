@@ -44,9 +44,9 @@ export class WebGlText extends GlProgram {
     const programInfo = this.getProgramInfo(gl, cache);
     const uniforms = this.getUniforms(gl);
 
-    if (programInfo !== cache.currentProgram) {
+    if (this.type !== cache.currentProgramType) {
       gl.useProgram(programInfo.program);
-      cache.currentProgram = programInfo;
+      cache.currentProgramType = this.type;
     }
 
     setUniforms(programInfo, uniforms);

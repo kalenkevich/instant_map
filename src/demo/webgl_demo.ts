@@ -5,8 +5,6 @@ import {
   WebGlCircle,
   WebGlRectangle,
   WebGlTriangle,
-  WebGlPath,
-  WebGlPathGroup,
   GlProgram,
   WebGlLine,
   v2,
@@ -411,70 +409,12 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
     components: 24,
   });
 
-  const path = new WebGlPath({
-    color: GL_COLOR_BLACK,
-    lineWidth: 10,
-    points: [
-      [50, 50],
-      [250, 200],
-      [330, 430],
-      [470, 250],
-      [420, 250],
-      [50, 50],
-    ],
-    origin: [-210, -140],
-    translation: [cellWidth * 2 + 210, cellHeight * 1 + 140],
-  });
-
-  const rotatedPath = new WebGlPath({
-    color: GL_COLOR_BLACK,
-    lineWidth: 10,
-    points: [
-      [50, 50],
-      [250, 200],
-      [330, 430],
-      [470, 250],
-      [420, 250],
-      [50, 50],
-    ],
-    origin: [-210, -140],
-    translation: [cellWidth * 3 + 210, cellHeight * 1 + 140],
-  });
-
-  const pathGroup = new WebGlPathGroup({
-    color: [0.3, 0.5, 1, 1],
-    paths: [
-      [
-        [50, 50],
-        [250, 200],
-        [330, 430],
-        [470, 250],
-        [420, 250],
-        [50, 50],
-      ],
-      [
-        [100, 50],
-        [320, 250],
-        [370, 250],
-        [230, 430],
-        [150, 200],
-        [100, 50],
-      ],
-    ],
-    origin: [-210, -140],
-    translation: [cellWidth * 4, cellHeight * 1],
-    lineWidth: 5,
-  });
-
   const area = new WebGlArea({
     points: ANTARCTIDA_POINTS,
     translation: [cellWidth * 0, cellHeight * 0],
     color: GL_COLOR_RED,
     scale: [1 / (window.devicePixelRatio * 2), 1 / (window.devicePixelRatio * 2)],
   });
-
-  let index = 3;
-  let areaRenderPoints = ANTARCTIDA_POINTS.slice(0, index);
 
   const renderScene = () => {
     // for (const line of triangleLines) {
@@ -505,7 +445,7 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
 
     requestAnimationFrame(renderScene);
   };
-  
+
   const painter = new WebGlPainter(canvas, window.devicePixelRatio);
 
   painter.init();

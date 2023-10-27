@@ -6,7 +6,6 @@ import {
   v2,
   GlProgram,
   WebGlImage,
-  WebGlNativeLineStrip,
   WebGlRectangle,
   WebGlCircle,
   WebGlLineStrip,
@@ -138,7 +137,7 @@ export const getLineFeatureGlProgram = (feature: TileFeature, props: LayerGlProg
       scale: props.scale,
     };
 
-    programs.push(lineWidth === 1 ? new WebGlNativeLineStrip(lineStripProps) : new WebGlLineStrip(lineStripProps));
+    programs.push(new WebGlLineStrip(lineStripProps));
   }
 
   return programs;
