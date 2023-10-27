@@ -19,6 +19,27 @@ import {
   ConditionStatement,
   IsEmptyCondition,
   IsNotEmptyCondition,
+  PlusStatement,
+  MinusStatement,
+  MultiplyStatement,
+  DivisionStatement,
+  PowerStatement,
+  SqrtStatement,
+  AbsStatement,
+  FloorStatement,
+  CeilStatement,
+  RoundStatement,
+  ExpStatement,
+  SinStatement,
+  CosStatement,
+  TanStatement,
+  CtgStatement,
+  LogStatement,
+  Log2Statement,
+  Log10Statement,
+  RandomStatement,
+  MinStatement,
+  MaxStatement,
 } from '../../../../src/map/styles/style_statement';
 import {
   compileStatement,
@@ -43,6 +64,28 @@ import {
   getPropertyValue,
   compileIsEmptyCondition,
   compileIsNotEmptyCondition,
+  compileMathStatement,
+  compilePlusStatement,
+  compileMinusStatement,
+  compileMultiplyStatement,
+  compileDivisionStatement,
+  compilePowerStatement,
+  compileSqrtStatement,
+  compileAbsStatement,
+  compileFloorStatement,
+  compileCeilStatement,
+  compileRoundStatement,
+  compileExpStatement,
+  compileSinStatement,
+  compileCosStatement,
+  compileTanStatement,
+  compileCtgStatement,
+  compileLogStatement,
+  compileLog2Statement,
+  compileLog10Statement,
+  compileRandomStatement,
+  compileMinStatement,
+  compileMaxStatement,
 } from '../../../../src/map/styles/style_statement_utils';
 
 const SampleWaterFeature: Feature = {
@@ -54,6 +97,7 @@ const SampleWaterFeature: Feature = {
   properties: {
     class: 'water',
     subClass: 'ocean',
+    level: 2,
     minzoom: 0,
     maxzoom: 5,
   },
@@ -1126,7 +1170,7 @@ describe('compileIsEmptyCondition', () => {
   });
 });
 
-describe('IsNotEmptyCondition', () => {
+describe('compileIsNotEmptyCondition', () => {
   it('should return true for truthy "not empty" condition', () => {
     expect(compileIsNotEmptyCondition(['$notEmpty', ['$get', 'properties.class']], SampleWaterFeature)).toBe(true);
   });
@@ -1319,5 +1363,739 @@ describe('getPropertyValue', () => {
       //@ts-ignore
       getPropertyValue<string>(object, []);
     }).toThrowError('Cannot get value from: []');
+  });
+});
+
+describe('compileMathStatement', () => {
+  it('should treat statement as a "$+" math statement', () => {
+    expect(compileMathStatement(['$+', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(4);
+  });
+
+  it('should treat statement as a "$-" math statement', () => {
+    expect(compileMathStatement(['$-', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(0);
+  });
+
+  it('should treat statement as a "$*" math statement', () => {
+    expect(compileMathStatement(['$*', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(4);
+  });
+
+  it('should treat statement as a "$/" math statement', () => {
+    expect(compileMathStatement(['$/', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(1);
+  });
+
+  it('should treat statement as a "pow" math statement', () => {
+    expect(compileMathStatement(['$pow', ['$get', 'properties.level'], 3], SampleWaterFeature)).toBe(8);
+  });
+
+  it('should treat statement as a "sqrt" math statement', () => {
+    expect(
+      compileMathStatement(['$sqrt', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 9,
+        },
+      })
+    ).toBe(3);
+  });
+
+  it('should treat statement as a "abs" math statement', () => {
+    expect(
+      compileMathStatement(['$abs', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: -9,
+        },
+      })
+    ).toBe(9);
+
+    expect(
+      compileMathStatement(['$abs', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 9,
+        },
+      })
+    ).toBe(9);
+  });
+
+  it('should treat statement as a "floor" math statement', () => {
+    expect(
+      compileMathStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.5,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileMathStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.9,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileMathStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 2.1,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should treat statement as a "ceil" math statement', () => {
+    expect(
+      compileMathStatement(['$ceil', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.5,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should treat statement as a "round" math statement', () => {
+    expect(
+      compileMathStatement(['$round', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.7,
+        },
+      })
+    ).toBe(2);
+
+    expect(
+      compileMathStatement(['$round', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.3,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should treat statement as a "exp" math statement', () => {
+    expect(
+      compileMathStatement(['$exp', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 2,
+        },
+      })
+    ).toBe(7.38905609893065);
+  });
+
+  it('should treat statement as a "sin" math statement', () => {
+    expect(
+      compileMathStatement(['$sin', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 2,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should treat statement as a "cos" math statement', () => {
+    expect(
+      compileMathStatement(['$cos', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 0,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileMathStatement(['$cos', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI,
+        },
+      })
+    ).toBe(-1);
+  });
+
+  it('should treat statement as a "tan" math statement', () => {
+    expect(
+      compileMathStatement(['$tan', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 4,
+        },
+      })
+    ).toBe(0.9999999999999999);
+  });
+
+  it('should treat statement as a "ctg" math statement', () => {
+    expect(
+      compileMathStatement(['$ctg', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 4,
+        },
+      })
+    ).toBe(1.0000000000000002);
+  });
+
+  it('should treat statement as a "log" math statement', () => {
+    expect(
+      compileMathStatement(['$log', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.E,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should treat statement as a "log2" math statement', () => {
+    expect(
+      compileMathStatement(['$log2', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 4,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should treat statement as a "log10" math statement', () => {
+    expect(
+      compileMathStatement(['$log10', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 100,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should treat statement as a "min" math statement', () => {
+    expect(
+      compileMathStatement(['$min', ['$get', 'properties.level'], 3], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should treat statement as a "min" math statement', () => {
+    expect(
+      compileMathStatement(['$max', ['$get', 'properties.level'], 3], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1,
+        },
+      })
+    ).toBe(3);
+  });
+
+  it('should treat statement as a "random" math statement', () => {
+    const r1Value = compileMathStatement(['$random'], SampleWaterFeature);
+    expect(r1Value >= 0).toBe(true);
+    expect(r1Value <= 1).toBe(true);
+
+    const r2Value = compileMathStatement(['$random', 2, 5], SampleWaterFeature);
+    expect(r2Value >= 2).toBe(true);
+    expect(r2Value <= 5).toBe(true);
+  });
+});
+
+describe('compilePlusStatement', () => {
+  it('should return result value for "+" math statement', () => {
+    expect(compilePlusStatement(['$+', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(4);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compilePlusStatement([] as unknown as PlusStatement, SampleWaterFeature);
+    }).toThrowError('PlusStatement is invalid: []');
+
+    expect(() => {
+      compilePlusStatement(['$+'] as unknown as PlusStatement, SampleWaterFeature);
+    }).toThrowError('PlusStatement is invalid: ["$+"]');
+  });
+});
+
+describe('compileMinusStatement', () => {
+  it('should return result value for "-" math statement', () => {
+    expect(compileMinusStatement(['$-', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(0);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileMinusStatement([] as unknown as MinusStatement, SampleWaterFeature);
+    }).toThrowError('MinusStatement is invalid: []');
+
+    expect(() => {
+      compileMinusStatement(['$-'] as unknown as MinusStatement, SampleWaterFeature);
+    }).toThrowError('MinusStatement is invalid: ["$-"]');
+  });
+});
+
+describe('compileMultiplyStatement', () => {
+  it('should return result value for "*" math statement', () => {
+    expect(compileMultiplyStatement(['$*', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(4);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileMultiplyStatement([] as unknown as MultiplyStatement, SampleWaterFeature);
+    }).toThrowError('MultiplyStatement is invalid: []');
+
+    expect(() => {
+      compileMultiplyStatement(['$*'] as unknown as MultiplyStatement, SampleWaterFeature);
+    }).toThrowError('MultiplyStatement is invalid: ["$*"]');
+  });
+});
+
+describe('compileDivisionStatement', () => {
+  it('should return result value for "/" math statement', () => {
+    expect(compileDivisionStatement(['$/', 2, ['$get', 'properties.level']], SampleWaterFeature)).toBe(1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileDivisionStatement([] as unknown as DivisionStatement, SampleWaterFeature);
+    }).toThrowError('DivisionStatement is invalid: []');
+
+    expect(() => {
+      compileDivisionStatement(['$/'] as unknown as DivisionStatement, SampleWaterFeature);
+    }).toThrowError('DivisionStatement is invalid: ["$/"]');
+  });
+});
+
+describe('compilePowerStatement', () => {
+  it('should return result value for "pow" math statement', () => {
+    expect(compilePowerStatement(['$pow', ['$get', 'properties.level'], 3], SampleWaterFeature)).toBe(8);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compilePowerStatement([] as unknown as PowerStatement, SampleWaterFeature);
+    }).toThrowError('PowerStatement is invalid: []');
+
+    expect(() => {
+      compilePowerStatement(['$pow'] as unknown as PowerStatement, SampleWaterFeature);
+    }).toThrowError('PowerStatement is invalid: ["$pow"]');
+  });
+});
+
+describe('compileSqrtStatement', () => {
+  it('should return result value for "sqrt" math statement', () => {
+    expect(
+      compileSqrtStatement(['$sqrt', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 9,
+        },
+      })
+    ).toBe(3);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileSqrtStatement([] as unknown as SqrtStatement, SampleWaterFeature);
+    }).toThrowError('SqrtStatement is invalid: []');
+
+    expect(() => {
+      compileSqrtStatement(['$sqrt'] as unknown as SqrtStatement, SampleWaterFeature);
+    }).toThrowError('SqrtStatement is invalid: ["$sqrt"]');
+  });
+});
+
+describe('compileAbsStatement', () => {
+  it('should return result value for "abs" math statement', () => {
+    expect(
+      compileAbsStatement(['$abs', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: -9,
+        },
+      })
+    ).toBe(9);
+
+    expect(
+      compileAbsStatement(['$abs', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 9,
+        },
+      })
+    ).toBe(9);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileAbsStatement([] as unknown as AbsStatement, SampleWaterFeature);
+    }).toThrowError('AbsStatement is invalid: []');
+
+    expect(() => {
+      compileAbsStatement(['$abs'] as unknown as AbsStatement, SampleWaterFeature);
+    }).toThrowError('AbsStatement is invalid: ["$abs"]');
+  });
+});
+
+describe('compileFloorStatement', () => {
+  it('should return result value for "floor" math statement', () => {
+    expect(
+      compileFloorStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.5,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileFloorStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.9,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileFloorStatement(['$floor', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 2.1,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileFloorStatement([] as unknown as FloorStatement, SampleWaterFeature);
+    }).toThrowError('FloorStatement is invalid: []');
+
+    expect(() => {
+      compileFloorStatement(['$floor'] as unknown as FloorStatement, SampleWaterFeature);
+    }).toThrowError('FloorStatement is invalid: ["$floor"]');
+  });
+});
+
+describe('compileCeilStatement', () => {
+  it('should return result value for "ceil" math statement', () => {
+    expect(
+      compileCeilStatement(['$ceil', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.5,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileCeilStatement([] as unknown as CeilStatement, SampleWaterFeature);
+    }).toThrowError('CeilStatement is invalid: []');
+
+    expect(() => {
+      compileCeilStatement(['$ceil'] as unknown as CeilStatement, SampleWaterFeature);
+    }).toThrowError('CeilStatement is invalid: ["$ceil"]');
+  });
+});
+
+describe('compileRoundStatement', () => {
+  it('should return result value for "round" math statement', () => {
+    expect(
+      compileRoundStatement(['$round', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.7,
+        },
+      })
+    ).toBe(2);
+
+    expect(
+      compileRoundStatement(['$round', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1.3,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileRoundStatement([] as unknown as RoundStatement, SampleWaterFeature);
+    }).toThrowError('RoundStatement is invalid: []');
+
+    expect(() => {
+      compileRoundStatement(['$round'] as unknown as RoundStatement, SampleWaterFeature);
+    }).toThrowError('RoundStatement is invalid: ["$round"]');
+  });
+});
+
+describe('compileExpStatement', () => {
+  it('should return result value for "exp" math statement', () => {
+    expect(
+      compileExpStatement(['$exp', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 2,
+        },
+      })
+    ).toBe(7.38905609893065);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileExpStatement([] as unknown as ExpStatement, SampleWaterFeature);
+    }).toThrowError('ExpStatement is invalid: []');
+
+    expect(() => {
+      compileExpStatement(['$exp'] as unknown as ExpStatement, SampleWaterFeature);
+    }).toThrowError('ExpStatement is invalid: ["$exp"]');
+  });
+});
+
+describe('compileSinStatement', () => {
+  it('should return result value for "sin" math statement', () => {
+    expect(
+      compileSinStatement(['$sin', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 2,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileSinStatement([] as unknown as SinStatement, SampleWaterFeature);
+    }).toThrowError('SinStatement is invalid: []');
+
+    expect(() => {
+      compileSinStatement(['$sin'] as unknown as SinStatement, SampleWaterFeature);
+    }).toThrowError('SinStatement is invalid: ["$sin"]');
+  });
+});
+
+describe('compileCosStatement', () => {
+  it('should return result value for "cos" math statement', () => {
+    expect(
+      compileCosStatement(['$cos', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 0,
+        },
+      })
+    ).toBe(1);
+
+    expect(
+      compileCosStatement(['$cos', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI,
+        },
+      })
+    ).toBe(-1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileCosStatement([] as unknown as CosStatement, SampleWaterFeature);
+    }).toThrowError('CosStatement is invalid: []');
+
+    expect(() => {
+      compileCosStatement(['$cos'] as unknown as CosStatement, SampleWaterFeature);
+    }).toThrowError('CosStatement is invalid: ["$cos"]');
+  });
+});
+
+describe('compileTanStatement', () => {
+  it('should return result value for "tan" math statement', () => {
+    expect(
+      compileTanStatement(['$tan', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 4,
+        },
+      })
+    ).toBe(0.9999999999999999);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileTanStatement([] as unknown as TanStatement, SampleWaterFeature);
+    }).toThrowError('TanStatement is invalid: []');
+
+    expect(() => {
+      compileTanStatement(['$tan'] as unknown as TanStatement, SampleWaterFeature);
+    }).toThrowError('TanStatement is invalid: ["$tan"]');
+  });
+});
+
+describe('compileCtgStatement', () => {
+  it('should return result value for "ctg" math statement', () => {
+    expect(
+      compileCtgStatement(['$ctg', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.PI / 4,
+        },
+      })
+    ).toBe(1.0000000000000002);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileCtgStatement([] as unknown as CtgStatement, SampleWaterFeature);
+    }).toThrowError('CtgStatement is invalid: []');
+
+    expect(() => {
+      compileCtgStatement(['$ctg'] as unknown as CtgStatement, SampleWaterFeature);
+    }).toThrowError('CtgStatement is invalid: ["$ctg"]');
+  });
+});
+
+describe('compileLogStatement', () => {
+  it('should return result value for "log" math statement', () => {
+    expect(
+      compileLogStatement(['$log', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: Math.E,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileLogStatement([] as unknown as LogStatement, SampleWaterFeature);
+    }).toThrowError('LogStatement is invalid: []');
+
+    expect(() => {
+      compileLogStatement(['$log'] as unknown as LogStatement, SampleWaterFeature);
+    }).toThrowError('LogStatement is invalid: ["$log"]');
+  });
+});
+
+describe('compileLog2Statement', () => {
+  it('should return result value for "log2" math statement', () => {
+    expect(
+      compileLog2Statement(['$log2', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 4,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileLog2Statement([] as unknown as Log2Statement, SampleWaterFeature);
+    }).toThrowError('Log2Statement is invalid: []');
+
+    expect(() => {
+      compileLog2Statement(['$log2'] as unknown as Log2Statement, SampleWaterFeature);
+    }).toThrowError('Log2Statement is invalid: ["$log2"]');
+  });
+});
+
+describe('compileLog10Statement', () => {
+  it('should return result value for "log10" math statement', () => {
+    expect(
+      compileLog10Statement(['$log10', ['$get', 'properties.level']], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 100,
+        },
+      })
+    ).toBe(2);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileLog10Statement([] as unknown as Log10Statement, SampleWaterFeature);
+    }).toThrowError('Log10Statement is invalid: []');
+
+    expect(() => {
+      compileLog10Statement(['$log10'] as unknown as Log10Statement, SampleWaterFeature);
+    }).toThrowError('Log10Statement is invalid: ["$log10"]');
+  });
+});
+
+describe('compileMinStatement', () => {
+  it('should return result value for "min" math statement', () => {
+    expect(
+      compileMinStatement(['$min', ['$get', 'properties.level'], 3], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1,
+        },
+      })
+    ).toBe(1);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileMinStatement([] as unknown as MinStatement, SampleWaterFeature);
+    }).toThrowError('MinStatement is invalid: []');
+
+    expect(() => {
+      compileMinStatement(['$min'] as unknown as MinStatement, SampleWaterFeature);
+    }).toThrowError('MinStatement is invalid: ["$min"]');
+  });
+});
+
+describe('compileMaxStatement', () => {
+  it('should return result value for "min" math statement', () => {
+    expect(
+      compileMaxStatement(['$max', ['$get', 'properties.level'], 3], {
+        ...SampleWaterFeature,
+        properties: {
+          level: 1,
+        },
+      })
+    ).toBe(3);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileMaxStatement([] as unknown as MaxStatement, SampleWaterFeature);
+    }).toThrowError('MaxStatement is invalid: []');
+
+    expect(() => {
+      compileMaxStatement(['$max'] as unknown as MaxStatement, SampleWaterFeature);
+    }).toThrowError('MaxStatement is invalid: ["$max"]');
+  });
+});
+
+describe('compileRandomStatement', () => {
+  it('should return result value for "random" math statement', () => {
+    const r1Value = compileRandomStatement(['$random'], SampleWaterFeature);
+    expect(r1Value >= 0).toBe(true);
+    expect(r1Value <= 1).toBe(true);
+
+    const r2Value = compileRandomStatement(['$random', 2, 5], SampleWaterFeature);
+    expect(r2Value >= 2).toBe(true);
+    expect(r2Value <= 5).toBe(true);
+  });
+
+  it('should throw error if statement is invalid', () => {
+    expect(() => {
+      compileRandomStatement([] as unknown as RandomStatement, SampleWaterFeature);
+    }).toThrowError('RandomStatement is invalid: []');
+
+    expect(() => {
+      compileRandomStatement(['$random', 1] as unknown as RandomStatement, SampleWaterFeature);
+    }).toThrowError('RandomStatement is invalid: ["$random",1]');
   });
 });

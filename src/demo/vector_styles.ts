@@ -110,96 +110,13 @@ export const VectorStyles: DataTileStyles = {
   boundary: {
     sourceLayer: 'boundary',
     styleLayerName: 'boundaryStyles',
-    show: false,
+    show: true,
     zIndex: 3,
     feature: {
       type: FeatureStyleType.line,
-      color: ['$rgba', 114, 113, 207, 1],
-      show: [
-        '$switch',
-        ['$get', 'properties.admin_level'],
-        [
-          2,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 0], ['$lte', ['$get', 'mapState.zoom'], 2]],
-            true,
-            false,
-          ],
-        ],
-        [
-          3,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 2], ['$lte', ['$get', 'mapState.zoom'], 3]],
-            true,
-            false,
-          ],
-        ],
-        [
-          4,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 3], ['$lte', ['$get', 'mapState.zoom'], 4]],
-            true,
-            false,
-          ],
-        ],
-        [
-          5,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 4], ['$lte', ['$get', 'mapState.zoom'], 5]],
-            true,
-            false,
-          ],
-        ],
-        [
-          6,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 5], ['$lte', ['$get', 'mapState.zoom'], 6]],
-            true,
-            false,
-          ],
-        ],
-        [
-          7,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 6], ['$lte', ['$get', 'mapState.zoom'], 7]],
-            true,
-            false,
-          ],
-        ],
-        [
-          8,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 7], ['$lte', ['$get', 'mapState.zoom'], 8]],
-            true,
-            false,
-          ],
-        ],
-        [
-          9,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 8], ['$lte', ['$get', 'mapState.zoom'], 9]],
-            true,
-            false,
-          ],
-        ],
-        [
-          10,
-          [
-            '$if',
-            ['$and', ['$gte', ['$get', 'mapState.zoom'], 9], ['$lte', ['$get', 'mapState.zoom'], 20]],
-            true,
-            false,
-          ],
-        ],
-      ],
+      show: ['$lte', ['$get', 'properties.admin_level'], 7],
+      color: ['$rgba', 120, 123, 140, 1],
+      width: ['$*', ['$max', ['$-', 11, ['$get', 'properties.admin_level']], 1], 5],
     },
     maxzoom: 15,
     minzoom: 0,

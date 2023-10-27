@@ -117,7 +117,9 @@ export class TilesGrid {
       return tilesToRender.map(ttr => {
         const tile = this.tilesCache.get(ttr.id);
 
-        tile.resetState(ttr);
+        if (tile) {
+          tile.resetState(ttr);
+        }
 
         return tile;
       });

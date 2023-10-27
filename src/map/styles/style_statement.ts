@@ -96,10 +96,6 @@ export type MathStatement =
   | CosStatement
   | TanStatement
   | CtgStatement
-  | AsinStatement
-  | AcosStatement
-  | AtanStatement
-  | ActgStatement
   | LogStatement
   | Log2Statement
   | Log10Statement
@@ -136,14 +132,6 @@ export type CosStatement = ['$cos', Statement<number>];
 export type TanStatement = ['$tan', Statement<number>];
 
 export type CtgStatement = ['$ctg', Statement<number>];
-
-export type AsinStatement = ['$asin', Statement<number>];
-
-export type AcosStatement = ['$acos', Statement<number>];
-
-export type AtanStatement = ['$atan', Statement<number>];
-
-export type ActgStatement = ['$actg', Statement<number>];
 
 export type LogStatement = ['$log', Statement<number>];
 

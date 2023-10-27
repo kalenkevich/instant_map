@@ -36,10 +36,6 @@ import {
   CosStatement,
   TanStatement,
   CtgStatement,
-  AsinStatement,
-  AcosStatement,
-  AtanStatement,
-  ActgStatement,
   LogStatement,
   Log2Statement,
   Log10Statement,
@@ -490,10 +486,6 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$cos',
       '$tan',
       '$ctg',
-      '$asin',
-      '$acos',
-      '$atan',
-      '$actg',
       '$log',
       '$log2',
       '$log10',
@@ -597,10 +589,6 @@ export function isMathStatement(statement: unknown): boolean {
     '$cos',
     '$tan',
     '$ctg',
-    '$asin',
-    '$acos',
-    '$atan',
-    '$actg',
     '$log',
     '$log2',
     '$log10',
@@ -675,22 +663,6 @@ export function compileMathStatement(statement: MathStatement, context: ContextL
     return compileCtgStatement(statement as CtgStatement, context);
   }
 
-  if (statement[0] === '$asin') {
-    return compileAsinStatement(statement as AsinStatement, context);
-  }
-
-  if (statement[0] === '$acos') {
-    return compileAcosStatement(statement as AcosStatement, context);
-  }
-
-  if (statement[0] === '$atan') {
-    return compileAtanStatement(statement as AtanStatement, context);
-  }
-
-  if (statement[0] === '$actg') {
-    return compileActgStatement(statement as ActgStatement, context);
-  }
-
   if (statement[0] === '$log') {
     return compileLogStatement(statement as LogStatement, context);
   }
@@ -755,7 +727,7 @@ export function compilePowerStatement(statement: PowerStatement, context: Contex
     throw new Error('PowerStatement is invalid: ' + JSON.stringify(statement));
   }
 
-  return Math.pow(compileStatement<number>(statement[1], context), compileStatement<number>(statement[1], context));
+  return Math.pow(compileStatement<number>(statement[1], context), compileStatement<number>(statement[2], context));
 }
 
 export function compileSqrtStatement(statement: SqrtStatement, context: ContextLike): number {
@@ -838,38 +810,6 @@ export function compileCtgStatement(statement: CtgStatement, context: ContextLik
   return 1 / Math.tan(compileStatement<number>(statement[1], context));
 }
 
-export function compileAsinStatement(statement: AsinStatement, context: ContextLike): number {
-  if (!Array.isArray(statement) || statement[0] !== '$asin' || statement.length !== 2) {
-    throw new Error('AsinStatement is invalid: ' + JSON.stringify(statement));
-  }
-
-  return Math.asin(compileStatement<number>(statement[1], context));
-}
-
-export function compileAcosStatement(statement: AcosStatement, context: ContextLike): number {
-  if (!Array.isArray(statement) || statement[0] !== '$acos' || statement.length !== 2) {
-    throw new Error('AcosStatement is invalid: ' + JSON.stringify(statement));
-  }
-
-  return Math.acos(compileStatement<number>(statement[1], context));
-}
-
-export function compileAtanStatement(statement: AtanStatement, context: ContextLike): number {
-  if (!Array.isArray(statement) || statement[0] !== '$atan' || statement.length !== 2) {
-    throw new Error('AtanStatement is invalid: ' + JSON.stringify(statement));
-  }
-
-  return Math.atan(compileStatement<number>(statement[1], context));
-}
-
-export function compileActgStatement(statement: ActgStatement, context: ContextLike): number {
-  if (!Array.isArray(statement) || statement[0] !== '$actg' || statement.length !== 2) {
-    throw new Error('ActgStatement is invalid: ' + JSON.stringify(statement));
-  }
-
-  return Math.PI / 2 - Math.atan(compileStatement<number>(statement[1], context));
-}
-
 export function compileLogStatement(statement: LogStatement, context: ContextLike): number {
   if (!Array.isArray(statement) || statement[0] !== '$log' || statement.length !== 2) {
     throw new Error('LogStatement is invalid: ' + JSON.stringify(statement));
@@ -895,7 +835,7 @@ export function compileLog10Statement(statement: Log10Statement, context: Contex
 }
 
 export function compileRandomStatement(statement: RandomStatement, context: ContextLike): number {
-  if (!Array.isArray(statement) || statement[0] !== '$random' || statement.length > 3) {
+  if (!Array.isArray(statement) || statement[0] !== '$random' || statement.length > 3 || statement.length === 2) {
     throw new Error('RandomStatement is invalid: ' + JSON.stringify(statement));
   }
 
@@ -903,8 +843,8 @@ export function compileRandomStatement(statement: RandomStatement, context: Cont
     return Math.random();
   }
 
-  const min = statement[1] ? compileStatement<number>(statement[1], context) : 0;
-  const max = statement[2] ? compileStatement<number>(statement[2], context) : 1;
+  const min = compileStatement<number>(statement[1], context);
+  const max = compileStatement<number>(statement[2], context);
 
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
