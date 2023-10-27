@@ -2,9 +2,14 @@ export type ContextLike = {
   [prop: string]: any;
 };
 
-export type Statement<V> = IfStatement<V> | SwitchCaseStatement<V> | ConditionStatement<V> | ValueStatement<V>;
+export type Statement<V> =
+  | IfStatement<V>
+  | SwitchCaseStatement<V>
+  | ConditionStatement
+  | MathStatement
+  | ValueStatement<V>;
 
-export type IfStatement<V> = ['$if', ConditionStatement<V>, Statement<V>, Statement<V>?];
+export type IfStatement<V> = ['$if', ConditionStatement, Statement<V>, Statement<V>?];
 
 export type SwitchCaseStatement<V> = [
   '$switch',
@@ -22,50 +27,133 @@ export type FeatureValue<V> = ['$get', string]; // object getter
 
 export type ConstantValue<V> = V;
 
-export type ConditionStatement<V> =
-  | ValueStatement<V>
-  | NegativeStatement<any>
-  | EqualCondition<any>
-  | NotEqualCondition<any>
-  | LessCondition<any>
-  | LessOrEqualCondition<any>
-  | GreaterCondition<any>
-  | GreaterOrEqualCondition<any>
-  | OrCondition<any>
-  | AndCondition<any>
-  | OneOfCondition<any>
-  | HasCondition<any>
-  | IsEmptyCondition<any>
-  | IsNotEmptyCondition<any>;
+// Condition (boolean) statements
 
-export type NegativeStatement<V> = ['$!', ConditionStatement<V>];
+export type ConditionStatement =
+  | ValueStatement<any>
+  | NegativeStatement
+  | EqualCondition
+  | NotEqualCondition
+  | LessCondition
+  | LessOrEqualCondition
+  | GreaterCondition
+  | GreaterOrEqualCondition
+  | OrCondition
+  | AndCondition
+  | OneOfCondition
+  | HasCondition
+  | IsEmptyCondition
+  | IsNotEmptyCondition;
 
-export type EqualCondition<V> = ['$==' | '$eq', ConditionStatement<V>, ConditionStatement<V>];
+export type NegativeStatement = ['$!', ConditionStatement];
 
-export type NotEqualCondition<V> = ['$!=' | '$neq', ConditionStatement<V>, ConditionStatement<V>];
+export type EqualCondition = ['$==' | '$eq', ConditionStatement, ConditionStatement];
 
-export type LessCondition<V> = ['$<' | '$lt', ConditionStatement<V>, ConditionStatement<V>];
+export type NotEqualCondition = ['$!=' | '$neq', ConditionStatement, ConditionStatement];
 
-export type LessOrEqualCondition<V> = ['$<=' | '$lte', ConditionStatement<V>, ConditionStatement<V>];
+export type LessCondition = ['$<' | '$lt', ConditionStatement, ConditionStatement];
 
-export type GreaterCondition<V> = ['$>' | '$gt', ConditionStatement<V>, ConditionStatement<V>];
+export type LessOrEqualCondition = ['$<=' | '$lte', ConditionStatement, ConditionStatement];
 
-export type GreaterOrEqualCondition<V> = ['$>=' | '$gte', ConditionStatement<V>, ConditionStatement<V>];
+export type GreaterCondition = ['$>' | '$gt', ConditionStatement, ConditionStatement];
 
-export type OrCondition<V> = ['$||' | '$or', ConditionStatement<V>, ConditionStatement<V>];
+export type GreaterOrEqualCondition = ['$>=' | '$gte', ConditionStatement, ConditionStatement];
 
-export type AndCondition<V> = ['$&&' | '$and', ConditionStatement<V>, ConditionStatement<V>];
+export type OrCondition = ['$||' | '$or', ConditionStatement, ConditionStatement];
 
-export type OneOfCondition<V> = ['$oneOf', ValueStatement<V>, ...Array<ValueStatement<V>>];
+export type AndCondition = ['$&&' | '$and', ConditionStatement, ConditionStatement];
 
-export type HasCondition<V> = ['$has', string];
+export type OneOfCondition = ['$oneOf', ValueStatement<any>, ...Array<ValueStatement<any>>];
 
-export type IsEmptyCondition<V> = ['$empty', ConditionStatement<V>];
+export type HasCondition = ['$has', string];
 
-export type IsNotEmptyCondition<V> = ['$notEmpty', ConditionStatement<V>];
+export type IsEmptyCondition = ['$empty', Statement<any>];
+
+export type IsNotEmptyCondition = ['$notEmpty', Statement<any>];
+
+// Color statements
 
 export type ColorValue = RGBColorValue | RGBAColorValue;
 
 export type RGBColorValue = ['$rgb', number, number, number];
 
 export type RGBAColorValue = ['$rgba', number, number, number, number];
+
+// Math statements
+export type MathStatement =
+  | PlusStatement
+  | MinusStatement
+  | MultiplyStatement
+  | DivisionStatement
+  | PowerStatement
+  | SqrtStatement
+  | AbsStatement
+  | FloorStatement
+  | CeilStatement
+  | RoundStatement
+  | ExpStatement
+  | SinStatement
+  | CosStatement
+  | TanStatement
+  | CtgStatement
+  | AsinStatement
+  | AcosStatement
+  | AtanStatement
+  | ActgStatement
+  | LogStatement
+  | Log2Statement
+  | Log10Statement
+  | MinStatement
+  | MaxStatement
+  | RandomStatement;
+
+export type PlusStatement = ['$+', Statement<number>, Statement<number>];
+
+export type MinusStatement = ['$-', Statement<number>, Statement<number>];
+
+export type MultiplyStatement = ['$*', Statement<number>, Statement<number>];
+
+export type DivisionStatement = ['$/', Statement<number>, Statement<number>];
+
+export type PowerStatement = ['$pow', Statement<number>, Statement<number>];
+
+export type SqrtStatement = ['$sqrt', Statement<number>];
+
+export type AbsStatement = ['$abs', Statement<number>];
+
+export type FloorStatement = ['$floor', Statement<number>];
+
+export type CeilStatement = ['$ceil', Statement<number>];
+
+export type RoundStatement = ['$round', Statement<number>];
+
+export type ExpStatement = ['$exp', Statement<number>];
+
+export type SinStatement = ['$sin', Statement<number>];
+
+export type CosStatement = ['$cos', Statement<number>];
+
+export type TanStatement = ['$tan', Statement<number>];
+
+export type CtgStatement = ['$ctg', Statement<number>];
+
+export type AsinStatement = ['$asin', Statement<number>];
+
+export type AcosStatement = ['$acos', Statement<number>];
+
+export type AtanStatement = ['$atan', Statement<number>];
+
+export type ActgStatement = ['$actg', Statement<number>];
+
+export type LogStatement = ['$log', Statement<number>];
+
+export type Log2Statement = ['$log2', Statement<number>];
+
+export type Log10Statement = ['$log10', Statement<number>];
+
+// random(from: number = 0, to: number = 1): number;
+export type RandomStatement = ['$random', Statement<number>?, Statement<number>?];
+
+export type MinStatement = ['$min', Statement<number>, Statement<number>];
+
+export type MaxStatement = ['$max', Statement<number>, Statement<number>];

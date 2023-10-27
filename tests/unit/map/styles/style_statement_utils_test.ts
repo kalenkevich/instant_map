@@ -187,43 +187,43 @@ describe('compileStatement', () => {
   });
 
   it('should compile $eq condition statement', () => {
-    const conditionStatement: ConditionStatement<string> = ['$eq', ['$get', 'properties.class'], 'water'];
+    const conditionStatement: ConditionStatement = ['$eq', ['$get', 'properties.class'], 'water'];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $neq condition statement', () => {
-    const conditionStatement: ConditionStatement<string> = ['$neq', ['$get', 'properties.class'], 'grass'];
+    const conditionStatement: ConditionStatement = ['$neq', ['$get', 'properties.class'], 'grass'];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $lt condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = ['$lt', ['$get', 'properties.minzoom'], 0];
+    const conditionStatement: ConditionStatement = ['$lt', ['$get', 'properties.minzoom'], 0];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(false);
   });
 
   it('should compile $lte condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = ['$lte', ['$get', 'properties.minzoom'], 0];
+    const conditionStatement: ConditionStatement = ['$lte', ['$get', 'properties.minzoom'], 0];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $gt condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = ['$gt', ['$get', 'properties.maxzoom'], 1];
+    const conditionStatement: ConditionStatement = ['$gt', ['$get', 'properties.maxzoom'], 1];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $gte condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = ['$gte', ['$get', 'properties.maxzoom'], 5];
+    const conditionStatement: ConditionStatement = ['$gte', ['$get', 'properties.maxzoom'], 5];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $and condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = [
+    const conditionStatement: ConditionStatement = [
       '$and',
       ['$eq', ['$get', 'properties.maxzoom'], 5],
       ['$eq', ['$get', 'properties.minzoom'], 0],
@@ -233,7 +233,7 @@ describe('compileStatement', () => {
   });
 
   it('should compile $or condition statement', () => {
-    const conditionStatement: ConditionStatement<number> = [
+    const conditionStatement: ConditionStatement = [
       '$or',
       ['$eq', ['$get', 'properties.maxzoom'], 6],
       ['$eq', ['$get', 'properties.minzoom'], 0],
@@ -243,7 +243,7 @@ describe('compileStatement', () => {
   });
 
   it('should compile $oneOf condition statement', () => {
-    const conditionStatement: ConditionStatement<string> = [
+    const conditionStatement: ConditionStatement = [
       '$oneOf',
       ['$get', 'properties.class'],
       'water',
@@ -255,13 +255,13 @@ describe('compileStatement', () => {
   });
 
   it('should compile $has condition statement', () => {
-    const conditionStatement: ConditionStatement<boolean> = ['$has', 'properties.class'];
+    const conditionStatement: ConditionStatement = ['$has', 'properties.class'];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
 
   it('should compile $! condition statement', () => {
-    const conditionStatement: ConditionStatement<string> = ['$!', ['$eq', ['$get', 'properties.class'], 'land']];
+    const conditionStatement: ConditionStatement = ['$!', ['$eq', ['$get', 'properties.class'], 'land']];
 
     expect(compileStatement(conditionStatement, SampleWaterFeature)).toBe(true);
   });
@@ -302,7 +302,7 @@ describe('compileIfStatement', () => {
     const thenStatement: Statement<string> = ['$get', 'properties.thenValue'];
     const elseStatement: Statement<string> = ['$get', 'properties.elseValue'];
 
-    const orCondition1: OrCondition<string> = [
+    const orCondition1: OrCondition = [
       '$or',
       ['$eq', ['$get', 'properties.class'], 'water'],
       ['$eq', ['$get', 'properties.class'], 'land'],
@@ -323,7 +323,7 @@ describe('compileIfStatement', () => {
       })
     ).toBe('then result');
 
-    const andCondition1: AndCondition<string> = [
+    const andCondition1: AndCondition = [
       '$and',
       ['$eq', ['$get', 'properties.class'], 'water'],
       ['$eq', ['$get', 'properties.class'], 'land'],
@@ -688,8 +688,8 @@ describe('compileConditionStatementOrValue', () => {
 });
 
 describe('compileEqualCondition', () => {
-  const SampleTrueEqualCondition: EqualCondition<number> = ['$eq', ['$get', 'properties.maxzoom'], 5];
-  const SampleFalseEqualCondition: EqualCondition<number> = ['$eq', ['$get', 'properties.maxzoom'], 4];
+  const SampleTrueEqualCondition: EqualCondition = ['$eq', ['$get', 'properties.maxzoom'], 5];
+  const SampleFalseEqualCondition: EqualCondition = ['$eq', ['$get', 'properties.maxzoom'], 4];
 
   it('should return true for truthy "EQUAL" condition', () => {
     expect(compileEqualCondition(['$eq', 1, 1], SampleWaterFeature)).toBe(true);
@@ -715,22 +715,22 @@ describe('compileEqualCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileEqualCondition(['$eq'] as unknown as EqualCondition<number>, SampleWaterFeature);
+      compileEqualCondition(['$eq'] as unknown as EqualCondition, SampleWaterFeature);
     }).toThrowError('EqualCondition statement is invalid: ["$eq"]');
 
     expect(() => {
-      compileEqualCondition(['$=='] as unknown as EqualCondition<number>, SampleWaterFeature);
+      compileEqualCondition(['$=='] as unknown as EqualCondition, SampleWaterFeature);
     }).toThrowError('EqualCondition statement is invalid: ["$=="]');
 
     expect(() => {
-      compileEqualCondition(['$==', 1, 2, 3] as unknown as EqualCondition<number>, SampleWaterFeature);
+      compileEqualCondition(['$==', 1, 2, 3] as unknown as EqualCondition, SampleWaterFeature);
     }).toThrowError('EqualCondition statement is invalid: ["$==",1,2,3]');
   });
 });
 
 describe('compileNotEqualCondition', () => {
-  const SampleTrueNotEqualCondition: NotEqualCondition<number> = ['$neq', ['$get', 'properties.maxzoom'], 4];
-  const SampleFalseNotEqualCondition: NotEqualCondition<number> = ['$neq', ['$get', 'properties.maxzoom'], 5];
+  const SampleTrueNotEqualCondition: NotEqualCondition = ['$neq', ['$get', 'properties.maxzoom'], 4];
+  const SampleFalseNotEqualCondition: NotEqualCondition = ['$neq', ['$get', 'properties.maxzoom'], 5];
 
   it('should return true for truthy "NOT EQUAL" condition', () => {
     expect(compileNotEqualCondition(['$neq', 1, 2], SampleWaterFeature)).toBe(true);
@@ -756,22 +756,22 @@ describe('compileNotEqualCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileNotEqualCondition(['$neq'] as unknown as NotEqualCondition<number>, SampleWaterFeature);
+      compileNotEqualCondition(['$neq'] as unknown as NotEqualCondition, SampleWaterFeature);
     }).toThrowError('NotEqualCondition statement is invalid: ["$neq"]');
 
     expect(() => {
-      compileNotEqualCondition(['$!='] as unknown as NotEqualCondition<number>, SampleWaterFeature);
+      compileNotEqualCondition(['$!='] as unknown as NotEqualCondition, SampleWaterFeature);
     }).toThrowError('NotEqualCondition statement is invalid: ["$!="]');
 
     expect(() => {
-      compileNotEqualCondition(['$!=', 1, 2, 3] as unknown as NotEqualCondition<number>, SampleWaterFeature);
+      compileNotEqualCondition(['$!=', 1, 2, 3] as unknown as NotEqualCondition, SampleWaterFeature);
     }).toThrowError('NotEqualCondition statement is invalid: ["$!=",1,2,3]');
   });
 });
 
 describe('compileLessCondition', () => {
-  const SampleTrueLessCondition: LessCondition<number> = ['$lt', ['$get', 'properties.maxzoom'], 6];
-  const SampleFalseLessCondition: LessCondition<number> = ['$lt', ['$get', 'properties.maxzoom'], 1];
+  const SampleTrueLessCondition: LessCondition = ['$lt', ['$get', 'properties.maxzoom'], 6];
+  const SampleFalseLessCondition: LessCondition = ['$lt', ['$get', 'properties.maxzoom'], 1];
 
   it('should return true for truthy "LESS THEN" condition', () => {
     expect(compileLessCondition(['$lt', 1, 2], SampleWaterFeature)).toBe(true);
@@ -797,23 +797,23 @@ describe('compileLessCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileLessCondition(['$<'] as unknown as LessCondition<number>, SampleWaterFeature);
+      compileLessCondition(['$<'] as unknown as LessCondition, SampleWaterFeature);
     }).toThrowError('LessCondition statement is invalid: ["$<"]');
 
     expect(() => {
-      compileLessCondition(['$lt'] as unknown as LessCondition<number>, SampleWaterFeature);
+      compileLessCondition(['$lt'] as unknown as LessCondition, SampleWaterFeature);
     }).toThrowError('LessCondition statement is invalid: ["$lt"]');
 
     expect(() => {
-      compileLessCondition(['$lt', '1', '2', '3'] as unknown as LessCondition<number>, SampleWaterFeature);
+      compileLessCondition(['$lt', '1', '2', '3'] as unknown as LessCondition, SampleWaterFeature);
     }).toThrowError('LessCondition statement is invalid: ["$lt","1","2","3"]');
   });
 });
 
 describe('compileLessOrEqualCondition', () => {
-  const SampleTrueLessOrEqualCondition: LessOrEqualCondition<number> = ['$lte', ['$get', 'properties.minzoom'], 0];
+  const SampleTrueLessOrEqualCondition: LessOrEqualCondition = ['$lte', ['$get', 'properties.minzoom'], 0];
 
-  const SampleFalseLessOrEqualCondition: LessOrEqualCondition<number> = ['$lte', ['$get', 'properties.maxzoom'], 4];
+  const SampleFalseLessOrEqualCondition: LessOrEqualCondition = ['$lte', ['$get', 'properties.maxzoom'], 4];
 
   it('should return true for truthy "LESS THEN EQUAL" condition', () => {
     expect(compileLessOrEqualCondition(['$lte', 1, 2], SampleWaterFeature)).toBe(true);
@@ -839,26 +839,23 @@ describe('compileLessOrEqualCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileLessOrEqualCondition(['$<='] as unknown as LessOrEqualCondition<number>, SampleWaterFeature);
+      compileLessOrEqualCondition(['$<='] as unknown as LessOrEqualCondition, SampleWaterFeature);
     }).toThrowError('LessOrEqualCondition statement is invalid: ["$<="]');
 
     expect(() => {
-      compileLessOrEqualCondition(['$lte'] as unknown as LessOrEqualCondition<number>, SampleWaterFeature);
+      compileLessOrEqualCondition(['$lte'] as unknown as LessOrEqualCondition, SampleWaterFeature);
     }).toThrowError('LessOrEqualCondition statement is invalid: ["$lte"]');
 
     expect(() => {
-      compileLessOrEqualCondition(
-        ['$lte', '1', '2', '3'] as unknown as LessOrEqualCondition<number>,
-        SampleWaterFeature
-      );
+      compileLessOrEqualCondition(['$lte', '1', '2', '3'] as unknown as LessOrEqualCondition, SampleWaterFeature);
     }).toThrowError('LessOrEqualCondition statement is invalid: ["$lte","1","2","3"]');
   });
 });
 
 describe('compileGreaterCondition', () => {
-  const SampleTrueGreaterCondition: GreaterCondition<number> = ['$gt', ['$get', 'properties.maxzoom'], 1];
+  const SampleTrueGreaterCondition: GreaterCondition = ['$gt', ['$get', 'properties.maxzoom'], 1];
 
-  const SampleFalseGreaterCondition: GreaterCondition<number> = ['$gt', ['$get', 'properties.maxzoom'], 5];
+  const SampleFalseGreaterCondition: GreaterCondition = ['$gt', ['$get', 'properties.maxzoom'], 5];
 
   it('should return true for truthy "GREAT THEN" condition', () => {
     expect(compileGreaterCondition(['$gt', 2, 1], SampleWaterFeature)).toBe(true);
@@ -884,31 +881,23 @@ describe('compileGreaterCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileGreaterCondition(['$>'] as unknown as GreaterCondition<number>, SampleWaterFeature);
+      compileGreaterCondition(['$>'] as unknown as GreaterCondition, SampleWaterFeature);
     }).toThrowError('GreaterCondition statement is invalid: ["$>"]');
 
     expect(() => {
-      compileGreaterCondition(['$gt'] as unknown as GreaterCondition<number>, SampleWaterFeature);
+      compileGreaterCondition(['$gt'] as unknown as GreaterCondition, SampleWaterFeature);
     }).toThrowError('GreaterCondition statement is invalid: ["$gt"]');
 
     expect(() => {
-      compileGreaterCondition(['$gt', '1', '2', '3'] as unknown as GreaterCondition<number>, SampleWaterFeature);
+      compileGreaterCondition(['$gt', '1', '2', '3'] as unknown as GreaterCondition, SampleWaterFeature);
     }).toThrowError('GreaterCondition statement is invalid: ["$gt","1","2","3"]');
   });
 });
 
 describe('compileGreaterOrEqualCondition', () => {
-  const SampleTrueGreaterOrEqualCondition: GreaterOrEqualCondition<number> = [
-    '$gte',
-    ['$get', 'properties.maxzoom'],
-    1,
-  ];
+  const SampleTrueGreaterOrEqualCondition: GreaterOrEqualCondition = ['$gte', ['$get', 'properties.maxzoom'], 1];
 
-  const SampleFalseGreaterOrEqualCondition: GreaterOrEqualCondition<number> = [
-    '$gte',
-    ['$get', 'properties.maxzoom'],
-    6,
-  ];
+  const SampleFalseGreaterOrEqualCondition: GreaterOrEqualCondition = ['$gte', ['$get', 'properties.maxzoom'], 6];
 
   it('should return true for truthy "GREAT THEN OR EQUAL" condition', () => {
     expect(compileGreaterOrEqualCondition(['$gte', 2, 1], SampleWaterFeature)).toBe(true);
@@ -934,30 +923,27 @@ describe('compileGreaterOrEqualCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileGreaterOrEqualCondition(['$>='] as unknown as GreaterOrEqualCondition<number>, SampleWaterFeature);
+      compileGreaterOrEqualCondition(['$>='] as unknown as GreaterOrEqualCondition, SampleWaterFeature);
     }).toThrowError('GreaterOrEqualCondition statement is invalid: ["$>="]');
 
     expect(() => {
-      compileGreaterOrEqualCondition(['$gte'] as unknown as GreaterOrEqualCondition<number>, SampleWaterFeature);
+      compileGreaterOrEqualCondition(['$gte'] as unknown as GreaterOrEqualCondition, SampleWaterFeature);
     }).toThrowError('GreaterOrEqualCondition statement is invalid: ["$gte"]');
 
     expect(() => {
-      compileGreaterOrEqualCondition(
-        ['$gte', '1', '2', '3'] as unknown as GreaterOrEqualCondition<number>,
-        SampleWaterFeature
-      );
+      compileGreaterOrEqualCondition(['$gte', '1', '2', '3'] as unknown as GreaterOrEqualCondition, SampleWaterFeature);
     }).toThrowError('GreaterOrEqualCondition statement is invalid: ["$gte","1","2","3"]');
   });
 });
 
 describe('compileOrCondition', () => {
-  const SampleTrueOrCondition: OrCondition<string> = [
+  const SampleTrueOrCondition: OrCondition = [
     '$or',
     ['$eq', ['$get', 'properties.class'], 'water'],
     ['$eq', ['$get', 'properties.subClass'], 'sea'],
   ];
 
-  const SampleFalseOrCondition: OrCondition<string> = [
+  const SampleFalseOrCondition: OrCondition = [
     '$or',
     ['$eq', ['$get', 'properties.class'], 'land'],
     ['$eq', ['$get', 'properties.subClass'], 'sea'],
@@ -999,27 +985,27 @@ describe('compileOrCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileOrCondition(['$or'] as unknown as OrCondition<string>, SampleWaterFeature);
+      compileOrCondition(['$or'] as unknown as OrCondition, SampleWaterFeature);
     }).toThrowError('OrCondition statement is invalid: ["$or"]');
 
     expect(() => {
-      compileOrCondition(['$||'] as unknown as OrCondition<string>, SampleWaterFeature);
+      compileOrCondition(['$||'] as unknown as OrCondition, SampleWaterFeature);
     }).toThrowError('OrCondition statement is invalid: ["$||"]');
 
     expect(() => {
-      compileOrCondition(['$or', '1', '2', '3'] as unknown as OrCondition<string>, SampleWaterFeature);
+      compileOrCondition(['$or', '1', '2', '3'] as unknown as OrCondition, SampleWaterFeature);
     }).toThrowError('OrCondition statement is invalid: ["$or","1","2","3"]');
   });
 });
 
 describe('compileAndCondition', () => {
-  const SampleTrueAndCondition: AndCondition<string> = [
+  const SampleTrueAndCondition: AndCondition = [
     '$and',
     ['$eq', ['$get', 'properties.class'], 'water'],
     ['$eq', ['$get', 'properties.subClass'], 'ocean'],
   ];
 
-  const SampleFalseAndCondition: AndCondition<string> = [
+  const SampleFalseAndCondition: AndCondition = [
     '$and',
     ['$eq', ['$get', 'properties.class'], 'water'],
     ['$neq', ['$get', 'properties.subClass'], 'ocean'],
@@ -1059,15 +1045,15 @@ describe('compileAndCondition', () => {
 
   it('should throw an error when condition statement is invalid', () => {
     expect(() => {
-      compileAndCondition(['$and'] as unknown as AndCondition<string>, SampleWaterFeature);
+      compileAndCondition(['$and'] as unknown as AndCondition, SampleWaterFeature);
     }).toThrowError('AndCondition statement is invalid: ["$and"]');
 
     expect(() => {
-      compileAndCondition(['$&&'] as unknown as AndCondition<string>, SampleWaterFeature);
+      compileAndCondition(['$&&'] as unknown as AndCondition, SampleWaterFeature);
     }).toThrowError('AndCondition statement is invalid: ["$&&"]');
 
     expect(() => {
-      compileAndCondition(['$&&', '1', '2', '3'] as unknown as AndCondition<string>, SampleWaterFeature);
+      compileAndCondition(['$&&', '1', '2', '3'] as unknown as AndCondition, SampleWaterFeature);
     }).toThrowError('AndCondition statement is invalid: ["$&&","1","2","3"]');
   });
 });
@@ -1087,15 +1073,15 @@ describe('compileOneOfCondition', () => {
 
   it('should throw error if statement is invalid', () => {
     expect(() => {
-      compileOneOfCondition([] as unknown as OneOfCondition<string>, SampleWaterFeature);
+      compileOneOfCondition([] as unknown as OneOfCondition, SampleWaterFeature);
     }).toThrowError('OneOfCondition is invalid: []');
 
     expect(() => {
-      compileOneOfCondition(['$oneOf'] as unknown as OneOfCondition<string>, SampleWaterFeature);
+      compileOneOfCondition(['$oneOf'] as unknown as OneOfCondition, SampleWaterFeature);
     }).toThrowError('OneOfCondition is invalid: ["$oneOf"]');
 
     expect(() => {
-      compileOneOfCondition(['$oneOf', 1] as unknown as OneOfCondition<string>, SampleWaterFeature);
+      compileOneOfCondition(['$oneOf', 1] as unknown as OneOfCondition, SampleWaterFeature);
     }).toThrowError('OneOfCondition is invalid: ["$oneOf",1]');
   });
 });
@@ -1111,11 +1097,11 @@ describe('compileHasCondition', () => {
 
   it('should throw error if statement is invalid', () => {
     expect(() => {
-      compileHasCondition([] as unknown as HasCondition<string>, SampleWaterFeature);
+      compileHasCondition([] as unknown as HasCondition, SampleWaterFeature);
     }).toThrowError('HasCondition is invalid: []');
 
     expect(() => {
-      compileHasCondition(['$has'] as unknown as HasCondition<string>, SampleWaterFeature);
+      compileHasCondition(['$has'] as unknown as HasCondition, SampleWaterFeature);
     }).toThrowError('HasCondition is invalid: ["$has"]');
   });
 });
@@ -1131,11 +1117,11 @@ describe('compileIsEmptyCondition', () => {
 
   it('should throw error if statement is invalid', () => {
     expect(() => {
-      compileIsEmptyCondition([] as unknown as IsEmptyCondition<string>, SampleWaterFeature);
+      compileIsEmptyCondition([] as unknown as IsEmptyCondition, SampleWaterFeature);
     }).toThrowError('IsEmptyCondition statement is invalid: []');
 
     expect(() => {
-      compileIsEmptyCondition(['$empty'] as unknown as IsEmptyCondition<string>, SampleWaterFeature);
+      compileIsEmptyCondition(['$empty'] as unknown as IsEmptyCondition, SampleWaterFeature);
     }).toThrowError('IsEmptyCondition statement is invalid: ["$empty"]');
   });
 });
@@ -1153,11 +1139,11 @@ describe('IsNotEmptyCondition', () => {
 
   it('should throw error if statement is invalid', () => {
     expect(() => {
-      compileIsNotEmptyCondition([] as unknown as IsNotEmptyCondition<string>, SampleWaterFeature);
+      compileIsNotEmptyCondition([] as unknown as IsNotEmptyCondition, SampleWaterFeature);
     }).toThrowError('IsNotEmptyCondition statement is invalid: []');
 
     expect(() => {
-      compileIsNotEmptyCondition(['$notEmpty'] as unknown as IsNotEmptyCondition<string>, SampleWaterFeature);
+      compileIsNotEmptyCondition(['$notEmpty'] as unknown as IsNotEmptyCondition, SampleWaterFeature);
     }).toThrowError('IsNotEmptyCondition statement is invalid: ["$notEmpty"]');
   });
 });

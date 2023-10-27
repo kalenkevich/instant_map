@@ -83,14 +83,15 @@ export const getFeatureGlPrograms = (feature: TileFeature, props: LayerGlProgram
 export const getPointFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
   const featureStyle = feature.getStyles()! as PointStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
-  const radius = featureStyle.radius ? compileStatement(featureStyle.radius, geojsonFeature) : 50;
+  const radius = featureStyle.radius ? compileStatement<number>(featureStyle.radius, geojsonFeature) : 50;
   const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_WHITE;
   const center = feature.getGeometry() as Point;
   const programs: GlProgram[] = [];
 
   if (featureStyle.border) {
     const borderStyle = featureStyle.border;
-    const borderRadius = radius + (featureStyle.radius ? compileStatement(borderStyle.width, geojsonFeature) : 5) * 2;
+    const borderRadius =
+      radius + (featureStyle.radius ? compileStatement<number>(borderStyle.width, geojsonFeature) : 5) * 2;
     const borderColor = borderStyle.color
       ? getGlColor(compileStatement(borderStyle.color, geojsonFeature))
       : GL_COLOR_BLACK;
@@ -124,7 +125,7 @@ export const getPointFeatureGlProgram = (feature: TileFeature, props: LayerGlPro
 export const getLineFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
   const featureStyle = feature.getStyles()! as LineStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
-  const lineWidth = featureStyle.width ? compileStatement(featureStyle.width, geojsonFeature) : 1;
+  const lineWidth = featureStyle.width ? compileStatement<number>(featureStyle.width, geojsonFeature) : 1;
   const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
   const programs: GlProgram[] = [];
@@ -179,14 +180,14 @@ export const getImageFeatureGlProgram = (feature: TileFeature, props: LayerGlPro
 export const getTextFeatureGlPrograms = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
   const featureStyle = feature.getStyles()! as TextStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
-  const text = compileStatement(featureStyle.text, geojsonFeature);
+  const text = compileStatement<string>(featureStyle.text, geojsonFeature);
 
   if (!text) {
     return [];
   }
 
-  const font = featureStyle.font ? compileStatement(featureStyle.font, geojsonFeature) : 'roboto';
-  const fontSize = featureStyle.fontSize ? compileStatement(featureStyle.fontSize, geojsonFeature) : 14;
+  const font = featureStyle.font ? compileStatement<string>(featureStyle.font, geojsonFeature) : 'roboto';
+  const fontSize = featureStyle.fontSize ? compileStatement<number>(featureStyle.fontSize, geojsonFeature) : 14;
   const point = (feature.getGeometry() as Point).coordinates;
   const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
