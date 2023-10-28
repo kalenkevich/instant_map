@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps, GlProgramType } from './program';
+import { GlProgram, GlProgramProps, GlProgramType, BufferAttrs } from './program';
 import { v2 } from '../types';
 
 export interface GlCircleProps extends GlProgramProps {
@@ -39,6 +39,34 @@ export class WebGlCircle extends GlProgram {
         numComponents: 2,
         data,
       },
+      numElements: this.components * 2 + 2,
+    };
+  }
+
+  public supportV2Draw: boolean = true;
+  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+    const step = 360 / this.components;
+
+    const data = new Float32Array((this.components + 1) * 4);
+    let offset = 0;
+
+    for (let i = 0; i <= 360; i += step) {
+      let j = (i * Math.PI) / 180;
+
+      data.set(
+        [this.p[0] + Math.sin(j) * this.radius, this.p[1] + Math.cos(j) * this.radius, this.p[0], this.p[1]],
+        offset
+      );
+      offset += 4;
+    }
+
+    return {
+      type: 'arrays',
+      a_position: {
+        numComponents: 2,
+        data,
+      },
+      numElements: this.components * 2 + 2,
     };
   }
 }

@@ -1,7 +1,6 @@
 import { Font } from 'opentype.js';
 
-import { Arrays, setUniforms } from 'twgl.js';
-import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from '../program';
+import { GlProgram, GlProgramProps, GlProgramType, ProgramCache, BufferAttrs } from '../program';
 import { v2 } from '../../types';
 import { getVerticiesFromText } from './text_utils';
 
@@ -67,7 +66,7 @@ export class WebGlText extends GlProgram {
     gl.flush();
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext): Arrays {
+  public getBufferAttrs(gl: WebGLRenderingContext) {
     return {};
   }
 
@@ -84,5 +83,10 @@ export class WebGlText extends GlProgram {
       vertices,
       count: indices.length,
     });
+  }
+
+  public supportV2Draw: boolean = false;
+  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+    throw new Error('Method not implemented.');
   }
 }

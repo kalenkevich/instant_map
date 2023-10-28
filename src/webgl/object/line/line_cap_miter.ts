@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramType } from '../program';
+import { GlProgram, GlProgramType, BufferAttrs } from '../program';
 import { v2 } from '../../types';
 import { GlLineStripProps } from './line_strip';
 
@@ -100,5 +100,10 @@ export class WebGlMiterLineCap extends GlProgram {
       vertexCount: this.instanceMiterJoin.length, // num vertices per instance
       instanceCount: this.points.length - 2, // num instances
     };
+  }
+
+  public supportV2Draw: boolean = false;
+  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+    throw new Error('Method not implemented.');
   }
 }

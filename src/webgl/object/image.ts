@@ -1,5 +1,5 @@
 import { drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
-import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
+import { BufferAttrs, GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
 
 export interface GlImageProps extends GlProgramProps {
   width: number;
@@ -46,6 +46,11 @@ export class WebGlImage extends GlProgram {
     drawBufferInfo(gl, buffers, this.getPrimitiveType(gl), 6, 0);
   }
 
+  public supportV2Draw: boolean = false;
+  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+    throw new Error('Method not implemented.');
+  }
+
   public getBufferAttrs(gl: WebGLRenderingContext): Record<string, FullArraySpec> {
     return {
       a_position: {
@@ -80,44 +85,40 @@ export class WebGlImage extends GlProgram {
     };
   }
 
-  public getVertexShaderSource(): string {
-    return `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      
-      uniform mat3 u_matrix;
-      uniform vec2 u_resolution;
-      
-      varying vec2 v_texCoord;
-      
-      void main() {
-        // Apply tranlation, rotation and scale.
-        vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+  public vertexShaderSource = `
+    attribute vec2 a_position;
+    attribute vec2 a_texCoord;
+    
+    uniform mat3 u_matrix;
+    uniform vec2 u_resolution;
+    
+    varying vec2 v_texCoord;
+    
+    void main() {
+      // Apply tranlation, rotation and scale.
+      vec2 position = (u_matrix * vec3(a_position, 1)).xy;
 
-        // Apply resolution.
-        vec2 zeroToOne = position / u_resolution;
-        vec2 zeroToTwo = zeroToOne * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
+      // Apply resolution.
+      vec2 zeroToOne = position / u_resolution;
+      vec2 zeroToTwo = zeroToOne * 2.0;
+      vec2 clipSpace = zeroToTwo - 1.0;
 
-        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-        v_texCoord = a_texCoord;
-      }
-    `;
-  }
+      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+      v_texCoord = a_texCoord;
+    }
+  `;
 
-  public getFragmentShaderSource(): string {
-    return `
-      precision mediump float;
+  public fragmentShaderSource = `
+    precision mediump float;
 
-      // our texture
-      uniform sampler2D u_image;
-      
-      // the texCoords passed in from the vertex shader.
-      varying vec2 v_texCoord;
-      
-      void main() {
-        gl_FragColor = texture2D(u_image, v_texCoord);
-      }
-    `;
-  }
+    // our texture
+    uniform sampler2D u_image;
+    
+    // the texCoords passed in from the vertex shader.
+    varying vec2 v_texCoord;
+    
+    void main() {
+      gl_FragColor = texture2D(u_image, v_texCoord);
+    }
+  `;
 }

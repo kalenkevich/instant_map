@@ -33,6 +33,31 @@ export interface GlUniform<T> {
   location: WebGLUniformLocation;
 }
 
+export interface BufferAttrs {
+  type: 'arrays' | 'elements';
+  a_position: {
+    numComponents: number;
+    data: Float32Array;
+    offset?: number;
+    divisor?: number;
+  };
+  point_a?: {
+    numComponents: number;
+    data: Float32Array;
+    offset?: number;
+    divisor?: number;
+  };
+  point_b?: {
+    numComponents: number;
+    data: Float32Array;
+    offset?: number;
+    divisor?: number;
+  };
+  numElements: number;
+  offset?: number;
+  instanceCount?: number;
+}
+
 export enum GlProgramType {
   DEFAULT = 0,
   TRIANGLE = DEFAULT,
@@ -56,6 +81,8 @@ export type ProgramCache = {
 
 export abstract class GlProgram {
   public requireExt: boolean = false;
+
+  public abstract supportV2Draw: boolean;
 
   /** Color of the object to be painted. HSL format. */
   protected color: v4;
@@ -151,11 +178,19 @@ export abstract class GlProgram {
   public preheat(gl: WebGLRenderingContext, cache: ProgramCache) {
     const programInfo = this.getProgramInfo(gl, cache);
 
-    this.getBufferInfo(gl);
+    // this.getBufferInfo(gl);
     this.getUniforms(gl, programInfo.program);
   }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
+    if (this.supportV2Draw) {
+      return this.drawV2(gl, cache);
+    }
+
+    this.drawV1(gl, cache);
+  }
+
+  public drawV1(gl: WebGLRenderingContext, cache: ProgramCache) {
     const programInfo = this.getProgramInfo(gl, cache);
     const buffer = this.getBufferInfo(gl);
 
@@ -170,6 +205,68 @@ export abstract class GlProgram {
     const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
     drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
   }
+
+  public drawV2(gl: WebGLRenderingContext, cache: ProgramCache) {
+    const programInfo = this.getProgramInfo(gl, cache);
+    const bufferAttrs = this.getBufferAttrsV2(gl);
+
+    if (this.type !== cache.currentProgramType) {
+      gl.useProgram(programInfo.program);
+      cache.currentProgramType = this.type;
+    }
+
+    this.setUniforms(gl, programInfo.program);
+    this.setBuffers(gl, bufferAttrs);
+
+    const primitiveType = this.getPrimitiveType(gl);
+    const offset = bufferAttrs.offset || 0;
+
+    if (bufferAttrs.type === 'arrays') {
+      if (bufferAttrs.instanceCount) {
+        // @ts-ignore
+        gl.drawArraysInstanced(primitiveType, offset, bufferAttrs.numElements, bufferAttrs.instanceCount);
+      } else {
+        gl.drawArrays(primitiveType, offset, bufferAttrs.numElements);
+      }
+    } else {
+      if (bufferAttrs.instanceCount) {
+        // @ts-ignore
+        gl.drawElementsInstanced(
+          primitiveType,
+          bufferAttrs.numElements,
+          gl.UNSIGNED_SHORT,
+          offset,
+          bufferAttrs.instanceCount
+        );
+      } else {
+        gl.drawElements(primitiveType, bufferAttrs.numElements, gl.UNSIGNED_SHORT, offset);
+      }
+    }
+    gl.flush();
+  }
+
+  /*
+  function drawBufferInfo(gl, bufferInfo, type, count, offset, instanceCount) {
+    type = type === undefined ? TRIANGLES : type;
+    const indices = bufferInfo.indices;
+    const elementType = bufferInfo.elementType;
+    const numElements = count === undefined ? bufferInfo.numElements : count;
+    offset = offset === undefined ? 0 : offset;
+    if (elementType || indices) {
+      if (instanceCount !== undefined) {
+        gl.drawElementsInstanced(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset, instanceCount);
+      } else {
+        gl.drawElements(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset);
+      }
+    } else {
+      if (instanceCount !== undefined) {
+        gl.drawArraysInstanced(type, offset, numElements, instanceCount);
+      } else {
+        gl.drawArrays(type, offset, numElements);
+      }
+    }
+  }
+  */
 
   public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
     return {
@@ -235,6 +332,7 @@ export abstract class GlProgram {
   }
 
   public abstract getBufferAttrs(gl: WebGLRenderingContext): Arrays;
+  public abstract getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs;
 
   public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
     if (this.bufferInfoCache) {
@@ -242,6 +340,17 @@ export abstract class GlProgram {
     }
 
     return (this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl)));
+  }
+
+  protected a_positionLocation = 0;
+  protected point_aLocation = 1;
+  protected point_bLocation = 2;
+  protected setBuffers(gl: WebGLRenderingContext, buffers: BufferAttrs) {
+    const positionBuffer = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, buffers.a_position.data, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(this.a_positionLocation, buffers.a_position.numComponents, gl.FLOAT, true, 8, 0);
   }
 
   protected isLine = false;
