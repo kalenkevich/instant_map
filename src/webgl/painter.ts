@@ -1,4 +1,4 @@
-import { addExtensionsToContext, resizeCanvasToDisplaySize } from 'twgl.js';
+import { addExtensionsToContext } from 'twgl.js';
 import { GlProgram, ProgramCache } from './object/program';
 
 export class WebGlPainter {
@@ -14,15 +14,23 @@ export class WebGlPainter {
   }
 
   public init() {
-    addExtensionsToContext(this.gl);
+    const gl = this.gl;
+
+    addExtensionsToContext(gl);
+    this.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement, this.devicePixelRatio);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
     this.clear();
   }
 
   public destroy() {}
 
-  public setWidth(w: number) {}
+  public resize(w: number, h: number) {
+    const gl = this.gl;
 
-  public setHeight(h: number) {}
+    this.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement, this.devicePixelRatio);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  }
 
   public clear() {
     this.gl.clearColor(0, 0, 0, 0);
@@ -30,17 +38,28 @@ export class WebGlPainter {
   }
 
   public preheat(program: GlProgram) {
-    program.preheat(this.gl);
+    program.preheat(this.gl, this.programInfoCache);
   }
 
   public draw(programs: GlProgram[]): void {
     const gl = this.gl;
 
-    resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement, this.devicePixelRatio);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
     for (const program of programs) {
       program.draw(gl, this.programInfoCache);
     }
+  }
+
+  private resizeCanvasToDisplaySize(canvas: HTMLCanvasElement, multiplier: number) {
+    const width = (canvas.clientWidth * multiplier) | 0;
+    const height = (canvas.clientHeight * multiplier) | 0;
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+
+      return true;
+    }
+
+    return false;
   }
 }

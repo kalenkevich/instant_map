@@ -47,8 +47,7 @@ export class GlMapRenderer extends MapRenderer {
     this.canvasEl.style.width = `${width}px`;
     this.canvasEl.style.height = `${height}px`;
 
-    this.glPainter?.setWidth(width);
-    this.glPainter?.setHeight(height);
+    this.glPainter?.resize(width, height);
   }
 
   public destroy() {

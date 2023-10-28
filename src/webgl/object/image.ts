@@ -1,5 +1,4 @@
-import { setUniforms, drawBufferInfo, setBuffersAndAttributes, FullArraySpec } from 'twgl.js';
-import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
+import { BufferAttrs, GlProgram, GlProgramProps, GlProgramType, ProgramCache } from './program';
 
 export interface GlImageProps extends GlProgramProps {
   width: number;
@@ -22,10 +21,55 @@ export class WebGlImage extends GlProgram {
     this.image = props.image;
   }
 
+  public vertexShaderSource = `
+    attribute vec2 a_position;
+    attribute vec2 a_texCoord;
+    
+    uniform mat3 u_matrix;
+    uniform vec2 u_resolution;
+
+    varying vec2 v_texCoord;
+    
+    void main() {
+      // Apply tranlation, rotation and scale.
+      vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+
+      // Apply resolution.
+      vec2 zeroToOne = position / u_resolution;
+      vec2 zeroToTwo = zeroToOne * 2.0;
+      vec2 clipSpace = zeroToTwo - 1.0;
+
+      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+      v_texCoord = a_texCoord;
+    }
+  `;
+
+  public fragmentShaderSource = `
+    precision mediump float;
+
+    // our texture
+    uniform vec4 u_color;
+    uniform sampler2D u_image;
+    
+    // the texCoords passed in from the vertex shader.
+    varying vec2 v_texCoord;
+    
+    void main() {
+      gl_FragColor = texture2D(u_image, v_texCoord);
+    }
+  `;
+
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
-    const uniforms = this.getUniforms(gl);
-    const buffers = this.getBufferInfo(gl);
+    const program = this.getProgram(gl, cache);
+    const bufferAttrs = this.getBufferAttrs(gl);
+
+    if (program !== cache.currentProgram) {
+      gl.useProgram(program);
+      cache.currentProgram = program;
+    }
+
+    this.setUniforms(gl, program);
+    this.setBuffers(gl, bufferAttrs);
 
     // Create a texture.
     const texture = gl.createTexture();
@@ -36,90 +80,64 @@ export class WebGlImage extends GlProgram {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
-    if (programInfo !== cache.currentProgram) {
-      gl.useProgram(programInfo.program);
-      cache.currentProgram = programInfo;
-    }
-
-    setBuffersAndAttributes(gl, programInfo, buffers);
-    setUniforms(programInfo, uniforms);
-
-    drawBufferInfo(gl, buffers, this.getPrimitiveType(gl), 6, 0);
+    gl.drawArrays(gl.TRIANGLES, bufferAttrs.offset || 0, bufferAttrs.numElements);
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext): Record<string, FullArraySpec> {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     return {
+      type: 'elements',
       a_position: {
         numComponents: 2,
-        normalize: false,
-        stride: 0,
-        offset: 0,
-        drawType: gl.STATIC_DRAW,
         data: new Float32Array([
-          0, 0,
-          this.width, 0,
-          0, this.height,
-          0, this.height,
-          this.width, 0,
-          this.width, this.height,
+          0,
+          0,
+          this.width,
+          0,
+          0,
+          this.height,
+          0,
+          this.height,
+          this.width,
+          0,
+          this.width,
+          this.height,
         ]),
       },
       a_texCoord: {
         numComponents: 2,
-        normalize: false,
-        stride: 0,
-        offset: 0,
-        drawType: gl.STATIC_DRAW,
-        data: new Float32Array([
-          0.0,  0.0,
-          1.0,  0.0,
-          0.0,  1.0,
-          0.0,  1.0,
-          1.0,  0.0,
-          1.0,  1.0,
-      ]),
-      }
+        data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
+      },
+      numElements: 6,
     };
   }
 
-  public getVertexShaderSource(): string {
-    return `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      
-      uniform mat3 u_matrix;
-      uniform vec2 u_resolution;
-      
-      varying vec2 v_texCoord;
-      
-      void main() {
-        // Apply tranlation, rotation and scale.
-        vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+  protected a_positionLocation = 0;
+  protected texCoordLocation = 1;
+  protected setBuffers(gl: WebGLRenderingContext, buffers: BufferAttrs) {
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, buffers.a_position.data, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(this.a_positionLocation);
+    gl.vertexAttribPointer(
+      this.a_positionLocation,
+      buffers.a_position.numComponents,
+      gl.FLOAT,
+      true,
+      0,
+      buffers.a_position.offset || 0
+    );
 
-        // Apply resolution.
-        vec2 zeroToOne = position / u_resolution;
-        vec2 zeroToTwo = zeroToOne * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
-
-        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-        v_texCoord = a_texCoord;
-      }
-    `;
-  }
-
-  public getFragmentShaderSource(): string {
-    return `
-      precision mediump float;
-
-      // our texture
-      uniform sampler2D u_image;
-      
-      // the texCoords passed in from the vertex shader.
-      varying vec2 v_texCoord;
-      
-      void main() {
-        gl_FragColor = texture2D(u_image, v_texCoord);
-      }
-    `;
+    const texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, buffers.a_texCoord.data, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(this.texCoordLocation);
+    gl.vertexAttribPointer(
+      this.texCoordLocation,
+      buffers.a_texCoord.numComponents,
+      gl.FLOAT,
+      true,
+      0,
+      buffers.a_texCoord.offset || 0
+    );
   }
 }

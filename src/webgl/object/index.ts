@@ -4,7 +4,8 @@ export * from './program';
 
 /** Object primitives */
 export * from './area';
-export * from './line';
+export * from './line/line_strip';
+export * from './line/line_cap_miter';
 export * from './rectangle';
 export * from './triangle';
 export * from './circle';

@@ -6,7 +6,7 @@ import {
   WebGlRectangle,
   WebGlTriangle,
   GlProgram,
-  WebGlLine,
+  WebGlLineStrip,
   v2,
   GL_COLOR_BLACK,
   GL_COLOR_RED,
@@ -316,38 +316,23 @@ export const renderObjectsDemo = (canvas: HTMLCanvasElement) => {
     cellHeight,
   });
 
-  const nativeLines = [
-    new WebGlLine({
-      color: GL_COLOR_RED,
-      p1: [0, 0],
-      p2: [400, 400],
-      lineWidth: 1,
-      translation: [cellWidth * 0 + 250, cellHeight * 0 + 250],
-      origin: [-200, -200],
-    }),
-    new WebGlLine({
-      color: [0, 1, 0.5, 1],
-      p1: [400, 0],
-      p2: [0, 400],
-      translation: [cellWidth * 0 + 250, cellHeight * 0 + 250],
-      origin: [-200, -200],
-      lineWidth: 1,
-    }),
-  ];
-
   const triangleLines = [
-    new WebGlLine({
+    new WebGlLineStrip({
       color: GL_COLOR_RED,
-      p1: [0, 0],
-      p2: [400, 400],
+      points: [
+        [0, 0],
+        [400, 400],
+      ],
       translation: [cellWidth * 1 + 250, cellHeight * 0 + 250],
       origin: [-200, -200],
       lineWidth: 5,
     }),
-    new WebGlLine({
+    new WebGlLineStrip({
       color: [0, 1, 0.5, 1],
-      p1: [400, 0],
-      p2: [0, 400],
+      points: [
+        [400, 0],
+        [0, 400],
+      ],
       translation: [cellWidth * 1 + 250, cellHeight * 0 + 250],
       origin: [-200, -200],
       lineWidth: 5,
@@ -467,9 +452,11 @@ export const getGrid = (options: RenderGridOptions): GlProgram[] => {
     const x = options.cellWidth * i;
 
     grid.push(
-      new WebGlLine({
-        p1: [x, 0] as v2,
-        p2: [x, canvasHeight] as v2,
+      new WebGlLineStrip({
+        points: [
+          [x, 0],
+          [x, canvasHeight],
+        ],
         color: options.lineColor ?? GL_COLOR_BLACK,
         lineWidth: options.lineWidth ?? 1,
       })
@@ -480,9 +467,11 @@ export const getGrid = (options: RenderGridOptions): GlProgram[] => {
     const y = options.cellHeight * i;
 
     grid.push(
-      new WebGlLine({
-        p1: [0, y] as v2,
-        p2: [canvasWidth, y] as v2,
+      new WebGlLineStrip({
+        points: [
+          [0, y],
+          [canvasWidth, y],
+        ],
         color: options.lineColor ?? GL_COLOR_BLACK,
         lineWidth: options.lineWidth ?? 1,
       })

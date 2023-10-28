@@ -1,5 +1,5 @@
 import earcut from 'earcut';
-import { GlProgram, GlProgramProps, GlProgramType } from './program';
+import { GlProgram, GlProgramProps, GlProgramType, BufferAttrs } from './program';
 import { v2 } from '../types';
 
 export interface GlAreaPorps extends GlProgramProps {
@@ -28,21 +28,25 @@ export class WebGlArea extends GlProgram {
     this.points = points;
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext): Record<string, any> {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     const points = this.points.flatMap(p => p);
     // Magic here! This function returns the indexes of the coordinates for triangle from the source point array.
     const indexes = earcut(points);
-    const data = [];
+    const data = new Float32Array(indexes.length * 2);
 
+    let offset = 0;
     for (const index of indexes) {
-      data.push(points[index * 2], points[index * 2 + 1]);
+      data.set([points[index * 2], points[index * 2 + 1]], offset);
+      offset += 2;
     }
 
     return {
+      type: 'arrays',
       a_position: {
         numComponents: 2,
         data: data,
       },
+      numElements: indexes.length,
     };
   }
 }

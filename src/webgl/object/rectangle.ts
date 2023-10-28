@@ -1,4 +1,4 @@
-import { GlProgram, GlProgramProps, GlProgramType } from './program';
+import { GlProgram, GlProgramProps, GlProgramType, BufferAttrs } from './program';
 import { v2 } from '../types';
 
 export interface GlRectangleProps extends GlProgramProps {
@@ -22,17 +22,19 @@ export class WebGlRectangle extends GlProgram {
     this.height = props.height;
   }
 
-  public getBufferAttrs(): Record<string, any> {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     const p1 = this.p;
     const p2 = [p1[0] + this.width, p1[1]];
     const p3 = [p1[0], p1[1] + this.height];
     const p4 = [p1[0] + this.width, p1[1] + this.height];
 
     return {
+      type: 'arrays',
       a_position: {
         numComponents: 2,
-        data: [...p1, ...p2, ...p3, ...p3, ...p2, ...p4],
+        data: new Float32Array([...p1, ...p2, ...p3, ...p4]),
       },
+      numElements: 6,
     };
   }
 }

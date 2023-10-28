@@ -1,7 +1,6 @@
 import { Font } from 'opentype.js';
 
-import { Arrays, setUniforms } from 'twgl.js';
-import { GlProgram, GlProgramProps, GlProgramType, ProgramCache } from '../program';
+import { GlProgram, GlProgramProps, GlProgramType, ProgramCache, BufferAttrs } from '../program';
 import { v2 } from '../../types';
 import { getVerticiesFromText } from './text_utils';
 
@@ -41,15 +40,14 @@ export class WebGlText extends GlProgram {
   public preheat(gl: WebGLRenderingContext) {}
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
-    const uniforms = this.getUniforms(gl);
+    const program = this.getProgram(gl, cache);
 
     if (this.type !== cache.currentProgramType) {
-      gl.useProgram(programInfo.program);
+      gl.useProgram(program);
       cache.currentProgramType = this.type;
     }
 
-    setUniforms(programInfo, uniforms);
+    this.setUniforms(gl, program);
 
     const { indices, vertices, count } = this.getTextBufferAttrs(gl);
     const vertBuffer = gl.createBuffer();
@@ -65,25 +63,24 @@ export class WebGlText extends GlProgram {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, true, 8, 0);
 
     gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-    gl.flush();
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext): Arrays {
-    return {};
-  }
-
-  private getTextBufferAttrsCache?: TextBufferAttrs;
+  protected textBufferAttrsCache?: TextBufferAttrs;
   public getTextBufferAttrs(gl: WebGLRenderingContext): TextBufferAttrs {
-    if (this.getTextBufferAttrsCache) {
-      return this.getTextBufferAttrsCache;
+    if (this.textBufferAttrsCache) {
+      return this.textBufferAttrsCache;
     }
 
     const { indices, vertices } = getVerticiesFromText(this.font, this.text, this.p, this.fontSize);
 
-    return (this.getTextBufferAttrsCache = {
+    return (this.textBufferAttrsCache = {
       indices: new Uint16Array(indices),
       vertices,
       count: indices.length,
     });
+  }
+
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
+    throw new Error('Method not implemented.');
   }
 }

@@ -17,32 +17,17 @@ export class ThreeJsPainter {
 
   init() {
     this.scene.background = new Color(255, 255, 255);
-    this.camera = new OrthographicCamera(
-      0, this.width,
-      0, this.height,
-      1, 2,
-    );
+    this.camera = new OrthographicCamera(0, this.width, 0, this.height, 1, 2);
     this.camera.position.set(0, 0, 1);
     this.renderer.setPixelRatio(this.devicePixelRatio);
   }
 
-  setWidth(w: number) {
+  resize(w: number, h: number) {
     this.width = w;
-    this.updateDimentions();
-  }
-
-  setHeight(h: number) {
     this.height = h;
-    this.updateDimentions();
-  }
 
-  updateDimentions() {
     this.renderer.setSize(this.width, this.height);
-    this.camera = new OrthographicCamera(
-      0, this.width,
-      0, this.height,
-      1, 2,
-    );
+    this.camera = new OrthographicCamera(0, this.width, 0, this.height, 1, 2);
     this.camera.position.set(0, 0, 1);
   }
 
