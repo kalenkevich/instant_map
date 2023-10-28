@@ -1,12 +1,4 @@
-import {
-  Arrays,
-  BufferInfo,
-  ProgramInfo,
-  createProgramInfo,
-  createBufferInfoFromArrays,
-  drawBufferInfo,
-  setBuffersAndAttributes,
-} from 'twgl.js';
+import { ProgramInfo, createProgramInfo } from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 import { GL_COLOR_BLACK } from '../colors';
@@ -21,11 +13,12 @@ export interface GlProgramProps {
 }
 
 export interface GlUniforms {
-  u_color: GlUniform<[number, number, number, number]>;
+  u_color?: GlUniform<[number, number, number, number]>;
   u_resolution: GlUniform<[number, number]>;
   u_matrix: GlUniform<number[]>;
   u_line_width: GlUniform<number>;
   u_is_line: GlUniform<boolean>;
+  u_image: GlUniform<number>;
 }
 
 export interface GlUniform<T> {
@@ -48,6 +41,18 @@ export interface BufferAttrs {
     divisor?: number;
   };
   point_b?: {
+    numComponents: number;
+    data: Float32Array;
+    offset?: number;
+    divisor?: number;
+  };
+  point_c?: {
+    numComponents: number;
+    data: Float32Array;
+    offset?: number;
+    divisor?: number;
+  };
+  a_texCoord?: {
     numComponents: number;
     data: Float32Array;
     offset?: number;
@@ -82,8 +87,6 @@ export type ProgramCache = {
 export abstract class GlProgram {
   public requireExt: boolean = false;
 
-  public abstract supportV2Draw: boolean;
-
   /** Color of the object to be painted. HSL format. */
   protected color: v4;
   protected lineWidth?: number;
@@ -93,7 +96,6 @@ export abstract class GlProgram {
   protected scale: v2;
 
   protected uniformsCache?: GlUniforms;
-  protected bufferInfoCache?: BufferInfo;
 
   abstract type: GlProgramType;
 
@@ -183,32 +185,8 @@ export abstract class GlProgram {
   }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    if (this.supportV2Draw) {
-      return this.drawV2(gl, cache);
-    }
-
-    this.drawV1(gl, cache);
-  }
-
-  public drawV1(gl: WebGLRenderingContext, cache: ProgramCache) {
     const programInfo = this.getProgramInfo(gl, cache);
-    const buffer = this.getBufferInfo(gl);
-
-    if (this.type !== cache.currentProgramType) {
-      gl.useProgram(programInfo.program);
-      cache.currentProgramType = this.type;
-    }
-
-    this.setUniforms(gl, programInfo.program);
-    setBuffersAndAttributes(gl, programInfo, buffer);
-
-    const { offset, vertexCount, instanceCount } = this.getDrawBufferInfoOptions();
-    drawBufferInfo(gl, buffer, this.getPrimitiveType(gl), vertexCount, offset, instanceCount);
-  }
-
-  public drawV2(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
-    const bufferAttrs = this.getBufferAttrsV2(gl);
+    const bufferAttrs = this.getBufferAttrs(gl);
 
     if (this.type !== cache.currentProgramType) {
       gl.useProgram(programInfo.program);
@@ -242,86 +220,54 @@ export abstract class GlProgram {
         gl.drawElements(primitiveType, bufferAttrs.numElements, gl.UNSIGNED_SHORT, offset);
       }
     }
-    gl.flush();
-  }
-
-  /*
-  function drawBufferInfo(gl, bufferInfo, type, count, offset, instanceCount) {
-    type = type === undefined ? TRIANGLES : type;
-    const indices = bufferInfo.indices;
-    const elementType = bufferInfo.elementType;
-    const numElements = count === undefined ? bufferInfo.numElements : count;
-    offset = offset === undefined ? 0 : offset;
-    if (elementType || indices) {
-      if (instanceCount !== undefined) {
-        gl.drawElementsInstanced(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset, instanceCount);
-      } else {
-        gl.drawElements(type, numElements, elementType === undefined ? UNSIGNED_SHORT : bufferInfo.elementType, offset);
-      }
-    } else {
-      if (instanceCount !== undefined) {
-        gl.drawArraysInstanced(type, offset, numElements, instanceCount);
-      } else {
-        gl.drawArrays(type, offset, numElements);
-      }
-    }
-  }
-  */
-
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
-    return {
-      offset: undefined, // offset
-      vertexCount: undefined, // num vertices per instance
-      instanceCount: undefined, // num instances
-    };
   }
 
   public vertexShaderSource = `
-      precision mediump float;
+    precision mediump float;
 
-      attribute vec2 a_position;
-      attribute vec2 point_a;
-      attribute vec2 point_b;
-      uniform bool u_is_line;
-      uniform float u_line_width;
-      uniform vec2 u_resolution;
-      uniform mat3 u_matrix;
+    attribute vec2 a_position;
+    attribute vec2 point_a;
+    attribute vec2 point_b;
+    uniform bool u_is_line;
+    uniform float u_line_width;
+    uniform vec2 u_resolution;
+    uniform mat3 u_matrix;
 
-      vec2 get_position() {
-        if (!u_is_line) {
-          return a_position;
-        }
-
-        vec2 xBasis = point_b - point_a;
-        vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
-
-        return point_a + xBasis * a_position.x + yBasis * u_line_width * a_position.y;
+    vec2 get_position() {
+      if (!u_is_line) {
+        return a_position;
       }
 
-      void main() {
-        vec2 pos = get_position();
+      vec2 xBasis = point_b - point_a;
+      vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
 
-        // Apply tranlation, rotation and scale.
-        vec2 position = (u_matrix * vec3(pos, 1)).xy;
-        
-        // Apply resolution.
-        vec2 zeroToOne = position / u_resolution;
-        vec2 zeroToTwo = zeroToOne * 2.0;
-        vec2 clipSpace = zeroToTwo - 1.0;
+      return point_a + xBasis * a_position.x + yBasis * u_line_width * a_position.y;
+    }
 
-        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-      }
-    `;
+    void main() {
+      vec2 pos = get_position();
+
+      // Apply tranlation, rotation and scale.
+      vec2 position = (u_matrix * vec3(pos, 1)).xy;
+      
+      // Apply resolution.
+      vec2 zeroToOne = position / u_resolution;
+      vec2 zeroToTwo = zeroToOne * 2.0;
+      vec2 clipSpace = zeroToTwo - 1.0;
+
+      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+    }
+  `;
 
   public fragmentShaderSource = `
-      precision mediump float;
+    precision mediump float;
 
-      uniform vec4 u_color;
+    uniform vec4 u_color;
 
-      void main() {
-        gl_FragColor = u_color;
-      }
-    `;
+    void main() {
+      gl_FragColor = u_color;
+    }
+  `;
 
   public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
     if (cache.programs[this.type]) {
@@ -331,23 +277,13 @@ export abstract class GlProgram {
     return (cache.programs[this.type] = createProgramInfo(gl, [this.vertexShaderSource, this.fragmentShaderSource]));
   }
 
-  public abstract getBufferAttrs(gl: WebGLRenderingContext): Arrays;
-  public abstract getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs;
-
-  public getBufferInfo(gl: WebGLRenderingContext): BufferInfo {
-    if (this.bufferInfoCache) {
-      return this.bufferInfoCache;
-    }
-
-    return (this.bufferInfoCache = createBufferInfoFromArrays(gl, this.getBufferAttrs(gl)));
-  }
+  public abstract getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs;
 
   protected a_positionLocation = 0;
   protected point_aLocation = 1;
   protected point_bLocation = 2;
   protected setBuffers(gl: WebGLRenderingContext, buffers: BufferAttrs) {
     const positionBuffer = gl.createBuffer();
-
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, buffers.a_position.data, gl.STATIC_DRAW);
     gl.vertexAttribPointer(this.a_positionLocation, buffers.a_position.numComponents, gl.FLOAT, true, 8, 0);
@@ -359,6 +295,7 @@ export abstract class GlProgram {
   protected u_matrixLocation?: WebGLUniformLocation;
   protected u_line_widthLocation?: WebGLUniformLocation;
   protected u_is_lineLocation?: WebGLUniformLocation;
+  protected u_imageLocation?: WebGLUniformLocation;
 
   protected getUniforms(gl: WebGLRenderingContext, program: WebGLProgram): GlUniforms {
     if (!this.u_colorLocation) {
@@ -375,6 +312,9 @@ export abstract class GlProgram {
     }
     if (!this.u_is_lineLocation) {
       this.u_is_lineLocation = gl.getUniformLocation(program, 'u_is_line');
+    }
+    if (!this.u_imageLocation) {
+      this.u_imageLocation = gl.getUniformLocation(program, 'u_image');
     }
 
     return (this.uniformsCache = {
@@ -398,6 +338,10 @@ export abstract class GlProgram {
         value: this.isLine,
         location: this.u_is_lineLocation,
       },
+      u_image: {
+        value: 0,
+        location: this.u_imageLocation,
+      },
     });
   }
 
@@ -409,6 +353,7 @@ export abstract class GlProgram {
     gl.uniformMatrix3fv(uniforms.u_matrix.location, false, uniforms.u_matrix.value);
     gl.uniform1f(uniforms.u_line_width.location, uniforms.u_line_width.value);
     gl.uniform1i(uniforms.u_is_line.location, uniforms.u_is_line.value ? 1 : 0);
+    gl.uniform1i(uniforms.u_image.location, uniforms.u_image.value);
   }
 
   public getMatrix(): number[] {

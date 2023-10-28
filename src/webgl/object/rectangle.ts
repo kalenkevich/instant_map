@@ -22,35 +22,17 @@ export class WebGlRectangle extends GlProgram {
     this.height = props.height;
   }
 
-  public getBufferAttrs(): Record<string, any> {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     const p1 = this.p;
     const p2 = [p1[0] + this.width, p1[1]];
     const p3 = [p1[0], p1[1] + this.height];
     const p4 = [p1[0] + this.width, p1[1] + this.height];
-
-    return {
-      a_position: {
-        numComponents: 2,
-        data: [...p1, ...p2, ...p3, ...p3, ...p2, ...p4],
-      },
-    };
-  }
-
-  public supportV2Draw: boolean = true;
-  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
-    const p1 = this.p;
-    const p2 = [p1[0] + this.width, p1[1]];
-    const p3 = [p1[0], p1[1] + this.height];
-    const p4 = [p1[0] + this.width, p1[1] + this.height];
-
-    const buffer = new Float32Array();
-    buffer.set([...p1, ...p2, ...p3, ...p4]);
 
     return {
       type: 'arrays',
       a_position: {
         numComponents: 2,
-        data: buffer,
+        data: new Float32Array([...p1, ...p2, ...p3, ...p4]),
       },
       numElements: 6,
     };

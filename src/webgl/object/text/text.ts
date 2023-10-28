@@ -63,30 +63,24 @@ export class WebGlText extends GlProgram {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, true, 8, 0);
 
     gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-    gl.flush();
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext) {
-    return {};
-  }
-
-  private getTextBufferAttrsCache?: TextBufferAttrs;
+  protected textBufferAttrsCache?: TextBufferAttrs;
   public getTextBufferAttrs(gl: WebGLRenderingContext): TextBufferAttrs {
-    if (this.getTextBufferAttrsCache) {
-      return this.getTextBufferAttrsCache;
+    if (this.textBufferAttrsCache) {
+      return this.textBufferAttrsCache;
     }
 
     const { indices, vertices } = getVerticiesFromText(this.font, this.text, this.p, this.fontSize);
 
-    return (this.getTextBufferAttrsCache = {
+    return (this.textBufferAttrsCache = {
       indices: new Uint16Array(indices),
       vertices,
       count: indices.length,
     });
   }
 
-  public supportV2Draw: boolean = false;
-  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     throw new Error('Method not implemented.');
   }
 }

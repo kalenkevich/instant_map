@@ -23,23 +23,10 @@ export class WebGlTriangle extends GlProgram {
     this.p2 = props.p2;
     this.p3 = props.p3;
 
-    this.buffer = new Float32Array(6);
-    this.buffer.set(this.p1, 0);
-    this.buffer.set(this.p2, 2);
-    this.buffer.set(this.p3, 4);
+    this.buffer = new Float32Array([...this.p1, ...this.p2, ...this.p3]);
   }
 
-  public getBufferAttrs() {
-    return {
-      a_position: {
-        numComponents: 2,
-        data: [...this.p1, ...this.p2, ...this.p3],
-      },
-    };
-  }
-
-  public supportV2Draw = true;
-  public getBufferAttrsV2(): BufferAttrs {
+  public getBufferAttrs(): BufferAttrs {
     return {
       type: 'arrays',
       a_position: {

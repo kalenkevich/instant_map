@@ -31,53 +31,11 @@ export class WebGlLineStrip extends GlProgram {
     this.points = points;
   }
 
-  public getBufferAttrs(): Record<string, any> {
-    const pointsBuffer = new Float32Array(this.points.length * 2);
-
-    let offset = 0;
-    for (const p of this.points) {
-      pointsBuffer.set(p, offset);
-      offset += 2;
-    }
-
-    return {
-      a_position: {
-        numComponents: 2,
-        data: this.positionBuffer,
-        divisor: 0,
-      },
-      point_a: {
-        numComponents: 2,
-        data: pointsBuffer,
-        divisor: 1,
-      },
-      point_b: {
-        numComponents: 2,
-        data: pointsBuffer,
-        divisor: 1,
-        offset: Float32Array.BYTES_PER_ELEMENT * 2,
-      },
-      numElements: 6,
-    };
-  }
-
-  public getDrawBufferInfoOptions(): { offset?: number; vertexCount?: number; instanceCount?: number } {
-    return {
-      offset: 0, // offset
-      vertexCount: 6, // num vertices per instance
-      instanceCount: this.points.length - 1, // num instances
-    };
-  }
-
-  public supportV2Draw: boolean = true;
   protected a_positionLocation = 0;
   protected point_aLocation = 1;
   protected point_bLocation = 2;
   protected setBuffers(gl: WebGLRenderingContext, buffers: BufferAttrs) {
     const positionBuffer = gl.createBuffer();
-    const pointABuffer = gl.createBuffer();
-    const pointBBuffer = gl.createBuffer();
-
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, buffers.a_position.data, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.a_positionLocation);
@@ -95,6 +53,7 @@ export class WebGlLineStrip extends GlProgram {
       gl.vertexAttribDivisor(this.a_positionLocation, buffers.a_position.divisor || 0);
     }
 
+    const pointABuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, pointABuffer);
     gl.bufferData(gl.ARRAY_BUFFER, buffers.point_a.data, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.point_aLocation);
@@ -112,6 +71,7 @@ export class WebGlLineStrip extends GlProgram {
       gl.vertexAttribDivisor(this.point_aLocation, buffers.point_a.divisor || 0);
     }
 
+    const pointBBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, pointBBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, buffers.point_b.data, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.point_bLocation);
@@ -130,7 +90,7 @@ export class WebGlLineStrip extends GlProgram {
     }
   }
 
-  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     const pointsBuffer = new Float32Array(this.points.length * 2);
 
     let offset = 0;

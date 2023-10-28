@@ -26,25 +26,7 @@ export class WebGlCircle extends GlProgram {
     return gl.TRIANGLE_STRIP;
   }
 
-  public getBufferAttrs(gl: WebGLRenderingContext): Record<string, any> {
-    const data = [] as number[];
-    for (let i = 0; i <= 360; i += 360 / this.components) {
-      let j = (i * Math.PI) / 180;
-
-      data.push(this.p[0] + Math.sin(j) * this.radius, this.p[1] + Math.cos(j) * this.radius, this.p[0], this.p[1]);
-    }
-
-    return {
-      a_position: {
-        numComponents: 2,
-        data,
-      },
-      numElements: this.components * 2 + 2,
-    };
-  }
-
-  public supportV2Draw: boolean = true;
-  public getBufferAttrsV2(gl: WebGLRenderingContext): BufferAttrs {
+  public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
     const step = 360 / this.components;
 
     const data = new Float32Array((this.components + 1) * 4);
