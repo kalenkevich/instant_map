@@ -1,4 +1,3 @@
-import { ProgramInfo, createProgramInfo } from 'twgl.js';
 import { m3 } from '../utils/m3';
 import { GlColor, v2, v4 } from '../types';
 import { GL_COLOR_BLACK } from '../colors';
@@ -78,9 +77,9 @@ export enum GlProgramType {
 
 export type ProgramCache = {
   programs: {
-    [key in GlProgramType]?: ProgramInfo;
+    [key in GlProgramType]?: WebGLProgram;
   };
-  currentProgram?: ProgramInfo;
+  currentProgram?: WebGLProgram;
   currentProgramType?: GlProgramType;
 };
 
@@ -178,22 +177,22 @@ export abstract class GlProgram {
 
   // Combute buffer info and uniforms
   public preheat(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
+    const program = this.getProgram(gl, cache);
 
     // this.getBufferInfo(gl);
-    this.getUniforms(gl, programInfo.program);
+    this.getUniforms(gl, program);
   }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
+    const program = this.getProgram(gl, cache);
     const bufferAttrs = this.getBufferAttrs(gl);
 
     if (this.type !== cache.currentProgramType) {
-      gl.useProgram(programInfo.program);
+      gl.useProgram(program);
       cache.currentProgramType = this.type;
     }
 
-    this.setUniforms(gl, programInfo.program);
+    this.setUniforms(gl, program);
     this.setBuffers(gl, bufferAttrs);
 
     const primitiveType = this.getPrimitiveType(gl);
@@ -269,12 +268,26 @@ export abstract class GlProgram {
     }
   `;
 
-  public getProgramInfo(gl: WebGLRenderingContext, cache: ProgramCache): ProgramInfo {
+  public getProgram(gl: WebGLRenderingContext, cache: ProgramCache): WebGLProgram {
     if (cache.programs[this.type]) {
       return cache.programs[this.type];
     }
 
-    return (cache.programs[this.type] = createProgramInfo(gl, [this.vertexShaderSource, this.fragmentShaderSource]));
+    const program = gl.createProgram();
+
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, this.vertexShaderSource);
+    gl.compileShader(vertexShader);
+    gl.attachShader(program, vertexShader);
+
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, this.fragmentShaderSource);
+    gl.compileShader(fragmentShader);
+    gl.attachShader(program, fragmentShader);
+
+    gl.linkProgram(program);
+
+    return (cache.programs[this.type] = program);
   }
 
   public abstract getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs;

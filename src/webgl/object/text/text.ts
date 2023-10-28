@@ -40,14 +40,14 @@ export class WebGlText extends GlProgram {
   public preheat(gl: WebGLRenderingContext) {}
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
+    const program = this.getProgram(gl, cache);
 
     if (this.type !== cache.currentProgramType) {
-      gl.useProgram(programInfo.program);
+      gl.useProgram(program);
       cache.currentProgramType = this.type;
     }
 
-    this.setUniforms(gl, programInfo.program);
+    this.setUniforms(gl, program);
 
     const { indices, vertices, count } = this.getTextBufferAttrs(gl);
     const vertBuffer = gl.createBuffer();

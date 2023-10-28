@@ -60,15 +60,15 @@ export class WebGlImage extends GlProgram {
   `;
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
-    const programInfo = this.getProgramInfo(gl, cache);
+    const program = this.getProgram(gl, cache);
     const bufferAttrs = this.getBufferAttrs(gl);
 
-    if (programInfo !== cache.currentProgram) {
-      gl.useProgram(programInfo.program);
-      cache.currentProgram = programInfo;
+    if (program !== cache.currentProgram) {
+      gl.useProgram(program);
+      cache.currentProgram = program;
     }
 
-    this.setUniforms(gl, programInfo.program);
+    this.setUniforms(gl, program);
     this.setBuffers(gl, bufferAttrs);
 
     // Create a texture.
