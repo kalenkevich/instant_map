@@ -84,8 +84,6 @@ export type ProgramCache = {
 };
 
 export abstract class GlProgram {
-  public requireExt: boolean = false;
-
   /** Color of the object to be painted. HSL format. */
   protected color: v4;
   protected lineWidth?: number;
@@ -93,8 +91,6 @@ export abstract class GlProgram {
   protected origin: v2;
   protected translation: v2;
   protected scale: v2;
-
-  protected uniformsCache?: GlUniforms;
 
   abstract type: GlProgramType;
 
@@ -172,28 +168,31 @@ export abstract class GlProgram {
   }
 
   public pruneCache() {
-    this.uniformsCache = undefined;
+    this.bufferAttrsCache = undefined;
   }
 
   // Combute buffer info and uniforms
   public preheat(gl: WebGLRenderingContext, cache: ProgramCache) {
     const program = this.getProgram(gl, cache);
 
-    // this.getBufferInfo(gl);
+    this.bufferAttrsCache = this.getBufferAttrs(gl);
     this.getUniforms(gl, program);
   }
 
+  protected bufferAttrsCache?: BufferAttrs;
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     const program = this.getProgram(gl, cache);
-    const bufferAttrs = this.getBufferAttrs(gl);
-
     if (this.type !== cache.currentProgramType) {
       gl.useProgram(program);
       cache.currentProgramType = this.type;
     }
 
-    this.setUniforms(gl, program);
+    const bufferAttrs = this.bufferAttrsCache || this.getBufferAttrs(gl);
+    if (!this.bufferAttrsCache) {
+      this.bufferAttrsCache = bufferAttrs;
+    }
     this.setBuffers(gl, bufferAttrs);
+    this.setUniforms(gl, program);
 
     const primitiveType = this.getPrimitiveType(gl);
     const offset = bufferAttrs.offset || 0;
@@ -330,7 +329,7 @@ export abstract class GlProgram {
       this.u_imageLocation = gl.getUniformLocation(program, 'u_image');
     }
 
-    return (this.uniformsCache = {
+    return {
       u_color: {
         value: this.color,
         location: this.u_colorLocation,
@@ -355,7 +354,7 @@ export abstract class GlProgram {
         value: 0,
         location: this.u_imageLocation,
       },
-    });
+    };
   }
 
   protected setUniforms(gl: WebGLRenderingContext, program: WebGLProgram) {

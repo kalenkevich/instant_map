@@ -27,6 +27,8 @@ export class WebGlText extends GlProgram {
   protected font: Font;
   protected fontSize: number;
 
+  protected textBufferAttrsCache?: TextBufferAttrs;
+
   constructor(props: WebGlTextProps) {
     super(props);
 
@@ -37,19 +39,43 @@ export class WebGlText extends GlProgram {
     this.fontSize = props.fontSize;
   }
 
-  public preheat(gl: WebGLRenderingContext) {}
+  public preheat(gl: WebGLRenderingContext, cache: ProgramCache) {
+    const program = this.getProgram(gl, cache);
+
+    this.textBufferAttrsCache = this.getTextBufferAttrs(gl);
+    this.setUniforms(gl, program);
+  }
 
   public draw(gl: WebGLRenderingContext, cache: ProgramCache) {
     const program = this.getProgram(gl, cache);
-
     if (this.type !== cache.currentProgramType) {
       gl.useProgram(program);
       cache.currentProgramType = this.type;
     }
 
+    const buffers = this.textBufferAttrsCache || this.getTextBufferAttrs(gl);
+    if (!this.textBufferAttrsCache) {
+      this.textBufferAttrsCache = buffers;
+    }
+    this.setTextBuffers(gl, buffers);
     this.setUniforms(gl, program);
 
-    const { indices, vertices, count } = this.getTextBufferAttrs(gl);
+    gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
+  }
+
+  public getTextBufferAttrs(gl: WebGLRenderingContext): TextBufferAttrs {
+    const { indices, vertices } = getVerticiesFromText(this.font, this.text, this.p, this.fontSize);
+
+    return {
+      indices: new Uint16Array(indices),
+      vertices,
+      count: indices.length,
+    };
+  }
+
+  public setTextBuffers(gl: WebGLRenderingContext, textBuffers: TextBufferAttrs) {
+    const { indices, vertices, count } = textBuffers;
+
     const vertBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertices as Float32Array, gl.STATIC_DRAW);
@@ -61,23 +87,6 @@ export class WebGlText extends GlProgram {
 
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, true, 8, 0);
-
-    gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
-  }
-
-  protected textBufferAttrsCache?: TextBufferAttrs;
-  public getTextBufferAttrs(gl: WebGLRenderingContext): TextBufferAttrs {
-    if (this.textBufferAttrsCache) {
-      return this.textBufferAttrsCache;
-    }
-
-    const { indices, vertices } = getVerticiesFromText(this.font, this.text, this.p, this.fontSize);
-
-    return (this.textBufferAttrsCache = {
-      indices: new Uint16Array(indices),
-      vertices,
-      count: indices.length,
-    });
   }
 
   public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {
