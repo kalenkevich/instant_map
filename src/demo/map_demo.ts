@@ -26,7 +26,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'webgl_vt_maptiler',
     renderer: MapRendererType.webgl,
     resizable: true,
-    preheatTiles: true,
+    preheatTiles: false,
     tileMetaUrl: MAPTILER_VT_META_URL,
     styles: VectorStyles,
     controls: {
@@ -112,6 +112,57 @@ export const ButtonMapOptions: ButtonOption[] = [
   },
 ];
 
+const Locations = [
+  {
+    name: 'Slonim',
+    value: {
+      zoom: 14.3218,
+      lat: 53.0875,
+      lng: 25.3183,
+    },
+  },
+  {
+    name: 'Irvine',
+    value: {
+      zoom: 13.48,
+      lat: 33.64891,
+      lng: -117.7426,
+    },
+  },
+  {
+    name: 'New York',
+    value: {
+      zoom: 12.74,
+      lat: 40.72785,
+      lng: -73.99336,
+    },
+  },
+  {
+    name: 'Paris',
+    value: {
+      zoom: 12.49,
+      lat: 48.85091,
+      lng: 2.34428,
+    },
+  },
+  {
+    name: 'London',
+    value: {
+      zoom: 12.83,
+      lat: 51.51237,
+      lng: -0.11359,
+    },
+  },
+  {
+    name: 'Tokio',
+    value: {
+      zoom: 13.04,
+      lat: 35.69311,
+      lng: 139.75535,
+    },
+  },
+];
+
 let currentMap: GlideMap | undefined;
 let rootEl: HTMLElement | undefined;
 
@@ -140,6 +191,17 @@ function createRootEl() {
   return div;
 }
 
+const getSafelocation = (zoom: number, lat: number, lng: number) => {
+  return `${Number(zoom).toFixed(4)}/${Number(lat).toFixed(4)}/${Number(lng).toFixed(4)}`;
+};
+
+const parseFromSafeLocation = (safeLocation: string): [number, number, number] => {
+  const location = decodeURIComponent(safeLocation);
+  const [zoom, lat, lng] = location.split('/');
+
+  return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
+};
+
 function getStartMapLocation(): [number, number, number] {
   const query = new URLSearchParams(document.location.search);
 
@@ -147,17 +209,14 @@ function getStartMapLocation(): [number, number, number] {
     return [14.3218, 53.0875, 25.3183];
   }
 
-  const location = decodeURIComponent(query.get(MAP_LOCATION_PARAM_NAME));
-  const [zoom, lat, lng] = location.split('/');
-
-  return [parseFloat(zoom), parseFloat(lat), parseFloat(lng)];
+  return parseFromSafeLocation(query.get(MAP_LOCATION_PARAM_NAME));
 }
 
 function getStartMapViewId(): string {
   const query = new URLSearchParams(document.location.search);
 
   if (!query.has(SELECTED_MAP_VIEW_PARAM_MNAME)) {
-    return 'webgl_png_osm';
+    return 'webgl_vt_maptiler';
   }
 
   return query.get(SELECTED_MAP_VIEW_PARAM_MNAME);
@@ -168,7 +227,7 @@ const syncQueryParamsWithMapState = () => {
   const zoom = currentMap.getZoom();
 
   const query = new URLSearchParams(document.location.search);
-  const safeLocation = `${Number(zoom).toFixed(4)}/${Number(center.lat).toFixed(4)}/${Number(center.lng).toFixed(4)}`;
+  const safeLocation = getSafelocation(zoom, center.lat, center.lng);
 
   if (query.has(MAP_LOCATION_PARAM_NAME)) {
     query.delete(MAP_LOCATION_PARAM_NAME);
@@ -214,6 +273,35 @@ const createMapViewsSelect = () => {
   return select;
 };
 
+const createMapLocationsSelect = () => {
+  const select = document.createElement('select');
+
+  for (const location of Locations) {
+    const option = document.createElement('option');
+    option.id = location.name;
+    option.innerText = location.name;
+    option.value = getSafelocation(location.value.zoom, location.value.lat, location.value.lng);
+
+    select.appendChild(option);
+  }
+
+  select.addEventListener('change', e => {
+    // @ts-ignore
+    const value: string = e.target.value;
+    const [zoom, lat, lng] = parseFromSafeLocation(value);
+
+    currentMap.setState({
+      zoom,
+      center: new LatLng(lat, lng),
+    });
+  });
+
+  select.style.margin = '20px 20px 0 20px';
+  document.body.appendChild(select);
+
+  return select;
+};
+
 const createDownloadTilesButton = () => {
   const button = document.createElement('button');
 
@@ -249,6 +337,7 @@ export const renderMapOptions = (options: ButtonOption[]) => {
   const startMapViewOptionId = getStartMapViewId();
   const mapViewSelect = createMapViewsSelect();
   const downloadTilesButton = createDownloadTilesButton();
+  createMapLocationsSelect();
 
   rootEl = createRootEl();
 

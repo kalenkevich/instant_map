@@ -479,7 +479,7 @@ export class GlideMap {
     return animation.run();
   }
 
-  private setState(partialState: Partial<MapState>): Promise<void> {
+  public setState(partialState: Partial<MapState>): Promise<void> {
     this.state = {
       ...this.state,
       ...partialState,
