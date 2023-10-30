@@ -3,7 +3,7 @@ import { LatLng } from '../map/geo/lat_lng';
 import { GlideMap, MapEventType, DEFAULT_MAP_METADATA } from '../map/map';
 import { MapTileFormatType } from '../map/tile/tile';
 import { MapRendererType } from '../map/render/renderer';
-import { VectorStyles } from './vector_styles';
+import { VectorStyles, ImageStyles } from './map_styles';
 
 type ButtonOption = Partial<MapOptions & { name: string; id: string }>;
 
@@ -26,7 +26,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'webgl_vt_maptiler',
     renderer: MapRendererType.webgl,
     resizable: true,
-    preheatTiles: true,
+    preheatTiles: false,
     tileMetaUrl: MAPTILER_VT_META_URL,
     styles: VectorStyles,
     controls: {
@@ -49,6 +49,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'html_png_osm',
     renderer: MapRendererType.png,
     resizable: true,
+    styles: ImageStyles,
     mapMeta: {
       ...DEFAULT_MAP_METADATA,
       maxzoom: 19,
@@ -65,6 +66,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'html_png_maptiler',
     renderer: MapRendererType.png,
     resizable: true,
+    styles: ImageStyles,
     mapMeta: {
       ...DEFAULT_MAP_METADATA,
       maxzoom: 19,
@@ -81,7 +83,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'webgl_png_osm',
     renderer: MapRendererType.webgl,
     resizable: true,
-    preheatTiles: true,
+    styles: ImageStyles,
     mapMeta: {
       ...DEFAULT_MAP_METADATA,
       maxzoom: 19,
@@ -98,7 +100,7 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'webgl_png_maptiler',
     renderer: MapRendererType.webgl,
     resizable: true,
-    preheatTiles: true,
+    styles: ImageStyles,
     mapMeta: {
       ...DEFAULT_MAP_METADATA,
       maxzoom: 19,
@@ -236,6 +238,7 @@ const showMap = (options: ButtonOption[], optionId: string) => {
 
   currentMap = new GlideMap({
     rootEl,
+    styles: option.styles,
     zoom,
     center: new LatLng(lat, lng),
     ...option,

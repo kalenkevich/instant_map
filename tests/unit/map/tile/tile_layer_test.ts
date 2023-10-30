@@ -53,6 +53,11 @@ describe('TileLayer', () => {
       properties: {
         prop1: 'layerProperty',
       },
+      styles: {
+        zIndex: 0,
+        sourceLayer: '',
+        styleLayerName: '',
+      },
     });
 
     expect(tileLayer).toBeDefined();
@@ -93,6 +98,11 @@ describe('TileLayer', () => {
         features: [sampleGeojsonFeature],
         properties: {
           prop1: 'layerProperty',
+        },
+        styles: {
+          zIndex: 0,
+          sourceLayer: '',
+          styleLayerName: '',
         },
       });
 

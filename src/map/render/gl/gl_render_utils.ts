@@ -31,6 +31,7 @@ export interface LayerGlProgramsProps {
   height: number;
   image?: HTMLImageElement;
   fontManager: FontManager;
+  devicePixelRatio: number;
 }
 
 export const getLayerGlPrograms = (props: LayerGlProgramsProps): GlProgram[] => {
@@ -196,7 +197,7 @@ export const getTextFeatureGlPrograms = (feature: TileFeature, props: LayerGlPro
       p: point as v2,
       text,
       font: props.fontManager.getFont(font),
-      fontSize,
+      fontSize: fontSize * props.devicePixelRatio,
       color,
       translation: [props.x, props.y],
       scale: props.scale,

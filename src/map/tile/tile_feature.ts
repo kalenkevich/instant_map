@@ -11,16 +11,13 @@ export interface TileFeatureProps {
 
 export class TileFeature {
   private readonly feature: Feature<Point | MultiLineString | Polygon>;
-  private readonly styles?: FeatureStyle;
-  private compiledStyles?: FeatureStyle;
+  private readonly styles: FeatureStyle;
+  private compiledStyles: FeatureStyle;
 
   constructor(props: TileFeatureProps) {
     this.feature = props.feature;
     this.styles = props.styles;
-
-    if (this.styles) {
-      this.compiledStyles = compileFeatureStyle(this.styles, this.feature);
-    }
+    this.compiledStyles = compileFeatureStyle(this.styles, this.feature);
   }
 
   public getProperties(): GeoJsonProperties {
@@ -36,7 +33,7 @@ export class TileFeature {
   }
 
   public shouldBeRendered(mapState: MapState): boolean {
-    if (!this.compiledStyles || !this.inZoomRange(mapState)) {
+    if (!this.inZoomRange(mapState)) {
       return false;
     }
 

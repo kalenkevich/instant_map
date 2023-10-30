@@ -77,7 +77,7 @@ export class GlideMap {
 
   mapMeta?: MapMeta;
   tileMetaUrl?: string;
-  tileStyles?: DataTileStyles;
+  tileStyles: DataTileStyles;
 
   renderer: MapRenderer;
   tilesGrid: TilesGrid;
@@ -312,8 +312,8 @@ export class GlideMap {
     return this.setState({ zoom: newZoom, center: newCenter });
   }
 
-  public getPixelWorldBounds(zoom?: number): Bounds {
-    return this.crs.getProjectedBounds(zoom ?? this.getZoom());
+  public getPixelWorldBounds(zoom?: number, scaleFactor?: number): Bounds {
+    return this.crs.getProjectedBounds(zoom ?? this.getZoom(), scaleFactor);
   }
 
   public getBounds(): LatLngBounds {
@@ -400,18 +400,18 @@ export class GlideMap {
     return projectedPoint.subtract(this.getPixelOrigin());
   }
 
-  project(latlng: LatLng, zoom?: number): Point {
-    return this.crs.latLngToPoint(latlng, zoom || this.getZoom());
+  project(latlng: LatLng, zoom?: number, scaleFactor?: number): Point {
+    return this.crs.latLngToPoint(latlng, zoom || this.getZoom(), scaleFactor);
   }
 
-  unproject(point: Point, zoom?: number): LatLng {
-    return this.crs.pointToLatLng(point, zoom || this.state.zoom);
+  unproject(point: Point, zoom?: number, scaleFactor?: number): LatLng {
+    return this.crs.pointToLatLng(point, zoom || this.state.zoom, scaleFactor);
   }
 
-  getZoomScale(toZoom?: number, fromZoom?: number): number {
+  getZoomScale(toZoom?: number, fromZoom?: number, scaleFactor?: number): number {
     fromZoom = fromZoom === undefined ? this.state.zoom : fromZoom;
 
-    return this.crs.scale(toZoom) / this.crs.scale(fromZoom);
+    return this.crs.scale(toZoom, scaleFactor) / this.crs.scale(fromZoom, scaleFactor);
   }
 
   containerPointToLatLng(point: Point): LatLng {

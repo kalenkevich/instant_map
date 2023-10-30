@@ -134,8 +134,8 @@ export class GlMapRenderer extends MapRenderer {
 
   private getDataTilePrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
     const tileScale = this.getTileScale(mapState);
-    const xScale = (tile.devicePixelRatio / 16) * tileScale;
-    const yScale = (tile.devicePixelRatio / 16) * tileScale;
+    const xScale = tileScale / tile.devicePixelRatio;
+    const yScale = tileScale / tile.devicePixelRatio;
     const tileX = tile.x * (tileScale * tile.devicePixelRatio);
     const tileY = tile.y * (tileScale * tile.devicePixelRatio);
     const scale: [number, number] = [xScale, yScale];
@@ -152,13 +152,13 @@ export class GlMapRenderer extends MapRenderer {
     }
 
     const sourceLayers = tile.getLayers();
-    if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles).length === 0) {
+    if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles.layers).length === 0) {
       return [] as GlProgram[];
     }
 
     const programs: GlProgram[] = [];
 
-    const styleLayers = Object.values(styles).sort((l1, l2) => l1.zIndex - l2.zIndex);
+    const styleLayers = Object.values(styles.layers).sort((l1, l2) => l1.zIndex - l2.zIndex);
     for (const styleLayer of styleLayers) {
       const sourceLayer = sourceLayers[styleLayer.styleLayerName];
 
@@ -176,6 +176,7 @@ export class GlMapRenderer extends MapRenderer {
           width: tile.width,
           height: tile.height,
           fontManager: this.map.getFontManager(),
+          devicePixelRatio: tile.devicePixelRatio,
         })
       );
     }

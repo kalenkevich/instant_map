@@ -1,6 +1,6 @@
 import { Feature, Polygon, Point, MultiLineString } from 'geojson';
 import { VectorTile, VectorTileFeature, VectorTileLayer } from '@mapbox/vector-tile';
-import { DataTileStyles } from '../../styles/styles';
+import { DataLayerStyle, DataTileStyles } from '../../styles/styles';
 import { TileLayers } from '../tile';
 import { TileLayer } from '../tile_layer';
 import { v2 } from '../../../webgl';
@@ -19,10 +19,11 @@ export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles):
 
   const tileLayersMap: TileLayers = {};
 
-  for (const styleLayer of Object.values(tileStyles)) {
-    const layer: VectorTileLayer | undefined = tileData.layers[styleLayer.sourceLayer];
+  for (const styleLayer of Object.values(tileStyles.layers)) {
+    const sourceLayer = getSourceName(styleLayer);
+    const layer: VectorTileLayer | undefined = tileData.layers[sourceLayer];
 
-    if (!layer) {
+    if (!layer || styleLayer.show === false) {
       continue;
     }
 
@@ -32,7 +33,7 @@ export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles):
     }
 
     tileLayersMap[styleLayer.styleLayerName] = new TileLayer({
-      name: styleLayer.sourceLayer,
+      name: sourceLayer,
       features,
       properties: {},
       styles: styleLayer,
@@ -103,4 +104,12 @@ export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Poi
       coordinates: rings,
     };
   }
+};
+
+export const getSourceName = (style: DataLayerStyle): string => {
+  if (typeof style.sourceLayer === 'string') {
+    return style.sourceLayer;
+  }
+
+  return style.sourceLayer.name;
 };
