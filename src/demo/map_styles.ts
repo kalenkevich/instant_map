@@ -134,7 +134,7 @@ export const VectorStyles: DataTileStyles = {
         type: FeatureStyleType.polygon,
         color: ['$rgba', 222, 215, 211, 1],
       },
-      minzoom: 15,
+      minzoom: 14,
     },
     transportation: {
       sourceLayer: 'transportation',

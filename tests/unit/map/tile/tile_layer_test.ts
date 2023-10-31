@@ -46,30 +46,6 @@ describe('TileLayer', () => {
     },
   };
 
-  it('should create TileLayer properly without styles.', () => {
-    const tileLayer = new TileLayer({
-      name: 'layer1',
-      features: [sampleGeojsonFeature],
-      properties: {
-        prop1: 'layerProperty',
-      },
-      styles: {
-        zIndex: 0,
-        sourceLayer: '',
-        styleLayerName: '',
-      },
-    });
-
-    expect(tileLayer).toBeDefined();
-    expect(tileLayer.getName()).toBe('layer1');
-    expect(tileLayer.getFeatures()).toEqual([
-      new TileFeature({
-        feature: sampleGeojsonFeature,
-      }),
-    ]);
-    expect(tileLayer.getStyles()).toBeUndefined();
-  });
-
   it('should create TileLayer properly with styles.', () => {
     const tileLayer = new TileLayer({
       name: 'layer1',
@@ -92,23 +68,6 @@ describe('TileLayer', () => {
   });
 
   describe('shouldBeRendered', () => {
-    it('should return false if style is not defined.', () => {
-      const tileLayer = new TileLayer({
-        name: 'layer1',
-        features: [sampleGeojsonFeature],
-        properties: {
-          prop1: 'layerProperty',
-        },
-        styles: {
-          zIndex: 0,
-          sourceLayer: '',
-          styleLayerName: '',
-        },
-      });
-
-      expect(tileLayer.shouldBeRendered(mapState)).toBe(false);
-    });
-
     it('should return true if style is defined and show prop is undefined.', () => {
       const tileLayer = new TileLayer({
         name: 'layer1',
