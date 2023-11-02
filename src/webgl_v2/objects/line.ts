@@ -1,6 +1,6 @@
 import { BufferBucket, BucketPointer } from '../buffer/buffer_bucket';
 import { WebGl2ProgramType } from '../programs/program';
-import { WebGl2ProgramDefaultUniforms, ProgramObjectType } from '../programs/default/default_program';
+import { WebGl2ProgramDefaultUniforms } from '../programs/default/default_program';
 import { Vector2 } from '../types';
 import {
   PrimitiveType,
@@ -27,8 +27,7 @@ export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
   getUniforms(): WebGl2ProgramDefaultUniforms {
     return {
       ...super.getUniforms(),
-      u_line_width: this.attributes.lineWidth,
-      u_object_type: ProgramObjectType.LINE,
+      // u_line_width: this.attributes.lineWidth,
     };
   }
 

@@ -74,7 +74,7 @@ export abstract class WebGl2Program {
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
    */
-  abstract setBuffer(bufferData: Float32Array): number;
+  abstract setBuffer(bufferData: Float32Array): void;
 
   /**
    * Bind all uniform values to gl program.

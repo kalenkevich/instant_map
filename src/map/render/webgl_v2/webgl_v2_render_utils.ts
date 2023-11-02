@@ -36,22 +36,22 @@ export const getLayerGl2Objects = (props: LayerGl2ObjectsProps): WebGl2Object[] 
     return [];
   }
 
-  const programs: WebGl2Object[] = [];
+  const objects: WebGl2Object[] = [];
   const backgroundPrograms = getLayerBackground(props);
 
   if (backgroundPrograms.length) {
-    programs.push(...backgroundPrograms);
+    objects.push(...backgroundPrograms);
   }
 
   for (const feature of props.layer.getFeatures()) {
     const featureGlGrograms = getFeatureGl2Objects(feature, props);
 
     if (featureGlGrograms.length) {
-      programs.push(...featureGlGrograms);
+      objects.push(...featureGlGrograms);
     }
   }
 
-  return programs;
+  return objects;
 };
 
 export const getFeatureGl2Objects = (feature: TileFeature, props: LayerGl2ObjectsProps): WebGl2Object[] => {

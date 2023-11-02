@@ -17,9 +17,9 @@ export class WebGl2Painter {
   public init() {
     const gl = this.gl;
 
-    this.initPrograms();
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this.clear();
+    this.initPrograms();
   }
 
   public destroy() {}
@@ -59,11 +59,7 @@ export class WebGl2Painter {
       ptr: obj.bufferDataToBucket(bucket),
     }));
 
-    let currentProgramType = objects[0].programType;
-    let currentProgram = this.programsMap[currentProgramType];
-    currentProgram.use();
-    currentProgram.setBuffer(bucket.getBuffer());
-
+    let currentProgram = null;
     for (let objectIndex = 0; objectIndex < objects.length; objectIndex++) {
       const { obj, ptr } = objWithBuffer[objectIndex];
 
@@ -74,21 +70,22 @@ export class WebGl2Painter {
         currentProgram.setBuffer(bucket.getBuffer());
       }
 
-      const { numElements, instanceCount } = obj.getDrawAttributes();
-
-      const offset = Float32Array.BYTES_PER_ELEMENT * ptr.offset;
-
-      // Set uniforms.
+      // Set uniforms and buffers.
       currentProgram.setUniforms(obj.getUniforms());
 
+      const { numElements, instanceCount } = obj.getDrawAttributes();
+      const offset = Float32Array.BYTES_PER_ELEMENT * ptr.offset;
+
+      this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, true, 8, offset);
+
       if (obj.drawType === WebGl2ObjectDrawType.ARRAYS) {
-        gl.drawArrays(obj.primitiveType, offset, numElements);
+        gl.drawArrays(obj.primitiveType, 0, numElements);
       } else if (obj.drawType === WebGl2ObjectDrawType.ELEMENTS) {
-        gl.drawElements(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, offset);
+        gl.drawElements(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0);
       } else if (obj.drawType === WebGl2ObjectDrawType.ARRAYS_INSTANCED) {
-        gl.drawArraysInstanced(obj.primitiveType, offset, numElements, instanceCount);
+        gl.drawArraysInstanced(obj.primitiveType, 0, numElements, instanceCount);
       } else if (obj.drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
-        gl.drawElementsInstanced(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, offset, instanceCount);
+        gl.drawElementsInstanced(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
     }
 

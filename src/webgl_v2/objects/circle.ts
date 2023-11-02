@@ -1,5 +1,5 @@
 import { BucketPointer, BufferBucket } from '../buffer/buffer_bucket';
-import { WebGl2ProgramDefaultUniforms, ProgramObjectType } from '../programs/default/default_program';
+import { WebGl2ProgramDefaultUniforms } from '../programs/default/default_program';
 import { WebGl2ProgramType } from '../programs/program';
 import { Vector2 } from '../types';
 import {
@@ -24,7 +24,7 @@ export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
   getUniforms(): WebGl2ProgramDefaultUniforms {
     return {
       ...super.getUniforms(),
-      u_object_type: ProgramObjectType.CIRCLE,
+      // u_object_type: ProgramObjectType.CIRCLE,
     };
   }
 

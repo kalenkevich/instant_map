@@ -9,13 +9,13 @@ import {
   WebGl2ObjectDrawAttrs,
 } from './object';
 
-export interface WebGl2RectangleAttributes extends WebGl2ObjectAttributes {
-  p: Vector2;
-  width: number;
-  height: number;
+export interface WebGl2TriangleAttributes extends WebGl2ObjectAttributes {
+  p1: Vector2;
+  p2: Vector2;
+  p3: Vector2;
 }
 
-export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
+export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
   primitiveType = PrimitiveType.TRIANGLES;
 
   programType = WebGl2ProgramType.default;
@@ -23,17 +23,12 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
   drawType = WebGl2ObjectDrawType.ARRAYS;
 
   bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
-    const p1 = this.attributes.p;
-    const p2 = [p1[0] + this.attributes.width, p1[1]];
-    const p3 = [p1[0], p1[1] + this.attributes.height];
-    const p4 = [p1[0] + this.attributes.width, p1[1] + this.attributes.height];
-
-    return bufferBucket.writeAndCommit([...p1, ...p2, ...p3, ...p4]);
+    return bufferBucket.writeAndCommit([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
-      numElements: 6,
+      numElements: 3,
     };
   }
 }
