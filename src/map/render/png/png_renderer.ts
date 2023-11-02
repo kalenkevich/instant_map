@@ -96,7 +96,7 @@ export class PngMapRenderer extends MapRenderer {
   }
 
   private setupImage(image: HTMLImageElement, tile: PngMapTile, imageSrc: string, mapState: MapState) {
-    const tileScale = this.getTileScale(mapState);
+    const tileScale = this.getTileScale(tile.width, mapState);
     let tileX = tile.x * tileScale;
     let tileY = tile.y * tileScale;
 

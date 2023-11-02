@@ -1,6 +1,6 @@
 import { MapState } from '../map_state';
 import { MapTilesMeta } from '../types';
-import { MapTile, MapTileFormatType, MapTileOptions, MapTileId, TileCoordinate, DEFAULT_TILE_SIZE } from './tile';
+import { MapTile, MapTileFormatType, MapTileOptions, MapTileId, TileCoordinate } from './tile';
 import { Point } from '../geometry/point';
 import { Bounds } from '../geometry/bounds';
 import { GlideMap } from '../map';
@@ -12,7 +12,7 @@ import { DataTileStyles } from '../styles/styles';
 
 export interface TilesGridOptions {
   tilesMeta: MapTilesMeta;
-  tileStyles?: DataTileStyles;
+  tileStyles: DataTileStyles;
   tileFormatType: MapTileFormatType;
   devicePixelRatio: number;
   preheatTiles?: boolean;
@@ -36,18 +36,18 @@ export class TilesGrid {
   fetchingTilesMap: Map<string, AbortController> = new Map();
 
   tileStyles?: DataTileStyles;
+  tileSize: number;
 
   constructor(map: GlideMap, options: TilesGridOptions) {
     this.map = map;
     this.tilesMeta = options.tilesMeta;
     this.tileStyles = options.tileStyles;
+    this.tileSize = options.tileStyles.tileSize;
     this.tileFormatType = options.tileFormatType;
     this.devicePixelRatio = options.devicePixelRatio;
   }
 
-  public async init(mapState: MapState) {
-    this.defaultTileSize = DEFAULT_TILE_SIZE;
-  }
+  public async init(mapState: MapState) {}
 
   public async update(mapState: MapState): Promise<MapTile[]> {
     const tilesToRender = this.getTilesToRender(mapState);
@@ -148,10 +148,9 @@ export class TilesGrid {
   }
 
   private getTilesToRender(mapState: MapState): MapTile[] {
-    const tileSize = parseInt(this.tilesMeta.pixel_scale) || DEFAULT_TILE_SIZE;
     const tileZoom = this.getTileZoom(mapState);
-    const pixelBounds = this.getTiledPixelBounds(mapState);
-    const tileRange = this.pxBoundsToTileRange(pixelBounds, mapState);
+    const pixelBounds = this.getTiledPixelBounds(this.tileSize, mapState);
+    const tileRange = this.pxBoundsToTileRange(pixelBounds, this.tileSize);
 
     if (tileRange.min.x < 0) {
       const delta = -tileRange.min.x;
@@ -176,7 +175,7 @@ export class TilesGrid {
           z: tileZoom,
         };
 
-        if (!this.isValidTile(coords, tileZoom, mapState)) {
+        if (!this.isValidTile(coords, tileZoom, this.tileSize, mapState)) {
           continue;
         }
 
@@ -190,10 +189,10 @@ export class TilesGrid {
       this.getMapTile({
         id: getTileId(tileCoords),
         formatType: this.tileFormatType,
-        x: (tileCoords.x - minXTileCoord) * tileSize,
-        y: (tileCoords.y - minYTileCoord) * tileSize,
-        width: tileSize,
-        height: tileSize,
+        x: (tileCoords.x - minXTileCoord) * this.tileSize,
+        y: (tileCoords.y - minYTileCoord) * this.tileSize,
+        width: this.tileSize,
+        height: this.tileSize,
         mapWidth: this.map.getWidth(),
         mapHeight: this.map.getHeight(),
         tileCoords: {
@@ -218,11 +217,11 @@ export class TilesGrid {
     }
   }
 
-  private isValidTile(coords: TileCoordinate, tileZoom: number, mapState: MapState): boolean {
+  private isValidTile(coords: TileCoordinate, tileZoom: number, tileSize: number, mapState: MapState): boolean {
     const crs = this.map.crs;
 
     if (!crs.infinite) {
-      const bounds = this.getTileRange(tileZoom, mapState);
+      const bounds = this.getTileRange(tileZoom, tileSize);
 
       if (
         (!crs.wrapLng && (coords.x < bounds.min.x || coords.x > bounds.max.x)) ||
@@ -240,39 +239,37 @@ export class TilesGrid {
       return true;
     }
 
-    const tileBounds = this.tileCoordsToBounds(coords, mapState);
+    const tileBounds = this.tileCoordsToBounds(coords, tileSize, mapState);
 
     // don't load tile if it doesn't intersect the bounds in options
     return bounds.overlaps(tileBounds);
   }
 
-  private getTileRange(tileZoom: number, mapState: MapState) {
-    const bounds = this.map.getPixelWorldBounds(tileZoom);
+  private getTileRange(tileZoom: number, tileSize: number) {
+    const bounds = this.map.getPixelWorldBounds(tileZoom, tileSize);
 
-    return this.pxBoundsToTileRange(bounds, mapState);
+    return this.pxBoundsToTileRange(bounds, tileZoom);
   }
 
-  private tileCoordsToBounds(tileCoords: TileCoordinate, mapState: MapState) {
-    const bounds = this.tileCoordsToNwSe(tileCoords, mapState);
+  private tileCoordsToBounds(tileCoords: TileCoordinate, tileSize: number, mapState: MapState) {
+    const bounds = this.tileCoordsToNwSe(tileCoords, tileSize, mapState);
 
     return this.map.wrapLatLngBounds(bounds);
   }
 
-  private tileCoordsToNwSe(tileCoords: TileCoordinate, mapState: MapState): LatLngBounds {
+  private tileCoordsToNwSe(tileCoords: TileCoordinate, tileSize: number, mapState: MapState): LatLngBounds {
     const map = this.map;
     const coords = new Point(tileCoords.x, tileCoords.y);
-    const tileSize = this.getTileSize(mapState);
     const tileSizePoint = new Point(tileSize, tileSize);
     const nwPoint = coords.scaleBy(tileSizePoint);
     const sePoint = nwPoint.add(tileSizePoint);
-    const nw = map.unproject(nwPoint, tileCoords.z);
-    const se = map.unproject(sePoint, tileCoords.z);
+    const nw = map.unproject(nwPoint, tileCoords.z, tileSize);
+    const se = map.unproject(sePoint, tileCoords.z, tileSize);
 
     return new LatLngBounds(nw, se);
   }
 
-  private pxBoundsToTileRange(bounds: Bounds, mapState: MapState): Bounds {
-    const tileSize = this.defaultTileSize;
+  private pxBoundsToTileRange(bounds: Bounds, tileSize: number): Bounds {
     const tileSizePoint = new Point(tileSize, tileSize);
 
     return new Bounds(
@@ -281,24 +278,10 @@ export class TilesGrid {
     );
   }
 
-  private getTileSize({ zoom }: MapState): number {
-    const tileSize = parseInt(this.tilesMeta.pixel_scale) || this.defaultTileSize;
-
-    if (zoom > 1) {
-      return tileSize;
-    }
-
-    if (zoom === 1) {
-      return tileSize * 2;
-    }
-
-    return tileSize * 4;
-  }
-
-  private getTiledPixelBounds(mapState: MapState): Bounds {
+  private getTiledPixelBounds(tileSize: number, mapState: MapState): Bounds {
     const tileZoom = this.getTileZoom(mapState);
-    const scale = this.map.getZoomScale(mapState.zoom, tileZoom);
-    const pixelCenter = this.map.project(mapState.center, tileZoom).floor();
+    const scale = this.map.getZoomScale(mapState.zoom, tileZoom, tileSize);
+    const pixelCenter = this.map.project(mapState.center, tileZoom, tileSize).floor();
     const halfSize = this.map.getSize().divideBy(scale * 2);
 
     return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));

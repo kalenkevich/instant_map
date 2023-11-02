@@ -1,7 +1,7 @@
 import { MapControl } from './map_control';
 import { MapEventType } from '../map';
 import { RenderStats } from '../render/renderer';
-import { GlRenderStats } from '../render/gl/gl_renderer';
+import { GlRenderStats } from '../render/webgl/gl_renderer';
 
 export class MapDebugControl extends MapControl {
   private rootEl: HTMLElement;

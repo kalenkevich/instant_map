@@ -37,15 +37,6 @@ describe('TileFeature', () => {
     maxzoom: 5,
   };
 
-  it('should create TileFeature properly without styles.', () => {
-    const tileFeature = new TileFeature({
-      feature: sampleGeojsonFeature,
-    });
-
-    expect(tileFeature).toBeDefined();
-    expect(tileFeature.getStyles()).toBeUndefined();
-  });
-
   it('should create TileFeature properly with styles.', () => {
     const tileFeature = new TileFeature({
       feature: sampleGeojsonFeature,
@@ -57,14 +48,6 @@ describe('TileFeature', () => {
   });
 
   describe('shouldBeRendered', () => {
-    it('should return false if style is not defined.', () => {
-      const tileFeature = new TileFeature({
-        feature: sampleGeojsonFeature,
-      });
-
-      expect(tileFeature.shouldBeRendered(mapState)).toBe(false);
-    });
-
     it('should return true if style is defined and show prop is undefined.', () => {
       const tileFeature = new TileFeature({
         feature: sampleGeojsonFeature,

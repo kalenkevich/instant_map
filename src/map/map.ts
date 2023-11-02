@@ -13,9 +13,8 @@ import { EarthCoordinateReferenceSystem } from './geo/crs/earth_crs';
 import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
-import { GlMapRenderer } from './render/gl/gl_renderer';
+import { GlMapRenderer } from './render/webgl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer';
-import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
@@ -77,7 +76,7 @@ export class GlideMap {
 
   mapMeta?: MapMeta;
   tileMetaUrl?: string;
-  tileStyles?: DataTileStyles;
+  tileStyles: DataTileStyles;
 
   renderer: MapRenderer;
   tilesGrid: TilesGrid;
@@ -312,8 +311,8 @@ export class GlideMap {
     return this.setState({ zoom: newZoom, center: newCenter });
   }
 
-  public getPixelWorldBounds(zoom?: number): Bounds {
-    return this.crs.getProjectedBounds(zoom ?? this.getZoom());
+  public getPixelWorldBounds(zoom?: number, scaleFactor?: number): Bounds {
+    return this.crs.getProjectedBounds(zoom ?? this.getZoom(), scaleFactor);
   }
 
   public getBounds(): LatLngBounds {
@@ -400,18 +399,18 @@ export class GlideMap {
     return projectedPoint.subtract(this.getPixelOrigin());
   }
 
-  project(latlng: LatLng, zoom?: number): Point {
-    return this.crs.latLngToPoint(latlng, zoom || this.getZoom());
+  project(latlng: LatLng, zoom?: number, scaleFactor?: number): Point {
+    return this.crs.latLngToPoint(latlng, zoom || this.getZoom(), scaleFactor);
   }
 
-  unproject(point: Point, zoom?: number): LatLng {
-    return this.crs.pointToLatLng(point, zoom || this.state.zoom);
+  unproject(point: Point, zoom?: number, scaleFactor?: number): LatLng {
+    return this.crs.pointToLatLng(point, zoom || this.state.zoom, scaleFactor);
   }
 
-  getZoomScale(toZoom?: number, fromZoom?: number): number {
+  getZoomScale(toZoom?: number, fromZoom?: number, scaleFactor?: number): number {
     fromZoom = fromZoom === undefined ? this.state.zoom : fromZoom;
 
-    return this.crs.scale(toZoom) / this.crs.scale(fromZoom);
+    return this.crs.scale(toZoom, scaleFactor) / this.crs.scale(fromZoom, scaleFactor);
   }
 
   containerPointToLatLng(point: Point): LatLng {
@@ -574,10 +573,6 @@ export const getRenderer = (map: GlideMap, renderer: MapRendererType | MapRender
 
   if (type === MapRendererType.webgl) {
     return new GlMapRenderer(map, map.devicePixelRatio);
-  }
-
-  if (type === MapRendererType.threejs) {
-    return new ThreeJsMapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {

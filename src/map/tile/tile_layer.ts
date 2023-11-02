@@ -9,34 +9,36 @@ export interface TileLayerProps {
   name: string;
   features: Feature<Point | MultiLineString | Polygon>[];
   properties: Record<string, FeatureProperty>;
-  styles?: DataLayerStyle;
+  styles: DataLayerStyle;
 }
 
 export class TileLayer {
   private readonly name: string;
   private readonly features: TileFeature[];
   private readonly properties: Record<string, FeatureProperty>;
-  private readonly styles?: DataLayerStyle;
-  private compiledStyles?: DataLayerStyle;
+  private readonly styles: DataLayerStyle;
+  private compiledStyles: DataLayerStyle;
 
   constructor(props: TileLayerProps) {
     this.name = props.name;
     this.properties = props.properties;
     this.styles = props.styles;
 
-    this.features = props.features.map(
-      feature =>
-        new TileFeature({
-          feature,
-          styles: this.styles?.feature,
-        })
-    );
-
-    if (this.styles) {
-      this.compiledStyles = compileLayerStyle(this.styles, {
-        properties: this.properties,
-      });
+    if (this.styles.feature) {
+      this.features = props.features.map(
+        feature =>
+          new TileFeature({
+            feature,
+            styles: this.styles.feature,
+          })
+      );
+    } else {
+      this.features = [];
     }
+
+    this.compiledStyles = compileLayerStyle(this.styles, {
+      properties: this.properties,
+    });
   }
 
   public getName(): string {

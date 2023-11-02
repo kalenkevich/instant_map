@@ -11,7 +11,7 @@ export interface MapOptions {
   /** HtmlElement where map canvas will attached to. */
   rootEl: HTMLElement;
   /** Tile styles for data layers (non png). Required for data tile type. */
-  styles?: DataTileStyles;
+  styles: DataTileStyles;
   /** Initial zoom value of the map. */
   zoom?: number;
   /** Initial rotation value of the map. */

@@ -1,16 +1,29 @@
 import { Statement, ColorValue } from './style_statement';
 
-export type DataTileStyles = Record<string, DataLayerStyle>;
+export interface DataTileStyles {
+  tileSize?: number;
+  layers: {
+    [styleLayer: string]: DataLayerStyle;
+  };
+}
 
 export interface DataLayerStyle {
   zIndex: number; // order number (like z-index in css);
-  sourceLayer: string; // tile feature layer;
+  sourceLayer: SourceLayer; // tile feature layer;
   styleLayerName: string; // style layer name;
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
   feature?: FeatureStyle;
   background?: BackgroundStyle;
+}
+
+export type SourceLayer = string | ImageSourceLayer;
+
+export interface ImageSourceLayer {
+  name: string;
+  type: 'image';
+  url: string;
 }
 
 export enum FeatureStyleType {

@@ -35,8 +35,8 @@ export abstract class CoordinateReferenceSystem {
 
   // The inverse of `latLngToPoint`. Projects pixel coordinates on a given
   // zoom into geographical coordinates.
-  pointToLatLng(point: Point, zoom: number) {
-    const scale = this.scale(zoom);
+  pointToLatLng(point: Point, zoom: number, scaleFactor?: number) {
+    const scale = this.scale(zoom, scaleFactor);
     const untransformedPoint = this.transformation.untransform(point, scale);
 
     return this.projection.unproject(untransformedPoint);
@@ -69,13 +69,13 @@ export abstract class CoordinateReferenceSystem {
   }
 
   // Returns the projection's bounds scaled and transformed for the provided `zoom`.
-  getProjectedBounds(zoom: number): Bounds {
+  getProjectedBounds(zoom: number, scaleFactor?: number): Bounds {
     if (this.infinite) {
       return null;
     }
 
     const b = this.projection.bounds;
-    const s = this.scale(zoom);
+    const s = this.scale(zoom, scaleFactor);
     const min = this.transformation.transform(b.min, s);
     const max = this.transformation.transform(b.max, s);
 
