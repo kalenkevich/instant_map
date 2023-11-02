@@ -5,10 +5,8 @@ import { DataTileStyles } from '../styles/styles';
 
 export enum MapRendererType {
   webgl = 'webgl',
-  threejs = 'threejs',
   png = 'png',
   // svg = 'svg', // not supported yet.
-  // webgl2 = 'webgl2', // not supported yet.
   // webgpu = 'webgpu', // not supported yet.
 }
 
@@ -32,10 +30,10 @@ export abstract class MapRenderer {
 
   public abstract destroy(): void;
 
-  protected getTileScale(mapState: MapState): number {
+  protected getTileScale(tileSize: number, mapState: MapState): number {
     const tileZoom = this.getTileZoom(mapState);
 
-    return this.map.getZoomScale(mapState.zoom, tileZoom);
+    return this.map.getZoomScale(mapState.zoom, tileZoom, tileSize);
   }
 
   protected getTileZoom(mapState: MapState): number | undefined {

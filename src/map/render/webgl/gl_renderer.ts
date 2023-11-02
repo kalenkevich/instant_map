@@ -133,7 +133,7 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   private getDataTilePrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
-    const tileScale = this.getTileScale(mapState);
+    const tileScale = this.getTileScale(tile.width, mapState);
     const xScale = tileScale / tile.devicePixelRatio;
     const yScale = tileScale / tile.devicePixelRatio;
     const tileX = tile.x * (tileScale * tile.devicePixelRatio);
@@ -187,7 +187,7 @@ export class GlMapRenderer extends MapRenderer {
   }
 
   private getImagePrograms(tile: PngMapTile, mapState: MapState): GlProgram[] {
-    const tileScale = this.getTileScale(mapState) * tile.devicePixelRatio;
+    const tileScale = this.getTileScale(tile.width, mapState) * tile.devicePixelRatio;
     const tileX = tile.x * tileScale;
     const tileY = tile.y * tileScale;
 

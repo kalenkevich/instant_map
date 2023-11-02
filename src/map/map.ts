@@ -13,9 +13,8 @@ import { EarthCoordinateReferenceSystem } from './geo/crs/earth_crs';
 import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
-import { GlMapRenderer } from './render/gl/gl_renderer';
+import { GlMapRenderer } from './render/webgl/gl_renderer';
 import { PngMapRenderer } from './render/png/png_renderer';
-import { ThreeJsMapRenderer } from './render/three_js/three_js_renderer';
 import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
@@ -574,10 +573,6 @@ export const getRenderer = (map: GlideMap, renderer: MapRendererType | MapRender
 
   if (type === MapRendererType.webgl) {
     return new GlMapRenderer(map, map.devicePixelRatio);
-  }
-
-  if (type === MapRendererType.threejs) {
-    return new ThreeJsMapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {

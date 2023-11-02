@@ -34,17 +34,6 @@ export const ButtonMapOptions: ButtonOption[] = [
     },
   },
   {
-    name: 'VT threejs maptiler',
-    id: 'threejs_vt_maptiler',
-    renderer: MapRendererType.threejs,
-    resizable: true,
-    tileMetaUrl: MAPTILER_VT_META_URL,
-    styles: VectorStyles,
-    controls: {
-      debug: !isTestEnv,
-    },
-  },
-  {
     name: 'Png image osm',
     id: 'html_png_osm',
     renderer: MapRendererType.png,
