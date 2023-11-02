@@ -5,6 +5,7 @@ import { DataTileStyles } from '../styles/styles';
 
 export enum MapRendererType {
   webgl = 'webgl',
+  webgl2 = 'webgl2',
   png = 'png',
   // svg = 'svg', // not supported yet.
   // webgpu = 'webgpu', // not supported yet.

@@ -21,6 +21,9 @@ module.exports = {
     }, {    
       test: /\.(woff|woff2|eot|ttf|otf)$/,
       loader: 'arraybuffer-loader'
+    }, {    
+      test: /\.glsl$/,
+      loader: 'raw-loader'
     }],
   },
   plugins: [

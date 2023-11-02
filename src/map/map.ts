@@ -14,6 +14,7 @@ import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/webgl/gl_renderer';
+import { Gl2MapRenderer } from './render/webgl_v2/webgl_v2_renderer';
 import { PngMapRenderer } from './render/png/png_renderer';
 import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
@@ -573,6 +574,10 @@ export const getRenderer = (map: GlideMap, renderer: MapRendererType | MapRender
 
   if (type === MapRendererType.webgl) {
     return new GlMapRenderer(map, map.devicePixelRatio);
+  }
+
+  if (type === MapRendererType.webgl2) {
+    return new Gl2MapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {

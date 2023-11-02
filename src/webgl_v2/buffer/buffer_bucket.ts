@@ -9,23 +9,20 @@ export class BufferBucket {
   private buckets: Float32Array[];
   private currentIndex = 0;
   private currentBucketOffset = 0;
-  private bucketSize = 100000;
 
-  constructor() {
+  constructor(private readonly sizePerBucket = 100000) {
     this.buckets = [this.createNewBucket()];
   }
 
   private createNewBucket(): Float32Array {
-    return new Float32Array(this.bucketSize);
+    return new Float32Array(this.sizePerBucket);
   }
 
-  write(data: number[]): BucketPointer {
+  writeAndCommit(data: number[]): BucketPointer {
     const size = data.length;
 
-    if (size > this.bucketSize - this.currentBucketOffset) {
-      this.buckets.push(this.createNewBucket());
-      this.currentIndex++;
-      this.currentBucketOffset = 0;
+    if (size > this.sizePerBucket - this.currentBucketOffset) {
+      throw new Error('Buffer size is too small.');
     }
 
     this.buckets[this.currentIndex].set(data, this.currentBucketOffset);
@@ -40,5 +37,9 @@ export class BufferBucket {
     this.currentBucketOffset += size;
 
     return ptr;
+  }
+
+  getBuffer(): Float32Array {
+    return this.buckets[this.currentIndex];
   }
 }

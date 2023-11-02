@@ -20,6 +20,7 @@ export class GlMapRenderer extends MapRenderer {
   protected readonly animationFrameTaskIdSet = new Set<number>();
   protected canvasEl?: HTMLCanvasElement;
   protected glPainter?: Painter;
+  protected resolution: [number, number];
 
   constructor(protected readonly map: GlideMap, protected readonly devicePixelRatio: number) {
     super(map, devicePixelRatio);
@@ -39,15 +40,16 @@ export class GlMapRenderer extends MapRenderer {
       return;
     }
 
-    const width = this.map.getWidth();
-    const height = this.map.getHeight();
+    const width = this.map.getWidth() * this.devicePixelRatio;
+    const height = this.map.getHeight() * this.devicePixelRatio;
 
     this.canvasEl.width = width;
     this.canvasEl.height = height;
-    this.canvasEl.style.width = `${width}px`;
-    this.canvasEl.style.height = `${height}px`;
+    this.canvasEl.style.width = `${width / this.devicePixelRatio}px`;
+    this.canvasEl.style.height = `${height / this.devicePixelRatio}px`;
 
     this.glPainter?.resize(width, height);
+    this.resolution = [width, height];
   }
 
   public destroy() {
@@ -96,15 +98,18 @@ export class GlMapRenderer extends MapRenderer {
 
   protected createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    const width = this.map.getWidth();
-    const height = this.map.getHeight();
+    // const width = this.map.getWidth();
+    // const height = this.map.getHeight();
+    const width = this.map.getWidth() * this.devicePixelRatio;
+    const height = this.map.getHeight() * this.devicePixelRatio;
 
     canvas.width = width;
     canvas.height = height;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    canvas.style.width = `${width / this.devicePixelRatio}px`;
+    canvas.style.height = `${height / this.devicePixelRatio}px`;
 
     this.map.rootEl.appendChild(canvas);
+    this.resolution = [width, height];
 
     return canvas;
   }

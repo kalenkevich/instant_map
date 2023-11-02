@@ -2,6 +2,11 @@ import { Point } from 'geojson';
 import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
 import { ColorValue } from '../../styles/style_statement';
+import { compileStatement } from '../../styles/style_statement_utils';
+import { TileFeature } from '../../tile/tile_feature';
+import { LineStyle, PointStyle, FeatureStyleType, TextStyle } from '../../styles/styles';
+import { FontManager } from '../../font/font_manager';
+
 import {
   v2,
   GlProgram,
@@ -16,10 +21,6 @@ import {
   GL_COLOR_WHITE,
   GL_COLOR_BLACK,
 } from '../../../webgl';
-import { compileStatement } from '../../styles/style_statement_utils';
-import { TileFeature } from '../../tile/tile_feature';
-import { LineStyle, PointStyle, FeatureStyleType, TextStyle } from '../../styles/styles';
-import { FontManager } from '../../font/font_manager';
 
 export interface LayerGlProgramsProps {
   layer: TileLayer;
