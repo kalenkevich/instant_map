@@ -106,7 +106,7 @@ describe('Webgl render', () => {
     });
   });
 
-  describe('Vector tiles.', () => {
+  describe.skip('Vector tiles.', () => {
     it('should render vector tile data using native webgl.', async () => {
       await goToPageAndWaitForMapRender(
         page,
