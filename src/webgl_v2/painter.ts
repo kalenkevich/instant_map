@@ -1,7 +1,8 @@
 import { BufferBucket } from './buffer/buffer_bucket';
 import { WebGl2Object, WebGl2ObjectDrawType } from './objects/object';
 import { WebGl2ProgramType, WebGl2Program } from './programs/program';
-import { WebGl2ProgramDefault } from './programs/default/default_program';
+import { WebGl2DefaultProgram } from './programs/default/default_program';
+import { WebGl2LineProgram } from './programs/line/line_program';
 
 export class WebGl2Painter {
   private readonly gl: WebGL2RenderingContext;
@@ -37,11 +38,14 @@ export class WebGl2Painter {
   }
 
   private initPrograms() {
-    const defaultProgram = new WebGl2ProgramDefault(this.gl);
+    const defaultProgram = new WebGl2DefaultProgram(this.gl);
+    const lineProgram = new WebGl2LineProgram(this.gl);
 
     this.programsMap[WebGl2ProgramType.default] = defaultProgram;
+    this.programsMap[WebGl2ProgramType.line] = lineProgram;
 
     defaultProgram.init();
+    lineProgram.init();
   }
 
   public draw(objects: WebGl2Object[]): void {
@@ -59,6 +63,8 @@ export class WebGl2Painter {
       ptr: obj.bufferDataToBucket(bucket),
     }));
 
+    // const dataBuffer = bucket.release();
+
     let currentProgram = null;
     for (let objectIndex = 0; objectIndex < objects.length; objectIndex++) {
       const { obj, ptr } = objWithBuffer[objectIndex];
@@ -67,24 +73,22 @@ export class WebGl2Painter {
       if (program !== currentProgram) {
         currentProgram = program;
         currentProgram.use();
-        currentProgram.setBuffer(bucket.getBuffer());
       }
+
+      const { drawType, numElements, instanceCount } = obj.getDrawAttributes();
+      // const offset = Float32Array.BYTES_PER_ELEMENT * ptr.offset;
 
       // Set uniforms and buffers.
       currentProgram.setUniforms(obj.getUniforms());
+      currentProgram.setBuffer(ptr.bucket);
 
-      const { numElements, instanceCount } = obj.getDrawAttributes();
-      const offset = Float32Array.BYTES_PER_ELEMENT * ptr.offset;
-
-      this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, true, 8, offset);
-
-      if (obj.drawType === WebGl2ObjectDrawType.ARRAYS) {
+      if (drawType === WebGl2ObjectDrawType.ARRAYS) {
         gl.drawArrays(obj.primitiveType, 0, numElements);
-      } else if (obj.drawType === WebGl2ObjectDrawType.ELEMENTS) {
+      } else if (drawType === WebGl2ObjectDrawType.ELEMENTS) {
         gl.drawElements(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0);
-      } else if (obj.drawType === WebGl2ObjectDrawType.ARRAYS_INSTANCED) {
+      } else if (drawType === WebGl2ObjectDrawType.ARRAYS_INSTANCED) {
         gl.drawArraysInstanced(obj.primitiveType, 0, numElements, instanceCount);
-      } else if (obj.drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
+      } else if (drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
         gl.drawElementsInstanced(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
     }

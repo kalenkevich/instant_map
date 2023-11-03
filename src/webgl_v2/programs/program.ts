@@ -9,8 +9,9 @@ export interface WebGl2ProgramUniforms {
 
 export enum WebGl2ProgramType {
   default = 0,
-  image = 1,
-  text = 2,
+  line = 1,
+  image = 2,
+  text = 3,
 }
 
 /**
@@ -21,6 +22,10 @@ export abstract class WebGl2Program {
   protected program?: WebGLProgram;
 
   static ProgramType: WebGl2ProgramType;
+
+  protected u_colorLocation: WebGLUniformLocation;
+  protected u_resolutionLocation: WebGLUniformLocation;
+  protected u_matrixLocation: WebGLUniformLocation;
 
   constructor(
     protected readonly gl: WebGL2RenderingContext,
@@ -59,7 +64,11 @@ export abstract class WebGl2Program {
    * Locates all the uniforms for vertex and fragment shaiders.
    * Note: program should be alredy compiled, please call `compileProgram` method first.
    */
-  abstract locateUniforms(): void;
+  locateUniforms() {
+    this.u_colorLocation = this.gl.getUniformLocation(this.program, 'u_color');
+    this.u_resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+    this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
+  }
 
   /**
    * Allocates Webgl buffer for the future use.
@@ -77,28 +86,12 @@ export abstract class WebGl2Program {
   abstract setBuffer(bufferData: Float32Array): void;
 
   /**
-   * Bind all uniform values to gl program.
+   * Bind all uniform values to webgl2 program.
    * @param uniforms all programm uniform values
    */
-  abstract setUniforms(uniforms: WebGl2ProgramUniforms): void;
-
-  public consoleGlError(stage: string) {
-    const gl = this.gl;
-    const glError = gl.getError();
-
-    switch (glError) {
-      case gl.NO_ERROR:
-        return;
-      case gl.INVALID_ENUM:
-        return console.log(`GL stage: '${stage}', error: INVALID_ENUM`);
-      case gl.INVALID_VALUE:
-        return console.log(`GL stage: '${stage}', error: INVALID_VALUE`);
-      case gl.INVALID_OPERATION:
-        return console.log(`GL stage: '${stage}', error: INVALID_OPERATION`);
-      case gl.OUT_OF_MEMORY:
-        return console.log(`GL stage: '${stage}', error: OUT_OF_MEMORY`);
-      case gl.CONTEXT_LOST_WEBGL:
-        return console.log(`GL stage: '${stage}', error: CONTEXT_LOST_WEBGL`);
-    }
+  setUniforms(uniforms: WebGl2ProgramUniforms) {
+    this.gl.uniform4fv(this.u_colorLocation, uniforms.u_color);
+    this.gl.uniform2f(this.u_resolutionLocation, uniforms.u_resolution[0], uniforms.u_resolution[1]);
+    this.gl.uniformMatrix3fv(this.u_matrixLocation, false, uniforms.u_matrix);
   }
 }

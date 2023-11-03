@@ -67,7 +67,7 @@ export const getFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Object
     case FeatureStyleType.polygon:
       return getPolygonFeatureGl2Objects(feature, props);
     case FeatureStyleType.line:
-    // return getLineFeatureGl2Objects(feature, props);
+      return getLineFeatureGl2Objects(feature, props);
     case FeatureStyleType.image:
     // return getImageFeatureGl2Objects(feature, props);
     case FeatureStyleType.text:

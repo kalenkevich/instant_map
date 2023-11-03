@@ -20,14 +20,13 @@ export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
 
   programType = WebGl2ProgramType.default;
 
-  drawType = WebGl2ObjectDrawType.ARRAYS;
-
   bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
-    return bufferBucket.writeAndCommit([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
+    return bufferBucket.write([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      drawType: WebGl2ObjectDrawType.ARRAYS,
       numElements: 3,
     };
   }

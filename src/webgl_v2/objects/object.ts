@@ -30,6 +30,7 @@ export interface WebGl2ObjectAttributes {
 }
 
 export interface WebGl2ObjectDrawAttrs {
+  drawType: WebGl2ObjectDrawType;
   numElements: number;
   instanceCount?: number;
   indexes?: number[];
@@ -48,12 +49,6 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
    * Specifies program which responsible to draw the object, like `Default` or `Image`.
    * */
   abstract programType: WebGl2ProgramType;
-
-  /**
-   * WebGl2 draw type.
-   * Defines GL drawing function which could be one of drawArray, drawElements, drawArrayInstanced or drawElementsInstanced.
-   */
-  abstract drawType: WebGl2ObjectDrawType;
 
   constructor(public readonly attributes: AttributesType) {}
 

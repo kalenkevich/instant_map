@@ -20,19 +20,18 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
 
   programType = WebGl2ProgramType.default;
 
-  drawType = WebGl2ObjectDrawType.ARRAYS;
-
   bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
     const p1 = this.attributes.p;
     const p2 = [p1[0] + this.attributes.width, p1[1]];
     const p3 = [p1[0], p1[1] + this.attributes.height];
     const p4 = [p1[0] + this.attributes.width, p1[1] + this.attributes.height];
 
-    return bufferBucket.writeAndCommit([...p1, ...p2, ...p3, ...p4]);
+    return bufferBucket.write([...p1, ...p2, ...p3, ...p4]);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      drawType: WebGl2ObjectDrawType.ARRAYS,
       numElements: 6,
     };
   }

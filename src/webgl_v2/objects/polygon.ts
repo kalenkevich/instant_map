@@ -19,8 +19,6 @@ export class WebGl2Polygon extends WebGl2Object<WebGl2CircleAttributes> {
 
   programType = WebGl2ProgramType.default;
 
-  drawType = WebGl2ObjectDrawType.ARRAYS;
-
   private numElements: number = 0;
 
   bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
@@ -37,11 +35,12 @@ export class WebGl2Polygon extends WebGl2Object<WebGl2CircleAttributes> {
 
     this.numElements = indexes.length;
 
-    return bufferBucket.writeAndCommit(data);
+    return bufferBucket.write(data);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      drawType: WebGl2ObjectDrawType.ARRAYS,
       numElements: this.numElements,
     };
   }
