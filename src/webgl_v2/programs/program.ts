@@ -79,6 +79,10 @@ export abstract class WebGl2Program {
 
   use(): void {
     this.gl.useProgram(this.program);
+
+    if (this.vao) {
+      this.gl.bindVertexArray(this.vao);
+    }
   }
 
   abstract setIndexBuffer(bufferData?: Uint16Array): void;
@@ -88,6 +92,8 @@ export abstract class WebGl2Program {
    * @param bufferData buffer data to be binded.
    */
   abstract setDataBuffer(bufferData: Float32Array): void;
+
+  abstract setPointerOffset(offset: number): void;
 
   /**
    * Bind all uniform values to webgl2 program.

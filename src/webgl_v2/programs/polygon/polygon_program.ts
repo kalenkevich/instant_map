@@ -23,10 +23,6 @@ export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
   }
 
   setIndexBuffer(indeces: Uint16Array) {
-    if (!indeces || !indeces.length) {
-      return;
-    }
-
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indeces, this.gl.STATIC_DRAW);
   }
@@ -39,5 +35,9 @@ export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
     this.gl.bindVertexArray(this.vao);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+  }
+
+  setPointerOffset(offset: number) {
+    this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 8, offset);
   }
 }

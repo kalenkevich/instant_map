@@ -21,7 +21,7 @@ export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): Float32Array {
+  getDataBuffer(): number[] {
     const { center, radius, components } = this.attributes;
     const step = 360 / components;
     const size = (components + 1) * 4;
@@ -37,7 +37,7 @@ export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
       data[offset++] = center[1];
     }
 
-    return new Float32Array(data);
+    return data;
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {

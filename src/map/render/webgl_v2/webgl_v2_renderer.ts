@@ -28,7 +28,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
   public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
     const timeStart = Date.now();
 
-    const objects = tiles.map(tile => this.getRednerObjects(tile, styles, mapState)).flatMap(obj => obj);
+    const objects = tiles.map(tile => this.getRenderObjects(tile, styles, mapState)).flatMap(obj => obj);
     this.glPainter.draw(objects);
 
     return {
@@ -38,7 +38,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
     };
   }
 
-  private getRednerObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[] {
+  private getRenderObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[] {
     if (tile.formatType === MapTileFormatType.png) {
       return this.getImageObjects(tile as PngMapTile, mapState);
     }

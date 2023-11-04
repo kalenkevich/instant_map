@@ -1,22 +1,23 @@
 export interface BucketPointer {
+  bucket: BufferBucket;
   offset: number;
   size: number;
-  bucket: Float32Array;
 }
 
 export class BufferBucket {
   private arrayData: number[] = [];
   private currentBucketOffset = 0;
+  private buffer?: Float32Array;
 
-  write(data: number[]): BucketPointer {
+  write(data: number[] | Float32Array): BucketPointer {
     const size = data.length;
 
     this.arrayData.push(...data);
 
     const ptr = {
+      bucket: this,
       offset: this.currentBucketOffset,
       size,
-      bucket: new Float32Array(data),
     };
 
     this.currentBucketOffset += size;
@@ -25,6 +26,10 @@ export class BufferBucket {
   }
 
   release(): Float32Array {
-    return new Float32Array(this.arrayData);
+    if (this.buffer) {
+      return this.buffer;
+    }
+
+    return (this.buffer = new Float32Array(this.arrayData));
   }
 }

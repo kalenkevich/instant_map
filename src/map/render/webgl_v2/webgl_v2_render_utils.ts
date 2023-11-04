@@ -1,4 +1,4 @@
-import { Point } from 'geojson';
+import { Polygon, Point } from 'geojson';
 import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
 import { ColorValue } from '../../styles/style_statement';

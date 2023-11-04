@@ -28,8 +28,8 @@ export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): Float32Array {
-    return new Float32Array(this.attributes.points.flatMap(p => p));
+  getDataBuffer(): number[] {
+    return this.attributes.points.flatMap(p => p);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {

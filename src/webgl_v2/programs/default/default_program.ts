@@ -44,4 +44,8 @@ export class WebGl2DefaultProgram extends WebGl2Program {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
   }
+
+  setPointerOffset(offset: number) {
+    this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 8, offset);
+  }
 }

@@ -21,8 +21,8 @@ export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): Float32Array {
-    return new Float32Array([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
+  getDataBuffer(): number[] {
+    return [...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3];
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {

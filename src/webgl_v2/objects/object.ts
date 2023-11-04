@@ -64,7 +64,7 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
   abstract getIndexBuffer(): Uint16Array | undefined;
 
   /** Populate buffer bucket with object data based on attrubutes. */
-  abstract getDataBuffer(): Float32Array;
+  abstract getDataBuffer(): number[];
 
   /**
    * Returns Webgl2 specific information.

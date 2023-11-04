@@ -1,3 +1,4 @@
+import { BufferBucket } from './buffer/buffer_bucket';
 import { WebGl2Object, WebGl2ObjectDrawType } from './objects/object';
 import { WebGl2ProgramType, WebGl2Program } from './programs/program';
 import { WebGl2DefaultProgram } from './programs/default/default_program';
@@ -57,29 +58,36 @@ export class WebGl2Painter {
     }
 
     const gl = this.gl;
-    // One buffer to rule them all!
-    // const bucket = new BufferBucket();
+    const pointers = [];
+    const wasBufferSet: { [prop: string]: boolean } = {};
 
-    // Compile bucket buffer
-    // const objWithBuffer = objects.map(obj => ({
-    //   obj,
-    //   ptr: obj.bufferDataToBucket(bucket),
-    // }));
-
-    // const dataBuffer = bucket.release();
+    // Compile bucket buffer for all objects once!
+    const bufferBucket = new BufferBucket();
+    for (const object of objects) {
+      const buffer = object.getDataBuffer();
+      pointers.push(bufferBucket.write(buffer));
+    }
+    const dataBuffer = bufferBucket.release();
 
     let currentProgram = null;
-    for (const object of objects) {
+    for (let i = 0; i < objects.length; i++) {
+      const object = objects[i];
+      const pointer = pointers[i];
       const program = this.programsMap[object.programType];
       if (program !== currentProgram) {
         currentProgram = program;
         currentProgram.use();
+
+        if (!wasBufferSet[object.programType]) {
+          currentProgram.setDataBuffer(dataBuffer);
+          wasBufferSet[object.programType] = true;
+        }
       }
 
       // Set uniforms and buffers.
       currentProgram.setUniforms(object.getUniforms());
       currentProgram.setIndexBuffer(object.getIndexBuffer());
-      currentProgram.setDataBuffer(object.getDataBuffer());
+      currentProgram.setPointerOffset(pointer.offset * Float32Array.BYTES_PER_ELEMENT);
 
       const { primitiveType, drawType, numElements, instanceCount } = object.getDrawAttributes();
 

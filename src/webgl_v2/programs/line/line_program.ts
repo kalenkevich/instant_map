@@ -83,6 +83,18 @@ export class WebGl2LineProgram extends WebGl2Program {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
   }
 
+  setPointerOffset(offset: number) {
+    this.gl.vertexAttribPointer(this.point_aLocation, 2, this.gl.FLOAT, true, 0, offset);
+    this.gl.vertexAttribPointer(
+      this.point_bLocation,
+      2,
+      this.gl.FLOAT,
+      true,
+      0,
+      offset + Float32Array.BYTES_PER_ELEMENT * 2
+    );
+  }
+
   /**
    * Bind all uniform values to webgl2 program.
    * @param uniforms all programm uniform values

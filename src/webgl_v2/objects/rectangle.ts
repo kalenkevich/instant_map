@@ -21,13 +21,23 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): Float32Array {
+  getDataBuffer(): number[] {
     const p1 = this.attributes.p;
-    const p2 = [p1[0] + this.attributes.width, p1[1]];
-    const p3 = [p1[0], p1[1] + this.attributes.height];
-    const p4 = [p1[0] + this.attributes.width, p1[1] + this.attributes.height];
 
-    return new Float32Array([...p1, ...p2, ...p3, ...p4]);
+    return [
+      // P1
+      p1[0],
+      p1[1],
+      // P2
+      p1[0] + this.attributes.width,
+      p1[1],
+      // P3
+      p1[0],
+      p1[1] + this.attributes.height,
+      // P4
+      p1[0] + this.attributes.width,
+      p1[1] + this.attributes.height,
+    ];
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {

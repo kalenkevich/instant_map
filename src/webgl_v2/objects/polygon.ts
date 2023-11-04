@@ -18,19 +18,17 @@ export class WebGl2Polygon extends WebGl2Object<WebGl2CircleAttributes> {
 
   private numElements: number = 0;
 
-  getIndexBuffer(): Uint16Array {
-    const points = this.attributes.points.flatMap(p => p);
-    const indexes = earcut(points);
+  private flatPoints: number[] = [];
 
+  getIndexBuffer(): Uint16Array {
+    const indexes = earcut(this.flatPoints);
     this.numElements = indexes.length;
 
     return new Uint16Array(indexes);
   }
 
-  getDataBuffer(): Float32Array {
-    const points = this.attributes.points.flatMap(p => p);
-
-    return new Float32Array(points);
+  getDataBuffer(): number[] {
+    return (this.flatPoints = this.attributes.points.flatMap(p => p));
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
