@@ -13,6 +13,7 @@ import { WebGl2Circle } from '../../../webgl_v2/objects/circle';
 import { WebGl2Line } from '../../../webgl_v2/objects/line';
 import { WebGl2Polygon } from '../../../webgl_v2/objects/polygon';
 import { WebGl2Rectangle } from '../../../webgl_v2/objects/rectangle';
+import { WebGl2Text } from '../../../webgl_v2/objects/text';
 
 export const GL_COLOR_BLACK: Vector4 = [0, 0, 0, 1];
 export const GL_COLOR_WHITE: Vector4 = [1, 1, 1, 1];
@@ -71,7 +72,7 @@ export const getFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Object
     case FeatureStyleType.image:
     // return getImageFeatureGl2Objects(feature, props);
     case FeatureStyleType.text:
-    // return getTextFeatureGl2Objects(feature, props);
+      return getTextFeatureGl2Objects(feature, props);
     default:
       console.info(`${featureStyle.type} is not supported by WebGL2 rendrer.`);
       return [];
@@ -179,32 +180,33 @@ export const getPolygonFeatureGl2Objects = (feature: TileFeature, props: LayerGl
 //   ];
 // };
 
-// export const getTextFeatureGl2Objects = (feature: TileFeature, props: LayerGl2ObjectsProps): WebGl2Object[] => {
-//   const featureStyle = feature.getStyles()! as TextStyle;
-//   const geojsonFeature = feature.getGeoJsonFeature();
-//   const text = compileStatement<string>(featureStyle.text, geojsonFeature);
+export const getTextFeatureGl2Objects = (feature: TileFeature, props: LayerGl2ObjectsProps): WebGl2Object[] => {
+  const featureStyle = feature.getStyles()! as TextStyle;
+  const geojsonFeature = feature.getGeoJsonFeature();
+  const text = compileStatement<string>(featureStyle.text, geojsonFeature);
 
-//   if (!text) {
-//     return [];
-//   }
+  if (!text) {
+    return [];
+  }
 
-//   const font = featureStyle.font ? compileStatement<string>(featureStyle.font, geojsonFeature) : 'roboto';
-//   const fontSize = featureStyle.fontSize ? compileStatement<number>(featureStyle.fontSize, geojsonFeature) : 14;
-//   const point = (feature.getGeometry() as Point).coordinates;
-//   const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
+  const font = featureStyle.font ? compileStatement<string>(featureStyle.font, geojsonFeature) : 'roboto';
+  const fontSize = featureStyle.fontSize ? compileStatement<number>(featureStyle.fontSize, geojsonFeature) : 14;
+  const point = (feature.getGeometry() as Point).coordinates;
+  const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
-//   return [
-//     new WebGlText({
-//       p: point as v2,
-//       text,
-//       font: props.fontManager.getFont(font),
-//       fontSize: fontSize * props.devicePixelRatio,
-//       color,
-//       translation: [props.x, props.y],
-//       scale: props.scale,
-//     }),
-//   ];
-// };
+  return [
+    new WebGl2Text({
+      center: point as Vector2,
+      text,
+      font: props.fontManager.getFont(font),
+      fontSize: fontSize * props.devicePixelRatio,
+      color,
+      translation: [props.x, props.y],
+      scale: props.scale,
+      resolution: props.resolution,
+    }),
+  ];
+};
 
 export const getLayerBackground = (props: LayerGl2ObjectsProps): WebGl2Object[] => {
   const backgroundStyle = props.layer.getStyles().background;

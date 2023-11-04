@@ -21,6 +21,8 @@ export class WebGlPainter {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     this.clear();
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
   }
 
   public destroy() {}
