@@ -100,8 +100,7 @@ export class WebGl2Painter {
       } else if (drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
         gl.drawElementsInstanced(primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
+      gl.flush();
     }
-
-    gl.flush();
   }
 }

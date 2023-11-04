@@ -46,6 +46,7 @@ export class WebGlArea extends GlProgram {
     const offset = bufferAttrs.offset || 0;
 
     gl.drawElements(primitiveType, bufferAttrs.numElements, gl.UNSIGNED_SHORT, offset);
+    gl.flush();
   }
 
   protected setBuffers(gl: WebGLRenderingContext, buffers: BufferAttrs) {

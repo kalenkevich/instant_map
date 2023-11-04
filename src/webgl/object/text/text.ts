@@ -61,6 +61,7 @@ export class WebGlText extends GlProgram {
     this.setUniforms(gl, program);
 
     gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
+    gl.flush();
   }
 
   public getTextBufferAttrs(gl: WebGLRenderingContext): TextBufferAttrs {

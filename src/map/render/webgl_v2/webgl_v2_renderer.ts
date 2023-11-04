@@ -28,7 +28,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
   public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
     const timeStart = Date.now();
 
-    const objects = tiles.map(tile => this.getRenderObjects(tile, styles, mapState)).flatMap(obj => obj);
+    const objects = this.getRenderObjects(tiles[0], styles, mapState);
     this.glPainter.draw(objects);
 
     return {

@@ -65,7 +65,7 @@ export class GlMapRenderer extends MapRenderer {
   public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
     const timeStart = Date.now();
 
-    const glPrograms = tiles.map(tile => this.getRenderPrograms(tile, styles, mapState)).flatMap(obj => obj);
+    const glPrograms = this.getRenderPrograms(tiles[0], styles, mapState);
     this.glPainter.draw(glPrograms);
 
     return {
@@ -98,8 +98,6 @@ export class GlMapRenderer extends MapRenderer {
 
   protected createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    // const width = this.map.getWidth();
-    // const height = this.map.getHeight();
     const width = this.map.getWidth() * this.devicePixelRatio;
     const height = this.map.getHeight() * this.devicePixelRatio;
 
