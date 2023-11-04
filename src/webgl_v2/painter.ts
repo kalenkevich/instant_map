@@ -1,9 +1,19 @@
+import { Mat3, Vector2, Vector4 } from './types';
+import { m3 } from '../webgl/utils/m3';
 import { BufferBucket } from './buffer/buffer_bucket';
 import { WebGl2Object, WebGl2ObjectDrawType } from './objects/object';
 import { WebGl2ProgramType, WebGl2Program } from './programs/program';
 import { WebGl2DefaultProgram } from './programs/default/default_program';
 import { WebGl2LineProgram } from './programs/line/line_program';
 import { WebGl2PolygonProgram } from './programs/polygon/polygon_program';
+
+export class GlobalUniforms {
+  resolution: Vector2;
+  origin?: Vector2;
+  translation?: Vector2;
+  scale?: Vector2;
+  rotationInRadians?: number;
+}
 
 export class WebGl2Painter {
   private readonly gl: WebGL2RenderingContext;
@@ -54,7 +64,7 @@ export class WebGl2Painter {
     polygonProgram.init();
   }
 
-  public draw(objects: WebGl2Object[]): void {
+  public draw(objects: WebGl2Object[], globalUniforms: GlobalUniforms): void {
     if (objects.length === 0) {
       return;
     }
@@ -62,6 +72,7 @@ export class WebGl2Painter {
     const gl = this.gl;
     const pointers = [];
     const wasBufferSet: { [prop: string]: boolean } = {};
+    const transformationMatrix = this.getTransformationMatrix(globalUniforms);
 
     // Compile bucket buffer for all objects once!
     const bufferBucket = new BufferBucket();
@@ -81,14 +92,18 @@ export class WebGl2Painter {
         currentProgram.use();
 
         if (!wasBufferSet[object.programType]) {
+          currentProgram.setGlobalUniforms({
+            u_resolution: globalUniforms.resolution,
+            u_matrix: transformationMatrix,
+          });
           currentProgram.setDataBuffer(dataBuffer);
           wasBufferSet[object.programType] = true;
         }
       }
 
       // Set uniforms and buffers.
-      currentProgram.setUniforms(object.getUniforms());
       currentProgram.setIndexBuffer(object.getIndexBuffer());
+      currentProgram.setUniforms(object.getUniforms());
       currentProgram.setPointerOffset(pointer.offset * Float32Array.BYTES_PER_ELEMENT);
 
       const { primitiveType, drawType, numElements, instanceCount } = object.getDrawAttributes();
@@ -104,5 +119,18 @@ export class WebGl2Painter {
       }
       gl.flush();
     }
+  }
+
+  private getTransformationMatrix(uniforms: GlobalUniforms): Mat3 {
+    const { origin = [0, 0], translation = [0, 0], scale = [1, 1], rotationInRadians = 0 } = uniforms;
+
+    const moveOriginMatrix = m3.translation(origin[0], origin[1]);
+    const translationMatrix = m3.translation(translation[0], translation[1]);
+    const rotationMatrix = m3.rotation(rotationInRadians);
+    const scaleMatrix = m3.scaling(scale[0], scale[1]);
+    const matrix = m3.multiply(translationMatrix, rotationMatrix);
+    const scaledMatrix = m3.multiply(matrix, scaleMatrix);
+
+    return m3.multiply(scaledMatrix, moveOriginMatrix) as Mat3;
   }
 }

@@ -28,13 +28,28 @@ export class Gl2MapRenderer extends GlMapRenderer {
   public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
     const timeStart = Date.now();
 
+    const globalUniforms = this.getTileUniforms(tiles[0], mapState);
     const objects = this.getRenderObjects(tiles[0], styles, mapState);
-    this.glPainter.draw(objects);
+
+    this.glPainter.draw(objects, globalUniforms);
 
     return {
       timeInMs: Date.now() - timeStart,
       tiles: tiles.length,
       objects: objects.length,
+    };
+  }
+
+  private getTileUniforms(tile: MapTile, mapState: MapState) {
+    const tileScale = this.getTileScale(tile.width, mapState);
+    const scale = tileScale / tile.devicePixelRatio;
+    const tileX = tile.x * (tileScale * tile.devicePixelRatio);
+    const tileY = tile.y * (tileScale * tile.devicePixelRatio);
+
+    return {
+      translation: [tileX, tileY],
+      scale: [scale, scale],
+      resolution: this.resolution,
     };
   }
 
@@ -47,13 +62,6 @@ export class Gl2MapRenderer extends GlMapRenderer {
   }
 
   private getDataTileObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[] {
-    const tileScale = this.getTileScale(tile.width, mapState);
-    const xScale = tileScale / tile.devicePixelRatio;
-    const yScale = tileScale / tile.devicePixelRatio;
-    const tileX = tile.x * (tileScale * tile.devicePixelRatio);
-    const tileY = tile.y * (tileScale * tile.devicePixelRatio);
-    const scale: [number, number] = [xScale, yScale];
-
     const sourceLayers = tile.getLayers();
     if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles.layers).length === 0) {
       return [] as WebGl2Object[];
@@ -73,10 +81,6 @@ export class Gl2MapRenderer extends GlMapRenderer {
         ...getLayerGl2Objects({
           layer: sourceLayer,
           mapState,
-          x: tileX,
-          y: tileY,
-          scale,
-          resolution: this.resolution,
           width: tile.width,
           height: tile.height,
           fontManager: this.map.getFontManager(),

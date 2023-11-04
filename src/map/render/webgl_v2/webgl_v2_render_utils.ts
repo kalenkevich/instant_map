@@ -1,4 +1,4 @@
-import { Polygon, Point } from 'geojson';
+import { Point } from 'geojson';
 import { MapState } from '../../map_state';
 import { TileLayer } from '../../tile/tile_layer';
 import { ColorValue } from '../../styles/style_statement';
@@ -21,10 +21,6 @@ export const GL_COLOR_WHITE: Vector4 = [1, 1, 1, 1];
 export interface LayerGl2ObjectsProps {
   layer: TileLayer;
   mapState: MapState;
-  x: number;
-  y: number;
-  resolution: [number, number];
-  scale: [number, number];
   width: number;
   height: number;
   image?: HTMLImageElement;
@@ -101,9 +97,6 @@ export const getPointFeatureGl2Objects = (feature: TileFeature, props: LayerGl2O
         center: center.coordinates as Vector2,
         radius: borderRadius,
         color: borderColor,
-        translation: [props.x, props.y],
-        scale: props.scale,
-        resolution: props.resolution,
       })
     );
   }
@@ -114,9 +107,6 @@ export const getPointFeatureGl2Objects = (feature: TileFeature, props: LayerGl2O
       center: center.coordinates as Vector2,
       radius,
       color,
-      translation: [props.x, props.y],
-      scale: props.scale,
-      resolution: props.resolution,
     })
   );
 
@@ -136,9 +126,6 @@ export const getLineFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Ob
         color,
         lineWidth,
         points: lineStrip as Vector2[],
-        translation: [props.x, props.y],
-        scale: props.scale,
-        resolution: props.resolution,
       })
     );
   }
@@ -158,9 +145,6 @@ export const getPolygonFeatureGl2Objects = (feature: TileFeature, props: LayerGl
       new WebGl2Polygon({
         color,
         points: area as Vector2[],
-        translation: [props.x, props.y],
-        scale: props.scale,
-        resolution: props.resolution,
       })
     );
   }
@@ -201,9 +185,6 @@ export const getTextFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Ob
       font: props.fontManager.getFont(font),
       fontSize: fontSize * props.devicePixelRatio,
       color,
-      translation: [props.x, props.y],
-      scale: props.scale,
-      resolution: props.resolution,
     }),
   ];
 };
@@ -217,12 +198,9 @@ export const getLayerBackground = (props: LayerGl2ObjectsProps): WebGl2Object[] 
   return [
     new WebGl2Rectangle({
       p: [0, 0],
-      translation: [props.x, props.y],
-      scale: props.scale,
       width: props.width,
       height: props.height,
       color: getGlColor(compileStatement(backgroundStyle.color, props.layer)),
-      resolution: props.resolution,
     }),
   ];
 };

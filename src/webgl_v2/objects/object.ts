@@ -21,11 +21,6 @@ export enum WebGl2ObjectDrawType {
 
 export interface WebGl2ObjectAttributes {
   color: GlColor;
-  resolution: Vector2;
-  origin?: Vector2;
-  translation?: Vector2;
-  scale?: Vector2;
-  rotationInRadians?: number;
 }
 
 export interface WebGl2ObjectDrawAttrs {
@@ -56,8 +51,6 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
   getUniforms(): WebGl2ProgramUniforms {
     return {
       u_color: this.attributes.color,
-      u_resolution: this.attributes.resolution,
-      u_matrix: this.getMatrix(),
     };
   }
 
@@ -71,18 +64,4 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
    * Should be in sync with `drawType` property.
    * */
   abstract getDrawAttributes(): WebGl2ObjectDrawAttrs;
-
-  /** Creates transformation matrix for object. */
-  protected getMatrix(): Mat3 {
-    const { origin = [0, 0], translation = [0, 0], scale = [1, 1], rotationInRadians = 0 } = this.attributes;
-
-    const moveOriginMatrix = m3.translation(origin[0], origin[1]);
-    const translationMatrix = m3.translation(translation[0], translation[1]);
-    const rotationMatrix = m3.rotation(rotationInRadians);
-    const scaleMatrix = m3.scaling(scale[0], scale[1]);
-    const matrix = m3.multiply(translationMatrix, rotationMatrix);
-    const scaledMatrix = m3.multiply(matrix, scaleMatrix);
-
-    return m3.multiply(scaledMatrix, moveOriginMatrix) as Mat3;
-  }
 }

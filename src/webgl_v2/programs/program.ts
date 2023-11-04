@@ -3,6 +3,10 @@ import { Mat3, Vector2, Vector4 } from '../types';
 /** Base interface for ProgramUniforms. */
 export interface WebGl2ProgramUniforms {
   u_color: Vector4;
+}
+
+/** Base interface for ProgramUniforms. */
+export interface WebGl2ProgramGlobalUniforms {
   u_resolution: Vector2;
   u_matrix: Mat3;
 }
@@ -96,12 +100,20 @@ export abstract class WebGl2Program {
   abstract setPointerOffset(offset: number): void;
 
   /**
+   * Should be set once!!!
+   * Bind all uniform values to webgl2 program.
+   * @param uniforms all programm uniform values
+   */
+  setGlobalUniforms(uniforms: WebGl2ProgramGlobalUniforms) {
+    this.gl.uniform2f(this.u_resolutionLocation, uniforms.u_resolution[0], uniforms.u_resolution[1]);
+    this.gl.uniformMatrix3fv(this.u_matrixLocation, false, uniforms.u_matrix);
+  }
+
+  /**
    * Bind all uniform values to webgl2 program.
    * @param uniforms all programm uniform values
    */
   setUniforms(uniforms: WebGl2ProgramUniforms) {
     this.gl.uniform4fv(this.u_colorLocation, uniforms.u_color);
-    this.gl.uniform2f(this.u_resolutionLocation, uniforms.u_resolution[0], uniforms.u_resolution[1]);
-    this.gl.uniformMatrix3fv(this.u_matrixLocation, false, uniforms.u_matrix);
   }
 }
