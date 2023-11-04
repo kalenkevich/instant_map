@@ -1,20 +1,7 @@
-import VERTEX_SHADER from './default_program_vs.glsl';
-import FRAGMENT_SHADER from './default_program_fs.glsl';
-import { WebGl2Program } from '../program';
+import { WebGl2DefaultProgram } from '../default/default_program';
 
-export class WebGl2DefaultProgram extends WebGl2Program {
-  protected positionBuffer: WebGLBuffer;
-
-  // Location index should be in sync with the vertex shader source.
-  protected a_positionLocation = 0;
-
-  constructor(
-    protected readonly gl: WebGL2RenderingContext,
-    protected readonly vertexShaderSource: string = VERTEX_SHADER,
-    protected readonly fragmentShaderSource: string = FRAGMENT_SHADER
-  ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
-  }
+export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
+  protected indexBuffer: WebGLBuffer;
 
   /**
    * Allocates Webgl buffer for the future use.
@@ -24,15 +11,24 @@ export class WebGl2DefaultProgram extends WebGl2Program {
     this.gl.bindVertexArray(this.vao);
 
     this.positionBuffer = this.gl.createBuffer();
-    this.gl.enableVertexAttribArray(this.a_positionLocation);
+    this.indexBuffer = this.gl.createBuffer();
+
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 8, 0);
+    this.gl.enableVertexAttribArray(this.a_positionLocation);
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
     this.gl.bindVertexArray(null);
   }
 
   setIndexBuffer(indeces: Uint16Array) {
-    // do nothing.
+    if (!indeces || !indeces.length) {
+      return;
+    }
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indeces, this.gl.STATIC_DRAW);
   }
 
   /**

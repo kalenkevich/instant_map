@@ -1,4 +1,3 @@
-import { BufferBucket, BucketPointer } from '../buffer/buffer_bucket';
 import { WebGl2ProgramType } from '../programs/program';
 import { WebGl2ProgramLineUniforms } from '../programs/line/line_program';
 import { Vector2 } from '../types';
@@ -16,8 +15,6 @@ export interface WebGl2LineAttributes extends WebGl2ObjectAttributes {
 }
 
 export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
-  primitiveType = PrimitiveType.TRIANGLES;
-
   programType = WebGl2ProgramType.line;
 
   getUniforms(): WebGl2ProgramLineUniforms {
@@ -27,12 +24,17 @@ export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
     };
   }
 
-  bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
-    return bufferBucket.write(this.attributes.points.flatMap(p => p));
+  getIndexBuffer(): Uint16Array | undefined {
+    return undefined;
+  }
+
+  getDataBuffer(): Float32Array {
+    return new Float32Array(this.attributes.points.flatMap(p => p));
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      primitiveType: PrimitiveType.TRIANGLES,
       drawType: WebGl2ObjectDrawType.ARRAYS_INSTANCED,
       numElements: 6,
       instanceCount: this.attributes.points.length - 1,

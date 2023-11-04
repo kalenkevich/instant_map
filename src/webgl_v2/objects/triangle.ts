@@ -1,4 +1,3 @@
-import { BucketPointer, BufferBucket } from '../buffer/buffer_bucket';
 import { WebGl2ProgramType } from '../programs/program';
 import { Vector2 } from '../types';
 import {
@@ -16,16 +15,19 @@ export interface WebGl2TriangleAttributes extends WebGl2ObjectAttributes {
 }
 
 export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
-  primitiveType = PrimitiveType.TRIANGLES;
-
   programType = WebGl2ProgramType.default;
 
-  bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
-    return bufferBucket.write([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
+  getIndexBuffer(): Uint16Array | undefined {
+    return undefined;
+  }
+
+  getDataBuffer(): Float32Array {
+    return new Float32Array([...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3]);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      primitiveType: PrimitiveType.TRIANGLES,
       drawType: WebGl2ObjectDrawType.ARRAYS,
       numElements: 3,
     };

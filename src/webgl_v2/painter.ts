@@ -1,8 +1,8 @@
-import { BufferBucket } from './buffer/buffer_bucket';
 import { WebGl2Object, WebGl2ObjectDrawType } from './objects/object';
 import { WebGl2ProgramType, WebGl2Program } from './programs/program';
 import { WebGl2DefaultProgram } from './programs/default/default_program';
 import { WebGl2LineProgram } from './programs/line/line_program';
+import { WebGl2PolygonProgram } from './programs/polygon/polygon_program';
 
 export class WebGl2Painter {
   private readonly gl: WebGL2RenderingContext;
@@ -40,12 +40,15 @@ export class WebGl2Painter {
   private initPrograms() {
     const defaultProgram = new WebGl2DefaultProgram(this.gl);
     const lineProgram = new WebGl2LineProgram(this.gl);
+    const polygonProgram = new WebGl2PolygonProgram(this.gl);
 
     this.programsMap[WebGl2ProgramType.default] = defaultProgram;
     this.programsMap[WebGl2ProgramType.line] = lineProgram;
+    this.programsMap[WebGl2ProgramType.polygon] = polygonProgram;
 
     defaultProgram.init();
     lineProgram.init();
+    polygonProgram.init();
   }
 
   public draw(objects: WebGl2Object[]): void {
@@ -55,41 +58,39 @@ export class WebGl2Painter {
 
     const gl = this.gl;
     // One buffer to rule them all!
-    const bucket = new BufferBucket();
+    // const bucket = new BufferBucket();
 
     // Compile bucket buffer
-    const objWithBuffer = objects.map(obj => ({
-      obj,
-      ptr: obj.bufferDataToBucket(bucket),
-    }));
+    // const objWithBuffer = objects.map(obj => ({
+    //   obj,
+    //   ptr: obj.bufferDataToBucket(bucket),
+    // }));
 
     // const dataBuffer = bucket.release();
 
     let currentProgram = null;
-    for (let objectIndex = 0; objectIndex < objects.length; objectIndex++) {
-      const { obj, ptr } = objWithBuffer[objectIndex];
-
-      const program = this.programsMap[obj.programType];
+    for (const object of objects) {
+      const program = this.programsMap[object.programType];
       if (program !== currentProgram) {
         currentProgram = program;
         currentProgram.use();
       }
 
-      const { drawType, numElements, instanceCount } = obj.getDrawAttributes();
-      // const offset = Float32Array.BYTES_PER_ELEMENT * ptr.offset;
-
       // Set uniforms and buffers.
-      currentProgram.setUniforms(obj.getUniforms());
-      currentProgram.setBuffer(ptr.bucket);
+      currentProgram.setUniforms(object.getUniforms());
+      currentProgram.setIndexBuffer(object.getIndexBuffer());
+      currentProgram.setDataBuffer(object.getDataBuffer());
+
+      const { primitiveType, drawType, numElements, instanceCount } = object.getDrawAttributes();
 
       if (drawType === WebGl2ObjectDrawType.ARRAYS) {
-        gl.drawArrays(obj.primitiveType, 0, numElements);
+        gl.drawArrays(primitiveType, 0, numElements);
       } else if (drawType === WebGl2ObjectDrawType.ELEMENTS) {
-        gl.drawElements(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(primitiveType, numElements, gl.UNSIGNED_SHORT, 0);
       } else if (drawType === WebGl2ObjectDrawType.ARRAYS_INSTANCED) {
-        gl.drawArraysInstanced(obj.primitiveType, 0, numElements, instanceCount);
+        gl.drawArraysInstanced(primitiveType, 0, numElements, instanceCount);
       } else if (drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
-        gl.drawElementsInstanced(obj.primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
+        gl.drawElementsInstanced(primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
     }
 

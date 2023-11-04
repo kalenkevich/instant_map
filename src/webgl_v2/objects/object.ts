@@ -1,6 +1,5 @@
 import { m3 } from '../../webgl/utils/m3';
 import { WebGl2ProgramType, WebGl2ProgramUniforms } from '../programs/program';
-import { BucketPointer, BufferBucket } from '../buffer/buffer_bucket';
 import { GlColor, Mat3, Vector2 } from '../types';
 
 export enum PrimitiveType {
@@ -30,6 +29,8 @@ export interface WebGl2ObjectAttributes {
 }
 
 export interface WebGl2ObjectDrawAttrs {
+  /** Specifies Webgl primitive type. */
+  primitiveType: PrimitiveType;
   drawType: WebGl2ObjectDrawType;
   numElements: number;
   instanceCount?: number;
@@ -41,9 +42,6 @@ export interface WebGl2ObjectDrawAttrs {
  * Describes draw primitive type, object attributes, uniforms and buffers to operate.
  * */
 export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes = WebGl2ObjectAttributes> {
-  /** Specifies Webgl primitive type. */
-  abstract primitiveType: PrimitiveType;
-
   /**
    * WebGl2 Program type.
    * Specifies program which responsible to draw the object, like `Default` or `Image`.
@@ -63,8 +61,10 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
     };
   }
 
+  abstract getIndexBuffer(): Uint16Array | undefined;
+
   /** Populate buffer bucket with object data based on attrubutes. */
-  abstract bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer;
+  abstract getDataBuffer(): Float32Array;
 
   /**
    * Returns Webgl2 specific information.

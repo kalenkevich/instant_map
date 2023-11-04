@@ -32,9 +32,28 @@ export class WebGl2LineProgram extends WebGl2Program {
    * Allocates Webgl buffer for the future use.
    */
   allocateBuffer() {
+    this.vao = this.gl.createVertexArray();
+    this.gl.bindVertexArray(this.vao);
+
     this.a_positionBuffer = this.gl.createBuffer();
+    this.gl.enableVertexAttribArray(this.a_positionLocation);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.a_positionBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, POSITION_BUFFER, this.gl.STATIC_DRAW);
+    this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 0, 0);
+
     this.point_aBuffer = this.gl.createBuffer();
+    this.gl.enableVertexAttribArray(this.point_aLocation);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
+    this.gl.vertexAttribPointer(this.point_aLocation, 2, this.gl.FLOAT, true, 0, 0);
+    this.gl.vertexAttribDivisor(this.point_aLocation, 1);
+
     this.point_bBuffer = this.gl.createBuffer();
+    this.gl.enableVertexAttribArray(this.point_bLocation);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_bBuffer);
+    this.gl.vertexAttribPointer(this.point_bLocation, 2, this.gl.FLOAT, true, 0, Float32Array.BYTES_PER_ELEMENT * 2);
+    this.gl.vertexAttribDivisor(this.point_bLocation, 1);
+
+    this.gl.bindVertexArray(null);
   }
 
   /**
@@ -46,27 +65,22 @@ export class WebGl2LineProgram extends WebGl2Program {
     this.u_line_widthLocation = this.gl.getUniformLocation(this.program, 'u_line_width');
   }
 
+  setIndexBuffer(indeces: Uint16Array) {
+    // do nothing.
+  }
+
   /**
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
    */
-  setBuffer(data: Float32Array) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.a_positionBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, POSITION_BUFFER, this.gl.STATIC_DRAW);
-    this.gl.enableVertexAttribArray(this.a_positionLocation);
-    this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 0, 0);
+  setDataBuffer(data: Float32Array) {
+    this.gl.bindVertexArray(this.vao);
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-    this.gl.enableVertexAttribArray(this.point_aLocation);
-    this.gl.vertexAttribPointer(this.point_aLocation, 2, this.gl.FLOAT, true, 0, 0);
-    this.gl.vertexAttribDivisor(this.point_aLocation, 1);
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_bBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-    this.gl.enableVertexAttribArray(this.point_bLocation);
-    this.gl.vertexAttribPointer(this.point_bLocation, 2, this.gl.FLOAT, true, 0, Float32Array.BYTES_PER_ELEMENT * 2);
-    this.gl.vertexAttribDivisor(this.point_bLocation, 1);
   }
 
   /**

@@ -10,8 +10,9 @@ export interface WebGl2ProgramUniforms {
 export enum WebGl2ProgramType {
   default = 0,
   line = 1,
-  image = 2,
-  text = 3,
+  polygon = 2,
+  image = 3,
+  text = 4,
 }
 
 /**
@@ -20,6 +21,7 @@ export enum WebGl2ProgramType {
  */
 export abstract class WebGl2Program {
   protected program?: WebGLProgram;
+  protected vao: WebGLVertexArrayObject;
 
   static ProgramType: WebGl2ProgramType;
 
@@ -79,11 +81,13 @@ export abstract class WebGl2Program {
     this.gl.useProgram(this.program);
   }
 
+  abstract setIndexBuffer(bufferData?: Uint16Array): void;
+
   /**
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
    */
-  abstract setBuffer(bufferData: Float32Array): void;
+  abstract setDataBuffer(bufferData: Float32Array): void;
 
   /**
    * Bind all uniform values to webgl2 program.

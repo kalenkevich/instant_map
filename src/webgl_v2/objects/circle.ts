@@ -1,4 +1,3 @@
-import { BucketPointer, BufferBucket } from '../buffer/buffer_bucket';
 import { WebGl2ProgramType } from '../programs/program';
 import { Vector2 } from '../types';
 import {
@@ -16,10 +15,13 @@ export interface WebGl2CircleAttributes extends WebGl2ObjectAttributes {
 }
 
 export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
-  primitiveType = PrimitiveType.TRIANGLE_STRIP;
   programType = WebGl2ProgramType.default;
 
-  bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
+  getIndexBuffer(): Uint16Array | undefined {
+    return undefined;
+  }
+
+  getDataBuffer(): Float32Array {
     const { center, radius, components } = this.attributes;
     const step = 360 / components;
     const size = (components + 1) * 4;
@@ -35,11 +37,12 @@ export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
       data[offset++] = center[1];
     }
 
-    return bufferBucket.write(data);
+    return new Float32Array(data);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
+      primitiveType: PrimitiveType.TRIANGLE_STRIP,
       drawType: WebGl2ObjectDrawType.ARRAYS,
       numElements: this.attributes.components * 2 + 2,
     };

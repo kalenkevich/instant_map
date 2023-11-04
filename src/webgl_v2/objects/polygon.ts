@@ -1,5 +1,4 @@
 import earcut from 'earcut';
-import { BucketPointer, BufferBucket } from '../buffer/buffer_bucket';
 import { WebGl2ProgramType } from '../programs/program';
 import { Vector2 } from '../types';
 import {
@@ -15,32 +14,29 @@ export interface WebGl2CircleAttributes extends WebGl2ObjectAttributes {
 }
 
 export class WebGl2Polygon extends WebGl2Object<WebGl2CircleAttributes> {
-  primitiveType = PrimitiveType.TRIANGLES;
-
-  programType = WebGl2ProgramType.default;
+  programType = WebGl2ProgramType.polygon;
 
   private numElements: number = 0;
 
-  bufferDataToBucket(bufferBucket: BufferBucket): BucketPointer {
+  getIndexBuffer(): Uint16Array {
     const points = this.attributes.points.flatMap(p => p);
-    // Magic here! This function returns the indexes of the coordinates for triangle from the source point array.
     const indexes = earcut(points);
-    const data = new Array(indexes.length * 2);
-
-    let offset = 0;
-    for (const index of indexes) {
-      data[offset++] = points[index * 2];
-      data[offset++] = points[index * 2 + 1];
-    }
 
     this.numElements = indexes.length;
 
-    return bufferBucket.write(data);
+    return new Uint16Array(indexes);
+  }
+
+  getDataBuffer(): Float32Array {
+    const points = this.attributes.points.flatMap(p => p);
+
+    return new Float32Array(points);
   }
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
-      drawType: WebGl2ObjectDrawType.ARRAYS,
+      primitiveType: PrimitiveType.TRIANGLES,
+      drawType: WebGl2ObjectDrawType.ELEMENTS,
       numElements: this.numElements,
     };
   }
