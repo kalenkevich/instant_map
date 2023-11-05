@@ -31,10 +31,6 @@ export class WebGl2DefaultProgram extends WebGl2Program {
     this.gl.bindVertexArray(null);
   }
 
-  setIndexBuffer(indeces: Uint16Array) {
-    // do nothing.
-  }
-
   /**
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
@@ -47,5 +43,13 @@ export class WebGl2DefaultProgram extends WebGl2Program {
 
   setPointerOffset(offset: number) {
     this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 8, offset);
+  }
+
+  setIndexBuffer(indeces: Uint16Array) {
+    // do nothing.
+  }
+
+  setTexture(texture: TexImageSource): void {
+    // do nothing.
   }
 }

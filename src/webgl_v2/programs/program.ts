@@ -89,16 +89,6 @@ export abstract class WebGl2Program {
     }
   }
 
-  abstract setIndexBuffer(bufferData?: Uint16Array): void;
-
-  /**
-   * Bind buffer to the webgl2 program.
-   * @param bufferData buffer data to be binded.
-   */
-  abstract setDataBuffer(bufferData: Float32Array): void;
-
-  abstract setPointerOffset(offset: number): void;
-
   /**
    * Should be set once!!!
    * Bind all uniform values to webgl2 program.
@@ -116,4 +106,16 @@ export abstract class WebGl2Program {
   setUniforms(uniforms: WebGl2ProgramUniforms) {
     this.gl.uniform4fv(this.u_colorLocation, uniforms.u_color);
   }
+
+  /**
+   * Bind buffer to the webgl2 program.
+   * @param bufferData buffer data to be binded.
+   */
+  abstract setDataBuffer(bufferData: Float32Array): void;
+
+  abstract setPointerOffset(offset: number): void;
+
+  abstract setIndexBuffer(bufferData?: Uint16Array): void;
+
+  abstract setTexture(texture: TexImageSource): void;
 }

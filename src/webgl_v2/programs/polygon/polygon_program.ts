@@ -22,11 +22,6 @@ export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
     this.gl.bindVertexArray(null);
   }
 
-  setIndexBuffer(indeces: Uint16Array) {
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indeces, this.gl.STATIC_DRAW);
-  }
-
   /**
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
@@ -39,5 +34,14 @@ export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
 
   setPointerOffset(offset: number) {
     this.gl.vertexAttribPointer(this.a_positionLocation, 2, this.gl.FLOAT, true, 8, offset);
+  }
+
+  setIndexBuffer(indeces: Uint16Array) {
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indeces, this.gl.STATIC_DRAW);
+  }
+
+  setTexture(texture: TexImageSource): void {
+    // do nothing.
   }
 }

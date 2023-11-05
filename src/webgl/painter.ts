@@ -11,6 +11,7 @@ export class WebGlPainter {
     this.gl = canvas.getContext('webgl', {
       antialias: true,
       powerPreference: 'high-performance',
+      preserveDrawingBuffer: true,
     });
   }
 

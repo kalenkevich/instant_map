@@ -65,10 +65,6 @@ export class WebGl2LineProgram extends WebGl2Program {
     this.u_line_widthLocation = this.gl.getUniformLocation(this.program, 'u_line_width');
   }
 
-  setIndexBuffer(indeces: Uint16Array) {
-    // do nothing.
-  }
-
   /**
    * Bind buffer to the webgl2 program.
    * @param bufferData buffer data to be binded.
@@ -93,6 +89,14 @@ export class WebGl2LineProgram extends WebGl2Program {
       0,
       offset + Float32Array.BYTES_PER_ELEMENT * 2
     );
+  }
+
+  setIndexBuffer(indeces: Uint16Array) {
+    // do nothing.
+  }
+
+  setTexture(texture: TexImageSource): void {
+    // do nothing.
   }
 
   /**

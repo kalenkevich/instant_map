@@ -115,7 +115,7 @@ export const VectorStyles: DataTileStyles = {
     boundary: {
       sourceLayer: 'boundary',
       styleLayerName: 'boundaryStyles',
-      show: false,
+      show: true,
       zIndex: 3,
       feature: {
         type: FeatureStyleType.line,

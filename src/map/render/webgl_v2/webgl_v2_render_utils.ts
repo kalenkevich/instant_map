@@ -14,6 +14,7 @@ import { WebGl2Line } from '../../../webgl_v2/objects/line';
 import { WebGl2Polygon } from '../../../webgl_v2/objects/polygon';
 import { WebGl2Rectangle } from '../../../webgl_v2/objects/rectangle';
 import { WebGl2Text } from '../../../webgl_v2/objects/text';
+// import { WebGl2Text } from '../../../webgl_v2/objects/text_v2';
 
 export const GL_COLOR_BLACK: Vector4 = [0, 0, 0, 1];
 export const GL_COLOR_WHITE: Vector4 = [1, 1, 1, 1];
@@ -66,11 +67,11 @@ export const getFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Object
     case FeatureStyleType.line:
       return getLineFeatureGl2Objects(feature, props);
     case FeatureStyleType.image:
-    // return getImageFeatureGl2Objects(feature, props);
+      // return getImageFeatureGl2Objects(feature, props);
     case FeatureStyleType.text:
       return getTextFeatureGl2Objects(feature, props);
     default:
-      console.info(`${featureStyle.type} is not supported by WebGL2 rendrer.`);
+      // console.info(`${featureStyle.type} is not supported by WebGL2 rendrer.`);
       return [];
   }
 };

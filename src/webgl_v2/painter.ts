@@ -6,6 +6,7 @@ import { WebGl2ProgramType, WebGl2Program } from './programs/program';
 import { WebGl2DefaultProgram } from './programs/default/default_program';
 import { WebGl2LineProgram } from './programs/line/line_program';
 import { WebGl2PolygonProgram } from './programs/polygon/polygon_program';
+import { WebGl2TextProgram } from './programs/text/text_program';
 
 export class GlobalUniforms {
   resolution: Vector2;
@@ -23,6 +24,7 @@ export class WebGl2Painter {
     this.gl = canvas.getContext('webgl2', {
       antialias: true,
       powerPreference: 'high-performance',
+      preserveDrawingBuffer: true,
     });
   }
 
@@ -34,6 +36,8 @@ export class WebGl2Painter {
     this.initPrograms();
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
+    gl.disable(gl.BLEND);
+    gl.depthMask(true);
   }
 
   public destroy() {}
@@ -54,14 +58,17 @@ export class WebGl2Painter {
     const defaultProgram = new WebGl2DefaultProgram(this.gl);
     const lineProgram = new WebGl2LineProgram(this.gl);
     const polygonProgram = new WebGl2PolygonProgram(this.gl);
+    const textProgram = new WebGl2TextProgram(this.gl);
 
     this.programsMap[WebGl2ProgramType.default] = defaultProgram;
     this.programsMap[WebGl2ProgramType.line] = lineProgram;
     this.programsMap[WebGl2ProgramType.polygon] = polygonProgram;
+    this.programsMap[WebGl2ProgramType.text] = textProgram;
 
     defaultProgram.init();
     lineProgram.init();
     polygonProgram.init();
+    textProgram.init();
   }
 
   public draw(objects: WebGl2Object[], globalUniforms: GlobalUniforms): void {
@@ -102,9 +109,14 @@ export class WebGl2Painter {
       }
 
       // Set uniforms and buffers.
-      currentProgram.setIndexBuffer(object.getIndexBuffer());
       currentProgram.setUniforms(object.getUniforms());
+      currentProgram.setIndexBuffer(object.getIndexBuffer());
       currentProgram.setPointerOffset(pointer.offset * Float32Array.BYTES_PER_ELEMENT);
+
+      const texture = object.getTexture();
+      if (texture) {
+        currentProgram.setTexture(texture);
+      }
 
       const { primitiveType, drawType, numElements, instanceCount } = object.getDrawAttributes();
 
@@ -117,7 +129,7 @@ export class WebGl2Painter {
       } else if (drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
         gl.drawElementsInstanced(primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
-      gl.flush();
+      // gl.flush();
     }
   }
 

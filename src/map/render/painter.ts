@@ -5,6 +5,8 @@ export interface Painter {
 
   draw(...args: any[]): void;
 
+  clear(): void;
+
   preheat(...args: any[]): void;
 
   resize(w: number, h: number): void;

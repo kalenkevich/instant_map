@@ -59,6 +59,10 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
   /** Populate buffer bucket with object data based on attrubutes. */
   abstract getDataBuffer(): number[];
 
+  getTexture(): TexImageSource | undefined {
+    return undefined;
+  }
+
   /**
    * Returns Webgl2 specific information.
    * Should be in sync with `drawType` property.

@@ -28,15 +28,38 @@ export class Gl2MapRenderer extends GlMapRenderer {
   public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
     const timeStart = Date.now();
 
-    const globalUniforms = this.getTileUniforms(tiles[0], mapState);
-    const objects = this.getRenderObjects(tiles[0], styles, mapState);
+    const renderTiles = (tileIndex: number) => {
+      if (tileIndex > 1) {
+        return;
+      }
 
-    this.glPainter.draw(objects, globalUniforms);
+      const globalUniforms = this.getTileUniforms(tiles[tileIndex], mapState);
+      const objectsByLayers = this.getRenderObjects(tiles[tileIndex], styles, mapState);
+      const renderObjects = (layerIndex: number) => {
+        if (layerIndex === objectsByLayers.length) {
+          renderTiles(tileIndex + 1);
+          return;
+        }
+
+        requestAnimationFrame(() => {
+          if (tileIndex === 0 && layerIndex === 0) {
+            this.glPainter.clear();
+          }
+
+          this.glPainter.draw(objectsByLayers[layerIndex], globalUniforms);
+
+          renderObjects(layerIndex + 1);
+        });
+      };
+      renderObjects(0);
+    };
+
+    renderTiles(0);
 
     return {
       timeInMs: Date.now() - timeStart,
       tiles: tiles.length,
-      objects: objects.length,
+      objects: 0,
     };
   }
 
@@ -53,7 +76,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
     };
   }
 
-  private getRenderObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[] {
+  private getRenderObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[][] {
     if (tile.formatType === MapTileFormatType.png) {
       return this.getImageObjects(tile as PngMapTile, mapState);
     }
@@ -61,13 +84,13 @@ export class Gl2MapRenderer extends GlMapRenderer {
     return this.getDataTileObjects(tile, styles, mapState);
   }
 
-  private getDataTileObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[] {
+  private getDataTileObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[][] {
     const sourceLayers = tile.getLayers();
     if (!sourceLayers || Object.keys(sourceLayers).length === 0 || !styles || Object.keys(styles.layers).length === 0) {
-      return [] as WebGl2Object[];
+      return [] as WebGl2Object[][];
     }
 
-    const objects: WebGl2Object[] = [];
+    const objects: WebGl2Object[][] = [];
 
     const styleLayers = Object.values(styles.layers).sort((l1, l2) => l1.zIndex - l2.zIndex);
     for (const styleLayer of styleLayers) {
@@ -78,7 +101,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
       }
 
       objects.push(
-        ...getLayerGl2Objects({
+        getLayerGl2Objects({
           layer: sourceLayer,
           mapState,
           width: tile.width,
@@ -92,7 +115,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
     return objects;
   }
 
-  private getImageObjects(tile: PngMapTile, mapState: MapState): WebGl2Object[] {
+  private getImageObjects(tile: PngMapTile, mapState: MapState): WebGl2Object[][] {
     // const tileScale = this.getTileScale(tile.width, mapState) * tile.devicePixelRatio;
     // const tileX = tile.x * tileScale;
     // const tileY = tile.y * tileScale;
