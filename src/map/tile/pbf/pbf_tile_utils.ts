@@ -4,6 +4,7 @@ import { DataLayerStyle, DataTileStyles } from '../../styles/styles';
 import { TileLayers } from '../tile';
 import { TileLayer } from '../tile_layer';
 import { v2 } from '../../../webgl';
+import { simplify } from './simplify';
 
 enum VectorTileFeatureType {
   Unknown = 0,
@@ -77,7 +78,7 @@ export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Poi
         newLine.push([point.x, point.y]);
       }
 
-      lines.push(newLine);
+      lines.push(simplify(newLine, 10, false) as v2[]);
     }
 
     return {
@@ -96,7 +97,7 @@ export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Poi
         newRing.push([point.x, point.y]);
       }
 
-      rings.push(newRing);
+      rings.push(simplify(newRing, 10, true) as v2[]);
     }
 
     return {
