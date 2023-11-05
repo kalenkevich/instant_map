@@ -17,50 +17,53 @@ export class Gl2MapRenderer extends GlMapRenderer {
     this.map.on(MapEventType.RESIZE, this.resizeEventListener);
   }
 
-  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
-    return {
-      timeInMs: 0,
-      tiles: 0,
-      objects: 0,
-    };
-  }
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): Promise<GlRenderStats> {
+    let objects = 0;
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
-    const timeStart = Date.now();
+    return new Promise(resolve => {
+      const timeStart = Date.now();
 
-    const renderTiles = (tileIndex: number) => {
-      if (tileIndex > 1) {
-        return;
-      }
+      const renderTiles = (tileIndex: number) => {
+        if (tileIndex > 0) {
+          resolve({
+            timeInMs: Date.now() - timeStart,
+            tiles: tiles.length,
+            objects,
+          });
 
-      const globalUniforms = this.getTileUniforms(tiles[tileIndex], mapState);
-      const objectsByLayers = this.getRenderObjects(tiles[tileIndex], styles, mapState);
-      const renderObjects = (layerIndex: number) => {
-        if (layerIndex === objectsByLayers.length) {
-          renderTiles(tileIndex + 1);
           return;
         }
 
-        requestAnimationFrame(() => {
-          if (tileIndex === 0 && layerIndex === 0) {
-            this.glPainter.clear();
+        const globalUniforms = this.getTileUniforms(tiles[tileIndex], mapState);
+        const objectsByLayers = this.getRenderObjects(tiles[tileIndex], styles, mapState);
+
+        const renderObjects = (layerIndex: number) => {
+          if (layerIndex === objectsByLayers.length) {
+            renderTiles(tileIndex + 1);
+            return;
           }
 
-          this.glPainter.draw(objectsByLayers[layerIndex], globalUniforms);
+          this.animationFrameTaskIdSet.add(
+            requestAnimationFrame(() => {
+              if (tileIndex === 0 && layerIndex === 0) {
+              }
 
-          renderObjects(layerIndex + 1);
-        });
+              objects += objectsByLayers[layerIndex].length;
+              this.glPainter.draw(objectsByLayers[layerIndex], globalUniforms);
+
+              renderObjects(layerIndex + 1);
+            })
+          );
+        };
+        renderObjects(0);
       };
-      renderObjects(0);
-    };
 
-    renderTiles(0);
+      renderTiles(0);
+    });
+  }
 
-    return {
-      timeInMs: Date.now() - timeStart,
-      tiles: tiles.length,
-      objects: 0,
-    };
+  public clear() {
+    this.glPainter.clear();
   }
 
   private getTileUniforms(tile: MapTile, mapState: MapState) {

@@ -293,23 +293,19 @@ export class GlideMap {
   public zoomToPoint(newZoom: number, point: LatLng | Point): Promise<void> {
     const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, newZoom);
 
-    if (Math.abs(newZoom - this.state.zoom) > 1) {
-      const currentZoom = this.state.zoom;
-      const diff = newZoom - currentZoom;
-      const animation = new EasyAnimation(
-        this,
-        (progress: number) => {
-          return this.setZoom(currentZoom + diff * progress);
-        },
-        {
-          durationInSec: 0.5,
-        }
-      );
+    const currentZoom = this.state.zoom;
+    const diff = newZoom - currentZoom;
+    const animation = new EasyAnimation(
+      this,
+      (progress: number) => {
+        return this.setZoom(currentZoom + diff * progress);
+      },
+      {
+        durationInSec: 0.5,
+      }
+    );
 
-      return animation.run();
-    }
-
-    return this.setState({ zoom: newZoom, center: newCenter });
+    return animation.run();
   }
 
   public getPixelWorldBounds(zoom?: number, scaleFactor?: number): Bounds {
@@ -496,23 +492,13 @@ export class GlideMap {
     return this.triggerRerender();
   }
 
-  private triggerRerender() {
+  private async triggerRerender() {
     const state = { ...this.state };
 
-    return this.tilesGrid.update(state).then(tiles => {
-      this.renderer.stopRender();
-
-      const renderStats = this.renderer.renderTiles(tiles, this.tileStyles!, state);
-      this.fire(MapEventType.RENDER, renderStats);
-
-      if (this.options.preheatTiles) {
-        this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-          const preheatStats = this.renderer.preheatTiles(tilesToPreheat, this.tileStyles!, state);
-
-          this.fire(MapEventType.PREHEAT, preheatStats);
-        });
-      }
-    });
+    const tiles = await this.tilesGrid.update(state);
+    this.renderer.stopRender();
+    const renderStats = await this.renderer.renderTiles(tiles, this.tileStyles!, state);
+    this.fire(MapEventType.RENDER, renderStats);
   }
 
   public stopRender(): void {

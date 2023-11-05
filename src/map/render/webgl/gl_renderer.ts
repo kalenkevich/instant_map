@@ -62,61 +62,55 @@ export class GlMapRenderer extends MapRenderer {
     }
   }
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
-    const timeStart = Date.now();
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): Promise<GlRenderStats> {
+    let objects = 0;
 
-    const renderTiles = (tileIndex: number) => {
-      if (tileIndex > 1) {
-        return;
-      }
+    return new Promise(resolve => {
+      const timeStart = Date.now();
 
-      const glProgramsByLayer = this.getRenderPrograms(tiles[tileIndex], styles, mapState);
-      const renderObjects = (layerIndex: number) => {
-        if (layerIndex === glProgramsByLayer.length) {
-          renderTiles(tileIndex + 1);
+      const renderTiles = (tileIndex: number) => {
+        if (tileIndex > 1) {
+          resolve({
+            timeInMs: Date.now() - timeStart,
+            tiles: tiles.length,
+            objects,
+          });
           return;
         }
 
-        requestAnimationFrame(() => {
-          if (tileIndex === 0 && layerIndex === 0) {
-            this.glPainter.clear();
+        const glProgramsByLayer = this.getRenderPrograms(tiles[tileIndex], styles, mapState);
+
+        const renderObjects = (layerIndex: number) => {
+          if (layerIndex === glProgramsByLayer.length) {
+            renderTiles(tileIndex + 1);
+            return;
           }
 
-          this.glPainter.draw(glProgramsByLayer[layerIndex]);
+          requestAnimationFrame(() => {
+            if (tileIndex === 0 && layerIndex === 0) {
+              this.glPainter.clear();
+            }
 
-          renderObjects(layerIndex + 1);
-        });
+            objects += glProgramsByLayer[layerIndex].length;
+            this.glPainter.draw(glProgramsByLayer[layerIndex]);
+
+            renderObjects(layerIndex + 1);
+          });
+        };
+        renderObjects(0);
       };
-      renderObjects(0);
-    };
-    renderTiles(0);
-
-    return {
-      timeInMs: Date.now() - timeStart,
-      tiles: tiles.length,
-      objects: 0,
-    };
-  }
-
-  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): GlRenderStats {
-    const timeStart = Date.now();
-
-    let objects: number = 0;
-    for (const tile of tiles) {
-      objects += this.preheatTile(tile, styles, mapState).length;
-    }
-
-    return {
-      timeInMs: Date.now() - timeStart,
-      tiles: tiles.length,
-      objects,
-    };
+      renderTiles(0);
+    });
   }
 
   public stopRender(): void {
     for (const taskId of this.animationFrameTaskIdSet) {
       cancelAnimationFrame(taskId);
     }
+  }
+
+  public clear() {
+    this.glPainter.clear();
   }
 
   protected createCanvasEl(): HTMLCanvasElement {
@@ -133,10 +127,6 @@ export class GlMapRenderer extends MapRenderer {
     this.resolution = [width, height];
 
     return canvas;
-  }
-
-  private preheatTile(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[] {
-    return [];
   }
 
   private getRenderPrograms(tile: MapTile, styles: DataTileStyles, mapState: MapState): GlProgram[][] {

@@ -23,9 +23,9 @@ export abstract class MapRenderer {
 
   public abstract init(): void;
 
-  public abstract renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats;
+  public abstract renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): Promise<RenderStats>;
 
-  public abstract preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats;
+  public abstract clear(): void;
 
   public abstract stopRender(): void;
 

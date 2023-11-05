@@ -48,28 +48,23 @@ export class PngMapRenderer extends MapRenderer {
     return div;
   }
 
-  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats {
-    const timeStart = Date.now();
+  public renderTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): Promise<RenderStats> {
+    return new Promise(resolve => {
+      const timeStart = Date.now();
 
-    for (const image of this.images) {
-      image.style.display = 'none';
-    }
+      for (const image of this.images) {
+        image.style.display = 'none';
+      }
 
-    for (let i = 0; i < tiles.length; i++) {
-      this.renderTile(tiles[i] as PngMapTile, i, mapState);
-    }
+      for (let i = 0; i < tiles.length; i++) {
+        this.renderTile(tiles[i] as PngMapTile, i, mapState);
+      }
 
-    return {
-      timeInMs: Date.now() - timeStart,
-      tiles: tiles.length,
-    };
-  }
-
-  public preheatTiles(tiles: MapTile[], styles: DataTileStyles, mapState: MapState): RenderStats {
-    return {
-      timeInMs: 0,
-      tiles: tiles.length,
-    };
+      resolve({
+        timeInMs: Date.now() - timeStart,
+        tiles: tiles.length,
+      });
+    });
   }
 
   public stopRender(): void {
@@ -77,6 +72,8 @@ export class PngMapRenderer extends MapRenderer {
       cancelAnimationFrame(taskId);
     }
   }
+
+  public clear() {}
 
   private renderTile(tile: PngMapTile, tileIndex: number, mapState: MapState) {
     if (!tile.isReady()) {

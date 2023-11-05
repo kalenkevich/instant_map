@@ -31,11 +31,6 @@ export interface MapOptions {
   /** When `true` then map will listen for `rootEl` width/height changes. */
   resizable?: boolean;
   /**
-   * @deprecated
-   * Used to preheat tile data. Should not be used as it consume a lot of memory.
-   */
-  preheatTiles?: boolean;
-  /**
    * Map control configuration.
    * Provide `true` or `false` to show/hide map control on UI.
    */
