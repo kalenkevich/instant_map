@@ -1,4 +1,4 @@
-import { MapTile, MapTileFormatType } from '../../tile/tile';
+import { MapTileId, MapTile, MapTileFormatType } from '../../tile/tile';
 import { PngMapTile } from '../../tile/png/png_tile';
 import { MapState } from '../../map_state';
 import { MapEventType } from '../../map';
@@ -7,8 +7,11 @@ import { GlMapRenderer, GlRenderStats } from '../webgl/gl_renderer';
 import { WebGl2Painter } from '../../../webgl_v2/painter';
 import { WebGl2Object } from '../../../webgl_v2/objects/object';
 import { getLayerGl2Objects } from './webgl_v2_render_utils';
+import { LRUCache } from '../../utils/lru_cache';
 
 export class Gl2MapRenderer extends GlMapRenderer {
+  renderTileCache: LRUCache<MapTileId, WebGl2Object[][]> = new LRUCache<MapTileId, WebGl2Object[][]>(32);
+
   public init() {
     this.canvasEl = this.createCanvasEl();
     this.glPainter = new WebGl2Painter(this.canvasEl, this.devicePixelRatio);
@@ -46,6 +49,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
           this.animationFrameTaskIdSet.add(
             requestAnimationFrame(() => {
               if (tileIndex === 0 && layerIndex === 0) {
+                this.glPainter.clear();
               }
 
               objects += objectsByLayers[layerIndex].length;
@@ -80,11 +84,21 @@ export class Gl2MapRenderer extends GlMapRenderer {
   }
 
   private getRenderObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[][] {
-    if (tile.formatType === MapTileFormatType.png) {
-      return this.getImageObjects(tile as PngMapTile, mapState);
+    if (this.renderTileCache.has(tile.id)) {
+      return this.renderTileCache.get(tile.id);
     }
 
-    return this.getDataTileObjects(tile, styles, mapState);
+    if (tile.formatType === MapTileFormatType.png) {
+      const objects = this.getImageObjects(tile as PngMapTile, mapState);
+      this.renderTileCache.set(tile.id, objects);
+
+      return objects;
+    }
+
+    const objects = this.getDataTileObjects(tile, styles, mapState);
+    this.renderTileCache.set(tile.id, objects);
+
+    return objects;
   }
 
   private getDataTileObjects(tile: MapTile, styles: DataTileStyles, mapState: MapState): WebGl2Object[][] {

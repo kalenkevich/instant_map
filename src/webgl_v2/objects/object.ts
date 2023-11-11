@@ -1,6 +1,5 @@
-import { m3 } from '../../webgl/utils/m3';
 import { WebGl2ProgramType, WebGl2ProgramUniforms } from '../programs/program';
-import { GlColor, Mat3, Vector2 } from '../types';
+import { GlColor } from '../types';
 
 export enum PrimitiveType {
   POINTS = 0x0000,
@@ -56,8 +55,17 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
 
   abstract getIndexBuffer(): Uint16Array | undefined;
 
+  protected abstract computeDataBuffer(): number[];
+
   /** Populate buffer bucket with object data based on attrubutes. */
-  abstract getDataBuffer(): number[];
+  private dataBuffer: number[];
+  public getDataBuffer(): number[] {
+    if (this.dataBuffer) {
+      return this.dataBuffer;
+    }
+
+    return (this.dataBuffer = this.computeDataBuffer());
+  }
 
   getTexture(): TexImageSource | undefined {
     return undefined;

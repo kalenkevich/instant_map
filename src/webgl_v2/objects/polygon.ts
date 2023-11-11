@@ -27,7 +27,7 @@ export class WebGl2Polygon extends WebGl2Object<WebGl2CircleAttributes> {
     return new Uint16Array(indexes);
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     return (this.flatPoints = this.attributes.points.flatMap(p => p));
   }
 

@@ -21,7 +21,7 @@ export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     return [...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3];
   }
 

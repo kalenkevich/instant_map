@@ -32,12 +32,13 @@ export class WebGl2Painter {
     const gl = this.gl;
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    this.clear();
-    this.initPrograms();
+    gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
     gl.disable(gl.BLEND);
     gl.depthMask(true);
+    this.clear();
+    this.initPrograms();
   }
 
   public destroy() {}
@@ -50,7 +51,6 @@ export class WebGl2Painter {
   }
 
   public clear() {
-    this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 

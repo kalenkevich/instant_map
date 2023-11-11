@@ -21,7 +21,7 @@ export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     const { center, radius, components } = this.attributes;
     const step = 360 / components;
     const size = (components + 1) * 4;

@@ -37,7 +37,7 @@ export class WebGl2Text extends WebGl2Object<WebGl2Text2Attributes> {
     return new Uint16Array([0, 1, 2, 2, 1, 3]);
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     // const width = 100;
     // const height = 26;
     // return [0, 0, width, 0, 0, height, 0, height, width, 0, width, height];

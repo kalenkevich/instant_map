@@ -21,9 +21,10 @@ export class WebGlPainter {
     addExtensionsToContext(gl);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    this.clear();
+    this.gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
+    this.clear();
   }
 
   public destroy() {}
@@ -35,7 +36,6 @@ export class WebGlPainter {
   }
 
   public clear() {
-    this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 

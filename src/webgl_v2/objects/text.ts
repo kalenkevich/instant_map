@@ -26,7 +26,7 @@ export class WebGl2Text extends WebGl2Object<WebGl2TextAttributes> {
     return this.indices;
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     const { indices, vertices: buffer } = getVerticiesFromText(
       this.attributes.font,
       this.attributes.text,

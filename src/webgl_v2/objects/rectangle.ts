@@ -21,7 +21,7 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     const p1 = this.attributes.p;
 
     return [
@@ -42,9 +42,9 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
 
   getDrawAttributes(): WebGl2ObjectDrawAttrs {
     return {
-      primitiveType: PrimitiveType.TRIANGLES,
+      primitiveType: PrimitiveType.TRIANGLE_STRIP,
       drawType: WebGl2ObjectDrawType.ARRAYS,
-      numElements: 6,
+      numElements: 3,
     };
   }
 }

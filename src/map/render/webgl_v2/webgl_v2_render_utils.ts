@@ -36,10 +36,7 @@ export const getLayerGl2Objects = (props: LayerGl2ObjectsProps): WebGl2Object[] 
 
   const objects: WebGl2Object[] = [];
   const backgroundPrograms = getLayerBackground(props);
-
-  if (backgroundPrograms.length) {
-    objects.push(...backgroundPrograms);
-  }
+  objects.push(...backgroundPrograms);
 
   for (const feature of props.layer.getFeatures()) {
     const featureGlGrograms = getFeatureGl2Objects(feature, props);
@@ -66,10 +63,10 @@ export const getFeatureGl2Objects = (feature: TileFeature, props: LayerGl2Object
       return getPolygonFeatureGl2Objects(feature, props);
     case FeatureStyleType.line:
       return getLineFeatureGl2Objects(feature, props);
+    case FeatureStyleType.text:
+      return getTextFeatureGl2Objects(feature, props);
     case FeatureStyleType.image:
     // return getImageFeatureGl2Objects(feature, props);
-    case FeatureStyleType.text:
-    // return getTextFeatureGl2Objects(feature, props);
     default:
       // console.info(`${featureStyle.type} is not supported by WebGL2 rendrer.`);
       return [];

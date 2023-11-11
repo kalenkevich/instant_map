@@ -28,7 +28,7 @@ export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
     return undefined;
   }
 
-  getDataBuffer(): number[] {
+  protected computeDataBuffer(): number[] {
     return this.attributes.points.flatMap(p => p);
   }
 
