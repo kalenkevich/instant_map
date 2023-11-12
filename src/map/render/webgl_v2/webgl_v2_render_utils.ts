@@ -13,8 +13,8 @@ import { WebGl2Circle } from '../../../webgl_v2/objects/circle';
 import { WebGl2Line } from '../../../webgl_v2/objects/line';
 import { WebGl2Polygon } from '../../../webgl_v2/objects/polygon';
 import { WebGl2Rectangle } from '../../../webgl_v2/objects/rectangle';
-import { WebGl2Text } from '../../../webgl_v2/objects/text';
-// import { WebGl2Text } from '../../../webgl_v2/objects/text_v2';
+// import { WebGl2Text } from '../../../webgl_v2/objects/text';
+import { WebGl2Text } from '../../../webgl_v2/objects/text_v2';
 
 export const GL_COLOR_BLACK: Vector4 = [0, 0, 0, 1];
 export const GL_COLOR_WHITE: Vector4 = [1, 1, 1, 1];

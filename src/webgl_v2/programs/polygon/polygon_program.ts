@@ -27,7 +27,6 @@ export class WebGl2PolygonProgram extends WebGl2DefaultProgram {
    * @param bufferData buffer data to be binded.
    */
   setDataBuffer(data: Float32Array) {
-    this.gl.bindVertexArray(this.vao);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
   }

@@ -7,7 +7,7 @@ uniform mat3 u_matrix;
 
 // all shaders have a main function
 void main() {
-    // Apply translation, rotation and scale.
+  // Apply translation, rotation and scale.
   vec2 position = (u_matrix * vec3(a_position, 1)).xy;
   
   // Apply resolution.

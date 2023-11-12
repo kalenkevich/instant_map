@@ -44,7 +44,7 @@ export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
     return {
       primitiveType: PrimitiveType.TRIANGLE_STRIP,
       drawType: WebGl2ObjectDrawType.ARRAYS,
-      numElements: 3,
+      numElements: 4,
     };
   }
 }

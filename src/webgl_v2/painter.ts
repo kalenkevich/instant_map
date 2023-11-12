@@ -33,10 +33,11 @@ export class WebGl2Painter {
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0, 0, 0, 0);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.FRONT);
-    gl.disable(gl.BLEND);
-    gl.depthMask(true);
+
+    // gl.enable(gl.BLEND);
+    // gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    // gl.depthMask(false);
+
     this.clear();
     this.initPrograms();
   }
@@ -129,7 +130,6 @@ export class WebGl2Painter {
       } else if (drawType === WebGl2ObjectDrawType.ELEMENTS_INSTANCED) {
         gl.drawElementsInstanced(primitiveType, numElements, gl.UNSIGNED_SHORT, 0, instanceCount);
       }
-      // gl.flush();
     }
   }
 

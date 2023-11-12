@@ -82,6 +82,11 @@ export abstract class WebGl2Program {
   abstract allocateBuffer(): void;
 
   use(): void {
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.cullFace(this.gl.FRONT);
+    this.gl.disable(this.gl.BLEND);
+    this.gl.depthMask(true);
+
     this.gl.useProgram(this.program);
 
     if (this.vao) {
