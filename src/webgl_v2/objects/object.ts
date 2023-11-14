@@ -53,7 +53,9 @@ export abstract class WebGl2Object<AttributesType extends WebGl2ObjectAttributes
     };
   }
 
-  abstract getIndexBuffer(): Uint16Array | undefined;
+  getIndexBuffer(): Uint16Array | undefined {
+    return undefined;
+  }
 
   protected abstract computeDataBuffer(): number[];
 

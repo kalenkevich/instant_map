@@ -32,7 +32,7 @@ export class Gl2MapRenderer extends GlMapRenderer {
       const timeStart = Date.now();
 
       const renderTiles = (tileIndex: number) => {
-        if (tileIndex > 0) {
+        if (tileIndex > 1) {
           resolve({
             timeInMs: Date.now() - timeStart,
             tiles: tiles.length,

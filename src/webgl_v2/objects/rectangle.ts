@@ -17,10 +17,6 @@ export interface WebGl2RectangleAttributes extends WebGl2ObjectAttributes {
 export class WebGl2Rectangle extends WebGl2Object<WebGl2RectangleAttributes> {
   programType = WebGl2ProgramType.default;
 
-  getIndexBuffer(): Uint16Array | undefined {
-    return undefined;
-  }
-
   protected computeDataBuffer(): number[] {
     const p1 = this.attributes.p;
 

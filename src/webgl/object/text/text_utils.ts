@@ -113,7 +113,7 @@ export const getVerticiesFromText = (font: Font, text: string, p: v2, fontSize: 
   const root = [];
   const indices: number[] = [];
   const size = getTextRectangleSize(font, text, p, fontSize);
-  const path = font.getPath(text, p[0] - size.width / 2, p[1] + size.height * 2, fontSize);
+  const path = font.getPath(text, p[0] - size.width / 2, p[1], fontSize);
 
   path.commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
     switch (type) {

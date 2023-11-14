@@ -17,10 +17,6 @@ export interface WebGl2CircleAttributes extends WebGl2ObjectAttributes {
 export class WebGl2Circle extends WebGl2Object<WebGl2CircleAttributes> {
   programType = WebGl2ProgramType.default;
 
-  getIndexBuffer(): Uint16Array | undefined {
-    return undefined;
-  }
-
   protected computeDataBuffer(): number[] {
     const { center, radius, components } = this.attributes;
     const step = 360 / components;

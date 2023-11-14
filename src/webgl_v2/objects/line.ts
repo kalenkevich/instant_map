@@ -24,10 +24,6 @@ export class WebGl2Line extends WebGl2Object<WebGl2LineAttributes> {
     };
   }
 
-  getIndexBuffer(): Uint16Array | undefined {
-    return undefined;
-  }
-
   protected computeDataBuffer(): number[] {
     return this.attributes.points.flatMap(p => p);
   }

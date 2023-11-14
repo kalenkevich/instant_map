@@ -24,7 +24,7 @@ export interface TilesGridOptions {
 export class TilesGrid {
   map: GlideMap;
   tileFormatType: MapTileFormatType;
-  tilesCache: LRUCache<MapTileId, MapTile> = new LRUCache<MapTileId, MapTile>(16);
+  tilesCache: LRUCache<MapTileId, MapTile> = new LRUCache<MapTileId, MapTile>(64);
   renderedTiles: Array<MapTile> = [];
   tilesMeta: MapTilesMeta;
   devicePixelRatio: number;

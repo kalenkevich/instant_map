@@ -1,6 +1,6 @@
 import VERTEX_SHADER from './text_program_vs.glsl';
 import FRAGMENT_SHADER from './text_program_fs.glsl';
-import { WebGl2Program, WebGl2ProgramGlobalUniforms } from '../program';
+import { WebGl2Program } from '../program';
 
 export class WebGl2TextProgram extends WebGl2Program {
   protected positionBuffer: WebGLBuffer;
@@ -58,7 +58,8 @@ export class WebGl2TextProgram extends WebGl2Program {
   }
 
   locateUniforms() {
-    super.locateUniforms();
+    this.u_resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+    this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
   }
 
@@ -81,6 +82,10 @@ export class WebGl2TextProgram extends WebGl2Program {
   }
 
   setTexture(texture: TexImageSource) {
+    if (!texture) {
+      return;
+    }
+
     const gl = this.gl;
     const textTex = this.gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, textTex);

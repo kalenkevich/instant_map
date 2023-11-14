@@ -17,10 +17,6 @@ export interface WebGl2TriangleAttributes extends WebGl2ObjectAttributes {
 export class WebGl2Triangle extends WebGl2Object<WebGl2TriangleAttributes> {
   programType = WebGl2ProgramType.default;
 
-  getIndexBuffer(): Uint16Array | undefined {
-    return undefined;
-  }
-
   protected computeDataBuffer(): number[] {
     return [...this.attributes.p1, ...this.attributes.p2, ...this.attributes.p3];
   }

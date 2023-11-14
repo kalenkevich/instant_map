@@ -58,7 +58,11 @@ export class WebGl2Text extends WebGl2Object<WebGl2Text2Attributes> {
     ];
   }
 
-  getTexture(): TexImageSource {
+  getTexture(): TexImageSource | undefined {
+    if (!this.attributes.text) {
+      return undefined;
+    }
+
     const { width, height } = this.getTextDimentions();
 
     return makeTextCanvas(this.attributes, width, height);

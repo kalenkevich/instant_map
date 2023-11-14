@@ -147,8 +147,12 @@ export const getLineFeatureGlProgram = (feature: TileFeature, props: LayerGlProg
 };
 
 export const getPolygonFeatureGlProgram = (feature: TileFeature, props: LayerGlProgramsProps): GlProgram[] => {
-  const featureStyle = feature.getStyles()! as LineStyle;
   const geojsonFeature = feature.getGeoJsonFeature();
+  if (geojsonFeature.geometry.type !== 'Polygon') {
+    return [];
+  }
+
+  const featureStyle = feature.getStyles()! as LineStyle;
   const color = featureStyle.color ? getGlColor(compileStatement(featureStyle.color, geojsonFeature)) : GL_COLOR_BLACK;
 
   const programs: GlProgram[] = [];
