@@ -6,7 +6,7 @@ export class ZoomControl extends MapControl {
   private plusButton: HTMLButtonElement;
   private minusButton: HTMLButtonElement;
 
-  private zoomStep = 1;
+  private zoomStep = 0.5;
   private debounceTimeMs = 0;
 
   public init(): void {
@@ -19,11 +19,9 @@ export class ZoomControl extends MapControl {
 
     this.plusButton.onclick = throttle(() => {
       this.map.zoomToPoint(this.map.getZoom() + this.zoomStep, this.map.getCenter());
-      // this.map.setZoom(this.map.getZoom() + this.zoomStep);
     }, this.debounceTimeMs);
     this.minusButton.onclick = throttle(() => {
       this.map.zoomToPoint(this.map.getZoom() - this.zoomStep, this.map.getCenter());
-      // this.map.setZoom(this.map.getZoom() - this.zoomStep);
     }, this.debounceTimeMs);
 
     this.parentEl.appendChild(this.plusButton);
