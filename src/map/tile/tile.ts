@@ -74,21 +74,4 @@ export abstract class MapTile implements MapTileOptions {
   abstract getLayers(): TileLayers;
   abstract resetState(tileState: MapTileOptions): void;
   abstract download(): Promise<void>;
-
-  private renderingCache?: RenderingCache;
-  public hasRenderingCache(): boolean {
-    return !!this.renderingCache;
-  }
-
-  public getRenderingCache() {
-    return this.renderingCache;
-  }
-
-  public setRenderingCache(cache: RenderingCache) {
-    this.renderingCache = cache;
-  }
-
-  public pruneRenderingCache(): void {
-    this.renderingCache = undefined;
-  }
 }

@@ -2,21 +2,27 @@ import { JSDOM } from 'jsdom';
 import { describe, expect, it, jest } from '@jest/globals';
 import { GlideMap } from '../../../../src/map/map';
 import { ZoomControl } from '../../../../src/map/controls/zoom_control';
+import { LatLng } from '../../../../src/map/geo/lat_lng';
 
 describe('ZoomControl', () => {
   let document: Document;
   let fakeMap: GlideMap;
   let rootEl: HTMLElement;
+  const mapCenter = new LatLng(0, 0);
 
   beforeEach(() => {
     document = new JSDOM('<!DOCTYPE html><html><body></body></html>').window.document;
     rootEl = document.body;
     fakeMap = {
       zoom: 0,
+      getCenter() {
+        return mapCenter;
+      },
+      zoomToPoint() {},
       setZoom() {},
       getZoom() {
         return Promise.resolve();
-      }
+      },
     } as unknown as GlideMap;
   });
 
@@ -40,8 +46,8 @@ describe('ZoomControl', () => {
     expect(rootElRemoveChild).toBeCalled();
   });
 
-  it('should increase map zoom on +0.2 on "zoom in" button click.', () => {
-    const setZoomSpy = jest.spyOn(fakeMap, 'setZoom').mockReturnValue(Promise.resolve());
+  it('should increase map zoom on +0.5 on "zoom in" button click.', () => {
+    const zoomToPointSpy = jest.spyOn(fakeMap, 'zoomToPoint').mockReturnValue(Promise.resolve());
     const getZoomSpy = jest.spyOn(fakeMap, 'getZoom').mockReturnValue(0);
     const zoomControl = new ZoomControl(fakeMap, document);
 
@@ -52,21 +58,21 @@ describe('ZoomControl', () => {
     plusZoomButton.click();
 
     expect(getZoomSpy).toBeCalled();
-    expect(setZoomSpy).toBeCalledWith(0.2);
+    expect(zoomToPointSpy.mock.calls[0][0]).toEqual(0.5);
   });
 
-  it('should decrease map zoom on -0.2 on "zoom out" button click.', () => {
-    const setZoomSpy = jest.spyOn(fakeMap, 'setZoom').mockReturnValue(Promise.resolve());
-    const getZoomSpy = jest.spyOn(fakeMap, 'getZoom').mockReturnValue(1);
+  it('should decrease map zoom on -0.5 on "zoom out" button click.', () => {
+    const zoomToPointSpy = jest.spyOn(fakeMap, 'zoomToPoint').mockReturnValue(Promise.resolve());
+    const getZoomSpy = jest.spyOn(fakeMap, 'getZoom').mockReturnValue(2);
     const zoomControl = new ZoomControl(fakeMap, document);
 
     zoomControl.init();
     zoomControl.attach(rootEl);
 
-    const munusZoomButton: HTMLButtonElement = document.querySelector('.zoom-minus');
-    munusZoomButton.click();
+    const minusZoomButton: HTMLButtonElement = document.querySelector('.zoom-minus');
+    minusZoomButton.click();
 
     expect(getZoomSpy).toBeCalled();
-    expect(setZoomSpy).toBeCalledWith(0.8);
+    expect(zoomToPointSpy.mock.calls[0][0]).toEqual(1.5);
   });
 });

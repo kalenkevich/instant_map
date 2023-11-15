@@ -58,6 +58,7 @@ export interface BufferAttrs {
     divisor?: number;
   };
   numElements: number;
+  indices?: number[];
   offset?: number;
   instanceCount?: number;
 }
@@ -218,6 +219,7 @@ export abstract class GlProgram {
         gl.drawElements(primitiveType, bufferAttrs.numElements, gl.UNSIGNED_SHORT, offset);
       }
     }
+    gl.flush();
   }
 
   public vertexShaderSource = `
@@ -298,6 +300,7 @@ export abstract class GlProgram {
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, buffers.a_position.data, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(this.a_positionLocation);
     gl.vertexAttribPointer(this.a_positionLocation, buffers.a_position.numComponents, gl.FLOAT, true, 8, 0);
   }
 

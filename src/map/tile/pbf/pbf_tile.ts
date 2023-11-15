@@ -18,7 +18,7 @@ export class PbfMapTile extends MapTile {
   tileCoords: TileCoordinate;
   devicePixelRatio: number;
   tilesMeta: MapTilesMeta;
-  tileStyles?: DataTileStyles;
+  tileStyles: DataTileStyles;
 
   private tileData?: VectorTile;
   private isDataLoading: boolean = false;

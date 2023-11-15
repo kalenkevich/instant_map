@@ -9,7 +9,9 @@ export class WebGlPainter {
 
   constructor(private readonly canvas: HTMLCanvasElement, private readonly devicePixelRatio: number) {
     this.gl = canvas.getContext('webgl', {
+      antialias: true,
       powerPreference: 'high-performance',
+      preserveDrawingBuffer: true,
     });
   }
 
@@ -17,9 +19,11 @@ export class WebGlPainter {
     const gl = this.gl;
 
     addExtensionsToContext(gl);
-    this.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement, this.devicePixelRatio);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+    this.gl.clearColor(0, 0, 0, 0);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
     this.clear();
   }
 
@@ -28,12 +32,10 @@ export class WebGlPainter {
   public resize(w: number, h: number) {
     const gl = this.gl;
 
-    this.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement, this.devicePixelRatio);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   }
 
   public clear() {
-    this.gl.clearColor(0, 0, 0, 0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
@@ -47,19 +49,5 @@ export class WebGlPainter {
     for (const program of programs) {
       program.draw(gl, this.programInfoCache);
     }
-  }
-
-  private resizeCanvasToDisplaySize(canvas: HTMLCanvasElement, multiplier: number) {
-    const width = (canvas.clientWidth * multiplier) | 0;
-    const height = (canvas.clientHeight * multiplier) | 0;
-
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-
-      return true;
-    }
-
-    return false;
   }
 }

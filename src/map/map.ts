@@ -14,6 +14,7 @@ import { EasyAnimation } from './animation/easy_animation';
 import { DragEventHandler } from './events/drag_event_handler';
 import { MapRendererType } from './render/renderer';
 import { GlMapRenderer } from './render/webgl/gl_renderer';
+import { Gl2MapRenderer } from './render/webgl_v2/webgl_v2_renderer';
 import { PngMapRenderer } from './render/png/png_renderer';
 import { MapTileFormatType } from './tile/tile';
 import { MapControl } from './controls/map_control';
@@ -292,23 +293,19 @@ export class GlideMap {
   public zoomToPoint(newZoom: number, point: LatLng | Point): Promise<void> {
     const newCenter = point instanceof LatLng ? point : this.getLatLngFromPoint(point, newZoom);
 
-    if (Math.abs(newZoom - this.state.zoom) > 1) {
-      const currentZoom = this.state.zoom;
-      const diff = newZoom - currentZoom;
-      const animation = new EasyAnimation(
-        this,
-        (progress: number) => {
-          return this.setZoom(currentZoom + diff * progress);
-        },
-        {
-          durationInSec: 0.5,
-        }
-      );
+    const currentZoom = this.state.zoom;
+    const diff = newZoom - currentZoom;
+    const animation = new EasyAnimation(
+      this,
+      (progress: number) => {
+        return this.setZoom(currentZoom + diff * progress);
+      },
+      {
+        durationInSec: 0.5,
+      }
+    );
 
-      return animation.run();
-    }
-
-    return this.setState({ zoom: newZoom, center: newCenter });
+    return animation.run();
   }
 
   public getPixelWorldBounds(zoom?: number, scaleFactor?: number): Bounds {
@@ -495,23 +492,13 @@ export class GlideMap {
     return this.triggerRerender();
   }
 
-  private triggerRerender() {
+  private async triggerRerender() {
     const state = { ...this.state };
 
-    return this.tilesGrid.update(state).then(tiles => {
-      this.renderer.stopRender();
-
-      const renderStats = this.renderer.renderTiles(tiles, this.tileStyles!, state);
-      this.fire(MapEventType.RENDER, renderStats);
-
-      if (this.options.preheatTiles) {
-        this.tilesGrid.getTilesToPreheat(state).then(tilesToPreheat => {
-          const preheatStats = this.renderer.preheatTiles(tilesToPreheat, this.tileStyles!, state);
-
-          this.fire(MapEventType.PREHEAT, preheatStats);
-        });
-      }
-    });
+    const tiles = await this.tilesGrid.update(state);
+    this.renderer.stopRender();
+    const renderStats = await this.renderer.renderTiles(tiles, this.tileStyles!, state);
+    this.fire(MapEventType.RENDER, renderStats);
   }
 
   public stopRender(): void {
@@ -573,6 +560,10 @@ export const getRenderer = (map: GlideMap, renderer: MapRendererType | MapRender
 
   if (type === MapRendererType.webgl) {
     return new GlMapRenderer(map, map.devicePixelRatio);
+  }
+
+  if (type === MapRendererType.webgl2) {
+    return new Gl2MapRenderer(map, map.devicePixelRatio);
   }
 
   if (type === MapRendererType.png) {

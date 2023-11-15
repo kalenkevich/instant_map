@@ -83,6 +83,7 @@ export class WebGlImage extends GlProgram {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
     gl.drawArrays(gl.TRIANGLES, bufferAttrs.offset || 0, bufferAttrs.numElements);
+    gl.flush();
   }
 
   public getBufferAttrs(gl: WebGLRenderingContext): BufferAttrs {

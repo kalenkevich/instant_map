@@ -26,7 +26,17 @@ export const ButtonMapOptions: ButtonOption[] = [
     id: 'webgl_vt_maptiler',
     renderer: MapRendererType.webgl,
     resizable: true,
-    preheatTiles: false,
+    tileMetaUrl: MAPTILER_VT_META_URL,
+    styles: VectorStyles,
+    controls: {
+      debug: !isTestEnv,
+    },
+  },
+  {
+    name: 'VT webgl2 maptiler',
+    id: 'webgl2_vt_maptiler',
+    renderer: MapRendererType.webgl2,
+    resizable: true,
     tileMetaUrl: MAPTILER_VT_META_URL,
     styles: VectorStyles,
     controls: {

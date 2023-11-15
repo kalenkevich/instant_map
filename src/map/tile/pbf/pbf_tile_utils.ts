@@ -4,6 +4,7 @@ import { DataLayerStyle, DataTileStyles } from '../../styles/styles';
 import { TileLayers } from '../tile';
 import { TileLayer } from '../tile_layer';
 import { v2 } from '../../../webgl';
+import { simplify } from './simplify';
 
 enum VectorTileFeatureType {
   Unknown = 0,
@@ -12,7 +13,11 @@ enum VectorTileFeatureType {
   Polygon = 3,
 }
 
-export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles): TileLayers {
+export function getTileLayers(
+  tileData: VectorTile,
+  tileStyles: DataTileStyles,
+  simplifyGeometry: boolean = false
+): TileLayers {
   if (!tileData) {
     return {};
   }
@@ -29,7 +34,7 @@ export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles):
 
     const features: Feature<Point | MultiLineString | Polygon>[] = [];
     for (let i = 0; i < layer.length; i++) {
-      features.push(getGeoJsonFeatureFromVectorTile(layer.feature(i)));
+      features.push(getGeoJsonFeatureFromVectorTile(layer.feature(i), simplifyGeometry));
     }
 
     tileLayersMap[styleLayer.styleLayerName] = new TileLayer({
@@ -44,18 +49,22 @@ export function getTileLayers(tileData: VectorTile, tileStyles: DataTileStyles):
 }
 
 export const getGeoJsonFeatureFromVectorTile = (
-  vectorTileFeature: VectorTileFeature
+  vectorTileFeature: VectorTileFeature,
+  simplifyGeometry: boolean
 ): Feature<Point | MultiLineString | Polygon> => {
   return {
     id: vectorTileFeature.id,
     type: 'Feature',
     bbox: vectorTileFeature.bbox(),
-    geometry: getVectorTileGeometry(vectorTileFeature),
+    geometry: getVectorTileGeometry(vectorTileFeature, simplifyGeometry),
     properties: vectorTileFeature.properties,
   };
 };
 
-export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Point | MultiLineString | Polygon => {
+export const getVectorTileGeometry = (
+  vectorTileFeature: VectorTileFeature,
+  simplifyGeometry: boolean
+): Point | MultiLineString | Polygon => {
   const geometry = vectorTileFeature.loadGeometry();
 
   if (vectorTileFeature.type === VectorTileFeatureType.Point) {
@@ -77,7 +86,7 @@ export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Poi
         newLine.push([point.x, point.y]);
       }
 
-      lines.push(newLine);
+      lines.push(simplifyGeometry ? (simplify(newLine, 10, false) as v2[]) : newLine);
     }
 
     return {
@@ -96,7 +105,7 @@ export const getVectorTileGeometry = (vectorTileFeature: VectorTileFeature): Poi
         newRing.push([point.x, point.y]);
       }
 
-      rings.push(newRing);
+      rings.push(simplifyGeometry ? (simplify(newRing, 10, true) as v2[]) : newRing);
     }
 
     return {
