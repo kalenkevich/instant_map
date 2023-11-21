@@ -3,60 +3,12 @@ import tilebelt from '@mapbox/tilebelt';
 import { vec3, mat3 } from 'gl-matrix';
 import Stats from 'stats.js';
 import { createShader, createProgram, getPrimitiveType } from './utils/webgl-utils';
-import { fetchTile, geometryToVertices } from './utils/map-utils';
+import { geometryToVertices } from './utils/map-utils';
 import MercatorCoordinate from './utils/mercator-coordinate';
 import { MapParentControl, MapControlPosition } from '../map/controls/parent_control';
 import { CompassControl } from '../map/controls/compass_control';
 import { ZoomControl } from '../map/controls/zoom_control';
 import { EasyAnimation } from '../map/animation/easy_animation';
-
-// import { MapCamera } from './camera/map_camera';
-// import { Point } from './geometry/point';
-// import { toPoint } from './geometry/point_utils';
-// import { Bounds } from './geometry/bounds';
-// import { MercatorProjection } from './geo/projection/mercator_projection';
-// import { LngLat } from './geo/lng_lat';
-// import { toLngLat } from './geo/lng_lat_utils';
-// import { Projection } from './geo/projection/projection';
-
-// export class GlideMapV2Props {
-//   rootEl: HTMLElement;
-//   center?: LngLat | [number, number] | [number, number, number];
-//   zoom?: number;
-//   projection?: Projection;
-//   tileSize?: number;
-//   devicePixelRatio?: number;
-// }
-
-// export class GlideMapV2 {
-//   private readonly rootEl: HTMLElement;
-//   private readonly tileSize: number;
-//   private readonly camera: MapCamera;
-//   private readonly projection: Projection;
-
-//   constructor(props: GlideMapV2Props) {
-//     this.rootEl = props.rootEl;
-
-//     const width = this.rootEl.clientWidth;
-//     const height = this.rootEl.clientHeight;
-
-//     this.tileSize = props.tileSize || 256; // TODO: get it from styles.
-//     this.projection = props.projection || new MercatorProjection();
-
-//     const pixelCenter = this.projection.unproject(toLngLat(props.center || [0, 0]));
-//     this.camera = new MapCamera(pixelCenter, props.zoom || 0, width, height, this.projection, {
-//       tileSize: this.tileSize,
-//     });
-//   }
-
-//   getCamera(): MapCamera {
-//     return this.camera;
-//   }
-
-//   getRootElement(): HTMLElement {
-//     return this.rootEl;
-//   }
-// }
 
 ////////////
 // shaders
@@ -176,12 +128,146 @@ export class RenderQueue {
 
   flush() {
     this.isActive = false;
-    // flush queue
     this.queue = [];
 
     for (const rafId of Object.values(this.rafIds)) {
       cancelAnimationFrame(rafId);
     }
+  }
+}
+
+export class MapCamera {
+  private x: number;
+  private y: number;
+  private zoom: number;
+  private rotationInDegree: number;
+  private width: number;
+  private height: number;
+  private viewProjectionMat: mat3;
+  private pixelRatio: number;
+
+  constructor(
+    [x, y]: [number, number],
+    zoom: number,
+    rotationInDegree: number,
+    width: number,
+    height: number,
+    pixelRatio: number
+  ) {
+    this.x = x;
+    this.y = y;
+    this.zoom = zoom;
+    this.rotationInDegree = rotationInDegree;
+    this.width = width;
+    this.height = height;
+    this.pixelRatio = pixelRatio;
+
+    this.updateProjectionMatrix();
+  }
+
+  public getPosition(): [number, number] {
+    return [this.x, this.y];
+  }
+
+  public setPosition([x, y]: [number, number], zoom?: number) {
+    this.x = x;
+    this.y = y;
+
+    if (zoom !== undefined) {
+      this.zoom = zoom;
+    }
+
+    this.updateProjectionMatrix();
+  }
+
+  public getZoom(): number {
+    return this.zoom;
+  }
+
+  public setZoom(zoom: number) {
+    this.zoom = zoom;
+
+    this.updateProjectionMatrix();
+  }
+
+  public getRotation(): number {
+    return this.rotationInDegree;
+  }
+
+  public setRotation(rotationInDegree: number) {
+    this.rotationInDegree = rotationInDegree;
+
+    this.updateProjectionMatrix();
+  }
+
+  public getProjectionMatrix(): mat3 {
+    return this.viewProjectionMat;
+  }
+
+  public inBoundLimits(position?: [number, number], zoom?: number): boolean {
+    const bbox = this.getBounds(position || [this.x, this.y], zoom || this.zoom);
+
+    return !(bbox[0] <= -180 || bbox[1] <= -85.05 || bbox[2] >= 180 || bbox[3] >= 85.05);
+  }
+
+  public getCurrentBounds() {
+    return this.getBounds([this.x, this.y], this.zoom);
+  }
+
+  public getBounds([x, y]: [number, number], zoom: number) {
+    const zoomScale = Math.pow(2, zoom);
+
+    // undo clip-space
+    const px = (1 + x) / this.pixelRatio;
+    const py = (1 - y) / this.pixelRatio;
+
+    // get world coord in px
+    const wx = px * TILE_SIZE;
+    const wy = py * TILE_SIZE;
+
+    // get zoom px
+    const zx = wx * zoomScale;
+    const zy = wy * zoomScale;
+
+    // get bottom-left and top-right pixels
+    let x1 = zx - this.width / 2;
+    let y1 = zy + this.height / 2;
+    let x2 = zx + this.width / 2;
+    let y2 = zy - this.height / 2;
+
+    // convert to world coords
+    x1 = x1 / zoomScale / TILE_SIZE;
+    y1 = y1 / zoomScale / TILE_SIZE;
+    x2 = x2 / zoomScale / TILE_SIZE;
+    y2 = y2 / zoomScale / TILE_SIZE;
+
+    // get LngLat bounding box
+    const bbox = [
+      MercatorCoordinate.lngFromMercatorX(x1),
+      MercatorCoordinate.latFromMercatorY(y1),
+      MercatorCoordinate.lngFromMercatorX(x2),
+      MercatorCoordinate.latFromMercatorY(y2),
+    ];
+
+    return bbox;
+  }
+
+  private updateProjectionMatrix() {
+    // update camera matrix
+    const zoomScale = 1 / Math.pow(2, this.zoom); // inverted
+    const widthScale = TILE_SIZE / this.width;
+    const heightScale = TILE_SIZE / this.height;
+
+    const cameraMat = mat3.create();
+    mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
+    mat3.scale(cameraMat, cameraMat, [zoomScale / widthScale, zoomScale / heightScale]);
+    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
+
+    // update view projection matrix
+    const mat = mat3.create();
+    const viewMat = mat3.invert(mat3.create(), cameraMat);
+    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
+    this.viewProjectionMat = viewProjectionMat;
   }
 }
 
@@ -191,19 +277,13 @@ export class WebGLMap {
   tiles: Record<string, FeatureSet[]>;
   tilesInView: any[];
   tileWorker: Worker;
-  camera: {
-    x: number;
-    y: number;
-    zoom: number;
-    rotationInDegree: number;
-  };
+  camera: MapCamera;
   pixelRatio: number;
   canvas: HTMLCanvasElement;
   hammer: any;
   positionBuffer: WebGLBuffer;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
-  viewProjectionMat: mat3;
   bufferedTiles: TileRef[];
   startX: number;
   startY: number;
@@ -227,6 +307,7 @@ export class WebGLMap {
     // setup stats for debugging
     this.stats = new Stats();
     this.renderQueue = new RenderQueue();
+    this.pixelRatio = 2;
 
     // init tile fields
     this.tiles = {}; // cached tile data
@@ -235,19 +316,20 @@ export class WebGLMap {
     this.tileWorker.onmessage = this.handleTileWorker;
     this.tileWorker.onerror = this.handleTileWorkerError;
 
-    // setup camera
-    const [x, y] = MercatorCoordinate.fromLngLat(this.mapOptions.center);
-    this.camera = {
-      x,
-      y,
-      zoom: this.mapOptions.zoom,
-      rotationInDegree: 0,
-    };
-    this.pixelRatio = 2;
-    this.resolution = [this.mapOptions.width, this.mapOptions.height];
-
     // setup canvas
     this.setupDOM();
+
+    // setup camera
+    const [x, y] = MercatorCoordinate.fromLngLat(this.mapOptions.center);
+    this.camera = new MapCamera(
+      [x, y],
+      this.mapOptions.zoom,
+      0,
+      this.canvas.width,
+      this.canvas.height,
+      this.pixelRatio
+    );
+    this.resolution = [this.mapOptions.width, this.mapOptions.height];
 
     // setup event handlers
     this.canvas.addEventListener('mousedown', this.handlePan);
@@ -281,10 +363,7 @@ export class WebGLMap {
     this.gl = gl;
     this.program = program;
 
-    // set initial states
-    this.updateMatrix();
-    this.updateTiles();
-    this.renderQueue.render(this.draw);
+    this.rerender();
   }
 
   setOptions = (options = {}) => {
@@ -295,22 +374,26 @@ export class WebGLMap {
   };
 
   getZoom(): number {
-    return this.camera.zoom;
+    return this.camera.getZoom();
   }
 
   getCenter(): [number, number] {
-    return MercatorCoordinate.fromXY([this.camera.x, this.camera.y]);
+    const cameraPosition = this.camera.getPosition();
+
+    return MercatorCoordinate.fromXY(cameraPosition);
   }
 
   zoomToPoint(newZoom: number, center: [number, number]) {
-    const currentZoom = this.camera.zoom;
+    const currentZoom = this.camera.getZoom();
     const diff = newZoom - currentZoom;
 
     const animation = new EasyAnimation(
       (progress: number) => {
-        this.camera.zoom = currentZoom + diff * progress;
+        const nextZoomValue = currentZoom + diff * progress;
 
-        return this.updateMatrix().then(() => this.updateTiles());
+        this.camera.setZoom(nextZoomValue);
+
+        return this.rerender();
       },
       () => {
         this.renderQueue.flush();
@@ -324,40 +407,24 @@ export class WebGLMap {
   }
 
   setRotation(rotationInDegree: number) {
-    this.camera.rotationInDegree = rotationInDegree;
-    this.updateMatrix();
+    this.camera.setRotation(rotationInDegree);
+
+    this.rerender();
   }
 
-  // update map view based camera state
-  updateMatrix = (): Promise<void> => {
-    // update camera matrix
-    const { camera } = this;
-    const zoomScale = 1 / Math.pow(2, camera.zoom); // inverted
-    const widthScale = TILE_SIZE / this.canvas.width;
-    const heightScale = TILE_SIZE / this.canvas.height;
-
-    const cameraMat = mat3.create();
-    mat3.translate(cameraMat, cameraMat, [camera.x, camera.y]);
-    mat3.scale(cameraMat, cameraMat, [zoomScale / widthScale, zoomScale / heightScale]);
-    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * camera.rotationInDegree);
-
-    // update view projection matrix
-    const mat = mat3.create();
-    const viewMat = mat3.invert(mat3.create(), cameraMat);
-    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
-    this.viewProjectionMat = viewProjectionMat;
-
+  rerender(): Promise<void> {
     if (this.mapOptions.debug) {
       this.updateDebugInfo();
     }
 
+    this.updateTiles();
     return this.renderQueue.render(this.draw);
-  };
+  }
 
   updateTiles = () => {
     // update visible tiles based on viewport
-    const bbox = this.getBounds();
-    const z = Math.min(Math.trunc(this.camera.zoom), MAX_TILE_ZOOM);
+    const bbox = this.camera.getCurrentBounds();
+    const z = Math.min(Math.trunc(this.camera.getZoom()), MAX_TILE_ZOOM);
     const minTile = tilebelt.pointToTile(bbox[0], bbox[3], z);
     const maxTile = tilebelt.pointToTile(bbox[2], bbox[1], z);
 
@@ -453,20 +520,17 @@ export class WebGLMap {
   // "mousemove" or "pan"
   handleMove = (moveEvent: MouseEvent) => {
     const [x, y] = this.getClipSpacePosition(moveEvent);
+    const viewProjectionMat = this.camera.getProjectionMatrix();
 
     // compute the previous position in world space
     const [preX, preY] = vec3.transformMat3(
       vec3.create(),
       [this.startX, this.startY, 0],
-      mat3.invert(mat3.create(), this.viewProjectionMat)
+      mat3.invert(mat3.create(), viewProjectionMat)
     );
 
     // compute the new position in world space
-    const [postX, postY] = vec3.transformMat3(
-      vec3.create(),
-      [x, y, 0],
-      mat3.invert(mat3.create(), this.viewProjectionMat)
-    );
+    const [postX, postY] = vec3.transformMat3(vec3.create(), [x, y, 0], mat3.invert(mat3.create(), viewProjectionMat));
 
     // move that amount, because how much the position changes depends on the zoom level
     const deltaX = preX - postX;
@@ -475,27 +539,21 @@ export class WebGLMap {
       return; // abort
     }
 
-    // only update within world limits
-    this.camera.x += deltaX;
-    this.camera.y += deltaY;
+    const cameraPos = this.camera.getPosition();
+    const newX = cameraPos[0] + deltaX;
+    const newY = cameraPos[1] + deltaY;
 
-    // update view matrix
-    this.updateMatrix();
-
-    // prevent further pan if at limits
-    if (this.atLimits()) {
-      this.camera.x -= deltaX; // undo
-      this.camera.y -= deltaY; // undo
-      this.updateMatrix();
-      return; // abort
+    if (!this.camera.inBoundLimits([newX, newY])) {
+      return;
     }
 
-    // update tiles
-    this.updateTiles();
+    this.camera.setPosition([newX, newY]);
 
     // save current pos for next movement
     this.startX = x;
     this.startY = y;
+
+    this.rerender();
   };
 
   // handle dragging the map position (panning)
@@ -536,36 +594,40 @@ export class WebGLMap {
     const [preZoomX, preZoomY] = vec3.transformMat3(
       vec3.create(),
       [x, y, 0],
-      mat3.invert(mat3.create(), this.viewProjectionMat)
+      mat3.invert(mat3.create(), this.camera.getProjectionMatrix())
     );
 
     // update current zoom state
-    const prevZoom = this.camera.zoom;
+    const prevZoom = this.camera.getZoom();
     const zoomDelta = -wheelEvent.deltaY * (1 / 300);
-    this.camera.zoom += zoomDelta;
-    this.camera.zoom = Math.max(this.mapOptions.minZoom, Math.min(this.camera.zoom, this.mapOptions.maxZoom));
-    this.updateMatrix();
+    let newZoom = prevZoom + zoomDelta;
+    newZoom = Math.max(this.mapOptions.minZoom, Math.min(newZoom, this.mapOptions.maxZoom));
 
-    // prevent further zoom if at limits
-    if (this.atLimits()) {
-      this.camera.zoom = prevZoom; // undo
-      this.updateMatrix();
-      return; // abort
+    if (!this.camera.inBoundLimits(this.camera.getPosition(), newZoom)) {
+      return;
     }
+
+    this.camera.setZoom(newZoom);
 
     // get new position after zooming
     const [postZoomX, postZoomY] = vec3.transformMat3(
       vec3.create(),
       [x, y, 0],
-      mat3.invert(mat3.create(), this.viewProjectionMat)
+      mat3.invert(mat3.create(), this.camera.getProjectionMatrix())
     );
 
     // camera needs to be moved the difference of before and after
-    this.camera.x += preZoomX - postZoomX;
-    this.camera.y += preZoomY - postZoomY;
+    const [cameraX, cameraY] = this.camera.getPosition();
+    const newX = cameraX + preZoomX - postZoomX;
+    const newY = cameraY + preZoomY - postZoomY;
 
-    this.updateMatrix();
-    this.updateTiles();
+    if (!this.camera.inBoundLimits([newX, newY], newZoom)) {
+      return;
+    }
+
+    this.camera.setPosition([newX, newY], newZoom);
+
+    this.rerender();
   };
 
   // from a given mouse position on the canvas, return the xy value in clip space
@@ -591,70 +653,9 @@ export class WebGLMap {
     return [clipX, clipY];
   };
 
-  // get latLng bbox for current viewport
-  getBounds = () => {
-    const zoomScale = Math.pow(2, this.camera.zoom);
-
-    // undo clip-space
-    const px = (1 + this.camera.x) / this.pixelRatio;
-    const py = (1 - this.camera.y) / this.pixelRatio;
-    // const px = this.camera.x;
-    // const py = this.camera.y;
-
-    // get world coord in px
-    const wx = px * TILE_SIZE;
-    const wy = py * TILE_SIZE;
-
-    // get zoom px
-    const zx = wx * zoomScale;
-    const zy = wy * zoomScale;
-
-    // get bottom-left and top-right pixels
-    let x1 = zx - this.canvas.width / 2;
-    let y1 = zy + this.canvas.height / 2;
-    let x2 = zx + this.canvas.width / 2;
-    let y2 = zy - this.canvas.height / 2;
-
-    // convert to world coords
-    x1 = x1 / zoomScale / TILE_SIZE;
-    y1 = y1 / zoomScale / TILE_SIZE;
-    x2 = x2 / zoomScale / TILE_SIZE;
-    y2 = y2 / zoomScale / TILE_SIZE;
-
-    // get LngLat bounding box
-    const bbox = [
-      MercatorCoordinate.lngFromMercatorX(x1),
-      MercatorCoordinate.latFromMercatorY(y1),
-      MercatorCoordinate.lngFromMercatorX(x2),
-      MercatorCoordinate.latFromMercatorY(y2),
-    ];
-
-    return bbox;
-  };
-
-  // check if map is at world limits
-  // lng: -180 - 180
-  // lat: -85.05 - 85.05
-  atLimits = () => {
-    const bbox = this.getBounds();
-    return bbox[0] <= -180 || bbox[1] <= -85.05 || bbox[2] >= 180 || bbox[3] >= 85.05;
-  };
-
   // re-draw the scene
   draw = () => {
-    const {
-      gl,
-      program,
-      viewProjectionMat,
-      tilesInView,
-      tiles,
-      mapOptions,
-      overlay,
-      pixelRatio,
-      canvas,
-      stats,
-      resolution,
-    } = this;
+    const { gl, program, tilesInView, tiles, mapOptions, overlay, pixelRatio, canvas, stats, resolution } = this;
 
     // stats reporting
     let start = performance.now();
@@ -667,7 +668,7 @@ export class WebGLMap {
     const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
     const colorLocation = gl.getUniformLocation(program, 'u_color');
     const resulutionLocation = gl.getUniformLocation(program, 'u_resolution');
-    gl.uniformMatrix3fv(matrixLocation, false, viewProjectionMat);
+    gl.uniformMatrix3fv(matrixLocation, false, this.camera.getProjectionMatrix());
     gl.uniform2fv(resulutionLocation, resolution);
 
     // render tiles
@@ -759,7 +760,7 @@ export class WebGLMap {
         const topLeft = tileCoordinates[0][0];
         const [x, y] = MercatorCoordinate.fromLngLat(topLeft as [number, number]);
 
-        const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], viewProjectionMat);
+        const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], this.camera.getProjectionMatrix());
 
         const wx = ((1 + clipX) / pixelRatio) * canvas.width;
         const wy = ((1 - clipY) / pixelRatio) * canvas.height;
@@ -882,7 +883,8 @@ export class WebGLMap {
   };
 
   updateDebugInfo = () => {
-    const { x, y, zoom } = this.camera;
+    const [x, y] = this.camera.getPosition();
+    const zoom = this.camera.getZoom();
     const [lng, lat] = MercatorCoordinate.fromXY([x, y]);
     const text = [`center: [${lng}, ${lat}]`, `zoom: ${zoom}`];
     this.debugInfo.innerHTML = text.join('\n');
