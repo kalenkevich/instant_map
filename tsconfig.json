@@ -8,7 +8,7 @@
     "outDir": "./dist/",
     "noImplicitAny": true,
     "sourceMap": true,
-    "module": "es6",
+    "module": "ES2020",
     "target": "es2015",
     "jsx": "react",
     "allowJs": true,
@@ -19,7 +19,8 @@
       "expect-puppeteer",
       "jest-environment-puppeteer",
       "jest-image-snapshot",
-      "puppeteer"
+      "puppeteer",
+      "hammerjs"
     ]
   }
 }

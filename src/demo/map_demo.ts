@@ -335,7 +335,7 @@ const showMap = (options: ButtonOption[], optionId: string) => {
   syncQueryParamsWithSelectedMap(option.id);
 };
 
-export const renderMapOptions = (options: ButtonOption[]) => {
+export const renderMap = (options: ButtonOption[]) => {
   const startMapViewOptionId = getStartMapViewId();
   const mapViewSelect = createMapViewsSelect();
   const downloadTilesButton = createDownloadTilesButton();
