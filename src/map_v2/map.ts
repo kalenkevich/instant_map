@@ -74,14 +74,57 @@ interface MapOptions {
   tileServerURL: string;
 }
 
-type TileRef = [number, number, number];
+// Evented
+export type EventListener<EventType> = (eventType: EventType, ...eventArgs: any[]) => void;
+export class Evented<EventType> {
+  private eventListeners: Array<{ eventType: EventType; handler: EventListener<EventType>; enabled: boolean }> = [];
 
-interface FeatureSet {
-  layer: string;
-  type: string;
-  vertices: Float32Array;
+  public on(eventType: EventType, handler: EventListener<EventType>): void {
+    this.eventListeners.push({
+      eventType,
+      handler,
+      enabled: true,
+    });
+  }
+
+  public once(eventType: EventType, handler: EventListener<EventType>): void {
+    const onceHandler: EventListener<EventType> = (...eventArgs: any[]) => {
+      this.off(eventType, onceHandler);
+
+      handler(eventType, ...eventArgs);
+    };
+
+    this.eventListeners.push({
+      eventType,
+      handler: onceHandler,
+      enabled: true,
+    });
+  }
+
+  public off(eventType: EventType, handler: EventListener<EventType>) {
+    const index = this.eventListeners.findIndex(l => {
+      return l.eventType === eventType && l.handler === handler;
+    });
+
+    if (index > -1) {
+      this.eventListeners[index].enabled = false;
+    }
+  }
+
+  protected fire(eventType: EventType, ...eventArgs: any[]) {
+    for (const listener of this.eventListeners) {
+      if (!listener.enabled) {
+        continue;
+      }
+
+      if (listener.eventType === eventType || listener.eventType === '*') {
+        listener.handler(eventType, ...eventArgs);
+      }
+    }
+  }
 }
 
+// Render Queue
 type RenderFunc = (...any: []) => any;
 type ResolveFunc = (...any: []) => any;
 export class RenderQueue {
@@ -136,6 +179,7 @@ export class RenderQueue {
   }
 }
 
+// Map Camera
 export class MapCamera {
   private x: number;
   private y: number;
@@ -271,20 +315,177 @@ export class MapCamera {
   }
 }
 
+// TileGrid
+type TileRef = [number, number, number];
+interface FeatureSet {
+  layer: string;
+  type: string;
+  vertices: Float32Array;
+}
+export interface MapTile {
+  ref: TileRef;
+  tileId: string;
+  featureSet: any[];
+}
+export enum TilesGridEvent {
+  TILE_LOADED = 'tileLoaded',
+}
+export class TilesGrid extends Evented<TilesGridEvent> {
+  private tiles: Record<string, FeatureSet[]>;
+  private tilesInView: TileRef[];
+  private tileWorker: Worker;
+  private bufferedTiles: TileRef[];
+  private tileBuffer: number;
+  private tileServerURL: string;
+  private layers: Record<string, [number, number, number, number]>;
+
+  constructor(tileServerURL: string, layers: Record<string, [number, number, number, number]>, tileBuffer: number) {
+    super();
+
+    this.tileServerURL = tileServerURL;
+    this.layers = layers;
+    this.tileBuffer = tileBuffer;
+    // init tile fields
+    this.tiles = {}; // cached tile data
+    this.tilesInView = []; // current visible tiles
+    this.tileWorker = new Worker(new URL('./workers/tile-worker.ts', import.meta.url));
+    this.tileWorker.onmessage = this.handleTileWorker;
+    this.tileWorker.onerror = this.handleTileWorkerError;
+  }
+
+  // update tiles with data from worker
+  private handleTileWorker = (workerEvent: any) => {
+    const { tile, tileData } = workerEvent.data;
+    this.tiles[tile] = tileData;
+
+    this.fire(TilesGridEvent.TILE_LOADED, this.getMapTile(tile));
+  };
+
+  // errors from tile worker
+  private handleTileWorkerError = (error: any) => {
+    console.error('Uncaught worker error.', error);
+  };
+
+  public updateTiles(camera: MapCamera) {
+    // update visible tiles based on viewport
+    const bbox = camera.getCurrentBounds();
+    const z = Math.min(Math.trunc(camera.getZoom()), MAX_TILE_ZOOM);
+    const minTile = tilebelt.pointToTile(bbox[0], bbox[3], z);
+    const maxTile = tilebelt.pointToTile(bbox[2], bbox[1], z);
+
+    // tiles visible in viewport
+    this.tilesInView = [];
+    const [minX, maxX] = [Math.max(minTile[0], 0), maxTile[0]];
+    const [minY, maxY] = [Math.max(minTile[1], 0), maxTile[1]];
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        this.tilesInView.push([x, y, z]);
+      }
+    }
+
+    // get additional tiles to buffer (based on buffer setting)
+    this.bufferedTiles = [];
+    const tileBuffer = this.tileBuffer;
+    for (let bufX = minX - tileBuffer; bufX <= maxX + tileBuffer; bufX++) {
+      for (let bufY = minY - tileBuffer; bufY <= maxY + tileBuffer; bufY++) {
+        this.bufferedTiles.push([bufX, bufY, z]);
+
+        // get parents 2 levels up
+        this.bufferedTiles.push(tilebelt.getParent([bufX, bufY, z]) as TileRef);
+        this.bufferedTiles.push(tilebelt.getParent(tilebelt.getParent([bufX, bufY, z])) as TileRef);
+      }
+    }
+
+    // remove duplicates
+    let tilesToLoad = [
+      ...new Set([...this.tilesInView.map(t => t.join('/')), ...this.bufferedTiles.map(t => t.join('/'))]),
+    ];
+
+    // make sure tiles are in range
+    tilesToLoad = tilesToLoad.filter(tile => {
+      const [x, y, z] = tile.split('/').map(Number);
+      const N = Math.pow(2, z);
+      const validX = x >= 0 && x < N;
+      const validY = y >= 0 && y < N;
+      const validZ = z >= 0 && z <= MAX_TILE_ZOOM;
+      return validX && validY && validZ;
+    });
+    const inViewLookup = new Set(this.tilesInView.map(t => t.join('/')));
+
+    // tile fetching options
+    const { layers, tileServerURL: url } = this;
+
+    // load tiles from tilerServer
+    tilesToLoad.forEach(tile => {
+      if (this.tiles[tile]) {
+        return; // already loaded, no need to fetch
+      }
+      // temp hold for request
+      this.tiles[tile] = [];
+
+      // hand off buffered tiles to worker for fetching & processing
+      this.tileWorker.postMessage({ tile, layers, url });
+    });
+  }
+
+  public getCurrentViewTiles(): MapTile[] {
+    return this.tilesInView.map(tileRef => this.getMapTile(tileRef));
+  }
+
+  private getMapTile(refOrId: TileRef | string): MapTile {
+    let tileId: string;
+    let tileRef: TileRef;
+    if (typeof refOrId === 'string') {
+      tileId = refOrId;
+      tileRef = refOrId.split('/') as unknown as TileRef;
+    } else {
+      tileId = refOrId.join('/');
+      tileRef = refOrId;
+    }
+
+    return {
+      tileId,
+      ref: tileRef,
+      featureSet: this.tiles[tileId],
+    };
+  }
+
+  // if current tile is not loaded, just render scaled versions of parent or children
+  public getPlaceholderTile(tile: TileRef) {
+    // use parent if available
+    const parent = tilebelt.getParent(tile)?.join('/');
+    const parentFeatureSet = this.tiles[parent];
+    if (parentFeatureSet?.length > 0) {
+      return parentFeatureSet;
+    }
+
+    // use whatever children are available
+    const childFeatureSets: any = [];
+    const children = (tilebelt.getChildren(tile) || []).map(t => t.join('/'));
+    children.forEach(child => {
+      const featureSet = this.tiles[child];
+      if (featureSet?.length > 0) {
+        childFeatureSets.push(...featureSet);
+      }
+    });
+
+    return childFeatureSets;
+  }
+}
+
 export class WebGLMap {
   mapOptions: MapOptions;
-  stats: Stats;
-  tiles: Record<string, FeatureSet[]>;
-  tilesInView: any[];
-  tileWorker: Worker;
   camera: MapCamera;
+  renderQueue: RenderQueue;
+  tilesGrid: TilesGrid;
+
+  stats: Stats;
   pixelRatio: number;
   canvas: HTMLCanvasElement;
   hammer: any;
   positionBuffer: WebGLBuffer;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
-  bufferedTiles: TileRef[];
   startX: number;
   startY: number;
   overlay: HTMLElement;
@@ -294,9 +495,6 @@ export class WebGLMap {
     vertices: number;
     elapsed: number;
   };
-
-  renderQueue: RenderQueue;
-  resolution: [number, number];
 
   constructor(options: MapOptions) {
     this.mapOptions = {
@@ -308,13 +506,6 @@ export class WebGLMap {
     this.stats = new Stats();
     this.renderQueue = new RenderQueue();
     this.pixelRatio = 2;
-
-    // init tile fields
-    this.tiles = {}; // cached tile data
-    this.tilesInView = []; // current visible tiles
-    this.tileWorker = new Worker(new URL('./workers/tile-worker.ts', import.meta.url));
-    this.tileWorker.onmessage = this.handleTileWorker;
-    this.tileWorker.onerror = this.handleTileWorkerError;
 
     // setup canvas
     this.setupDOM();
@@ -329,7 +520,11 @@ export class WebGLMap {
       this.canvas.height,
       this.pixelRatio
     );
-    this.resolution = [this.mapOptions.width, this.mapOptions.height];
+
+    this.tilesGrid = new TilesGrid(options.tileServerURL, options.layers, options.tileBuffer || 1);
+    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, () => {
+      this.rerender();
+    });
 
     // setup event handlers
     this.canvas.addEventListener('mousedown', this.handlePan);
@@ -411,110 +606,6 @@ export class WebGLMap {
 
     this.rerender();
   }
-
-  rerender(): Promise<void> {
-    if (this.mapOptions.debug) {
-      this.updateDebugInfo();
-    }
-
-    this.updateTiles();
-    return this.renderQueue.render(this.draw);
-  }
-
-  updateTiles = () => {
-    // update visible tiles based on viewport
-    const bbox = this.camera.getCurrentBounds();
-    const z = Math.min(Math.trunc(this.camera.getZoom()), MAX_TILE_ZOOM);
-    const minTile = tilebelt.pointToTile(bbox[0], bbox[3], z);
-    const maxTile = tilebelt.pointToTile(bbox[2], bbox[1], z);
-
-    // tiles visible in viewport
-    this.tilesInView = [];
-    const [minX, maxX] = [Math.max(minTile[0], 0), maxTile[0]];
-    const [minY, maxY] = [Math.max(minTile[1], 0), maxTile[1]];
-    for (let x = minX; x <= maxX; x++) {
-      for (let y = minY; y <= maxY; y++) {
-        this.tilesInView.push([x, y, z]);
-      }
-    }
-
-    // get additional tiles to buffer (based on buffer setting)
-    this.bufferedTiles = [];
-    const { tileBuffer } = this.mapOptions;
-    for (let bufX = minX - tileBuffer; bufX <= maxX + tileBuffer; bufX++) {
-      for (let bufY = minY - tileBuffer; bufY <= maxY + tileBuffer; bufY++) {
-        this.bufferedTiles.push([bufX, bufY, z]);
-
-        // get parents 2 levels up
-        this.bufferedTiles.push(tilebelt.getParent([bufX, bufY, z]) as TileRef);
-        this.bufferedTiles.push(tilebelt.getParent(tilebelt.getParent([bufX, bufY, z])) as TileRef);
-      }
-    }
-
-    // remove duplicates
-    let tilesToLoad = [
-      ...new Set([...this.tilesInView.map(t => t.join('/')), ...this.bufferedTiles.map(t => t.join('/'))]),
-    ];
-
-    // make sure tiles are in range
-    tilesToLoad = tilesToLoad.filter(tile => {
-      const [x, y, z] = tile.split('/').map(Number);
-      const N = Math.pow(2, z);
-      const validX = x >= 0 && x < N;
-      const validY = y >= 0 && y < N;
-      const validZ = z >= 0 && z <= MAX_TILE_ZOOM;
-      return validX && validY && validZ;
-    });
-    const inViewLookup = new Set(this.tilesInView.map(t => t.join('/')));
-
-    // tile fetching options
-    const { layers, tileServerURL: url } = this.mapOptions;
-
-    // load tiles from tilerServer
-    tilesToLoad.forEach(tile => {
-      if (this.tiles[tile]) {
-        return; // already loaded, no need to fetch
-      }
-      // temp hold for request
-      this.tiles[tile] = [];
-
-      // hand off buffered tiles to worker for fetching & processing
-      this.tileWorker.postMessage({ tile, layers, url });
-    });
-  };
-
-  // if current tile is not loaded, just render scaled versions of parent or children
-  getPlaceholderTile = (tile: TileRef) => {
-    // use parent if available
-    const parent = tilebelt.getParent(tile)?.join('/');
-    const parentFeatureSet = this.tiles[parent];
-    if (parentFeatureSet?.length > 0) {
-      return parentFeatureSet;
-    }
-
-    // use whatever children are available
-    const childFeatureSets: any = [];
-    const children = (tilebelt.getChildren(tile) || []).map(t => t.join('/'));
-    children.forEach(child => {
-      const featureSet = this.tiles[child];
-      if (featureSet?.length > 0) {
-        childFeatureSets.push(...featureSet);
-      }
-    });
-    return childFeatureSets;
-  };
-
-  // update tiles with data from worker
-  handleTileWorker = (workerEvent: any) => {
-    const { tile, tileData } = workerEvent.data;
-    this.tiles[tile] = tileData;
-    this.renderQueue.render(this.draw);
-  };
-
-  // errors from tile worker
-  handleTileWorkerError = (error: any) => {
-    console.error('Uncaught worker error.', error);
-  };
 
   // handle drag changes while mouse is still down
   // "mousemove" or "pan"
@@ -653,9 +744,18 @@ export class WebGLMap {
     return [clipX, clipY];
   };
 
+  rerender(): Promise<void> {
+    if (this.mapOptions.debug) {
+      this.updateDebugInfo();
+    }
+
+    this.tilesGrid.updateTiles(this.camera);
+    return this.renderQueue.render(() => this.render());
+  }
+
   // re-draw the scene
-  draw = () => {
-    const { gl, program, tilesInView, tiles, mapOptions, overlay, pixelRatio, canvas, stats, resolution } = this;
+  render() {
+    const { gl, program, mapOptions, overlay, pixelRatio, canvas, stats } = this;
 
     // stats reporting
     let start = performance.now();
@@ -667,16 +767,16 @@ export class WebGLMap {
     // set matrix uniform
     const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
     const colorLocation = gl.getUniformLocation(program, 'u_color');
-    const resulutionLocation = gl.getUniformLocation(program, 'u_resolution');
     gl.uniformMatrix3fv(matrixLocation, false, this.camera.getProjectionMatrix());
-    gl.uniform2fv(resulutionLocation, resolution);
+
+    const tiles = this.tilesGrid.getCurrentViewTiles();
 
     // render tiles
-    tilesInView.forEach(tile => {
-      let featureSets = tiles[tile.join('/')];
+    for (const tile of tiles) {
+      let featureSets = tile.featureSet;
 
       if (featureSets?.length === 0) {
-        featureSets = this.getPlaceholderTile(tile);
+        featureSets = this.tilesGrid.getPlaceholderTile(tile.ref);
       }
 
       (featureSets || []).forEach(featureSet => {
@@ -716,7 +816,7 @@ export class WebGLMap {
         // update frame stats
         vertexCount += vertices.length;
       });
-    });
+    }
 
     // clear debug info
     overlay.replaceChildren();
@@ -728,12 +828,12 @@ export class WebGLMap {
       this.debugInfo.style.display = 'block';
       this.statsWidget.style.display = 'block';
 
-      tilesInView.forEach(tile => {
+      for (const tile of tiles) {
         // todo: move up in other tile loop
         const colorLocation = gl.getUniformLocation(program, 'u_color');
         gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
 
-        const tileVertices = geometryToVertices(tilebelt.tileToGeoJSON(tile));
+        const tileVertices = geometryToVertices(tilebelt.tileToGeoJSON(tile.ref));
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
 
@@ -756,7 +856,7 @@ export class WebGLMap {
         gl.drawArrays(primitiveType, offset, count);
 
         // draw tile labels
-        const tileCoordinates = tilebelt.tileToGeoJSON(tile).coordinates;
+        const tileCoordinates = tilebelt.tileToGeoJSON(tile.ref).coordinates;
         const topLeft = tileCoordinates[0][0];
         const [x, y] = MercatorCoordinate.fromLngLat(topLeft as [number, number]);
 
@@ -768,9 +868,9 @@ export class WebGLMap {
         div.className = 'tile-label';
         div.style.left = wx + 8 + 'px';
         div.style.top = wy + 8 + 'px';
-        div.appendChild(document.createTextNode(tile.join('/')));
+        div.appendChild(document.createTextNode(tile.tileId));
         overlay.appendChild(div);
-      });
+      }
 
       // capture stats
       this.frameStats = {
@@ -779,7 +879,7 @@ export class WebGLMap {
       };
       stats.end();
     }
-  };
+  }
 
   // create DOM elements
   setupDOM = () => {
@@ -888,13 +988,5 @@ export class WebGLMap {
     const [lng, lat] = MercatorCoordinate.fromXY([x, y]);
     const text = [`center: [${lng}, ${lat}]`, `zoom: ${zoom}`];
     this.debugInfo.innerHTML = text.join('\n');
-  };
-
-  // get stats from map
-  getMapInfo = () => {
-    return {
-      tiles: this.tiles,
-      frameStats: this.frameStats,
-    };
   };
 }
