@@ -188,6 +188,7 @@ export class CompassControl extends MapControl {
 
   private setRotationDegree(degree: number) {
     this.rotationDegree = degree;
+    this.map.setRotation(degree);
     this.innerEl.style.transform = `translate(-50%, -50%) rotate(${this.rotationDegree}deg)`;
   }
 

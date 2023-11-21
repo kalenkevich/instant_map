@@ -1,5 +1,3 @@
-import { GlideMap } from '../map';
-
 export interface PositionAnimationOptions {
   durationInSec?: number;
   easeLinearity?: number;
@@ -11,6 +9,8 @@ export const easeOut = (t: number, power: number): number => {
 
 export type AnimationStep = (progress: number) => Promise<void>;
 
+export type AnimationStopCallback = () => void | Promise<void>;
+
 export class EasyAnimation {
   private inProgress: boolean = false;
   private startTime: number;
@@ -18,8 +18,8 @@ export class EasyAnimation {
   private easeOutPower: number;
 
   constructor(
-    private readonly map: GlideMap,
     private animationStep: AnimationStep,
+    private onAnimationStop: AnimationStopCallback,
     animationOptions: PositionAnimationOptions
   ) {
     this.durationInSec = animationOptions.durationInSec || 0.25;
@@ -62,6 +62,6 @@ export class EasyAnimation {
       return;
     }
 
-    this.map.stopRender();
+    this.onAnimationStop();
   }
 }

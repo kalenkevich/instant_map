@@ -1,7 +1,7 @@
 import { GlideMap } from '../map';
 
 export abstract class MapControl {
-  constructor(protected readonly map: GlideMap, protected readonly document: Document = window.document) {}
+  constructor(protected readonly map: GlideMap | any, protected readonly document: Document = window.document) {}
 
   public abstract init(): void;
 

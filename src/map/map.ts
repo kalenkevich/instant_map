@@ -296,9 +296,11 @@ export class GlideMap {
     const currentZoom = this.state.zoom;
     const diff = newZoom - currentZoom;
     const animation = new EasyAnimation(
-      this,
       (progress: number) => {
         return this.setZoom(currentZoom + diff * progress);
+      },
+      () => {
+        this.stopRender();
       },
       {
         durationInSec: 0.5,
@@ -460,11 +462,13 @@ export class GlideMap {
 
     const newPos = this.getMapPanePos().subtract(offset).round();
     const animation = new EasyAnimation(
-      this,
       (progress: number) => {
         const nextPosition = newPos.add(offset.multiplyBy(progress));
 
         return this.setCenter(nextPosition);
+      },
+      () => {
+        this.stopRender();
       },
       {
         durationInSec: options.duration,

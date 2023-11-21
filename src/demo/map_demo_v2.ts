@@ -21,6 +21,7 @@ export function renderMap() {
       park: [202, 255, 193, 255],
       building: [222, 215, 211, 255],
       transportation: [233, 201, 43, 255],
+      poi: [250, 185, 57, 255],
     },
   });
 }

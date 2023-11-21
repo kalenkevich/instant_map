@@ -5,6 +5,10 @@ import Stats from 'stats.js';
 import { createShader, createProgram, getPrimitiveType } from './utils/webgl-utils';
 import { fetchTile, geometryToVertices } from './utils/map-utils';
 import MercatorCoordinate from './utils/mercator-coordinate';
+import { MapParentControl, MapControlPosition } from '../map/controls/parent_control';
+import { CompassControl } from '../map/controls/compass_control';
+import { ZoomControl } from '../map/controls/zoom_control';
+import { EasyAnimation } from '../map/animation/easy_animation';
 
 // import { MapCamera } from './camera/map_camera';
 // import { Point } from './geometry/point';
@@ -127,8 +131,9 @@ interface FeatureSet {
 }
 
 type RenderFunc = (...any: []) => any;
+type ResolveFunc = (...any: []) => any;
 export class RenderQueue {
-  queue: RenderFunc[] = [];
+  queue: Array<[RenderFunc, ResolveFunc]> = [];
   isActive: boolean = false;
   currentIndex = 0;
   rafIds: Record<number, number> = {};
@@ -137,12 +142,16 @@ export class RenderQueue {
     this.invokeRender = this.invokeRender.bind(this);
   }
 
-  render(renderFn: RenderFunc) {
-    this.queue.push(renderFn);
+  render(renderFn: RenderFunc): Promise<void> {
+    return new Promise(resolve => {
+      this.queue.push([renderFn, resolve]);
 
-    if (!this.isActive) {
-      this.rafIds[0] = requestAnimationFrame(() => this.invokeRender(0));
-    }
+      if (!this.isActive) {
+        this.rafIds[0] = requestAnimationFrame(() => {
+          this.invokeRender(0);
+        });
+      }
+    });
   }
 
   invokeRender(index: number) {
@@ -152,11 +161,17 @@ export class RenderQueue {
     }
 
     this.isActive = true;
+    const renderFn = this.queue[index][0];
+    const resolveFn = this.queue[index][1];
+
     // invoke render
-    this.queue[index]();
+    renderFn();
     // we don't need to cancel it anymore
     delete this.rafIds[index];
     this.rafIds[index + 1] = requestAnimationFrame(() => this.invokeRender(index + 1));
+
+    // Resolve promise
+    resolveFn();
   }
 
   flush() {
@@ -180,6 +195,7 @@ export class WebGLMap {
     x: number;
     y: number;
     zoom: number;
+    rotationInDegree: number;
   };
   pixelRatio: number;
   canvas: HTMLCanvasElement;
@@ -225,6 +241,7 @@ export class WebGLMap {
       x,
       y,
       zoom: this.mapOptions.zoom,
+      rotationInDegree: 0,
     };
     this.pixelRatio = 2;
     this.resolution = [this.mapOptions.width, this.mapOptions.height];
@@ -277,8 +294,42 @@ export class WebGLMap {
     };
   };
 
+  getZoom(): number {
+    return this.camera.zoom;
+  }
+
+  getCenter(): [number, number] {
+    return MercatorCoordinate.fromXY([this.camera.x, this.camera.y]);
+  }
+
+  zoomToPoint(newZoom: number, center: [number, number]) {
+    const currentZoom = this.camera.zoom;
+    const diff = newZoom - currentZoom;
+
+    const animation = new EasyAnimation(
+      (progress: number) => {
+        this.camera.zoom = currentZoom + diff * progress;
+
+        return this.updateMatrix().then(() => this.updateTiles());
+      },
+      () => {
+        this.renderQueue.flush();
+      },
+      {
+        durationInSec: 0.25,
+      }
+    );
+
+    animation.run();
+  }
+
+  setRotation(rotationInDegree: number) {
+    this.camera.rotationInDegree = rotationInDegree;
+    this.updateMatrix();
+  }
+
   // update map view based camera state
-  updateMatrix = () => {
+  updateMatrix = (): Promise<void> => {
     // update camera matrix
     const { camera } = this;
     const zoomScale = 1 / Math.pow(2, camera.zoom); // inverted
@@ -288,6 +339,7 @@ export class WebGLMap {
     const cameraMat = mat3.create();
     mat3.translate(cameraMat, cameraMat, [camera.x, camera.y]);
     mat3.scale(cameraMat, cameraMat, [zoomScale / widthScale, zoomScale / heightScale]);
+    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * camera.rotationInDegree);
 
     // update view projection matrix
     const mat = mat3.create();
@@ -299,7 +351,7 @@ export class WebGLMap {
       this.updateDebugInfo();
     }
 
-    this.renderQueue.render(this.draw);
+    return this.renderQueue.render(this.draw);
   };
 
   updateTiles = () => {
@@ -812,6 +864,14 @@ export class WebGLMap {
     const el = document.getElementById(this.mapOptions.id);
     el.appendChild(wrapper);
     el.appendChild(style);
+
+    const parentControl = new MapParentControl(this, MapControlPosition.BOTTOM_RIGHT);
+    const compassControl = new CompassControl(this);
+    const zoomControl = new ZoomControl(this);
+    parentControl.addControl(compassControl);
+    parentControl.addControl(zoomControl);
+    parentControl.init();
+    parentControl.attach(el);
 
     if (this.mapOptions.debug) {
       this.stats.showPanel(0);
