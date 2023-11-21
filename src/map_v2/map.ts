@@ -66,6 +66,11 @@ const vertexShaderSource = `
     gl_PointSize = 3.0;
 
     vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+    
+    // Clip space
+    // vec2 zeroToTwo = position * 2.0;
+    // vec2 clipSpace = zeroToTwo - 1.0;
+
     gl_Position = vec4(position, 0, 1);
   }
 `;
@@ -84,7 +89,7 @@ const fragmentShaderSource = `
 // constants
 //////////////
 const TILE_SIZE = 512;
-const MAX_TILE_ZOOM = 14;
+const MAX_TILE_ZOOM = 15;
 
 const defaultOptions = {
   width: 512,
@@ -121,6 +126,50 @@ interface FeatureSet {
   vertices: Float32Array;
 }
 
+type RenderFunc = (...any: []) => any;
+export class RenderQueue {
+  queue: RenderFunc[] = [];
+  isActive: boolean = false;
+  currentIndex = 0;
+  rafIds: Record<number, number> = {};
+
+  constructor() {
+    this.invokeRender = this.invokeRender.bind(this);
+  }
+
+  render(renderFn: RenderFunc) {
+    this.queue.push(renderFn);
+
+    if (!this.isActive) {
+      this.rafIds[0] = requestAnimationFrame(() => this.invokeRender(0));
+    }
+  }
+
+  invokeRender(index: number) {
+    if (index >= this.queue.length) {
+      this.flush();
+      return;
+    }
+
+    this.isActive = true;
+    // invoke render
+    this.queue[index]();
+    // we don't need to cancel it anymore
+    delete this.rafIds[index];
+    this.rafIds[index + 1] = requestAnimationFrame(() => this.invokeRender(index + 1));
+  }
+
+  flush() {
+    this.isActive = false;
+    // flush queue
+    this.queue = [];
+
+    for (const rafId of Object.values(this.rafIds)) {
+      cancelAnimationFrame(rafId);
+    }
+  }
+}
+
 export class WebGLMap {
   mapOptions: MapOptions;
   stats: Stats;
@@ -150,6 +199,9 @@ export class WebGLMap {
     elapsed: number;
   };
 
+  renderQueue: RenderQueue;
+  resolution: [number, number];
+
   constructor(options: MapOptions) {
     this.mapOptions = {
       ...defaultOptions,
@@ -158,6 +210,7 @@ export class WebGLMap {
 
     // setup stats for debugging
     this.stats = new Stats();
+    this.renderQueue = new RenderQueue();
 
     // init tile fields
     this.tiles = {}; // cached tile data
@@ -174,13 +227,10 @@ export class WebGLMap {
       zoom: this.mapOptions.zoom,
     };
     this.pixelRatio = 2;
+    this.resolution = [this.mapOptions.width, this.mapOptions.height];
 
     // setup canvas
     this.setupDOM();
-
-    // set initial states
-    this.updateMatrix();
-    this.updateTiles();
 
     // setup event handlers
     this.canvas.addEventListener('mousedown', this.handlePan);
@@ -214,7 +264,10 @@ export class WebGLMap {
     this.gl = gl;
     this.program = program;
 
-    this.draw(); // start render loop
+    // set initial states
+    this.updateMatrix();
+    this.updateTiles();
+    this.renderQueue.render(this.draw);
   }
 
   setOptions = (options = {}) => {
@@ -245,6 +298,8 @@ export class WebGLMap {
     if (this.mapOptions.debug) {
       this.updateDebugInfo();
     }
+
+    this.renderQueue.render(this.draw);
   };
 
   updateTiles = () => {
@@ -334,6 +389,7 @@ export class WebGLMap {
   handleTileWorker = (workerEvent: any) => {
     const { tile, tileData } = workerEvent.data;
     this.tiles[tile] = tileData;
+    this.renderQueue.render(this.draw);
   };
 
   // errors from tile worker
@@ -490,6 +546,8 @@ export class WebGLMap {
     // undo clip-space
     const px = (1 + this.camera.x) / this.pixelRatio;
     const py = (1 - this.camera.y) / this.pixelRatio;
+    // const px = this.camera.x;
+    // const py = this.camera.y;
 
     // get world coord in px
     const wx = px * TILE_SIZE;
@@ -532,7 +590,19 @@ export class WebGLMap {
 
   // re-draw the scene
   draw = () => {
-    const { gl, program, viewProjectionMat, tilesInView, tiles, mapOptions, overlay, pixelRatio, canvas, stats } = this;
+    const {
+      gl,
+      program,
+      viewProjectionMat,
+      tilesInView,
+      tiles,
+      mapOptions,
+      overlay,
+      pixelRatio,
+      canvas,
+      stats,
+      resolution,
+    } = this;
 
     // stats reporting
     let start = performance.now();
@@ -543,7 +613,10 @@ export class WebGLMap {
 
     // set matrix uniform
     const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+    const colorLocation = gl.getUniformLocation(program, 'u_color');
+    const resulutionLocation = gl.getUniformLocation(program, 'u_resolution');
     gl.uniformMatrix3fv(matrixLocation, false, viewProjectionMat);
+    gl.uniform2fv(resulutionLocation, resolution);
 
     // render tiles
     tilesInView.forEach(tile => {
@@ -563,7 +636,6 @@ export class WebGLMap {
         const color = mapOptions.layers[layer].map(n => n / 255); // RBGA to WebGL
 
         // set color uniform
-        const colorLocation = gl.getUniformLocation(program, 'u_color');
         gl.uniform4fv(colorLocation, color);
 
         // create buffer for vertices
@@ -654,8 +726,6 @@ export class WebGLMap {
       };
       stats.end();
     }
-
-    window.requestAnimationFrame(this.draw); // call next loop
   };
 
   // create DOM elements

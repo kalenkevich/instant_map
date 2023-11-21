@@ -10,16 +10,7 @@ export const VectorStyles: DataTileStyles = {
       show: true,
       feature: {
         type: FeatureStyleType.polygon,
-        color: [
-          '$switch',
-          ['$get', 'properties.class'],
-          ['ocean', ['$rgba', 95, 200, 255, 1]],
-          ['dock', ['$rgba', 95, 200, 255, 1]],
-          ['river', ['$rgba', 95, 200, 255, 1]],
-          ['lake', ['$rgba', 95, 200, 255, 1]],
-          ['swimming_pool', ['$rgba', 95, 200, 255, 1]],
-          ['$default', ['$rgba', 95, 200, 255, 1]],
-        ],
+        color: ['$rgba', 95, 200, 255, 1],
       },
       maxzoom: 15,
       minzoom: 0,

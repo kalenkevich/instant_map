@@ -34,6 +34,10 @@ class MercatorCoordinate {
     let [x, y] = xy;
     const lng = MercatorCoordinate.lngFromMercatorX((1 + x) / 2);
     const lat = MercatorCoordinate.latFromMercatorY((1 - y) / 2);
+
+    // const lng = MercatorCoordinate.lngFromMercatorX(x);
+    // const lat = MercatorCoordinate.latFromMercatorY(y);
+
     return [lng, lat];
   }
 }

@@ -16,10 +16,10 @@ export function renderMap() {
     zoom: 13,
     debug: true,
     layers: {
-      water: [180, 240, 250, 255],
-      landcover: [202, 246, 193, 255],
+      water: [95, 200, 255, 255],
+      landcover: [173, 226, 167, 255],
       park: [202, 255, 193, 255],
-      building: [185, 175, 139, 191],
+      building: [222, 215, 211, 255],
       transportation: [233, 201, 43, 255],
     },
   });
