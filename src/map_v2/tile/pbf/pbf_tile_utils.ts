@@ -3,7 +3,7 @@ import earcut from 'earcut';
 import Protobuf from 'pbf';
 import { VectorTile, VectorTileLayer } from '@mapbox/vector-tile';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } from 'geojson';
-import MercatorCoordinate from './mercator-coordinate';
+import { ProjectionType, Projection, getProjectionFromType } from '../../geo/projection/projection';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point;
 
@@ -11,10 +11,11 @@ export interface FetchTileOptions {
   tile: string;
   url: string;
   layers: Record<string, VectorTileLayer>;
+  projectionType: ProjectionType;
 }
 
 // convert a GeoJSON polygon into triangles
-const verticesFromPolygon = (coordinates: number[][][]): number[] => {
+const verticesFromPolygon = (coordinates: number[][][], projection: Projection): number[] => {
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);
 
@@ -23,7 +24,7 @@ const verticesFromPolygon = (coordinates: number[][][]): number[] => {
     const point = triangles[i];
     const lng = data.vertices[point * 2];
     const lat = data.vertices[point * 2 + 1];
-    const [x, y] = MercatorCoordinate.fromLngLat([lng, lat]);
+    const [x, y] = projection.fromLngLat([lng, lat]);
     vertices[i * 2] = x;
     vertices[i * 2 + 1] = y;
   }
@@ -33,18 +34,18 @@ const verticesFromPolygon = (coordinates: number[][][]): number[] => {
 
 // when constructing a line with gl.LINES, every 2 coords are connected,
 // so we always duplicate the last starting point to draw a continuous line
-const verticesFromLine = (coordinates: number[][]): number[] => {
+const verticesFromLine = (coordinates: number[][], projection: Projection): number[] => {
   // seed with initial line segment
   const vertices = [
-    ...MercatorCoordinate.fromLngLat(coordinates[0] as [number, number]),
-    ...MercatorCoordinate.fromLngLat(coordinates[1] as [number, number]),
+    ...projection.fromLngLat(coordinates[0] as [number, number]),
+    ...projection.fromLngLat(coordinates[1] as [number, number]),
   ];
 
   for (let i = 2; i < coordinates.length; i++) {
     const prevX = vertices[vertices.length - 2];
     const prevY = vertices[vertices.length - 1];
     vertices.push(prevX, prevY); // duplicate prev coord
-    vertices.push(...MercatorCoordinate.fromLngLat(coordinates[i] as [number, number]));
+    vertices.push(...projection.fromLngLat(coordinates[i] as [number, number]));
   }
 
   return vertices;
@@ -59,35 +60,35 @@ const append = (arr1: number[], arr2: number[]) => {
 };
 
 // convert a GeoJSON geometry to webgl vertices
-export const geometryToVertices = (geometry: SupportedGeometry): number[] => {
+export const geometryToVertices = (geometry: SupportedGeometry, projection: Projection): number[] => {
   if (geometry.type === 'Polygon') {
-    return verticesFromPolygon(geometry.coordinates);
+    return verticesFromPolygon(geometry.coordinates, projection);
   }
 
   if (geometry.type === 'MultiPolygon') {
     const positions: number[] = [];
     geometry.coordinates.forEach((polygon, i) => {
-      append(positions, verticesFromPolygon([polygon[0]]));
+      append(positions, verticesFromPolygon([polygon[0]], projection));
     });
 
     return positions;
   }
 
   if (geometry.type === 'LineString') {
-    return verticesFromLine(geometry.coordinates);
+    return verticesFromLine(geometry.coordinates, projection);
   }
 
   if (geometry.type === 'MultiLineString') {
     const positions: number[] = [];
     geometry.coordinates.forEach((lineString, i) => {
-      append(positions, verticesFromLine(lineString));
+      append(positions, verticesFromLine(lineString, projection));
     });
 
     return positions;
   }
 
   if (geometry.type === 'Point') {
-    return MercatorCoordinate.fromLngLat(geometry.coordinates as [number, number]);
+    return projection.fromLngLat(geometry.coordinates as [number, number]);
   }
 
   return [];
@@ -114,7 +115,8 @@ const getLayerPrimitive = (feature: Feature<SupportedGeometry>) => {
 };
 
 // Fetch tile from server, and convert layer coordinates to vertices
-export const fetchTile = async ({ tile, layers, url }: FetchTileOptions) => {
+export const fetchTile = async ({ tile, layers, url, projectionType }: FetchTileOptions) => {
+  const projection = getProjectionFromType(projectionType);
   const [x, y, z] = tile.split('/').map(Number);
 
   const tileURL = formatTileURL(tile, url);
@@ -141,14 +143,14 @@ export const fetchTile = async ({ tile, layers, url }: FetchTileOptions) => {
         const type = getLayerPrimitive(geojson);
 
         if (type === 'polygon') {
-          const polyData = geometryToVertices(geojson.geometry);
+          const polyData = geometryToVertices(geojson.geometry, projection);
           for (const pd of polyData) {
             polygons.push(pd);
           }
         } else if (type === 'point') {
-          points.push(...geometryToVertices(geojson.geometry));
+          points.push(...geometryToVertices(geojson.geometry, projection));
         } else if (type === 'line') {
-          const lineData = geometryToVertices(geojson.geometry);
+          const lineData = geometryToVertices(geojson.geometry, projection);
           for (const pd of lineData) {
             lines.push(pd);
           }

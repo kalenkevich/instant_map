@@ -1,75 +1,96 @@
-import { Point } from '../geometry/point';
-import { toPoint } from '../geometry/point_utils';
-import { Bounds } from '../geometry/bounds';
+import { mat3 } from 'gl-matrix';
 import { Projection } from '../geo/projection/projection';
-import { LngLatBounds } from '../geo/lng_lat_bounds';
-
-export interface MapCameraOptions {
-  tileSize: number;
-  minZoom?: number;
-  maxZoom?: number;
-  bboxLimit?: [number, number, number, number];
-}
 
 export class MapCamera {
-  private position: Point;
+  private x: number;
+  private y: number;
   private zoom: number;
-
+  private rotationInDegree: number;
   private width: number;
   private height: number;
-
-  private readonly projection: Projection;
-  private readonly tileSize: number;
-  private readonly minZoom: number;
-  private readonly maxZoom: number;
-  private readonly bboxLimit: [number, number, number, number];
+  private viewProjectionMat: mat3;
+  private pixelRatio: number;
+  private tileSize: number;
+  private projection: Projection;
 
   constructor(
-    position: Point,
+    [x, y]: [number, number],
     zoom: number,
+    rotationInDegree: number,
     width: number,
     height: number,
-    projection: Projection,
-    options: MapCameraOptions
+    pixelRatio: number,
+    tileSize: number,
+    projection: Projection
   ) {
-    this.position = position;
+    this.x = x;
+    this.y = y;
     this.zoom = zoom;
+    this.rotationInDegree = rotationInDegree;
     this.width = width;
     this.height = height;
+    this.pixelRatio = pixelRatio;
+    this.tileSize = tileSize;
     this.projection = projection;
-    this.tileSize = options.tileSize;
-    this.minZoom = options.minZoom || 0;
-    this.maxZoom = options.maxZoom || 15;
-    this.bboxLimit = options.bboxLimit || [-180, -85.05, 180, 85.05];
+
+    this.updateProjectionMatrix();
   }
 
-  getPosition(): Point {
-    return toPoint(this.position);
+  public getPosition(): [number, number] {
+    return [this.x, this.y];
   }
 
-  /**
-   * Updates camera center position.
-   * @param position Camera center position
-   */
-  setPosition(position: Point) {
-    this.position = position;
+  public setPosition([x, y]: [number, number], zoom?: number) {
+    this.x = x;
+    this.y = y;
+
+    if (zoom !== undefined) {
+      this.zoom = zoom;
+    }
+
+    this.updateProjectionMatrix();
   }
 
-  setZoom(zoom: number) {
-    this.zoom = zoom;
-  }
-
-  getZoom(): number {
+  public getZoom(): number {
     return this.zoom;
   }
 
-  getBounds(position?: Point, zoom?: number): Bounds {
-    position = position || this.position;
-    zoom = zoom || this.zoom;
+  public setZoom(zoom: number) {
+    this.zoom = zoom;
+
+    this.updateProjectionMatrix();
+  }
+
+  public getRotation(): number {
+    return this.rotationInDegree;
+  }
+
+  public setRotation(rotationInDegree: number) {
+    this.rotationInDegree = rotationInDegree;
+
+    this.updateProjectionMatrix();
+  }
+
+  public getProjectionMatrix(): mat3 {
+    return this.viewProjectionMat;
+  }
+
+  public inBoundLimits(position?: [number, number], zoom?: number): boolean {
+    const bbox = this.getBounds(position || [this.x, this.y], zoom || this.zoom);
+
+    return !(bbox[0] <= -180 || bbox[1] <= -85.05 || bbox[2] >= 180 || bbox[3] >= 85.05);
+  }
+
+  public getCurrentBounds() {
+    return this.getBounds([this.x, this.y], this.zoom);
+  }
+
+  public getBounds([x, y]: [number, number], zoom: number) {
     const zoomScale = Math.pow(2, zoom);
 
-    const px = this.position.x;
-    const py = this.position.y;
+    // undo clip-space
+    const px = (1 + x) / this.pixelRatio;
+    const py = (1 - y) / this.pixelRatio;
 
     // get world coord in px
     const wx = px * this.tileSize;
@@ -91,39 +112,32 @@ export class MapCamera {
     x2 = x2 / zoomScale / this.tileSize;
     y2 = y2 / zoomScale / this.tileSize;
 
-    return new Bounds(new Point(x1, y1), new Point(x2, y2));
+    // get LngLat bounding box
+    const bbox = [
+      this.projection.lngFromMercatorX(x1),
+      this.projection.latFromMercatorY(y1),
+      this.projection.lngFromMercatorX(x2),
+      this.projection.latFromMercatorY(y2),
+    ];
+
+    return bbox;
   }
 
-  getLatLngBounds(position?: Point, zoom?: number): LngLatBounds {
-    const bounds = this.getBounds(position, zoom);
+  private updateProjectionMatrix() {
+    // update camera matrix
+    const zoomScale = 1 / Math.pow(2, this.zoom); // inverted
+    const widthScale = this.tileSize / this.width;
+    const heightScale = this.tileSize / this.height;
 
-    return new LngLatBounds(this.projection.project(bounds.a), this.projection.project(bounds.d));
-  }
+    const cameraMat = mat3.create();
+    mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
+    mat3.scale(cameraMat, cameraMat, [zoomScale / widthScale, zoomScale / heightScale]);
+    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
 
-  inBoundsLimit(position: Point, zoom: number): boolean {
-    if (!this.inZoomLimit(zoom)) {
-      return false;
-    }
-
-    const bbox = this.getLatLngBounds(position, zoom);
-
-    return (
-      bbox[0] <= this.bboxLimit[0] ||
-      bbox[1] <= this.bboxLimit[1] ||
-      bbox[2] >= this.bboxLimit[2] ||
-      bbox[3] >= this.bboxLimit[3]
-    );
-  }
-
-  inZoomLimit(zoom: number): boolean {
-    if (zoom < this.minZoom) {
-      return false;
-    }
-
-    if (zoom > this.maxZoom) {
-      return false;
-    }
-
-    return true;
+    // update view projection matrix
+    const mat = mat3.create();
+    const viewMat = mat3.invert(mat3.create(), cameraMat);
+    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
+    this.viewProjectionMat = viewProjectionMat;
   }
 }

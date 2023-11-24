@@ -23,5 +23,6 @@ export function renderMap() {
       transportation: [233, 201, 43, 255],
       poi: [250, 185, 57, 255],
     },
+    projection: 'mercator',
   });
 }
