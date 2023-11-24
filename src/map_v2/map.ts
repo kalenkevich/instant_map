@@ -10,37 +10,6 @@ import { CompassControl } from '../map/controls/compass_control';
 import { ZoomControl } from '../map/controls/zoom_control';
 import { EasyAnimation } from '../map/animation/easy_animation';
 
-////////////
-// shaders
-////////////
-const vertexShaderSource = `
-  attribute vec2 a_position;
-
-  uniform mat3 u_matrix;
-
-  void main() {
-    gl_PointSize = 3.0;
-
-    vec2 position = (u_matrix * vec3(a_position, 1)).xy;
-    
-    // Clip space
-    // vec2 zeroToTwo = position * 2.0;
-    // vec2 clipSpace = zeroToTwo - 1.0;
-
-    gl_Position = vec4(position, 0, 1);
-  }
-`;
-
-const fragmentShaderSource = `
-  precision mediump float;
-
-  uniform vec4 u_color;
-
-  void main() {
-    gl_FragColor = u_color;
-  }
-`;
-
 //////////////
 // constants
 //////////////
@@ -345,6 +314,9 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     this.tileServerURL = tileServerURL;
     this.layers = layers;
     this.tileBuffer = tileBuffer;
+  }
+
+  init() {
     // init tile fields
     this.tiles = {}; // cached tile data
     this.tilesInView = []; // current visible tiles
@@ -352,6 +324,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     this.tileWorker.onmessage = this.handleTileWorker;
     this.tileWorker.onerror = this.handleTileWorkerError;
   }
+
+  destroy() {}
 
   // update tiles with data from worker
   private handleTileWorker = (workerEvent: any) => {
@@ -428,8 +402,23 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     });
   }
 
-  public getCurrentViewTiles(): MapTile[] {
-    return this.tilesInView.map(tileRef => this.getMapTile(tileRef));
+  public getCurrentViewTiles(usePlaceholders: boolean = true): MapTile[] {
+    const tiles = this.tilesInView.map(tileRef => this.getMapTile(tileRef));
+
+    if (!usePlaceholders) {
+      return tiles;
+    }
+
+    // add placeholder tile data.
+    for (const tile of tiles) {
+      let featureSets = tile.featureSet;
+
+      if (featureSets?.length === 0) {
+        featureSets = this.getPlaceholderTile(tile.ref);
+      }
+    }
+
+    return tiles;
   }
 
   private getMapTile(refOrId: TileRef | string): MapTile {
@@ -649,25 +638,186 @@ export class MapPan {
   }
 }
 
+////////////
+// shaders
+////////////
+const vertexShaderSource = `
+  attribute vec2 a_position;
+
+  uniform mat3 u_matrix;
+
+  void main() {
+    gl_PointSize = 3.0;
+
+    vec2 position = (u_matrix * vec3(a_position, 1)).xy;
+    
+    // Clip space
+    // vec2 zeroToTwo = position * 2.0;
+    // vec2 clipSpace = zeroToTwo - 1.0;
+
+    gl_Position = vec4(position, 0, 1);
+  }
+`;
+
+const fragmentShaderSource = `
+  precision mediump float;
+
+  uniform vec4 u_color;
+
+  void main() {
+    gl_FragColor = u_color;
+  }
+`;
+export class WebGlRenderer {
+  private positionBuffer: WebGLBuffer;
+  private program: WebGLProgram;
+  private matrixLocation: any;
+  private colorLocation: any;
+
+  constructor(
+    private readonly gl: WebGLRenderingContext,
+    private pixelRatio: number,
+    private readonly overlay: HTMLElement
+  ) {}
+
+  init() {
+    const gl = this.gl;
+    // get GL context
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    // compile shaders
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+    // setup program
+    const program = createProgram(gl, vertexShader, fragmentShader);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
+
+    // create buffers
+    this.positionBuffer = gl.createBuffer();
+
+    this.matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+    this.colorLocation = gl.getUniformLocation(program, 'u_color');
+
+    // save gl references
+    this.program = program;
+  }
+
+  destroy() {}
+
+  render(tiles: MapTile[], matrix: mat3, mapOptions: MapOptions) {
+    const gl = this.gl;
+
+    // set matrix uniform
+    gl.uniformMatrix3fv(this.matrixLocation, false, matrix);
+
+    for (const tile of tiles) {
+      let featureSets = tile.featureSet;
+
+      (featureSets || []).forEach(featureSet => {
+        const { layer, type, vertices } = featureSet;
+
+        if (mapOptions.disabledLayers.includes(layer)) {
+          return;
+        }
+
+        const color = mapOptions.layers[layer].map(n => n / 255); // RBGA to WebGL
+
+        // set color uniform
+        gl.uniform4fv(this.colorLocation, color);
+
+        // create buffer for vertices
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        // setup position attribute
+        const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
+        gl.enableVertexAttribArray(positionAttributeLocation);
+
+        // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+        const size = 2;
+        const dataType = gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        let offset = 0;
+        gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
+
+        // draw
+        const primitiveType = getPrimitiveType(gl, type);
+        offset = 0;
+        const count = vertices.length / 2;
+        gl.drawArrays(primitiveType, offset, count);
+      });
+    }
+  }
+
+  renderTilesBorder(tiles: MapTile[], matrix: mat3, canvasWidth: number, canvasHeight: number, mapOptions: MapOptions) {
+    const gl = this.gl;
+
+    for (const tile of tiles) {
+      // todo: move up in other tile loop
+      const colorLocation = gl.getUniformLocation(this.program, 'u_color');
+      gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
+
+      const tileVertices = geometryToVertices(tilebelt.tileToGeoJSON(tile.ref));
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
+
+      // setup position attribute
+      const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
+      gl.enableVertexAttribArray(positionAttributeLocation);
+
+      // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+      const size = 2;
+      const dataType = gl.FLOAT;
+      const normalize = false;
+      const stride = 0;
+      let offset = 0;
+      gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
+
+      // draw
+      const primitiveType = gl.LINES;
+      offset = 0;
+      const count = tileVertices.length / 2;
+      gl.drawArrays(primitiveType, offset, count);
+
+      // draw tile labels
+      const tileCoordinates = tilebelt.tileToGeoJSON(tile.ref).coordinates;
+      const topLeft = tileCoordinates[0][0];
+      const [x, y] = MercatorCoordinate.fromLngLat(topLeft as [number, number]);
+
+      const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], matrix);
+
+      const wx = ((1 + clipX) / this.pixelRatio) * canvasWidth;
+      const wy = ((1 - clipY) / this.pixelRatio) * canvasHeight;
+      const div = document.createElement('div');
+      div.className = 'tile-label';
+      div.style.left = wx + 8 + 'px';
+      div.style.top = wy + 8 + 'px';
+      div.appendChild(document.createTextNode(tile.tileId));
+      this.overlay.appendChild(div);
+    }
+  }
+}
+
 export class WebGLMap {
+  private pan: MapPan;
+  private camera: MapCamera;
+  private tilesGrid: TilesGrid;
+  private renderQueue: RenderQueue;
+  private renderer: WebGlRenderer;
+
   mapOptions: MapOptions;
-  camera: MapCamera;
-  renderQueue: RenderQueue;
-  tilesGrid: TilesGrid;
-  pan: MapPan;
 
   stats: Stats;
   pixelRatio: number;
   canvas: HTMLCanvasElement;
-  positionBuffer: WebGLBuffer;
-  gl: WebGLRenderingContext;
-  program: WebGLProgram;
 
   overlay: HTMLElement;
   debugInfo: HTMLElement;
   statsWidget: HTMLElement;
   frameStats: {
-    vertices: number;
     elapsed: number;
   };
 
@@ -697,34 +847,33 @@ export class WebGLMap {
     );
 
     this.tilesGrid = new TilesGrid(options.tileServerURL, options.layers, options.tileBuffer || 1);
-    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, () => {
-      this.rerender();
-    });
+
     this.pan = new MapPan(this, this.canvas);
-    this.pan.init();
 
-    // get GL context
     const gl = this.canvas.getContext('webgl');
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    this.renderer = new WebGlRenderer(gl, this.pixelRatio, this.overlay);
 
-    // compile shaders
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
-    // setup program
-    const program = createProgram(gl, vertexShader, fragmentShader);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(program);
-
-    // create buffers
-    this.positionBuffer = gl.createBuffer();
-
-    // save gl references
-    this.gl = gl;
-    this.program = program;
-
+    this.init();
     this.rerender();
   }
+
+  init() {
+    this.pan.init();
+    this.tilesGrid.init();
+    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.renderer.init();
+  }
+
+  destroy() {
+    this.pan.destroy();
+    this.tilesGrid.destroy();
+    this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.renderer.init();
+  }
+
+  private onTileLoaded = () => {
+    this.rerender();
+  };
 
   setOptions(options = {}) {
     this.mapOptions = {
@@ -821,68 +970,19 @@ export class WebGLMap {
 
   // re-draw the scene
   render() {
-    const { gl, program, mapOptions, overlay, pixelRatio, canvas, stats } = this;
+    const { mapOptions, overlay, stats } = this;
 
     // stats reporting
     let start = performance.now();
-    let vertexCount = 0;
     if (mapOptions.debug) {
       stats.begin();
     }
 
-    // set matrix uniform
-    const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
-    const colorLocation = gl.getUniformLocation(program, 'u_color');
-    gl.uniformMatrix3fv(matrixLocation, false, this.camera.getProjectionMatrix());
-
     const tiles = this.tilesGrid.getCurrentViewTiles();
 
-    // render tiles
-    for (const tile of tiles) {
-      let featureSets = tile.featureSet;
+    const projectionMatrix = this.camera.getProjectionMatrix();
 
-      if (featureSets?.length === 0) {
-        featureSets = this.tilesGrid.getPlaceholderTile(tile.ref);
-      }
-
-      (featureSets || []).forEach(featureSet => {
-        const { layer, type, vertices } = featureSet;
-
-        if (mapOptions.disabledLayers.includes(layer)) {
-          return;
-        }
-
-        const color = mapOptions.layers[layer].map(n => n / 255); // RBGA to WebGL
-
-        // set color uniform
-        gl.uniform4fv(colorLocation, color);
-
-        // create buffer for vertices
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        // setup position attribute
-        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-        gl.enableVertexAttribArray(positionAttributeLocation);
-
-        // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        const size = 2;
-        const dataType = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        let offset = 0;
-        gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
-
-        // draw
-        const primitiveType = getPrimitiveType(gl, type);
-        offset = 0;
-        const count = vertices.length / 2;
-        gl.drawArrays(primitiveType, offset, count);
-
-        // update frame stats
-        vertexCount += vertices.length;
-      });
-    }
+    this.renderer.render(tiles, projectionMatrix, mapOptions);
 
     // clear debug info
     overlay.replaceChildren();
@@ -894,53 +994,10 @@ export class WebGLMap {
       this.debugInfo.style.display = 'block';
       this.statsWidget.style.display = 'block';
 
-      for (const tile of tiles) {
-        // todo: move up in other tile loop
-        const colorLocation = gl.getUniformLocation(program, 'u_color');
-        gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
-
-        const tileVertices = geometryToVertices(tilebelt.tileToGeoJSON(tile.ref));
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
-
-        // setup position attribute
-        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-        gl.enableVertexAttribArray(positionAttributeLocation);
-
-        // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        const size = 2;
-        const dataType = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        let offset = 0;
-        gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
-
-        // draw
-        const primitiveType = gl.LINES;
-        offset = 0;
-        const count = tileVertices.length / 2;
-        gl.drawArrays(primitiveType, offset, count);
-
-        // draw tile labels
-        const tileCoordinates = tilebelt.tileToGeoJSON(tile.ref).coordinates;
-        const topLeft = tileCoordinates[0][0];
-        const [x, y] = MercatorCoordinate.fromLngLat(topLeft as [number, number]);
-
-        const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], this.camera.getProjectionMatrix());
-
-        const wx = ((1 + clipX) / pixelRatio) * canvas.width;
-        const wy = ((1 - clipY) / pixelRatio) * canvas.height;
-        const div = document.createElement('div');
-        div.className = 'tile-label';
-        div.style.left = wx + 8 + 'px';
-        div.style.top = wy + 8 + 'px';
-        div.appendChild(document.createTextNode(tile.tileId));
-        overlay.appendChild(div);
-      }
+      this.renderer.renderTilesBorder(tiles, projectionMatrix, this.canvas.width, this.canvas.height, mapOptions);
 
       // capture stats
       this.frameStats = {
-        vertices: vertexCount,
         elapsed: performance.now() - start,
       };
       stats.end();

@@ -148,7 +148,10 @@ export const fetchTile = async ({ tile, layers, url }: FetchTileOptions) => {
         } else if (type === 'point') {
           points.push(...geometryToVertices(geojson.geometry));
         } else if (type === 'line') {
-          lines.push(...geometryToVertices(geojson.geometry));
+          const lineData = geometryToVertices(geojson.geometry);
+          for (const pd of lineData) {
+            lines.push(pd);
+          }
         }
       }
 
