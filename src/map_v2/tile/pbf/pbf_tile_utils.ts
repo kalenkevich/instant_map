@@ -4,11 +4,12 @@ import Protobuf from 'pbf';
 import { VectorTile, VectorTileLayer } from '@mapbox/vector-tile';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } from 'geojson';
 import { ProjectionType, Projection, getProjectionFromType } from '../../geo/projection/projection';
+import { PbfTileLayer } from './pbf_tile';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point;
 
 export interface FetchTileOptions {
-  tile: string;
+  tileId: string;
   url: string;
   layers: Record<string, VectorTileLayer>;
   projectionType: ProjectionType;
@@ -115,11 +116,11 @@ const getLayerPrimitive = (feature: Feature<SupportedGeometry>) => {
 };
 
 // Fetch tile from server, and convert layer coordinates to vertices
-export const fetchTile = async ({ tile, layers, url, projectionType }: FetchTileOptions) => {
+export const fetchTile = async ({ tileId, layers, url, projectionType }: FetchTileOptions): Promise<PbfTileLayer[]> => {
   const projection = getProjectionFromType(projectionType);
-  const [x, y, z] = tile.split('/').map(Number);
+  const [x, y, z] = tileId.split('/').map(Number);
 
-  const tileURL = formatTileURL(tile, url);
+  const tileURL = formatTileURL(tileId, url);
   const res = await axios.get(tileURL, {
     responseType: 'arraybuffer',
   });
@@ -127,7 +128,7 @@ export const fetchTile = async ({ tile, layers, url, projectionType }: FetchTile
   const pbf = new Protobuf(res.data);
   const vectorTile = new VectorTile(pbf);
 
-  const tileData = []; // layers -> featureSets
+  const tileLayers: PbfTileLayer[] = []; // layers -> featureSets
   for (const layer in layers) {
     if (vectorTile?.layers?.[layer]) {
       // @ts-ignore
@@ -157,11 +158,11 @@ export const fetchTile = async ({ tile, layers, url, projectionType }: FetchTile
         }
       }
 
-      tileData.push({ layer, type: 'polygon', vertices: Float32Array.from(polygons) });
-      tileData.push({ layer, type: 'point', vertices: Float32Array.from(points) });
-      tileData.push({ layer, type: 'line', vertices: Float32Array.from(lines) });
+      tileLayers.push({ layer, type: 'polygon', vertices: Float32Array.from(polygons) });
+      tileLayers.push({ layer, type: 'point', vertices: Float32Array.from(points) });
+      tileLayers.push({ layer, type: 'line', vertices: Float32Array.from(lines) });
     }
   }
 
-  return tileData;
+  return tileLayers;
 };

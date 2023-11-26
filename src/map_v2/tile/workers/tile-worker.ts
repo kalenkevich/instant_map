@@ -1,13 +1,14 @@
-import { fetchTile } from '../pbf/pbf_tile_utils';
+import { FetchTileOptions, fetchTile } from '../pbf/pbf_tile_utils';
 
 addEventListener('message', async event => {
-  const { tile, layers, url, projectionType } = event.data;
+  const { tileId, layers, url, projectionType }: FetchTileOptions = event.data;
 
   try {
-    const tileData = await fetchTile({ tile, layers, url, projectionType });
-    postMessage({ tile, tileData });
+    const tileLayers = await fetchTile({ tileId, layers, url, projectionType });
+
+    postMessage({ tileId, tileLayers });
   } catch (e) {
     console.warn('Worker error.', e);
-    postMessage({ tile }); // undefined tileData will unset cache hold
+    postMessage({ tileId }); // undefined tileData will unset cache hold
   }
 });

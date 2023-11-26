@@ -3,19 +3,16 @@ import { Evented } from '../evented';
 import { MapCamera } from '../camera/map_camera';
 import { TileRef, MapTile } from './tile';
 import { Projection } from '../geo/projection/projection';
-
-interface FeatureSet {
-  layer: string;
-  type: string;
-  vertices: Float32Array;
-}
+import { MapTileFormatType, MapTileLayer } from './tile';
+import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
+import { LRUCache } from '../../map/utils/lru_cache';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
-  private tiles: Record<string, FeatureSet[]>;
+  private tiles: LRUCache<string, MapTile> = new LRUCache(256);
   private tilesInView: TileRef[];
   private tileWorker: Worker;
   private bufferedTiles: TileRef[];
@@ -24,8 +21,10 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   private layers: Record<string, [number, number, number, number]>;
   private maxTileZoom: number;
   private projection: Projection;
+  private tileFormatType: MapTileFormatType;
 
   constructor(
+    tileFormatType: MapTileFormatType,
     tileServerURL: string,
     layers: Record<string, [number, number, number, number]>,
     tileBuffer: number,
@@ -34,6 +33,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   ) {
     super();
 
+    this.tileFormatType = tileFormatType;
     this.tileServerURL = tileServerURL;
     this.layers = layers;
     this.tileBuffer = tileBuffer;
@@ -42,8 +42,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   }
 
   init() {
-    // init tile fields
-    this.tiles = {}; // cached tile data
     this.tilesInView = []; // current visible tiles
     this.tileWorker = new Worker(new URL('./workers/tile-worker.ts', import.meta.url));
     this.tileWorker.onmessage = this.handleTileWorker;
@@ -54,10 +52,20 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
   // update tiles with data from worker
   private handleTileWorker = (workerEvent: any) => {
-    const { tile, tileData } = workerEvent.data;
-    this.tiles[tile] = tileData;
+    const { tileId, tileLayers } = workerEvent.data;
 
-    this.fire(TilesGridEvent.TILE_LOADED, this.getMapTile(tile));
+    let tile: MapTile;
+    if (this.tiles.has(tileId)) {
+      tile = this.tiles.get(tileId);
+
+      tile.setLayers(tileLayers);
+    } else {
+      tile = this.createMapTile(tileId, tileLayers);
+
+      this.tiles.set(tileId, tile);
+    }
+
+    this.fire(TilesGridEvent.TILE_LOADED, tile);
   };
 
   // errors from tile worker
@@ -89,15 +97,17 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       for (let bufY = minY - tileBuffer; bufY <= maxY + tileBuffer; bufY++) {
         this.bufferedTiles.push([bufX, bufY, z]);
 
-        // get parents 2 levels up
+        // get parent
         this.bufferedTiles.push(tilebelt.getParent([bufX, bufY, z]) as TileRef);
-        this.bufferedTiles.push(tilebelt.getParent(tilebelt.getParent([bufX, bufY, z])) as TileRef);
       }
     }
 
     // remove duplicates
     let tilesToLoad = [
-      ...new Set([...this.tilesInView.map(t => t.join('/')), ...this.bufferedTiles.map(t => t.join('/'))]),
+      ...new Set([
+        ...this.tilesInView.map(t => this.getTileId(t as TileRef)),
+        ...this.bufferedTiles.map(t => this.getTileId(t as TileRef)),
+      ]),
     ];
 
     // make sure tiles are in range
@@ -113,21 +123,24 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // tile fetching options
     const { layers, tileServerURL: url } = this;
 
-    // load tiles from tilerServer
-    tilesToLoad.forEach(tile => {
-      if (this.tiles[tile]) {
-        return; // already loaded, no need to fetch
+    tilesToLoad.forEach(tileId => {
+      if (this.tiles.has(tileId)) {
+        return;
       }
-      // temp hold for request
-      this.tiles[tile] = [];
 
-      // hand off buffered tiles to worker for fetching & processing
-      this.tileWorker.postMessage({ tile, layers, url, projectionType: this.projection.getType() });
+      this.tiles.set(tileId, this.createMapTile(tileId));
+      this.tileWorker.postMessage({ tileId, layers, url, projectionType: this.projection.getType() });
     });
   }
 
   public getCurrentViewTiles(usePlaceholders: boolean = true): MapTile[] {
-    const tiles = this.tilesInView.map(tileRef => this.getMapTile(tileRef));
+    const tiles = this.tilesInView
+      .map(tileRef => {
+        const tileId = this.getTileId(tileRef);
+
+        return this.tiles.get(tileId);
+      })
+      .filter(tile => !!tile);
 
     if (!usePlaceholders) {
       return tiles;
@@ -135,52 +148,61 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     // add placeholder tile data.
     for (const tile of tiles) {
-      let featureSets = tile.featureSet;
+      const tileLayers = tile.getLayers();
 
-      if (featureSets?.length === 0) {
-        featureSets = this.getPlaceholderTile(tile.ref);
+      if (tileLayers.length === 0) {
+        tile.setLayers(this.getPlaceholderLayers(tile.ref));
       }
     }
 
     return tiles;
   }
 
-  private getMapTile(refOrId: TileRef | string): MapTile {
-    let tileId: string;
+  private getTileId(tileOrRef: MapTile | TileRef): string {
+    if (Array.isArray(tileOrRef)) {
+      return tileOrRef.join('/');
+    }
+
+    return (tileOrRef as MapTile).tileId;
+  }
+
+  private createMapTile(refOrId: TileRef | string, tileLayers: MapTileLayer[] = []): MapTile {
     let tileRef: TileRef;
     if (typeof refOrId === 'string') {
-      tileId = refOrId;
       tileRef = refOrId.split('/') as unknown as TileRef;
     } else {
-      tileId = refOrId.join('/');
       tileRef = refOrId;
     }
 
-    return {
-      tileId,
-      ref: tileRef,
-      featureSet: this.tiles[tileId],
-    };
-  }
-
-  // if current tile is not loaded, just render scaled versions of parent or children
-  public getPlaceholderTile(tile: TileRef) {
-    // use parent if available
-    const parent = tilebelt.getParent(tile)?.join('/');
-    const parentFeatureSet = this.tiles[parent];
-    if (parentFeatureSet?.length > 0) {
-      return parentFeatureSet;
+    if (this.tileFormatType === MapTileFormatType.pbf) {
+      return new PbfMapTile(tileRef, tileLayers as PbfTileLayer[]);
     }
 
-    // use whatever children are available
-    const childFeatureSets: any = [];
-    const children = (tilebelt.getChildren(tile) || []).map(t => t.join('/'));
-    children.forEach(child => {
-      const featureSet = this.tiles[child];
-      if (featureSet?.length > 0) {
-        childFeatureSets.push(...featureSet);
+    throw new Error(`${this.tileFormatType} is not supported.`);
+  }
+
+  public getPlaceholderLayers(tile: TileRef): MapTileLayer[] {
+    const parentId = this.getTileId(tilebelt.getParent(tile)! as TileRef);
+    const parentTile = this.tiles.get(parentId);
+    if (parentTile) {
+      const parentLayers = parentTile.getLayers();
+
+      if (parentLayers.length > 0) {
+        return parentLayers;
       }
-    });
+    }
+
+    const childFeatureSets: any = [];
+    const children = (tilebelt.getChildren(tile) || []).map(t => this.getTileId(t as TileRef));
+    for (const childId of children) {
+      const childTile = this.tiles.get(childId);
+
+      if (!childTile) {
+        continue;
+      }
+
+      childFeatureSets.push(...childTile.getLayers());
+    }
 
     return childFeatureSets;
   }

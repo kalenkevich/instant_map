@@ -11,6 +11,7 @@ import { MapParentControl, MapControlPosition } from '../map/controls/parent_con
 import { CompassControl } from '../map/controls/compass_control';
 import { ZoomControl } from '../map/controls/zoom_control';
 import { EasyAnimation } from '../map/animation/easy_animation';
+import { MapTileFormatType } from './tile/tile';
 
 const defaultOptions = {
   width: 512,
@@ -25,12 +26,14 @@ const defaultOptions = {
   tileSize: 512,
   maxTileZoom: 15,
   projection: 'mercator',
+  tileFormatType: MapTileFormatType.pbf,
 };
 
 interface MapOptions {
   id: string;
   layers: Record<string, [number, number, number, number]>;
   tileServerURL: string;
+  tileFormatType?: string | MapTileFormatType;
   projection?: string | ProjectionType;
   width?: number;
   height?: number;
@@ -91,9 +94,10 @@ export class WebGLMap {
       this.projection
     );
     this.tilesGrid = new TilesGrid(
-      options.tileServerURL,
-      options.layers,
-      options.tileBuffer || 1,
+      this.mapOptions.tileFormatType as MapTileFormatType,
+      this.mapOptions.tileServerURL,
+      this.mapOptions.layers,
+      this.mapOptions.tileBuffer || 1,
       this.mapOptions.maxTileZoom,
       this.projection
     );

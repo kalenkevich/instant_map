@@ -1,10 +1,9 @@
 import { vec3, mat3 } from 'gl-matrix';
 import { createShader, createProgram, getPrimitiveType } from './webgl_utils';
-// import tilebelt from '@mapbox/tilebelt';
-// import { geometryToVertices } from '/map-utils';
 import { MapTile } from '../../tile/tile';
 import { Projection } from '../../geo/projection/projection';
 import { Renderer, MapStyles } from '../renderer';
+import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
 
 ////////////
 // shaders
@@ -83,10 +82,10 @@ export class WebGlRenderer implements Renderer {
     gl.uniformMatrix3fv(this.matrixLocation, false, matrix);
 
     for (const tile of tiles) {
-      let featureSets = tile.featureSet;
+      let tileLayers = tile.getLayers();
 
-      (featureSets || []).forEach(featureSet => {
-        const { layer, type, vertices } = featureSet;
+      for (const tileLayer of tileLayers) {
+        const { layer, type, vertices } = tileLayer as PbfTileLayer;
 
         if (styles.disabledLayers.includes(layer)) {
           return;
@@ -118,47 +117,49 @@ export class WebGlRenderer implements Renderer {
         offset = 0;
         const count = vertices.length / 2;
         gl.drawArrays(primitiveType, offset, count);
-      });
+      }
     }
   }
 
   renderTilesBorder(tiles: MapTile[], matrix: mat3, canvasWidth: number, canvasHeight: number) {
-    // const gl = this.gl;
-    // for (const tile of tiles) {
-    //   // todo: move up in other tile loop
-    //   const colorLocation = gl.getUniformLocation(this.program, 'u_color');
-    //   gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
-    //   const tileVertices = geometryToVertices(tilebelt.tileToGeoJSON(tile.ref));
-    //   gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-    //   gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
-    //   // setup position attribute
-    //   const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
-    //   gl.enableVertexAttribArray(positionAttributeLocation);
-    //   // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-    //   const size = 2;
-    //   const dataType = gl.FLOAT;
-    //   const normalize = false;
-    //   const stride = 0;
-    //   let offset = 0;
-    //   gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
-    //   // draw
-    //   const primitiveType = gl.LINES;
-    //   offset = 0;
-    //   const count = tileVertices.length / 2;
-    //   gl.drawArrays(primitiveType, offset, count);
-    //   // draw tile labels
-    //   const tileCoordinates = tilebelt.tileToGeoJSON(tile.ref).coordinates;
-    //   const topLeft = tileCoordinates[0][0];
-    //   const [x, y] = this.projection.fromLngLat(topLeft as [number, number]);
-    //   const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], matrix);
-    //   const wx = ((1 + clipX) / this.pixelRatio) * canvasWidth;
-    //   const wy = ((1 - clipY) / this.pixelRatio) * canvasHeight;
-    //   const div = document.createElement('div');
-    //   div.className = 'tile-label';
-    //   div.style.left = wx + 8 + 'px';
-    //   div.style.top = wy + 8 + 'px';
-    //   div.appendChild(document.createTextNode(tile.tileId));
-    //   this.overlay.appendChild(div);
-    // }
+    const gl = this.gl;
+    for (const tile of tiles) {
+      // todo: move up in other tile loop
+      const colorLocation = gl.getUniformLocation(this.program, 'u_color');
+      gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
+      //  geometryToVertices(tilebelt.tileToGeoJSON(tile.ref))
+      const tileVertices = tile.getVerticies(this.projection);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
+      // setup position attribute
+      const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
+      gl.enableVertexAttribArray(positionAttributeLocation);
+      // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+      const size = 2;
+      const dataType = gl.FLOAT;
+      const normalize = false;
+      const stride = 0;
+      let offset = 0;
+      gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
+      // draw
+      const primitiveType = gl.LINES;
+      offset = 0;
+      const count = tileVertices.length / 2;
+      gl.drawArrays(primitiveType, offset, count);
+      // draw tile labels
+      //  tilebelt.tileToGeoJSON(tile.ref).coordinates;
+      const tileCoordinates = tile.toGeoJson().coordinates;
+      const topLeft = tileCoordinates[0][0];
+      const [x, y] = this.projection.fromLngLat(topLeft as [number, number]);
+      const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], matrix);
+      const wx = ((1 + clipX) / this.pixelRatio) * canvasWidth;
+      const wy = ((1 - clipY) / this.pixelRatio) * canvasHeight;
+      const div = document.createElement('div');
+      div.className = 'tile-label';
+      div.style.left = wx + 8 + 'px';
+      div.style.top = wy + 8 + 'px';
+      div.appendChild(document.createTextNode(tile.tileId));
+      this.overlay.appendChild(div);
+    }
   }
 }
