@@ -1,5 +1,4 @@
 import { Polygon } from 'geojson';
-import { Projection } from '../geo/projection/projection';
 
 export type TileRef = [number, number, number];
 
@@ -19,7 +18,18 @@ export interface MapTile {
   setLayers(layers: MapTileLayer[]): void;
 
   toGeoJson(): Polygon;
-  getVerticies(projection: Projection): number[];
 }
 
-export interface MapTileLayer {}
+export interface MapTileLayer {
+  features: MapTileFeature[];
+}
+
+export interface MapTileFeature {
+  type: MapTileFeatureType;
+}
+
+export enum MapTileFeatureType {
+  point = 'point',
+  line = 'line',
+  polygon = 'polygon',
+}

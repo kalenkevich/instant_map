@@ -1,4 +1,3 @@
-import { mat3 } from 'gl-matrix';
 import Stats from 'stats.js';
 import { Evented } from './evented';
 import { MapPan } from './pan/map_pan';
@@ -6,7 +5,7 @@ import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
 import { Renderer } from './renderer/renderer';
 import { RenderQueue } from './render_queue/render_queue';
-import { TilesGrid, TilesGridEvent } from './tile/tiles_grid';
+import { TilesGrid, TilesGridEvent } from './tile/tile_grid';
 import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
 import { MapParentControl, MapControlPosition } from '../map/controls/parent_control';
 import { CompassControl } from '../map/controls/compass_control';
@@ -47,15 +46,22 @@ export interface MapOptions {
   zoom?: number;
   /** Initial rotation value of the map. */
   rotation?: number;
-
   /** Number of tiles to featch around. */
   tileBuffer?: number;
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
-
-  debug?: boolean;
   /** When `true` then map will listen for `rootEl` width/height changes. */
   resizable?: boolean;
+  /**
+   * Map control configuration.
+   * Provide `true` or `false` to show/hide map control on UI.
+   */
+  controls?: {
+    zoom?: boolean;
+    move?: boolean;
+    compas?: boolean;
+    debug?: boolean;
+  };
 
   // TODO: move to TileStyles
   tileSize?: number;
@@ -71,17 +77,6 @@ export interface MapOptions {
   /** Map max zoom level. */
   maxZoom?: number;
   projection?: string | ProjectionType;
-
-  /**
-   * Map control configuration.
-   * Provide `true` or `false` to show/hide map control on UI.
-   */
-  controls?: {
-    zoom?: boolean;
-    move?: boolean;
-    compas?: boolean;
-    debug?: boolean;
-  };
 }
 
 export enum MapEventType {
@@ -289,7 +284,7 @@ export class GlideV2Map extends Evented<MapEventType> {
     return this.camera.inBoundLimits(position, zoom);
   }
 
-  getProjectionMatrix(): mat3 {
+  getProjectionMatrix() {
     return this.camera.getProjectionMatrix();
   }
 

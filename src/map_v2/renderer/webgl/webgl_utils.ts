@@ -22,14 +22,3 @@ export const createProgram = (gl: WebGLRenderingContext, vertexShader: WebGLShad
   console.error(gl.getProgramInfoLog(program));
   gl.deleteProgram(program);
 };
-
-export const getPrimitiveType = (gl: WebGLRenderingContext, type: string) => {
-  switch (type) {
-    case 'point':
-      return gl.POINTS;
-    case 'line':
-      return gl.LINES;
-    default: // polygon
-      return gl.TRIANGLES;
-  }
-};

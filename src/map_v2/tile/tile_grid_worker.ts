@@ -1,4 +1,4 @@
-import { FetchTileOptions, fetchTile } from '../pbf/pbf_tile_utils';
+import { FetchTileOptions, fetchTile } from './pbf/pbf_tile_utils';
 
 addEventListener('message', async event => {
   const { tileId, layers, url, projectionType }: FetchTileOptions = event.data;

@@ -12,7 +12,9 @@ export class BufferBucket {
   write(data: number[] | Float32Array): BucketPointer {
     const size = data.length;
 
-    this.arrayData.push(...data);
+    for (let i = 0; i < data.length; i++) {
+      this.arrayData.push(data[i]);
+    }
 
     const ptr = {
       bucket: this,
@@ -31,5 +33,23 @@ export class BufferBucket {
     }
 
     return (this.buffer = new Float32Array(this.arrayData));
+  }
+
+  private _sharedBuffer?: SharedArrayBuffer;
+  releaseShared(): SharedArrayBuffer {
+    if (this._sharedBuffer) {
+      return this._sharedBuffer;
+    }
+
+    const n = this.arrayData.length;
+    const size = this.arrayData.length * Float32Array.BYTES_PER_ELEMENT;
+    const sharedBuffer = new SharedArrayBuffer(size);
+    const buffer = new Float32Array(sharedBuffer);
+
+    for (let i = 0; i < n; i++) {
+      buffer[i] = this.arrayData[i];
+    }
+
+    return (this._sharedBuffer = sharedBuffer);
   }
 }

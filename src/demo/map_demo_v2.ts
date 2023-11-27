@@ -89,7 +89,6 @@ export function renderMap() {
     center: [lat, lng],
     minZoom: 1,
     maxZoom: 15,
-    debug: true,
     layers: {
       water: [95, 200, 255, 255],
       landcover: [173, 226, 167, 255],
@@ -100,6 +99,11 @@ export function renderMap() {
       poi: [250, 185, 57, 255],
     },
     projection: 'mercator',
+    controls: {
+      compas: true,
+      zoom: true,
+      debug: true,
+    },
   });
 
   subscribeOnEvents(currentMap);

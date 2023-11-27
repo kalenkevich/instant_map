@@ -1,13 +1,18 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Polygon } from 'geojson';
-import { MapTile, MapTileFormatType, TileRef, MapTileLayer } from '../tile';
-import { geometryToVertices } from './pbf_tile_utils';
-import { Projection } from '../../geo/projection/projection';
+import { MapTile, MapTileFormatType, TileRef, MapTileLayer, MapTileFeature } from '../tile';
+import { BucketPointer } from '../../../webgl_v2/buffer/buffer_bucket';
 
 export interface PbfTileLayer extends MapTileLayer {
-  type: 'polygon' | 'point' | 'line';
   layer: string;
-  vertices: Float32Array;
+  vertices: Float32Array | SharedArrayBuffer;
+  features: PbfTileFeature[];
+}
+
+export interface PbfTileFeature extends MapTileFeature {
+  primitiveType: number;
+  numElements: number;
+  pointer: BucketPointer;
 }
 
 export class PbfMapTile implements MapTile {
@@ -18,7 +23,7 @@ export class PbfMapTile implements MapTile {
     this.tileId = ref.join('/');
   }
 
-  getLayers(): MapTileLayer[] {
+  getLayers(): PbfTileLayer[] {
     return this.layers;
   }
 
@@ -33,15 +38,5 @@ export class PbfMapTile implements MapTile {
     }
 
     return (this._geojson = tilebelt.tileToGeoJSON(this.ref));
-  }
-
-  // ????
-  private _verticies?: number[];
-  getVerticies(projection: Projection): number[] {
-    if (this._verticies) {
-      return this._verticies;
-    }
-
-    return (this._verticies = geometryToVertices(tilebelt.tileToGeoJSON(this.ref), projection));
   }
 }

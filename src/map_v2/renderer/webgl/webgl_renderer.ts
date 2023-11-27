@@ -1,9 +1,7 @@
 import { mat3 } from 'gl-matrix';
-import { createShader, createProgram, getPrimitiveType } from './webgl_utils';
-import { MapTile } from '../../tile/tile';
-import { Projection } from '../../geo/projection/projection';
+import { createShader, createProgram } from './webgl_utils';
 import { Renderer, MapStyles } from '../renderer';
-import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
+import { PbfMapTile, PbfTileLayer } from '../../tile/pbf/pbf_tile';
 
 ////////////
 // shaders
@@ -43,6 +41,7 @@ export class WebGlRenderer implements Renderer {
   private colorLocation: any;
   private canvas: HTMLCanvasElement;
   private gl?: WebGLRenderingContext;
+  private positionAttributeLocation = 0;
 
   constructor(private readonly rootEl: HTMLElement, private devicePixelRatio: number) {
     this.canvas = this.createCanvasEl();
@@ -104,7 +103,7 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render(tiles: MapTile[], matrix: mat3, styles: MapStyles) {
+  render(tiles: PbfMapTile[], matrix: mat3, styles: MapStyles) {
     const gl = this.gl;
 
     // set matrix uniform
@@ -114,33 +113,26 @@ export class WebGlRenderer implements Renderer {
       let tileLayers = tile.getLayers();
 
       for (const tileLayer of tileLayers) {
-        const { layer, type, vertices } = tileLayer as PbfTileLayer;
+        const { layer, vertices, features } = tileLayer as PbfTileLayer;
         const color = styles.layers[layer].map(n => n / 255); // RBGA to WebGL
 
         // set color uniform
         gl.uniform4fv(this.colorLocation, color);
 
-        // create buffer for vertices
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(this.positionAttributeLocation);
 
-        // setup position attribute
-        const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
-        gl.enableVertexAttribArray(positionAttributeLocation);
+        for (const feature of features) {
+          const size = 2;
+          const normalize = false;
+          const stride = 0;
+          const offset = feature.pointer.offset * Float32Array.BYTES_PER_ELEMENT;
+          gl.vertexAttribPointer(this.positionAttributeLocation, size, gl.FLOAT, normalize, stride, offset);
 
-        // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        const size = 2;
-        const dataType = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        let offset = 0;
-        gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
-
-        // draw
-        const primitiveType = getPrimitiveType(gl, type);
-        offset = 0;
-        const count = vertices.length / 2;
-        gl.drawArrays(primitiveType, offset, count);
+          // draw
+          gl.drawArrays(feature.primitiveType, 0, feature.numElements);
+        }
       }
     }
   }

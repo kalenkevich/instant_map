@@ -1,4 +1,3 @@
-// Evented
 export type EventListener<EventType> = (eventType: EventType, ...eventArgs: any[]) => void;
 
 export class Evented<EventType> {

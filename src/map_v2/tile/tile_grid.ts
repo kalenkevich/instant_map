@@ -42,8 +42,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   }
 
   init() {
-    this.tilesInView = []; // current visible tiles
-    this.tileWorker = new Worker(new URL('./workers/tile-worker.ts', import.meta.url));
+    this.tilesInView = [];
+    this.tileWorker = new Worker(new URL('./tile_grid_worker.ts', import.meta.url));
     this.tileWorker.onmessage = this.handleTileWorker;
     this.tileWorker.onerror = this.handleTileWorkerError;
   }
@@ -65,7 +65,9 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       this.tiles.set(tileId, tile);
     }
 
-    this.fire(TilesGridEvent.TILE_LOADED, tile);
+    setTimeout(() => {
+      this.fire(TilesGridEvent.TILE_LOADED, tile);
+    }, 0);
   };
 
   // errors from tile worker
@@ -181,7 +183,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     throw new Error(`${this.tileFormatType} is not supported.`);
   }
 
-  public getPlaceholderLayers(tile: TileRef): MapTileLayer[] {
+  private getPlaceholderLayers(tile: TileRef): MapTileLayer[] {
     const parentId = this.getTileId(tilebelt.getParent(tile)! as TileRef);
     const parentTile = this.tiles.get(parentId);
     if (parentTile) {
