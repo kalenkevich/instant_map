@@ -1,13 +1,13 @@
 import 'hammerjs';
 import { vec3, mat3 } from 'gl-matrix';
-import { WebGLMap } from '../map';
+import { GlideV2Map } from '../map';
 
 export class MapPan {
   private hammer: any;
   private startX: number;
   private startY: number;
 
-  constructor(private readonly map: WebGLMap, private readonly el: HTMLElement) {}
+  constructor(private readonly map: GlideV2Map, private readonly el: HTMLElement) {}
 
   init() {
     this.handleMove = this.handleMove.bind(this);

@@ -75,6 +75,13 @@ export class MapCamera {
     return this.viewProjectionMat;
   }
 
+  public resize(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+
+    this.updateProjectionMatrix();
+  }
+
   public inBoundLimits(position?: [number, number], zoom?: number): boolean {
     const bbox = this.getBounds(position || [this.x, this.y], zoom || this.zoom);
 

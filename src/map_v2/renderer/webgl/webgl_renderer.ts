@@ -1,4 +1,4 @@
-import { vec3, mat3 } from 'gl-matrix';
+import { mat3 } from 'gl-matrix';
 import { createShader, createProgram, getPrimitiveType } from './webgl_utils';
 import { MapTile } from '../../tile/tile';
 import { Projection } from '../../geo/projection/projection';
@@ -41,16 +41,18 @@ export class WebGlRenderer implements Renderer {
   private program: WebGLProgram;
   private matrixLocation: any;
   private colorLocation: any;
+  private canvas: HTMLCanvasElement;
+  private gl?: WebGLRenderingContext;
 
-  constructor(
-    private readonly gl: WebGLRenderingContext,
-    private pixelRatio: number,
-    private readonly overlay: HTMLElement,
-    private readonly projection: Projection
-  ) {}
+  constructor(private readonly rootEl: HTMLElement, private devicePixelRatio: number) {
+    this.canvas = this.createCanvasEl();
+  }
 
   init() {
-    const gl = this.gl;
+    this.rootEl.appendChild(this.canvas);
+
+    const gl = (this.gl = this.canvas.getContext('webgl'));
+
     // get GL context
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -75,6 +77,33 @@ export class WebGlRenderer implements Renderer {
 
   destroy() {}
 
+  protected createCanvasEl(): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    const width = this.rootEl.offsetWidth;
+    const height = this.rootEl.offsetHeight;
+
+    canvas.width = width * this.devicePixelRatio;
+    canvas.height = height * this.devicePixelRatio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.style.background = 'transparent';
+
+    return canvas;
+  }
+
+  public resize(width: number, height: number) {
+    if (!this.canvas) {
+      return;
+    }
+
+    this.canvas.width = width * this.devicePixelRatio;
+    this.canvas.height = height * this.devicePixelRatio;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+  }
+
   render(tiles: MapTile[], matrix: mat3, styles: MapStyles) {
     const gl = this.gl;
 
@@ -86,11 +115,6 @@ export class WebGlRenderer implements Renderer {
 
       for (const tileLayer of tileLayers) {
         const { layer, type, vertices } = tileLayer as PbfTileLayer;
-
-        if (styles.disabledLayers.includes(layer)) {
-          return;
-        }
-
         const color = styles.layers[layer].map(n => n / 255); // RBGA to WebGL
 
         // set color uniform
@@ -118,48 +142,6 @@ export class WebGlRenderer implements Renderer {
         const count = vertices.length / 2;
         gl.drawArrays(primitiveType, offset, count);
       }
-    }
-  }
-
-  renderTilesBorder(tiles: MapTile[], matrix: mat3, canvasWidth: number, canvasHeight: number) {
-    const gl = this.gl;
-    for (const tile of tiles) {
-      // todo: move up in other tile loop
-      const colorLocation = gl.getUniformLocation(this.program, 'u_color');
-      gl.uniform4fv(colorLocation, [1, 0, 0, 1]);
-      //  geometryToVertices(tilebelt.tileToGeoJSON(tile.ref))
-      const tileVertices = tile.getVerticies(this.projection);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, Float32Array.from(tileVertices), gl.STATIC_DRAW);
-      // setup position attribute
-      const positionAttributeLocation = gl.getAttribLocation(this.program, 'a_position');
-      gl.enableVertexAttribArray(positionAttributeLocation);
-      // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-      const size = 2;
-      const dataType = gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      let offset = 0;
-      gl.vertexAttribPointer(positionAttributeLocation, size, dataType, normalize, stride, offset);
-      // draw
-      const primitiveType = gl.LINES;
-      offset = 0;
-      const count = tileVertices.length / 2;
-      gl.drawArrays(primitiveType, offset, count);
-      // draw tile labels
-      //  tilebelt.tileToGeoJSON(tile.ref).coordinates;
-      const tileCoordinates = tile.toGeoJson().coordinates;
-      const topLeft = tileCoordinates[0][0];
-      const [x, y] = this.projection.fromLngLat(topLeft as [number, number]);
-      const [clipX, clipY] = vec3.transformMat3(vec3.create(), [x, y, 1], matrix);
-      const wx = ((1 + clipX) / this.pixelRatio) * canvasWidth;
-      const wy = ((1 - clipY) / this.pixelRatio) * canvasHeight;
-      const div = document.createElement('div');
-      div.className = 'tile-label';
-      div.style.left = wx + 8 + 'px';
-      div.style.top = wy + 8 + 'px';
-      div.appendChild(document.createTextNode(tile.tileId));
-      this.overlay.appendChild(div);
     }
   }
 }

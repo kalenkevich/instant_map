@@ -11,7 +11,7 @@ export interface Renderer {
 
   destroy(): void;
 
-  render(tiles: MapTile[], matrix: mat3, mapStyles: MapStyles): void;
+  resize(width: number, height: number): void;
 
-  renderTilesBorder(tiles: MapTile[], matrix: mat3, canvasWidth: number, canvasHeight: number): void;
+  render(tiles: MapTile[], matrix: mat3, mapStyles: MapStyles): void;
 }
