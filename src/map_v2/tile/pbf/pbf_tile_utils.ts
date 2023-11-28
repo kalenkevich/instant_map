@@ -87,14 +87,6 @@ function verticesFromPoint(coordinates: number[], projection: Projection): numbe
   return data;
 }
 
-// doing an array.push with too many values can cause
-// stack size errors, so we manually iterate and append
-function append(arr1: number[], arr2: number[]) {
-  arr2.forEach(n => {
-    arr1[arr1.length] = n;
-  });
-}
-
 // convert a GeoJSON geometry to webgl vertices
 export function geometryToVertices(geometry: SupportedGeometry, projection: Projection): number[] {
   if (geometry.type === 'Polygon') {
@@ -103,9 +95,14 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
 
   if (geometry.type === 'MultiPolygon') {
     const positions: number[] = [];
-    geometry.coordinates.forEach((polygon, i) => {
-      append(positions, verticesFromPolygon([polygon[0]], projection));
-    });
+
+    for (const polygons of geometry.coordinates) {
+      const vertecies = verticesFromPolygon([polygons[0]], projection);
+
+      for (const v of vertecies) {
+        positions.push(v);
+      }
+    }
 
     return positions;
   }
@@ -117,9 +114,13 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
   if (geometry.type === 'MultiLineString') {
     return [];
     // const positions: number[] = [];
-    // geometry.coordinates.forEach((lineString, i) => {
-    //   append(positions, verticesFromLine(lineString, projection));
-    // });
+
+    // for (const line of geometry.coordinates) {
+    //   const vertecies = verticesFromLine(line, projection);
+    //   for (const v of vertecies) {
+    //     positions.push(v);
+    //   }
+    // }
 
     // return positions;
   }
@@ -198,9 +199,6 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
 
       if (type === 'line') {
         const lineData = geometryToVertices(geojson.geometry, projection);
-        // for (const ld of lineData) {
-        //   lines.push(ld);
-        // }
 
         if (lineData.length) {
           features.push({
@@ -232,15 +230,6 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
         buffer: new Float32Array(points),
       });
     }
-
-    // if (lines.length) {
-    //   features.push({
-    //     type: MapTileFeatureType.line,
-    //     primitiveType: FeaturePrimiiveType.TRIANGLES,
-    //     numElements: lines.length / 2,
-    //     buffer: new Float32Array(lines),
-    //   });
-    // }
 
     if (polygons.length) {
       features.push({

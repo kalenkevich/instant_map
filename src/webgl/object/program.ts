@@ -219,7 +219,7 @@ export abstract class GlProgram {
         gl.drawElements(primitiveType, bufferAttrs.numElements, gl.UNSIGNED_SHORT, offset);
       }
     }
-    gl.flush();
+    // gl.flush();
   }
 
   public vertexShaderSource = `

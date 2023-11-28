@@ -1,6 +1,5 @@
 import { PolygonProgram } from './polygon_program';
 import { ExtendedWebGLRenderingContext } from './program';
-import { createShader, createProgram } from './program_utils';
 
 const POSITION_BUFFER = new Float32Array([0, -0.5, 1, -0.5, 1, 0.5, 0, -0.5, 1, 0.5, 0, 0.5]);
 
@@ -47,6 +46,8 @@ export class LineProgram extends PolygonProgram {
   // uniform locations
   protected u_line_widthLocation: WebGLUniformLocation;
 
+  protected vao: WebGLVertexArrayObjectOES;
+
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly vertexShaderSource: string = VERTEX_SHADER_SOURCE,
@@ -55,16 +56,10 @@ export class LineProgram extends PolygonProgram {
     super(gl, vertexShaderSource, fragmentShaderSource);
   }
 
-  protected setupProgram() {
-    const gl = this.gl;
-
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, this.vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, this.fragmentShaderSource);
-
-    this.program = createProgram(gl, vertexShader, fragmentShader);
-  }
-
   protected setupBuffer(): void {
+    this.vao = this.gl.createVertexArray();
+
+    this.gl.bindVertexArray(this.vao);
     this.a_positionBuffer = this.gl.createBuffer();
     this.gl.enableVertexAttribArray(this.a_positionAttributeLocation);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.a_positionBuffer);
@@ -89,12 +84,11 @@ export class LineProgram extends PolygonProgram {
       Float32Array.BYTES_PER_ELEMENT * 2
     );
     this.gl.vertexAttribDivisor(this.point_bAttributeLocation, 1);
+    this.gl.bindVertexArray(null);
   }
 
   protected setupUniforms(): void {
     super.setupUniforms();
-    this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
-    this.u_colorLocation = this.gl.getUniformLocation(this.program, 'u_color');
     this.u_line_widthLocation = this.gl.getUniformLocation(this.program, 'u_line_width');
   }
 
@@ -111,6 +105,8 @@ export class LineProgram extends PolygonProgram {
   }
 
   draw(primitiveType: number, offset: number, numElements: number): void {
+    this.gl.bindVertexArray(this.vao);
     this.gl.drawArraysInstanced(primitiveType, offset, 6, numElements - 1);
+    this.gl.bindVertexArray(null);
   }
 }

@@ -3,8 +3,8 @@ import { mat3, vec4 } from 'gl-matrix';
 export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
   vertexAttribDivisor(index: number, divisor: number): void;
   drawArraysInstanced(primitiveType: number, offset: number, numElements: number, instanceCount: number): void;
-  createVertexArray(): WebGLVertexArrayObject;
-  bindVertexArray(vao: WebGLVertexArrayObject): void;
+  createVertexArray(): WebGLVertexArrayObjectOES;
+  bindVertexArray(vao: WebGLVertexArrayObjectOES): void;
 };
 
 export interface WebGlProgram {

@@ -97,7 +97,7 @@ export class WebGlRenderer implements Renderer {
             program.setMatrix(matrix);
             program.setColor(color);
             if (feature.type === MapTileFeatureType.line) {
-              (program as LineProgram).setLineWidth(0.0000005);
+              (program as LineProgram).setLineWidth(0.000001);
             }
           }
 
@@ -111,5 +111,7 @@ export class WebGlRenderer implements Renderer {
         }
       }
     }
+
+    this.gl.flush();
   }
 }
