@@ -1,47 +1,16 @@
-import { mat3 } from 'gl-matrix';
-import { createShader, createProgram } from './webgl_utils';
+import { mat3, vec4 } from 'gl-matrix';
+import { addExtensionsToContext } from 'twgl.js';
 import { Renderer, MapStyles } from '../renderer';
+import { MapTileFeatureType } from '../../tile/tile';
 import { PbfMapTile, PbfTileLayer } from '../../tile/pbf/pbf_tile';
-
-////////////
-// shaders
-////////////
-const vertexShaderSource = `
-  attribute vec2 a_position;
-
-  uniform mat3 u_matrix;
-
-  void main() {
-    gl_PointSize = 3.0;
-
-    vec2 position = (u_matrix * vec3(a_position, 1)).xy;
-    
-    // Clip space
-    // vec2 zeroToTwo = position * 2.0;
-    // vec2 clipSpace = zeroToTwo - 1.0;
-
-    gl_Position = vec4(position, 0, 1);
-  }
-`;
-
-const fragmentShaderSource = `
-  precision mediump float;
-
-  uniform vec4 u_color;
-
-  void main() {
-    gl_FragColor = u_color;
-  }
-`;
+import { WebGlProgram, ExtendedWebGLRenderingContext } from './programs/program';
+import { PolygonProgram } from './programs/polygon_program';
+import { LineProgram } from './programs/line_program';
 
 export class WebGlRenderer implements Renderer {
-  private positionBuffer: WebGLBuffer;
-  private program: WebGLProgram;
-  private matrixLocation: any;
-  private colorLocation: any;
   private canvas: HTMLCanvasElement;
-  private gl?: WebGLRenderingContext;
-  private positionAttributeLocation = 0;
+  private programs: Record<MapTileFeatureType, WebGlProgram>;
+  private gl?: ExtendedWebGLRenderingContext;
 
   constructor(private readonly rootEl: HTMLElement, private devicePixelRatio: number) {
     this.canvas = this.createCanvasEl();
@@ -50,28 +19,21 @@ export class WebGlRenderer implements Renderer {
   init() {
     this.rootEl.appendChild(this.canvas);
 
-    const gl = (this.gl = this.canvas.getContext('webgl'));
+    const gl = (this.gl = this.canvas.getContext('webgl') as ExtendedWebGLRenderingContext);
+    addExtensionsToContext(gl);
 
-    // get GL context
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    // compile shaders
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-
-    // setup program
-    const program = createProgram(gl, vertexShader, fragmentShader);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(program);
 
-    // create buffers
-    this.positionBuffer = gl.createBuffer();
-
-    this.matrixLocation = gl.getUniformLocation(program, 'u_matrix');
-    this.colorLocation = gl.getUniformLocation(program, 'u_color');
-
-    // save gl references
-    this.program = program;
+    const polygonProgram = new PolygonProgram(gl);
+    const lineProgram = new LineProgram(gl);
+    this.programs = {
+      [MapTileFeatureType.point]: polygonProgram,
+      [MapTileFeatureType.line]: lineProgram,
+      [MapTileFeatureType.polygon]: polygonProgram,
+    };
+    polygonProgram.init();
+    lineProgram.init();
   }
 
   destroy() {}
@@ -105,33 +67,47 @@ export class WebGlRenderer implements Renderer {
 
   render(tiles: PbfMapTile[], matrix: mat3, styles: MapStyles) {
     const gl = this.gl;
-
-    // set matrix uniform
-    gl.uniformMatrix3fv(this.matrixLocation, false, matrix);
+    let program;
+    let matrixSet = false;
 
     for (const tile of tiles) {
-      let tileLayers = tile.getLayers();
+      const tileLayers = tile.getLayers();
+
+      if (program && !matrixSet) {
+        program.setMatrix(matrix);
+        matrixSet = true;
+      }
 
       for (const tileLayer of tileLayers) {
-        const { layer, vertices, features } = tileLayer as PbfTileLayer;
-        const color = styles.layers[layer].map(n => n / 255); // RBGA to WebGL
+        let colorSet = false;
+        const { layer, features } = tileLayer as PbfTileLayer;
+        const color = styles.layers[layer].map(n => n / 255) as vec4; // RBGA to WebGL
 
-        // set color uniform
-        gl.uniform4fv(this.colorLocation, color);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(this.positionAttributeLocation);
+        if (program && !colorSet) {
+          program.setColor(color);
+          colorSet = true;
+        }
 
         for (const feature of features) {
+          const prevProgram: WebGlProgram = program;
+          program = this.programs[feature.type];
+
+          if (prevProgram !== program) {
+            program.link();
+            program.setMatrix(matrix);
+            program.setColor(color);
+            if (feature.type === MapTileFeatureType.line) {
+              (program as LineProgram).setLineWidth(0.0000005);
+            }
+          }
+
           const size = 2;
           const normalize = false;
           const stride = 0;
-          const offset = feature.pointer.offset * Float32Array.BYTES_PER_ELEMENT;
-          gl.vertexAttribPointer(this.positionAttributeLocation, size, gl.FLOAT, normalize, stride, offset);
+          const offset = 0;
 
-          // draw
-          gl.drawArrays(feature.primitiveType, 0, feature.numElements);
+          program.bindBuffer(feature.buffer, size, gl.FLOAT, normalize, stride, offset);
+          program.draw(feature.primitiveType, 0, feature.numElements);
         }
       }
     }

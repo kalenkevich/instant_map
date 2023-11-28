@@ -276,7 +276,7 @@ export class GlideV2Map extends Evented<MapEventType> {
       }
     );
 
-    this.renderQueue.flush();
+    this.renderQueue.clear();
     animation.run();
   }
 
@@ -291,6 +291,7 @@ export class GlideV2Map extends Evented<MapEventType> {
   rerender(): Promise<void> {
     this.tilesGrid.updateTiles(this.camera);
 
+    this.renderQueue.clear();
     return this.renderQueue.render(() => {
       this.render();
       this.fire(MapEventType.RENDER);

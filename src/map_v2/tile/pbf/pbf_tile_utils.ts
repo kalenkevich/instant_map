@@ -6,7 +6,6 @@ import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } fr
 import { ProjectionType, Projection, getProjectionFromType } from '../../geo/projection/projection';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
-import { BufferBucket } from '../../../webgl_v2/buffer/buffer_bucket';
 
 export enum FeaturePrimiiveType {
   POINTS = 0x0000,
@@ -116,12 +115,13 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
   }
 
   if (geometry.type === 'MultiLineString') {
-    const positions: number[] = [];
-    geometry.coordinates.forEach((lineString, i) => {
-      append(positions, verticesFromLine(lineString, projection));
-    });
+    return [];
+    // const positions: number[] = [];
+    // geometry.coordinates.forEach((lineString, i) => {
+    //   append(positions, verticesFromLine(lineString, projection));
+    // });
 
-    return positions;
+    // return positions;
   }
 
   if (geometry.type === 'Point') {
@@ -176,12 +176,12 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
     // @ts-ignore
     const numFeatures = vectorTile.layers[layer]?._features?.length || 0;
 
-    const buffer = new BufferBucket();
     const features = [];
 
     const points: number[] = [];
     const lines: number[] = [];
     const polygons: number[] = [];
+    const lineFeatures = [];
     let pointsCount = 0;
 
     // convert feature to vertices
@@ -198,8 +198,17 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
 
       if (type === 'line') {
         const lineData = geometryToVertices(geojson.geometry, projection);
-        for (const ld of lineData) {
-          lines.push(ld);
+        // for (const ld of lineData) {
+        //   lines.push(ld);
+        // }
+
+        if (lineData.length) {
+          features.push({
+            type: MapTileFeatureType.line,
+            primitiveType: FeaturePrimiiveType.TRIANGLES,
+            numElements: lineData.length / 2,
+            buffer: new Float32Array(lineData),
+          });
         }
 
         continue;
@@ -215,28 +224,34 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
       }
     }
 
-    features.push({
-      type: MapTileFeatureType.point,
-      primitiveType: FeaturePrimiiveType.TRIANGLES,
-      numElements: points.length / 2,
-      pointer: buffer.write(points),
-    });
+    if (points.length) {
+      features.push({
+        type: MapTileFeatureType.point,
+        primitiveType: FeaturePrimiiveType.TRIANGLES,
+        numElements: points.length / 2,
+        buffer: new Float32Array(points),
+      });
+    }
 
-    features.push({
-      type: MapTileFeatureType.line,
-      primitiveType: FeaturePrimiiveType.LINES,
-      numElements: lines.length / 2,
-      pointer: buffer.write(lines),
-    });
+    // if (lines.length) {
+    //   features.push({
+    //     type: MapTileFeatureType.line,
+    //     primitiveType: FeaturePrimiiveType.TRIANGLES,
+    //     numElements: lines.length / 2,
+    //     buffer: new Float32Array(lines),
+    //   });
+    // }
 
-    features.push({
-      type: MapTileFeatureType.polygon,
-      primitiveType: FeaturePrimiiveType.TRIANGLES,
-      numElements: polygons.length / 2,
-      pointer: buffer.write(polygons),
-    });
+    if (polygons.length) {
+      features.push({
+        type: MapTileFeatureType.polygon,
+        primitiveType: FeaturePrimiiveType.TRIANGLES,
+        numElements: polygons.length / 2,
+        buffer: new Float32Array(polygons),
+      });
+    }
 
-    tileLayers.push({ layer, vertices: buffer.releaseShared(), features });
+    tileLayers.push({ layer, features });
   }
 
   return tileLayers;

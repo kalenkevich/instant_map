@@ -23,7 +23,7 @@ export class RenderQueue {
     });
   }
 
-  public flush() {
+  public clear() {
     this.isActive = false;
     this.queue = [];
 
@@ -34,7 +34,7 @@ export class RenderQueue {
 
   private invokeRender(index: number) {
     if (index >= this.queue.length) {
-      this.flush();
+      this.clear();
       return;
     }
 

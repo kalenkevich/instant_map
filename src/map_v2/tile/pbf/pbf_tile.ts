@@ -1,18 +1,16 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Polygon } from 'geojson';
 import { MapTile, MapTileFormatType, TileRef, MapTileLayer, MapTileFeature } from '../tile';
-import { BucketPointer } from '../../../webgl_v2/buffer/buffer_bucket';
 
 export interface PbfTileLayer extends MapTileLayer {
   layer: string;
-  vertices: Float32Array | SharedArrayBuffer;
   features: PbfTileFeature[];
 }
 
 export interface PbfTileFeature extends MapTileFeature {
   primitiveType: number;
   numElements: number;
-  pointer: BucketPointer;
+  buffer: Float32Array;
 }
 
 export class PbfMapTile implements MapTile {
