@@ -305,9 +305,10 @@ export class GlideV2Map extends Evented<MapEventType> {
     }
 
     const tiles = this.tilesGrid.getCurrentViewTiles();
+    const zoom = this.getZoom();
     const projectionMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, projectionMatrix, this.mapOptions);
+    this.renderer.render(tiles, zoom, projectionMatrix, this.mapOptions);
 
     this.statsWidget.style.display = 'none';
 

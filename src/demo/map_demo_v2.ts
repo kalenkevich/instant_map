@@ -91,6 +91,7 @@ export function renderMap() {
     maxZoom: 15,
     layers: {
       water: [95, 200, 255, 255],
+      globallandcover: [173, 226, 167, 255],
       landcover: [173, 226, 167, 255],
       park: [202, 255, 193, 255],
       building: [222, 215, 211, 255],

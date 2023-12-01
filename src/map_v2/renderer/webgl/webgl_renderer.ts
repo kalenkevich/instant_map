@@ -1,8 +1,8 @@
-import { mat3, vec2, vec4 } from 'gl-matrix';
+import { mat3, vec4 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
 import { Renderer, MapStyles } from '../renderer';
-import { MapTileFeatureType } from '../../tile/tile';
-import { PbfMapTile, PbfTileLayer } from '../../tile/pbf/pbf_tile';
+import { MapTile, MapTileFeatureType } from '../../tile/tile';
+import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
 import { WebGlProgram, ExtendedWebGLRenderingContext } from './programs/program';
 import { PolygonProgram } from './programs/polygon_program';
 import { LineProgram } from './programs/line_program';
@@ -67,7 +67,7 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render(tiles: PbfMapTile[], matrix: mat3, styles: MapStyles) {
+  render(tiles: MapTile[], zoom: number, matrix: mat3, styles: MapStyles) {
     const gl = this.gl;
     let program;
     let globalUniformsSet = false;
@@ -99,7 +99,7 @@ export class WebGlRenderer implements Renderer {
             program.setMatrix(matrix);
             program.setColor(color);
             if (feature.type === MapTileFeatureType.line) {
-              (program as LineProgram).setLineWidth(0.0000003);
+              (program as LineProgram).setLineWidth(0.003 / Math.pow(2, zoom));
             }
           }
 
