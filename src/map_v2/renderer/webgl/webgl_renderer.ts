@@ -1,4 +1,4 @@
-import { mat3, vec4 } from 'gl-matrix';
+import { mat3, vec2, vec4 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
 import { Renderer, MapStyles } from '../renderer';
 import { MapTileFeatureType } from '../../tile/tile';
@@ -68,14 +68,14 @@ export class WebGlRenderer implements Renderer {
   render(tiles: PbfMapTile[], matrix: mat3, styles: MapStyles) {
     const gl = this.gl;
     let program;
-    let matrixSet = false;
+    let globalUniformsSet = false;
 
     for (const tile of tiles) {
       const tileLayers = tile.getLayers();
 
-      if (program && !matrixSet) {
+      if (program && !globalUniformsSet) {
         program.setMatrix(matrix);
-        matrixSet = true;
+        globalUniformsSet = true;
       }
 
       for (const tileLayer of tileLayers) {
@@ -97,7 +97,7 @@ export class WebGlRenderer implements Renderer {
             program.setMatrix(matrix);
             program.setColor(color);
             if (feature.type === MapTileFeatureType.line) {
-              (program as LineProgram).setLineWidth(0.000001);
+              (program as LineProgram).setLineWidth(0.0000003);
             }
           }
 

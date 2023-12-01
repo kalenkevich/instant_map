@@ -4,6 +4,12 @@ import { ExtendedWebGLRenderingContext } from './program';
 const POSITION_BUFFER = new Float32Array([0, -0.5, 1, -0.5, 1, 0.5, 0, -0.5, 1, 0.5, 0, 0.5]);
 
 const VERTEX_SHADER_SOURCE = `
+  #define PI 3.141592653589793
+  #define HALF_PI PI/2.0
+  #define QUARTER_PI PI/4.0
+  #define RAD_TO_DEG 180.0/PI
+  #define DEG_TO_RAD PI/180.0
+
   attribute vec2 a_position;
   attribute vec2 point_a;
   attribute vec2 point_b;
@@ -11,14 +17,37 @@ const VERTEX_SHADER_SOURCE = `
   uniform mat3 u_matrix;
   uniform float u_line_width;
 
-  void main() {
-    vec2 xBasis = point_b - point_a;
-    vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
-    vec2 pos = point_a + xBasis * a_position.x + yBasis * u_line_width * a_position.y;
-    
-    vec2 position = (u_matrix * vec3(pos, 1)).xy;
+  float mercatorXfromLng(float lng) {
+    return (180.0 + lng) / 360.0;
+  }
 
-    gl_Position = vec4(position, 0, 1);
+  float mercatorYfromLat(float lat) {
+    return (180.0 - (RAD_TO_DEG * log(tan(QUARTER_PI + (lat * PI) / 360.0)))) / 360.0;
+  }
+
+  vec2 mercatorProject(vec2 lngLat) {
+    float x = mercatorXfromLng(lngLat.x);
+    float y = mercatorYfromLat(lngLat.y);
+
+    return vec2(x, y);
+  }
+
+  vec2 clipSpace(vec2 position) {
+    return vec2(-1.0 + position.x * 2.0, 1.0 - position.y * 2.0);
+  }
+
+  vec2 applyMatrix(vec2 position) {
+    return (u_matrix * vec3(position, 1)).xy;
+  }
+
+  void main() {
+    vec2 point_a_projected = mercatorProject(point_a);
+    vec2 point_b_projected = mercatorProject(point_b);
+    vec2 xBasis = point_b_projected - point_a_projected;
+    vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
+    vec2 pos = point_a_projected + xBasis * a_position.x + yBasis * u_line_width * a_position.y;
+
+    gl_Position = vec4(applyMatrix(clipSpace(pos)), 0, 1);
   }
 `;
 

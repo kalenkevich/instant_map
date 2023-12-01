@@ -1,10 +1,10 @@
 import { FetchTileOptions, fetchTile } from './pbf/pbf_tile_utils';
 
 addEventListener('message', async event => {
-  const { tileId, layers, url, projectionType }: FetchTileOptions = event.data;
+  const { tileId, layers, url }: FetchTileOptions = event.data;
 
   try {
-    const tileLayers = await fetchTile({ tileId, layers, url, projectionType });
+    const tileLayers = await fetchTile({ tileId, layers, url });
 
     postMessage({ tileId, tileLayers });
   } catch (e) {

@@ -3,7 +3,6 @@ import earcut from 'earcut';
 import Protobuf from 'pbf';
 import { VectorTile, VectorTileLayer } from '@mapbox/vector-tile';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } from 'geojson';
-import { ProjectionType, Projection, getProjectionFromType } from '../../geo/projection/projection';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
 
@@ -23,22 +22,18 @@ export interface FetchTileOptions {
   tileId: string;
   url: string;
   layers: Record<string, VectorTileLayer>;
-  projectionType: ProjectionType;
 }
 
 // convert a GeoJSON polygon into triangles
-function verticesFromPolygon(coordinates: number[][][], projection: Projection): number[] {
+function verticesFromPolygon(coordinates: number[][][]): number[] {
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);
 
   const vertices = new Array(triangles.length * 2);
   for (let i = 0; i < triangles.length; i++) {
     const point = triangles[i];
-    const lng = data.vertices[point * 2];
-    const lat = data.vertices[point * 2 + 1];
-    const [x, y] = projection.fromLngLat([lng, lat]);
-    vertices[i * 2] = x;
-    vertices[i * 2 + 1] = y;
+    vertices[i * 2] = data.vertices[point * 2];
+    vertices[i * 2 + 1] = data.vertices[point * 2 + 1];
   }
 
   return vertices;
@@ -46,27 +41,24 @@ function verticesFromPolygon(coordinates: number[][][], projection: Projection):
 
 // when constructing a line with gl.LINES, every 2 coords are connected,
 // so we always duplicate the last starting point to draw a continuous line
-function verticesFromLine(coordinates: number[][], projection: Projection): number[] {
+function verticesFromLine(coordinates: number[][]): number[] {
   // seed with initial line segment
-  const vertices = [
-    ...projection.fromLngLat(coordinates[0] as [number, number]),
-    ...projection.fromLngLat(coordinates[1] as [number, number]),
-  ];
+  const vertices: number[] = [coordinates[0][0], coordinates[0][1], coordinates[1][0], coordinates[1][1]];
 
   for (let i = 2; i < coordinates.length; i++) {
     const prevX = vertices[vertices.length - 2];
     const prevY = vertices[vertices.length - 1];
     vertices.push(prevX, prevY); // duplicate prev coord
-    vertices.push(...projection.fromLngLat(coordinates[i] as [number, number]));
+    vertices.push(coordinates[i][0], coordinates[i][1]);
   }
 
   return vertices;
 }
 
-function verticesFromPoint(coordinates: number[], projection: Projection): number[] {
-  const radius = 0.0000005;
+function verticesFromPoint(coordinates: number[]): number[] {
+  const radius = 0.0001;
   const components = 32;
-  const center = projection.fromLngLat(coordinates as [number, number]);
+  const center = coordinates as [number, number];
   const step = 360 / components;
 
   const data = [];
@@ -88,16 +80,16 @@ function verticesFromPoint(coordinates: number[], projection: Projection): numbe
 }
 
 // convert a GeoJSON geometry to webgl vertices
-export function geometryToVertices(geometry: SupportedGeometry, projection: Projection): number[] {
+export function geometryToVertices(geometry: SupportedGeometry): number[] {
   if (geometry.type === 'Polygon') {
-    return verticesFromPolygon(geometry.coordinates, projection);
+    return verticesFromPolygon(geometry.coordinates);
   }
 
   if (geometry.type === 'MultiPolygon') {
     const positions: number[] = [];
 
     for (const polygons of geometry.coordinates) {
-      const vertecies = verticesFromPolygon([polygons[0]], projection);
+      const vertecies = verticesFromPolygon([polygons[0]]);
 
       for (const v of vertecies) {
         positions.push(v);
@@ -108,7 +100,7 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
   }
 
   if (geometry.type === 'LineString') {
-    return verticesFromLine(geometry.coordinates, projection);
+    return verticesFromLine(geometry.coordinates);
   }
 
   if (geometry.type === 'MultiLineString') {
@@ -116,7 +108,7 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
     // const positions: number[] = [];
 
     // for (const line of geometry.coordinates) {
-    //   const vertecies = verticesFromLine(line, projection);
+    //   const vertecies = verticesFromLine(line);
     //   for (const v of vertecies) {
     //     positions.push(v);
     //   }
@@ -126,7 +118,7 @@ export function geometryToVertices(geometry: SupportedGeometry, projection: Proj
   }
 
   if (geometry.type === 'Point') {
-    return verticesFromPoint(geometry.coordinates, projection);
+    return verticesFromPoint(geometry.coordinates);
   }
 
   return [];
@@ -157,8 +149,7 @@ function getLayerPrimitive(feature: Feature<SupportedGeometry>): MapTileFeatureT
 }
 
 // Fetch tile from server, and convert layer coordinates to vertices
-export async function fetchTile({ tileId, layers, url, projectionType }: FetchTileOptions): Promise<PbfTileLayer[]> {
-  const projection = getProjectionFromType(projectionType);
+export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
 
   const tileURL = formatTileURL(tileId, url);
@@ -192,13 +183,13 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
 
       if (type === 'point') {
         pointsCount++;
-        points.push(...geometryToVertices(geojson.geometry, projection));
+        points.push(...geometryToVertices(geojson.geometry));
 
         continue;
       }
 
       if (type === 'line') {
-        const lineData = geometryToVertices(geojson.geometry, projection);
+        const lineData = geometryToVertices(geojson.geometry);
 
         if (lineData.length) {
           features.push({
@@ -213,7 +204,7 @@ export async function fetchTile({ tileId, layers, url, projectionType }: FetchTi
       }
 
       if (type === 'polygon') {
-        const polyData = geometryToVertices(geojson.geometry, projection);
+        const polyData = geometryToVertices(geojson.geometry);
         for (const pd of polyData) {
           polygons.push(pd);
         }
