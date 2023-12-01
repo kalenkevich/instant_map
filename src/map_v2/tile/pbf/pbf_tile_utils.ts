@@ -24,7 +24,6 @@ export interface FetchTileOptions {
   layers: Record<string, VectorTileLayer>;
 }
 
-// convert a GeoJSON polygon into triangles
 function verticesFromPolygon(result: number[], coordinates: number[][][]): number[] {
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);
@@ -38,9 +37,8 @@ function verticesFromPolygon(result: number[], coordinates: number[][][]): numbe
   return result;
 }
 
-// when constructing a line with gl.LINES, every 2 coords are connected,
-// so we always duplicate the last starting point to draw a continuous line
 function verticesFromLine(result: number[], coordinates: number[][]): number[] {
+  // Dublicate last point from prev line
   if (result.length) {
     const prevX = result[result.length - 3];
     const prevY = result[result.length - 2];
@@ -48,7 +46,7 @@ function verticesFromLine(result: number[], coordinates: number[][]): number[] {
     result.push(prevX, prevY, -1);
   }
 
-  // seed with initial line segment
+  // Duplicate first point from new line
   result.push(coordinates[0][0], coordinates[0][1], -1);
   result.push(coordinates[0][0], coordinates[0][1], 1);
   result.push(coordinates[1][0], coordinates[1][1], 1);
@@ -105,24 +103,18 @@ export function geometryToVertices(result: number[], geometry: SupportedGeometry
   }
 
   if (geometry.type === 'MultiLineString') {
-    return [];
-    // const positions: number[] = [];
+    for (const line of geometry.coordinates) {
+      verticesFromLine(result, line);
+    }
 
-    // for (const line of geometry.coordinates) {
-    //   const vertecies = verticesFromLine(line);
-    //   for (const v of vertecies) {
-    //     positions.push(v);
-    //   }
-    // }
-
-    // return positions;
+    return result;
   }
 
   if (geometry.type === 'Point') {
     return verticesFromPoint(result, geometry.coordinates);
   }
 
-  return [];
+  return result;
 }
 
 function formatTileURL(tileId: string, url: string) {
