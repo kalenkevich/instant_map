@@ -11,11 +11,14 @@ const VERTEX_SHADER_SOURCE = `
   #define DEG_TO_RAD PI/180.0
 
   attribute vec2 a_position;
-  attribute vec2 point_a;
-  attribute vec2 point_b;
+  attribute vec3 point_a;
+  attribute vec3 point_b;
 
   uniform mat3 u_matrix;
+  uniform vec4 u_color;
   uniform float u_line_width;
+
+  varying vec4 v_line_color;
 
   float mercatorXfromLng(float lng) {
     return (180.0 + lng) / 360.0;
@@ -25,7 +28,7 @@ const VERTEX_SHADER_SOURCE = `
     return (180.0 - (RAD_TO_DEG * log(tan(QUARTER_PI + (lat * PI) / 360.0)))) / 360.0;
   }
 
-  vec2 mercatorProject(vec2 lngLat) {
+  vec2 mercatorProject(vec3 lngLat) {
     float x = mercatorXfromLng(lngLat.x);
     float y = mercatorYfromLat(lngLat.y);
 
@@ -41,6 +44,13 @@ const VERTEX_SHADER_SOURCE = `
   }
 
   void main() {
+    if (point_a.z == -1.0) {
+      // trasparent
+      v_line_color = vec4(0, 0, 0, 0);
+    } else {
+      v_line_color = u_color;
+    }
+
     vec2 point_a_projected = mercatorProject(point_a);
     vec2 point_b_projected = mercatorProject(point_b);
     vec2 xBasis = point_b_projected - point_a_projected;
@@ -54,10 +64,11 @@ const VERTEX_SHADER_SOURCE = `
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
-  uniform vec4 u_color;
+  // uniform vec4 u_color;
+  varying vec4 v_line_color;
 
   void main() {
-    gl_FragColor = u_color;
+    gl_FragColor = v_line_color;
   }
 `;
 
@@ -98,7 +109,7 @@ export class LineProgram extends PolygonProgram {
     this.point_aBuffer = this.gl.createBuffer();
     this.gl.enableVertexAttribArray(this.point_aAttributeLocation);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
-    this.gl.vertexAttribPointer(this.point_aAttributeLocation, 2, this.gl.FLOAT, true, 0, 0);
+    this.gl.vertexAttribPointer(this.point_aAttributeLocation, 3, this.gl.FLOAT, true, 0, 0);
     this.gl.vertexAttribDivisor(this.point_aAttributeLocation, 1);
 
     this.point_bBuffer = this.gl.createBuffer();
@@ -106,11 +117,11 @@ export class LineProgram extends PolygonProgram {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_bBuffer);
     this.gl.vertexAttribPointer(
       this.point_bAttributeLocation,
-      2,
+      3,
       this.gl.FLOAT,
       true,
       0,
-      Float32Array.BYTES_PER_ELEMENT * 2
+      Float32Array.BYTES_PER_ELEMENT * 3
     );
     this.gl.vertexAttribDivisor(this.point_bAttributeLocation, 1);
     this.gl.bindVertexArray(null);
@@ -119,6 +130,14 @@ export class LineProgram extends PolygonProgram {
   protected setupUniforms(): void {
     super.setupUniforms();
     this.u_line_widthLocation = this.gl.getUniformLocation(this.program, 'u_line_width');
+  }
+
+  link() {
+    this.gl.useProgram(this.program);
+
+    const gl = this.gl;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   }
 
   setLineWidth(lineWidth: number = 2) {

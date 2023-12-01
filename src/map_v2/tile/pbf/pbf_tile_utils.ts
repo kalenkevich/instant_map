@@ -6,7 +6,7 @@ import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } fr
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
 
-export enum FeaturePrimiiveType {
+export enum FeaturePrimitiveType {
   POINTS = 0x0000,
   LINES = 0x0001,
   LINE_LOOP = 0x0002,
@@ -25,82 +25,84 @@ export interface FetchTileOptions {
 }
 
 // convert a GeoJSON polygon into triangles
-function verticesFromPolygon(coordinates: number[][][]): number[] {
+function verticesFromPolygon(result: number[], coordinates: number[][][]): number[] {
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);
 
-  const vertices = new Array(triangles.length * 2);
   for (let i = 0; i < triangles.length; i++) {
     const point = triangles[i];
-    vertices[i * 2] = data.vertices[point * 2];
-    vertices[i * 2 + 1] = data.vertices[point * 2 + 1];
+    result.push(data.vertices[point * 2]);
+    result.push(data.vertices[point * 2 + 1]);
   }
 
-  return vertices;
+  return result;
 }
 
 // when constructing a line with gl.LINES, every 2 coords are connected,
 // so we always duplicate the last starting point to draw a continuous line
-function verticesFromLine(coordinates: number[][]): number[] {
-  // seed with initial line segment
-  const vertices: number[] = [coordinates[0][0], coordinates[0][1], coordinates[1][0], coordinates[1][1]];
+function verticesFromLine(result: number[], coordinates: number[][]): number[] {
+  if (result.length) {
+    const prevX = result[result.length - 3];
+    const prevY = result[result.length - 2];
 
-  for (let i = 2; i < coordinates.length; i++) {
-    const prevX = vertices[vertices.length - 2];
-    const prevY = vertices[vertices.length - 1];
-    vertices.push(prevX, prevY); // duplicate prev coord
-    vertices.push(coordinates[i][0], coordinates[i][1]);
+    result.push(prevX, prevY, -1);
   }
 
-  return vertices;
+  // seed with initial line segment
+  result.push(coordinates[0][0], coordinates[0][1], -1);
+  result.push(coordinates[0][0], coordinates[0][1], 1);
+  result.push(coordinates[1][0], coordinates[1][1], 1);
+
+  for (let i = 2; i < coordinates.length; i++) {
+    const prevX = result[result.length - 3];
+    const prevY = result[result.length - 2];
+    const prevZ = result[result.length - 1];
+    result.push(prevX, prevY, prevZ); // duplicate prev coord
+    result.push(coordinates[i][0], coordinates[i][1], 1);
+  }
+
+  return result;
 }
 
-function verticesFromPoint(coordinates: number[]): number[] {
+function verticesFromPoint(result: number[], coordinates: number[]): number[] {
   const radius = 0.0001;
   const components = 32;
   const center = coordinates as [number, number];
   const step = 360 / components;
 
-  const data = [];
   let offset = 0;
   for (let i = 0; i <= 360; i += step) {
-    data[offset++] = center[0];
-    data[offset++] = center[1];
+    result[offset++] = center[0];
+    result[offset++] = center[1];
 
     let j1 = (i * Math.PI) / 180;
-    data[offset++] = center[0] + Math.sin(j1) * radius;
-    data[offset++] = center[1] + Math.cos(j1) * radius;
+    result[offset++] = center[0] + Math.sin(j1) * radius;
+    result[offset++] = center[1] + Math.cos(j1) * radius;
 
     let j2 = ((i + step) * Math.PI) / 180;
-    data[offset++] = center[0] + Math.sin(j2) * radius;
-    data[offset++] = center[1] + Math.cos(j2) * radius;
+    result[offset++] = center[0] + Math.sin(j2) * radius;
+    result[offset++] = center[1] + Math.cos(j2) * radius;
   }
 
-  return data;
+  return result;
 }
 
 // convert a GeoJSON geometry to webgl vertices
-export function geometryToVertices(geometry: SupportedGeometry): number[] {
+export function geometryToVertices(result: number[], geometry: SupportedGeometry): number[] {
   if (geometry.type === 'Polygon') {
-    return verticesFromPolygon(geometry.coordinates);
+    return verticesFromPolygon(result, geometry.coordinates);
   }
 
   if (geometry.type === 'MultiPolygon') {
-    const positions: number[] = [];
-
     for (const polygons of geometry.coordinates) {
-      const vertecies = verticesFromPolygon([polygons[0]]);
-
-      for (const v of vertecies) {
-        positions.push(v);
-      }
+      verticesFromPolygon(result, [polygons[0]]);
     }
 
-    return positions;
+    return result;
   }
 
   if (geometry.type === 'LineString') {
-    return verticesFromLine(geometry.coordinates);
+    return verticesFromLine(result, geometry.coordinates);
   }
 
   if (geometry.type === 'MultiLineString') {
@@ -118,7 +120,7 @@ export function geometryToVertices(geometry: SupportedGeometry): number[] {
   }
 
   if (geometry.type === 'Point') {
-    return verticesFromPoint(geometry.coordinates);
+    return verticesFromPoint(result, geometry.coordinates);
   }
 
   return [];
@@ -173,61 +175,51 @@ export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Prom
     const points: number[] = [];
     const lines: number[] = [];
     const polygons: number[] = [];
-    const lineFeatures = [];
-    let pointsCount = 0;
 
-    // convert feature to vertices
     for (let i = 0; i < numFeatures; i++) {
       const geojson = vectorTile.layers[layer].feature(i).toGeoJSON(x, y, z) as Feature<SupportedGeometry>;
       const type = getLayerPrimitive(geojson);
 
       if (type === 'point') {
-        pointsCount++;
-        points.push(...geometryToVertices(geojson.geometry));
-
+        geometryToVertices(points, geojson.geometry);
         continue;
       }
 
       if (type === 'line') {
-        const lineData = geometryToVertices(geojson.geometry);
-
-        if (lineData.length) {
-          features.push({
-            type: MapTileFeatureType.line,
-            primitiveType: FeaturePrimiiveType.TRIANGLES,
-            numElements: lineData.length / 2,
-            buffer: new Float32Array(lineData),
-          });
-        }
-
+        geometryToVertices(lines, geojson.geometry);
         continue;
       }
 
       if (type === 'polygon') {
-        const polyData = geometryToVertices(geojson.geometry);
-        for (const pd of polyData) {
-          polygons.push(pd);
-        }
-
+        geometryToVertices(polygons, geojson.geometry);
         continue;
       }
-    }
-
-    if (points.length) {
-      features.push({
-        type: MapTileFeatureType.point,
-        primitiveType: FeaturePrimiiveType.TRIANGLES,
-        numElements: points.length / 2,
-        buffer: new Float32Array(points),
-      });
     }
 
     if (polygons.length) {
       features.push({
         type: MapTileFeatureType.polygon,
-        primitiveType: FeaturePrimiiveType.TRIANGLES,
+        primitiveType: FeaturePrimitiveType.TRIANGLES,
         numElements: polygons.length / 2,
         buffer: new Float32Array(polygons),
+      });
+    }
+
+    if (lines.length) {
+      features.push({
+        type: MapTileFeatureType.line,
+        primitiveType: FeaturePrimitiveType.TRIANGLES,
+        numElements: lines.length / 3,
+        buffer: new Float32Array(lines),
+      });
+    }
+
+    if (points.length) {
+      features.push({
+        type: MapTileFeatureType.point,
+        primitiveType: FeaturePrimitiveType.TRIANGLES,
+        numElements: points.length / 2,
+        buffer: new Float32Array(points),
       });
     }
 

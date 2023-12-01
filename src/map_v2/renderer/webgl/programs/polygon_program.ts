@@ -98,6 +98,7 @@ export class PolygonProgram implements WebGlProgram {
 
   link() {
     this.gl.useProgram(this.program);
+    this.gl.disable(this.gl.BLEND);
   }
 
   setMatrix(matrix: mat3) {

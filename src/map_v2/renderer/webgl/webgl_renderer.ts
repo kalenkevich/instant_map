@@ -19,7 +19,9 @@ export class WebGlRenderer implements Renderer {
   init() {
     this.rootEl.appendChild(this.canvas);
 
-    const gl = (this.gl = this.canvas.getContext('webgl') as ExtendedWebGLRenderingContext);
+    const gl = (this.gl = this.canvas.getContext('webgl', {
+      alpha: true,
+    }) as ExtendedWebGLRenderingContext);
     addExtensionsToContext(gl);
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
