@@ -70,18 +70,17 @@ function verticesFromPoint(result: number[], coordinates: number[]): number[] {
   const center = coordinates as [number, number];
   const step = 360 / components;
 
-  let offset = 0;
   for (let i = 0; i <= 360; i += step) {
-    result[offset++] = center[0];
-    result[offset++] = center[1];
+    result.push(center[0]);
+    result.push(center[1]);
 
     let j1 = (i * Math.PI) / 180;
-    result[offset++] = center[0] + Math.sin(j1) * radius;
-    result[offset++] = center[1] + Math.cos(j1) * radius;
+    result.push(center[0] + Math.sin(j1) * radius);
+    result.push(center[1] + Math.cos(j1) * radius);
 
     let j2 = ((i + step) * Math.PI) / 180;
-    result[offset++] = center[0] + Math.sin(j2) * radius;
-    result[offset++] = center[1] + Math.cos(j2) * radius;
+    result.push(center[0] + Math.sin(j2) * radius);
+    result.push(center[1] + Math.cos(j2) * radius);
   }
 
   return result;
