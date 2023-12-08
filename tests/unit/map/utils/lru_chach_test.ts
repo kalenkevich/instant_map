@@ -1,4 +1,4 @@
-import {describe, expect, it} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { LRUCache } from '../../../../src/map/utils/lru_cache';
 
 describe('LRUCache', () => {

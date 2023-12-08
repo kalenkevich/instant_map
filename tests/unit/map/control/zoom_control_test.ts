@@ -2,13 +2,13 @@ import { JSDOM } from 'jsdom';
 import { describe, expect, it, jest } from '@jest/globals';
 import { GlideMap } from '../../../../src/map/map';
 import { ZoomControl } from '../../../../src/map/controls/zoom_control';
-import { LatLng } from '../../../../src/map/geo/lat_lng';
+import { LngLat } from '../../../../src/map/geo/lng_lat';
 
 describe('ZoomControl', () => {
   let document: Document;
   let fakeMap: GlideMap;
   let rootEl: HTMLElement;
-  const mapCenter = new LatLng(0, 0);
+  const mapCenter = new LngLat(0, 0);
 
   beforeEach(() => {
     document = new JSDOM('<!DOCTYPE html><html><body></body></html>').window.document;

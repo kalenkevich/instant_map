@@ -1,71 +1,54 @@
-import {MinHeap} from './min_heap';
+export type RenderFunc = (...any: []) => any;
 
-export type RenderTaskFn = () => void;
-
-export enum RenderTaskType {
-  RENDER = 'render',
-}
-
-export interface RenderTask {
-  frameId?: number;
-  priority: number;
-  type: RenderTaskType;
-  renderFn: RenderTaskFn;
-};
+export type ResolveFunc = (...any: []) => any;
 
 export class RenderQueue {
-  private queue: MinHeap<RenderTask> = new MinHeap([], (t: RenderTask) => t.priority);
-  private promiseQueue: Promise<void> = Promise.resolve();
+  private queue: Array<[RenderFunc, ResolveFunc]> = [];
+  private isActive: boolean = false;
+  private rafIds: Record<number, number> = {};
 
-  public push(renderFn: RenderTaskFn, urgent = false) {
-    if (urgent) {
-      this.queue.push({
-        priority: 0,
-        type: RenderTaskType.RENDER,
-        renderFn,
-      });
+  constructor() {
+    this.invokeRender = this.invokeRender.bind(this);
+  }
 
+  public render(renderFn: RenderFunc): Promise<void> {
+    return new Promise(resolve => {
+      this.queue.push([renderFn, resolve]);
+
+      if (!this.isActive) {
+        this.rafIds[0] = requestAnimationFrame(() => {
+          this.invokeRender(0);
+        });
+      }
+    });
+  }
+
+  public clear() {
+    this.isActive = false;
+    this.queue = [];
+
+    for (const rafId of Object.values(this.rafIds)) {
+      cancelAnimationFrame(rafId);
+    }
+  }
+
+  private invokeRender(index: number) {
+    if (index >= this.queue.length) {
+      this.clear();
       return;
     }
 
-    this.queue.push({
-      priority: 1,
-      type: RenderTaskType.RENDER,
-      renderFn,
-    });
-  }
+    this.isActive = true;
+    const renderFn = this.queue[index][0];
+    const resolveFn = this.queue[index][1];
 
-  public next(): Promise<void> {
-    const task = this.queue.pop();
+    // invoke render
+    renderFn();
+    // we don't need to cancel it anymore
+    delete this.rafIds[index];
+    this.rafIds[index + 1] = requestAnimationFrame(() => this.invokeRender(index + 1));
 
-    if (!task) {
-      return this.promiseQueue;
-    }
-
-    // while (!this.queue.isEmpty() && this.queue.peek()!.type === task.type) {
-    //   this.queue.pop();
-    // }
-
-    return this.promiseQueue.then(() => {
-      return new Promise((resolve) => {
-        task.frameId = requestAnimationFrame(() => {
-          task.renderFn();
-          // this.next();
-          resolve();
-        });
-      });
-    });
-  }
-
-  public clear(): Promise<void> {
-    while (!this.queue.isEmpty()) {
-      const task = this.queue.pop();
-
-      if (task.frameId) {
-        cancelAnimationFrame(task.frameId);
-      }
-    }
-
-    return this.promiseQueue = Promise.resolve();
+    // Resolve promise
+    resolveFn();
   }
 }
