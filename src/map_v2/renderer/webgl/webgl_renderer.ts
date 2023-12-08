@@ -6,6 +6,7 @@ import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
 import { WebGlProgram, ExtendedWebGLRenderingContext } from './programs/program';
 import { PolygonProgram } from './programs/polygon_program';
 import { LineProgram } from './programs/line_program';
+import { TextProgram } from './programs/text_program';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -29,13 +30,16 @@ export class WebGlRenderer implements Renderer {
 
     const polygonProgram = new PolygonProgram(gl);
     const lineProgram = new LineProgram(gl);
+    const textProgram = new TextProgram(gl);
     this.programs = {
       [MapTileFeatureType.point]: polygonProgram,
       [MapTileFeatureType.line]: lineProgram,
       [MapTileFeatureType.polygon]: polygonProgram,
+      [MapTileFeatureType.text]: textProgram,
     };
     polygonProgram.init();
     lineProgram.init();
+    textProgram.init();
   }
 
   destroy() {}
@@ -68,7 +72,6 @@ export class WebGlRenderer implements Renderer {
   }
 
   render(tiles: MapTile[], zoom: number, matrix: mat3, styles: MapStyles) {
-    const gl = this.gl;
     let program;
     let globalUniformsSet = false;
 
@@ -77,6 +80,7 @@ export class WebGlRenderer implements Renderer {
 
       if (program && !globalUniformsSet) {
         program.setMatrix(matrix);
+        program.setZoom(zoom);
         globalUniformsSet = true;
       }
 
@@ -97,18 +101,14 @@ export class WebGlRenderer implements Renderer {
           if (prevProgram !== program) {
             program.link();
             program.setMatrix(matrix);
+            program.setZoom(zoom);
             program.setColor(color);
             if (feature.type === MapTileFeatureType.line) {
               (program as LineProgram).setLineWidth(0.003 / Math.pow(2, zoom));
             }
           }
 
-          const size = 2;
-          const normalize = false;
-          const stride = 0;
-          const offset = 0;
-
-          program.bindBuffer(feature.buffer, size, gl.FLOAT, normalize, stride, offset);
+          program.bindBuffer(feature.buffer);
           program.draw(feature.primitiveType, 0, feature.numElements);
         }
       }

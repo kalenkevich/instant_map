@@ -12,6 +12,7 @@ const VERTEX_SHADER_SOURCE = `
   attribute vec2 a_position;
 
   uniform mat3 u_matrix;
+  uniform float u_zoom;
 
   float mercatorXfromLng(float lng) {
     return (180.0 + lng) / 360.0;
@@ -61,6 +62,9 @@ export class PolygonProgram implements WebGlProgram {
   // uniform locations
   protected u_matrixLocation: WebGLUniformLocation;
   protected u_colorLocation: WebGLUniformLocation;
+  protected u_zoomLocation: WebGLUniformLocation;
+
+  protected vao: WebGLVertexArrayObjectOES;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -85,15 +89,24 @@ export class PolygonProgram implements WebGlProgram {
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, this.fragmentShaderSource);
 
     this.program = createProgram(gl, vertexShader, fragmentShader);
+    this.vao = this.gl.createVertexArray();
   }
 
   protected setupBuffer() {
-    this.a_positionBuffer = this.gl.createBuffer();
+    const gl = this.gl;
+
+    gl.bindVertexArray(this.vao);
+    this.a_positionBuffer = gl.createBuffer();
+    gl.enableVertexAttribArray(this.a_positionAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
+    gl.vertexAttribPointer(this.a_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+    gl.bindVertexArray(null);
   }
 
   protected setupUniforms() {
     this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
     this.u_colorLocation = this.gl.getUniformLocation(this.program, 'u_color');
+    this.u_zoomLocation = this.gl.getUniformLocation(this.program, 'u_zoom');
   }
 
   link() {
@@ -109,23 +122,20 @@ export class PolygonProgram implements WebGlProgram {
     this.gl.uniform4fv(this.u_colorLocation, color);
   }
 
-  bindBuffer(
-    buffer: Float32Array,
-    size: number = 0,
-    type: number = this.gl.FLOAT,
-    normalize: boolean = false,
-    stride: number = 0,
-    offset: number = 0
-  ) {
-    const gl = this.gl;
+  setZoom(zoom: number) {
+    this.gl.uniform1f(this.u_zoomLocation, zoom);
+  }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, buffer, gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(this.a_positionAttributeLocation);
-    gl.vertexAttribPointer(this.a_positionAttributeLocation, size, type, normalize, stride, offset);
+  bindBuffer(buffer: Float32Array) {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.a_positionBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, buffer, this.gl.STATIC_DRAW);
   }
 
   draw(primitiveType: number = this.gl.TRIANGLES, offset: number = 0, numElements: number) {
+    this.gl.bindVertexArray(this.vao);
+
     this.gl.drawArrays(primitiveType, offset, numElements);
+
+    this.gl.bindVertexArray(null);
   }
 }

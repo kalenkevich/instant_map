@@ -16,6 +16,8 @@ export interface WebGlProgram {
 
   setColor(color: vec4): void;
 
+  setZoom(zoom: number): void;
+
   bindBuffer(
     buffer: Float32Array,
     size?: number,

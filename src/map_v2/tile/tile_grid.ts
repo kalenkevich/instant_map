@@ -6,6 +6,7 @@ import { Projection } from '../geo/projection/projection';
 import { MapTileFormatType, MapTileLayer } from './tile';
 import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
 import { LRUCache } from '../../map/utils/lru_cache';
+import { FontManager } from '../font_manager/font_manager';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
@@ -16,29 +17,17 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   private tilesInView: TileRef[];
   private tileWorker: Worker;
   private bufferedTiles: TileRef[];
-  private tileBuffer: number;
-  private tileServerURL: string;
-  private layers: Record<string, [number, number, number, number]>;
-  private maxTileZoom: number;
-  private projection: Projection;
-  private tileFormatType: MapTileFormatType;
 
   constructor(
-    tileFormatType: MapTileFormatType,
-    tileServerURL: string,
-    layers: Record<string, [number, number, number, number]>,
-    tileBuffer: number,
-    maxTileZoom: number,
-    projection: Projection
+    private readonly tileFormatType: MapTileFormatType,
+    private readonly tileServerURL: string,
+    private readonly layers: Record<string, [number, number, number, number]>,
+    private readonly tileBuffer: number,
+    private readonly maxTileZoom: number,
+    private readonly projection: Projection,
+    private readonly fontManager: FontManager
   ) {
     super();
-
-    this.tileFormatType = tileFormatType;
-    this.tileServerURL = tileServerURL;
-    this.layers = layers;
-    this.tileBuffer = tileBuffer;
-    this.maxTileZoom = maxTileZoom;
-    this.projection = projection;
   }
 
   init() {
@@ -131,7 +120,13 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
 
       this.tiles.set(tileId, this.createMapTile(tileId));
-      this.tileWorker.postMessage({ tileId, layers, url, projectionType: this.projection.getType() });
+      this.tileWorker.postMessage({
+        tileId,
+        layers,
+        url,
+        projectionType: this.projection.getType(),
+        fontManagerState: this.fontManager.dumpState(),
+      });
     });
   }
 

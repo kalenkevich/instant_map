@@ -1,10 +1,13 @@
 import axios from 'axios';
 import earcut from 'earcut';
 import Protobuf from 'pbf';
+import { mat3, vec2, vec3 } from 'gl-matrix';
 import { VectorTile, VectorTileLayer } from '@mapbox/vector-tile';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point } from 'geojson';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
+import { getVerticiesFromText, getTextRectangleSize } from '../../../webgl/object/text/text_utils';
+import { FontManager, FontManagerState } from '../../font_manager/font_manager';
 
 export enum FeaturePrimitiveType {
   POINTS = 0x0000,
@@ -22,6 +25,7 @@ export interface FetchTileOptions {
   tileId: string;
   url: string;
   layers: Record<string, VectorTileLayer>;
+  fontManagerState: FontManagerState;
 }
 
 function verticesFromPolygon(result: number[], coordinates: number[][][]): number[] {
@@ -79,6 +83,65 @@ function verticesFromPoint(result: number[], coordinates: number[]): number[] {
     let j2 = ((i + step) * Math.PI) / 180;
     result.push(center[0] + Math.sin(j2) * radius);
     result.push(center[1] + Math.cos(j2) * radius);
+  }
+
+  return result;
+}
+
+const fontsCache: Record<string, Record<string, number[]>> = {};
+export function textToVertices(
+  result: number[],
+  fontName: string,
+  fontSize: number,
+  fontManager: FontManager,
+  text: string,
+  point: number[]
+): number[] {
+  if (!text) {
+    return result;
+  }
+
+  const font = fontManager.getFont(fontName);
+
+  if (!fontsCache[fontName]) {
+    fontsCache[fontName] = {};
+  }
+  const fontCache = fontsCache[fontName];
+  const boundaries = getTextRectangleSize(font, 'G', [0, 0], fontSize);
+  const upperLetterWidth = boundaries.width;
+
+  let xOffset = 0;
+  const textVerticies: number[] = [];
+  for (const c of text) {
+    if (!fontCache[c]) {
+      const charVertecies: number[] = [];
+
+      const { vertices, indices } = getVerticiesFromText(font, c, [0, 0], fontSize, true);
+      for (const index of indices) {
+        charVertecies.push(vertices[index * 2]);
+        charVertecies.push(vertices[index * 2 + 1]);
+      }
+
+      fontCache[c] = charVertecies;
+    }
+
+    for (let i = 0; i < fontCache[c].length; i += 2) {
+      textVerticies.push(point[0] + fontCache[c][i] + xOffset);
+      textVerticies.push(point[1] + fontCache[c][i + 1]);
+    }
+
+    if (c === ' ') {
+      xOffset += upperLetterWidth;
+    } else {
+      xOffset += getTextRectangleSize(font, c, [0, 0], fontSize).width * 1.3;
+    }
+  }
+
+  // Center the text
+  const halfWidthSize = xOffset / 2;
+  for (let i = 0; i < textVerticies.length; i += 2) {
+    result.push(textVerticies[i] - halfWidthSize);
+    result.push(textVerticies[i + 1]);
   }
 
   return result;
@@ -142,13 +205,14 @@ function getLayerPrimitive(feature: Feature<SupportedGeometry>): MapTileFeatureT
 }
 
 // Fetch tile from server, and convert layer coordinates to vertices
-export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Promise<PbfTileLayer[]> {
+export async function fetchTile({ tileId, layers, url, fontManagerState }: FetchTileOptions): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
 
   const tileURL = formatTileURL(tileId, url);
   const res = await axios.get(tileURL, {
     responseType: 'arraybuffer',
   });
+  const fontManager = FontManager.fromState(fontManagerState);
 
   const pbf = new Protobuf(res.data);
   const vectorTile = new VectorTile(pbf);
@@ -163,6 +227,7 @@ export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Prom
 
     const features = [];
 
+    const text: number[] = [];
     const points: number[] = [];
     const lines: number[] = [];
     const polygons: number[] = [];
@@ -173,6 +238,12 @@ export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Prom
 
       if (type === 'point') {
         geometryToVertices(points, geojson.geometry);
+
+        const textValue = geojson.properties.name || geojson.properties.label;
+        if (textValue) {
+          textToVertices(text, 'arial', 2, fontManager, textValue, (geojson.geometry as Point).coordinates);
+        }
+
         continue;
       }
 
@@ -211,6 +282,15 @@ export async function fetchTile({ tileId, layers, url }: FetchTileOptions): Prom
         primitiveType: FeaturePrimitiveType.TRIANGLES,
         numElements: points.length / 2,
         buffer: new Float32Array(points),
+      });
+    }
+
+    if (text.length) {
+      features.push({
+        type: MapTileFeatureType.text,
+        primitiveType: FeaturePrimitiveType.TRIANGLES,
+        numElements: points.length / 2,
+        buffer: new Float32Array(text),
       });
     }
 

@@ -12,6 +12,7 @@ import { CompassControl } from '../map/controls/compass_control';
 import { ZoomControl } from '../map/controls/zoom_control';
 import { EasyAnimation } from '../map/animation/easy_animation';
 import { MapTileFormatType } from './tile/tile';
+import { FontManager } from './font_manager/font_manager';
 
 const defaultOptions = {
   width: 512,
@@ -103,6 +104,7 @@ export class GlideV2Map extends Evented<MapEventType> {
   private camera: MapCamera;
   private tilesGrid: TilesGrid;
   private renderQueue: RenderQueue;
+  private fontManager: FontManager;
   private renderer: Renderer;
   private projection: Projection;
   private mapOptions: MapOptions;
@@ -132,6 +134,7 @@ export class GlideV2Map extends Evented<MapEventType> {
 
     this.renderQueue = new RenderQueue();
 
+    this.fontManager = new FontManager();
     this.projection = getProjectionFromType(this.mapOptions.projection);
     const [x, y] = this.projection.fromLngLat(this.mapOptions.center);
     this.camera = new MapCamera(
@@ -150,16 +153,18 @@ export class GlideV2Map extends Evented<MapEventType> {
       this.mapOptions.layers,
       this.mapOptions.tileBuffer || 1,
       this.mapOptions.maxZoom,
-      this.projection
+      this.projection,
+      this.fontManager
     );
     this.pan = new MapPan(this, this.rootEl);
     this.renderer = new WebGlRenderer(this.rootEl, this.pixelRatio);
 
-    this.init();
-    this.rerender();
+    this.init().then(() => {
+      this.rerender();
+    });
   }
 
-  init() {
+  async init() {
     this.setupMapControls();
 
     this.pan.init();
@@ -170,6 +175,8 @@ export class GlideV2Map extends Evented<MapEventType> {
     if (this.mapOptions.resizable) {
       window.addEventListener('resize', this.resizeEventListener);
     }
+
+    return this.fontManager.init();
   }
 
   destroy() {

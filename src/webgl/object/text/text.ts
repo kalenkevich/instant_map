@@ -69,7 +69,7 @@ export class WebGlText extends GlProgram {
 
     return {
       indices: new Uint16Array(indices),
-      vertices,
+      vertices: new Float32Array(vertices),
       count: indices.length,
     };
   }

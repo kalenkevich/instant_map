@@ -108,27 +108,27 @@ export const getTextRectangleSize = (
   };
 };
 
-export const getVerticiesFromText = (font: Font, text: string, p: v2, fontSize: number) => {
+export const getVerticiesFromText = (font: Font, text: string, p: v2, fontSize: number, flipHorisontaly = false) => {
   const polys: Polygon[] = [];
   const root = [];
   const indices: number[] = [];
-  const size = getTextRectangleSize(font, text, p, fontSize);
-  const path = font.getPath(text, p[0] - size.width / 2, p[1], fontSize);
+  const path = font.getPath(text, p[0], p[1], fontSize);
+  const hKoef = flipHorisontaly ? -1 : 1;
 
   path.commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
     switch (type) {
       case 'M':
         polys.push(new Polygon());
-        polys[polys.length - 1].moveTo({ x, y });
+        polys[polys.length - 1].moveTo({ x, y: hKoef * y });
         break;
       case 'L':
-        polys[polys.length - 1].moveTo({ x, y });
+        polys[polys.length - 1].moveTo({ x, y: hKoef * y });
         break;
       case 'C':
-        polys[polys.length - 1].cubicTo({ x, y }, { x: x1, y: y1 }, { x: x2, y: y2 });
+        polys[polys.length - 1].cubicTo({ x, y: hKoef * y }, { x: x1, y: hKoef * y1 }, { x: x2, y: hKoef * y2 });
         break;
       case 'Q':
-        polys[polys.length - 1].conicTo({ x, y }, { x: x1, y: y1 });
+        polys[polys.length - 1].conicTo({ x, y: hKoef * y }, { x: x1, y: hKoef * y1 });
         break;
       case 'Z':
         polys[polys.length - 1].close();

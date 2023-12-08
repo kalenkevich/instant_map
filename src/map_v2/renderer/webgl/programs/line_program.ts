@@ -16,6 +16,7 @@ const VERTEX_SHADER_SOURCE = `
 
   uniform mat3 u_matrix;
   uniform vec4 u_color;
+  uniform float u_zoom;
   uniform float u_line_width;
 
   varying vec4 v_line_color;
@@ -64,7 +65,6 @@ const VERTEX_SHADER_SOURCE = `
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
-  // uniform vec4 u_color;
   varying vec4 v_line_color;
 
   void main() {
@@ -97,8 +97,6 @@ export class LineProgram extends PolygonProgram {
   }
 
   protected setupBuffer(): void {
-    this.vao = this.gl.createVertexArray();
-
     this.gl.bindVertexArray(this.vao);
     this.a_positionBuffer = this.gl.createBuffer();
     this.gl.enableVertexAttribArray(this.a_positionAttributeLocation);
