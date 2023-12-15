@@ -20,9 +20,7 @@ export interface MapTile {
   toGeoJson(): Polygon;
 }
 
-export interface MapTileLayer {
-  features: MapTileFeature[];
-}
+export interface MapTileLayer {}
 
 export interface MapTileFeature {
   type: MapTileFeatureType;
@@ -33,4 +31,6 @@ export enum MapTileFeatureType {
   line = 'line',
   polygon = 'polygon',
   text = 'text',
+  icon = 'icon',
+  image = 'image',
 }

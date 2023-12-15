@@ -1,4 +1,5 @@
-import { DataLayerStyle, FeatureStyle, FeatureStyleType } from './styles';
+import { DataLayerStyle, FeatureStyle } from './styles';
+import { MapTileFeatureType } from '../tile/tile';
 import { ContextLike } from './style_statement';
 import { compileStatement, isStatement } from './style_statement_utils';
 
@@ -40,11 +41,10 @@ export function isFeatureStyle(featureStyle: unknown): boolean {
   }
 
   return [
-    FeatureStyleType.point,
-    FeatureStyleType.line,
-    FeatureStyleType.polygon,
-    FeatureStyleType.text,
-    FeatureStyleType.image,
-    FeatureStyleType.background,
+    MapTileFeatureType.point,
+    MapTileFeatureType.line,
+    MapTileFeatureType.polygon,
+    MapTileFeatureType.text,
+    MapTileFeatureType.image,
   ].includes((featureStyle as FeatureStyle).type);
 }

@@ -1,16 +1,17 @@
-import { mat3, vec4 } from 'gl-matrix';
+import { mat3 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
-import { Renderer, MapStyles } from '../renderer';
+import { Renderer } from '../renderer';
 import { MapTile, MapTileFeatureType } from '../../tile/tile';
 import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
-import { WebGlProgram, ExtendedWebGLRenderingContext } from './programs/program';
-import { PolygonProgram } from './programs/polygon_program';
-import { LineProgram } from './programs/line_program';
-import { TextProgram } from './programs/text_program';
+import { ObjectProgram, ExtendedWebGLRenderingContext } from './object/object_program';
+import { PointProgram } from './point/point_program';
+import { PolygonProgram } from './polygon/polygon_program';
+import { LineProgram } from './line/line_program';
+import { TextProgram } from './text/text_program';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
-  private programs: Record<MapTileFeatureType, WebGlProgram>;
+  private programs: Record<MapTileFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
   constructor(private readonly rootEl: HTMLElement, private devicePixelRatio: number) {
@@ -28,15 +29,20 @@ export class WebGlRenderer implements Renderer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    const pointProgram = new PointProgram(gl);
     const polygonProgram = new PolygonProgram(gl);
     const lineProgram = new LineProgram(gl);
     const textProgram = new TextProgram(gl);
     this.programs = {
-      [MapTileFeatureType.point]: polygonProgram,
+      [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
       [MapTileFeatureType.polygon]: polygonProgram,
       [MapTileFeatureType.text]: textProgram,
+      // TODO: implement
+      [MapTileFeatureType.icon]: polygonProgram,
+      [MapTileFeatureType.image]: polygonProgram,
     };
+    pointProgram.init();
     polygonProgram.init();
     lineProgram.init();
     textProgram.init();
@@ -71,7 +77,7 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render(tiles: MapTile[], zoom: number, matrix: mat3, styles: MapStyles) {
+  render(tiles: MapTile[], zoom: number, matrix: mat3) {
     let program;
     let globalUniformsSet = false;
 
@@ -85,31 +91,19 @@ export class WebGlRenderer implements Renderer {
       }
 
       for (const tileLayer of tileLayers) {
-        let colorSet = false;
-        const { layer, features } = tileLayer as PbfTileLayer;
-        const color = styles.layers[layer].map(n => n / 255) as vec4; // RBGA to WebGL
+        const { objectGroups } = tileLayer as PbfTileLayer;
 
-        if (program && !colorSet) {
-          program.setColor(color);
-          colorSet = true;
-        }
-
-        for (const feature of features) {
-          const prevProgram: WebGlProgram = program;
-          program = this.programs[feature.type];
+        for (const objectGroup of objectGroups) {
+          const prevProgram: ObjectProgram = program;
+          program = this.programs[objectGroup.type];
 
           if (prevProgram !== program) {
             program.link();
             program.setMatrix(matrix);
             program.setZoom(zoom);
-            program.setColor(color);
-            if (feature.type === MapTileFeatureType.line) {
-              (program as LineProgram).setLineWidth(0.003 / Math.pow(2, zoom));
-            }
           }
 
-          program.bindBuffer(feature.buffer);
-          program.draw(feature.primitiveType, 0, feature.numElements);
+          program.drawObjectGroup(objectGroup);
         }
       }
     }

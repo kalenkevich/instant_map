@@ -42,6 +42,9 @@ import {
   RandomStatement,
   MinStatement,
   MaxStatement,
+  ColorValue,
+  RGBColorValue,
+  RGBAColorValue,
 } from './style_statement';
 
 export function isStatement(statement: unknown): boolean {
@@ -76,6 +79,10 @@ export function compileStatement<V>(statement: Statement<V>, context: ContextLik
 
   if (statement[0] === '$switch') {
     return compileSwitchCaseStatement<V>(statement as SwitchCaseStatement<V>, context);
+  }
+
+  if (isColorStatement(statement)) {
+    return compileColorStatement(statement as RGBAColorValue) as V;
   }
 
   if (isConditionStatement(statement)) {
@@ -492,6 +499,8 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$random',
       '$min',
       '$max',
+      '$rgb',
+      '$rgba',
     ].includes(statement[0]);
   }
 
@@ -558,14 +567,6 @@ export function getPropertyValue<V>(source: any, property?: string | number): Co
   }
 
   return currentSource;
-}
-
-export function isColorStatement(statement: unknown): boolean {
-  if (!Array.isArray(statement) || typeof statement[0] !== 'string') {
-    return false;
-  }
-
-  return ['$rgb', '$rgba'].includes(statement[0]);
 }
 
 export function isMathStatement(statement: unknown): boolean {
@@ -863,4 +864,32 @@ export function compileMaxStatement(statement: MaxStatement, context: ContextLik
   }
 
   return Math.max(compileStatement<number>(statement[1], context), compileStatement<number>(statement[2], context));
+}
+
+export function isColorStatement(statement: unknown): boolean {
+  if (!Array.isArray(statement) || typeof statement[0] !== 'string') {
+    return false;
+  }
+
+  return ['$rgb', '$rgba'].includes(statement[0]);
+}
+
+export function compileColorStatement(statement: ColorValue): [number, number, number, number] {
+  if (statement[0] === '$rgb') {
+    return compileRgbColorStatement(statement);
+  }
+
+  if (statement[0] === '$rgba') {
+    return compileRgbaColorStatement(statement);
+  }
+
+  throw new Error('Unknown color statement: ' + JSON.stringify(statement));
+}
+
+export function compileRgbColorStatement(statement: RGBColorValue): [number, number, number, number] {
+  return [statement[1] / 255, statement[2] / 255, statement[3] / 255, 1];
+}
+
+export function compileRgbaColorStatement(statement: RGBAColorValue): [number, number, number, number] {
+  return [statement[1] / 255, statement[2] / 255, statement[3] / 255, statement[4]];
 }

@@ -1,5 +1,5 @@
-import { PolygonProgram } from './polygon_program';
-import { ExtendedWebGLRenderingContext } from './program';
+import { ObjectProgram, ExtendedWebGLRenderingContext } from '../object/object_program';
+import { WebGlPolygonBufferredGroup } from '../webgl_map_object';
 
 const VERTEX_SHADER_SOURCE = `
   #define PI 3.141592653589793
@@ -8,10 +8,13 @@ const VERTEX_SHADER_SOURCE = `
   #define RAD_TO_DEG 180.0/PI
   #define DEG_TO_RAD PI/180.0
 
-  attribute vec2 a_position;
-
   uniform mat3 u_matrix;
   uniform float u_zoom;
+
+  attribute vec2 a_position;
+  attribute vec4 a_color;
+
+  varying vec4 v_color;
 
   float mercatorXfromLng(float lng) {
     return (180.0 + lng) / 360.0;
@@ -29,22 +32,15 @@ const VERTEX_SHADER_SOURCE = `
   }
 
   vec2 clipSpace(vec2 position) {
-    return vec2(
-      -1.0 + position.x * 2.0,
-      +1.0 - position.y * 2.0);
+    return vec2(-1.0 + position.x * 2.0, 1.0 - position.y * 2.0);
   }
 
   vec2 applyMatrix(vec2 position) {
     return (u_matrix * vec3(position, 1)).xy;
   }
 
-  vec2 applyZoomScale(vec2 position) {
-    float zoomScale = 1.0 / u_zoom;
-
-    return mat2(zoomScale, 1, 1, zoomScale) * position;
-  }
-
   void main() {
+    v_color = a_color;
     gl_Position = vec4(applyMatrix(clipSpace(mercatorProject(a_position))), 0, 1);
   }
 `;
@@ -52,19 +48,38 @@ const VERTEX_SHADER_SOURCE = `
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
-  uniform vec4 u_color;
+  varying vec4 v_color;
 
   void main() {
-    gl_FragColor = vec4(0,0,0,1);
+    gl_FragColor = v_color;
   }
 `;
 
-export class TextProgram extends PolygonProgram {
+export class PolygonProgram extends ObjectProgram {
+  protected program: WebGLProgram;
+  protected vao: WebGLVertexArrayObjectOES;
+
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly vertexShaderSource: string = VERTEX_SHADER_SOURCE,
     protected readonly fragmentShaderSource: string = FRAGMENT_SHADER_SOURCE
   ) {
     super(gl, vertexShaderSource, fragmentShaderSource);
+  }
+
+  drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup) {
+    const gl = this.gl;
+
+    gl.bindVertexArray(this.vao);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.vertecies.buffer as Float32Array, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
+
+    gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
+
+    gl.bindVertexArray(null);
   }
 }

@@ -13,6 +13,7 @@ import { ZoomControl } from './controls/zoom_control';
 import { EasyAnimation } from './animation/easy_animation';
 import { MapTileFormatType } from './tile/tile';
 import { FontManager } from './font_manager/font_manager';
+import { DataTileStyles } from './styles/styles';
 
 const defaultOptions = {
   width: 512,
@@ -64,9 +65,7 @@ export interface MapOptions {
     debug?: boolean;
   };
 
-  // TODO: move to TileStyles
-  tileSize?: number;
-  layers: Record<string, [number, number, number, number]>;
+  tileStyles: DataTileStyles;
 
   // TODO: tile meta url
   /** Meta info url to fetch data about tiles and styles. */
@@ -144,13 +143,13 @@ export class GlideMap extends Evented<MapEventType> {
       this.width,
       this.height,
       this.pixelRatio,
-      this.mapOptions.tileSize,
+      this.mapOptions.tileStyles.tileSize,
       this.projection
     );
     this.tilesGrid = new TilesGrid(
       this.mapOptions.tileFormatType as MapTileFormatType,
       this.mapOptions.tilesUrl,
-      this.mapOptions.layers,
+      this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
       this.mapOptions.maxZoom,
       this.projection,
@@ -319,7 +318,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const projectionMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, zoom, projectionMatrix, this.mapOptions);
+    this.renderer.render(tiles, zoom, projectionMatrix);
 
     this.statsWidget.style.display = 'none';
 

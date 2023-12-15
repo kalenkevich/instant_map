@@ -13,5 +13,5 @@ export interface Renderer {
 
   resize(width: number, height: number): void;
 
-  render(tiles: MapTile[], zoom: number, matrix: mat3, mapStyles: MapStyles): void;
+  render(tiles: MapTile[], zoom: number, matrix: mat3): void;
 }

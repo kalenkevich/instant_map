@@ -1,5 +1,6 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
+import { VectorTileStyles } from './map_styles';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
 
@@ -89,17 +90,7 @@ export function renderMap() {
     center: [lat, lng],
     minZoom: 1,
     maxZoom: 15,
-    layers: {
-      water: [95, 200, 255, 255],
-      globallandcover: [173, 226, 167, 255],
-      landcover: [173, 226, 167, 255],
-      park: [202, 255, 193, 255],
-      building: [222, 215, 211, 255],
-      transportation: [233, 201, 43, 255],
-      boundary: [120, 123, 140, 255],
-      poi: [250, 185, 57, 255],
-      place: [0, 0, 0, 255],
-    },
+    tileStyles: VectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,

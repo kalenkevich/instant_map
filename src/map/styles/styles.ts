@@ -1,4 +1,5 @@
 import { Statement, ColorValue } from './style_statement';
+import { MapTileFeatureType } from '../tile/tile';
 
 export interface DataTileStyles {
   tileSize?: number;
@@ -11,14 +12,13 @@ export interface DataLayerStyle {
   zIndex: number; // order number (like z-index in css);
   sourceLayer: SourceLayer; // tile feature layer;
   styleLayerName: string; // style layer name;
-  show?: Statement<boolean>;
+  show?: boolean;
   minzoom?: number;
   maxzoom?: number;
-  feature?: FeatureStyle;
-  background?: BackgroundStyle;
+  feature: FeatureStyle;
 }
 
-export type SourceLayer = string | ImageSourceLayer;
+export type SourceLayer = string;
 
 export interface ImageSourceLayer {
   name: string;
@@ -26,19 +26,10 @@ export interface ImageSourceLayer {
   url: string;
 }
 
-export enum FeatureStyleType {
-  point = 'point',
-  line = 'line',
-  polygon = 'polygon',
-  text = 'text',
-  image = 'image',
-  background = 'background',
-}
-
-export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | ImageStyle | BackgroundStyle;
+export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | IconStyle;
 
 export interface PointStyle {
-  type: FeatureStyleType.point;
+  type: MapTileFeatureType.point;
   color: Statement<ColorValue>;
   radius?: Statement<number>; // default 5
   show?: Statement<boolean>;
@@ -48,7 +39,7 @@ export interface PointStyle {
 }
 
 export interface LineStyle {
-  type: FeatureStyleType.line;
+  type: MapTileFeatureType.line;
   color: Statement<ColorValue>;
   style?: Statement<'solid' | 'dashed' | 'dotted'>; // default 'solid'
   width?: Statement<number>; // default 1
@@ -58,7 +49,7 @@ export interface LineStyle {
 }
 
 export interface PolygonStyle {
-  type: FeatureStyleType.polygon;
+  type: MapTileFeatureType.polygon;
   color: Statement<ColorValue>;
   border?: LineStyle;
   show?: Statement<boolean>;
@@ -67,7 +58,7 @@ export interface PolygonStyle {
 }
 
 export interface TextStyle {
-  type: FeatureStyleType.text;
+  type: MapTileFeatureType.text;
   color: Statement<ColorValue>;
   text: Statement<string>;
   font?: Statement<string>; // default roboto
@@ -77,20 +68,12 @@ export interface TextStyle {
   maxzoom?: number;
 }
 
-// TODO support image style
-export interface ImageStyle {
-  type: FeatureStyleType.image;
-  name: Statement<string>;
-  width: Statement<number>;
-  height: Statement<number>;
-  show?: Statement<boolean>;
-  minzoom?: number;
-  maxzoom?: number;
-}
-
-export interface BackgroundStyle {
-  type: FeatureStyleType.background;
-  color?: Statement<ColorValue>; // default transparent
+// TODO support Icon style
+export interface IconStyle {
+  type: MapTileFeatureType.icon;
+  name: Statement<string>; // glyph name
+  width?: Statement<number>; // optional
+  height?: Statement<number>;
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;

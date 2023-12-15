@@ -1,16 +1,11 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Polygon } from 'geojson';
-import { MapTile, MapTileFormatType, TileRef, MapTileLayer, MapTileFeature } from '../tile';
+import { MapTile, MapTileFormatType, TileRef, MapTileLayer } from '../tile';
+import { WebGlObjectBufferredGroup } from '../../renderer/webgl/webgl_map_object';
 
 export interface PbfTileLayer extends MapTileLayer {
   layer: string;
-  features: PbfTileFeature[];
-}
-
-export interface PbfTileFeature extends MapTileFeature {
-  primitiveType: number;
-  numElements: number;
-  buffer: Float32Array;
+  objectGroups: WebGlObjectBufferredGroup[];
 }
 
 export class PbfMapTile implements MapTile {

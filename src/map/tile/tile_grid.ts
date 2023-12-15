@@ -7,6 +7,7 @@ import { MapTileFormatType, MapTileLayer } from './tile';
 import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
 import { LRUCache } from '../utils/lru_cache';
 import { FontManager } from '../font_manager/font_manager';
+import { DataTileStyles } from '../styles/styles';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
@@ -21,7 +22,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   constructor(
     private readonly tileFormatType: MapTileFormatType,
     private readonly tileServerURL: string,
-    private readonly layers: Record<string, [number, number, number, number]>,
+    private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
@@ -112,7 +113,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     });
 
     // tile fetching options
-    const { layers, tileServerURL: url } = this;
+    const { tileServerURL: url } = this;
 
     tilesToLoad.forEach(tileId => {
       if (this.tiles.has(tileId)) {
@@ -122,7 +123,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       this.tiles.set(tileId, this.createMapTile(tileId));
       this.tileWorker.postMessage({
         tileId,
-        layers,
+        tileStyles: this.tileStyles,
         url,
         projectionType: this.projection.getType(),
         fontManagerState: this.fontManager.dumpState(),
