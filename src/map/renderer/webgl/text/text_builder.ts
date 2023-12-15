@@ -1,17 +1,16 @@
 import { getVerticiesFromText, getTextRectangleSize } from './text_utils';
-import { WebGlText, WebGlObjectAttributeType, WebGlTextBufferredGroup } from '../webgl_map_object';
-import { FontManager, FontManagerState } from '../../../font_manager/font_manager';
+import { WebGlText, WebGlTextBufferredGroup } from './text';
+import { WebGlObjectAttributeType } from '../object/object';
+import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { FontManager } from '../../../font_manager/font_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 
-const fontsCache: Record<string, Record<string, number[]>> = {};
+export class TextGroupBuilder extends ObjectGroupBuilder<WebGlText> {
+  constructor(private readonly fontManager: FontManager) {
+    super();
+  }
 
-export class TextGroupBuilder {
-  private objects: Array<[WebGlText, number]> = [];
-  private vertecies: number[] = [];
-
-  constructor(private readonly fontManager: FontManager) {}
-
-  addText(text: WebGlText) {
+  addObject(text: WebGlText) {
     const objectSize = verticesFromText(
       this.vertecies,
       text.font,
@@ -22,10 +21,6 @@ export class TextGroupBuilder {
     );
 
     this.objects.push([text, objectSize]);
-  }
-
-  isEmpty(): boolean {
-    return this.objects.length === 0;
   }
 
   build(): WebGlTextBufferredGroup {
@@ -88,6 +83,7 @@ export class TextGroupBuilder {
   }
 }
 
+const fontsCache: Record<string, Record<string, number[]>> = {};
 export function verticesFromText(
   result: number[],
   fontName: string,

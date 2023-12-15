@@ -10,12 +10,8 @@ import { FontManager, FontManagerState } from '../../font_manager/font_manager';
 import { DataTileStyles, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
 // WEBGL specific
-import {
-  WebGlObjectBufferredGroup,
-  LineJoinStyle,
-  LineCapStyle,
-  LineFillStyle,
-} from '../../renderer/webgl/webgl_map_object';
+import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
+import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../../renderer/webgl/line/line';
 import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
@@ -114,7 +110,7 @@ export async function fetchTile({
         if (geojson.geometry.type === 'Point') {
           const pointFeature = geojson as Feature<Point>;
 
-          pointsGroupBuilder.addPoint({
+          pointsGroupBuilder.addObject({
             type: MapTileFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
@@ -127,7 +123,7 @@ export async function fetchTile({
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
-            pointsGroupBuilder.addPoint({
+            pointsGroupBuilder.addObject({
               type: MapTileFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
               center: point as [number, number],
@@ -144,7 +140,7 @@ export async function fetchTile({
         if (geojson.geometry.type === 'Point') {
           const pointFeature = geojson as Feature<Point>;
 
-          textGroupBuilder.addText({
+          textGroupBuilder.addObject({
             type: MapTileFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
             text: compileStatement(textStyle.text, pointFeature),
@@ -159,7 +155,7 @@ export async function fetchTile({
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
-            textGroupBuilder.addText({
+            textGroupBuilder.addObject({
               type: MapTileFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
               text: compileStatement(textStyle.text, pointFeature),
@@ -178,7 +174,7 @@ export async function fetchTile({
         if (geojson.geometry.type === 'Polygon') {
           const polygonFeature = geojson as Feature<Polygon>;
 
-          polygonGroupBuilder.addPolygon({
+          polygonGroupBuilder.addObject({
             type: MapTileFeatureType.polygon,
             color: compileStatement(polygonStyle.color, polygonFeature),
             vertecies: geojson.geometry.coordinates as Array<Array<[number, number]>>,
@@ -190,7 +186,7 @@ export async function fetchTile({
           const polygonFeature = geojson as Feature<MultiPolygon>;
 
           for (const polygons of geojson.geometry.coordinates) {
-            polygonGroupBuilder.addPolygon({
+            polygonGroupBuilder.addObject({
               type: MapTileFeatureType.polygon,
               color: compileStatement(polygonStyle.color, polygonFeature),
               vertecies: [polygons[0]] as Array<Array<[number, number]>>,
@@ -206,7 +202,7 @@ export async function fetchTile({
         if (geojson.geometry.type === 'LineString') {
           const lineFeature = geojson as Feature<LineString>;
 
-          lineGroupBuilder.addLine({
+          lineGroupBuilder.addObject({
             type: MapTileFeatureType.line,
             color: compileStatement(lineStyle.color, lineFeature),
             vertecies: lineFeature.geometry.coordinates as Array<[number, number]>,
@@ -222,7 +218,7 @@ export async function fetchTile({
           const lineFeature = geojson as Feature<MultiLineString>;
 
           for (const lineGeometry of lineFeature.geometry.coordinates) {
-            lineGroupBuilder.addLine({
+            lineGroupBuilder.addObject({
               type: MapTileFeatureType.line,
               color: compileStatement(lineStyle.color, lineFeature),
               vertecies: lineGeometry as Array<[number, number]>,

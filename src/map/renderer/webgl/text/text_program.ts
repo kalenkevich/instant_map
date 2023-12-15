@@ -1,5 +1,5 @@
+import { WebGlTextBufferredGroup } from './text';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
-import { WebGlTextBufferredGroup } from '../webgl_map_object';
 
 const VERTEX_SHADER_SOURCE = `
   #define PI 3.141592653589793

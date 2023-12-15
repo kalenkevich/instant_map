@@ -1,4 +1,4 @@
-import { WebGlPointBufferredGroup } from '../webgl_map_object';
+import { WebGlPointBufferredGroup } from './point';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
 
 const VERTEX_SHADER_SOURCE = `

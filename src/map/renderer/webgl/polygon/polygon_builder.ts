@@ -1,20 +1,15 @@
 import { vec2 } from 'gl-matrix';
 import earcut from 'earcut';
-import { WebGlPolygon, WebGlObjectAttributeType, WebGlPolygonBufferredGroup } from '../webgl_map_object';
+import { WebGlObjectAttributeType } from '../object/object';
+import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { WebGlPolygon, WebGlPolygonBufferredGroup } from './polygon';
 import { MapTileFeatureType } from '../../../tile/tile';
 
-export class PolygonGroupBuilder {
-  private objects: Array<[WebGlPolygon, number]> = [];
-  private vertecies: number[] = [];
-
-  addPolygon(polygon: WebGlPolygon) {
+export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
+  addObject(polygon: WebGlPolygon) {
     const objectSize = verticesFromPolygon(this.vertecies, polygon.vertecies);
 
     this.objects.push([polygon, objectSize]);
-  }
-
-  isEmpty(): boolean {
-    return this.objects.length === 0;
   }
 
   build(): WebGlPolygonBufferredGroup {

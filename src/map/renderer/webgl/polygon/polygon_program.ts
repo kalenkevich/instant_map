@@ -1,5 +1,5 @@
+import { WebGlPolygonBufferredGroup } from './polygon';
 import { ObjectProgram, ExtendedWebGLRenderingContext } from '../object/object_program';
-import { WebGlPolygonBufferredGroup } from '../webgl_map_object';
 
 const VERTEX_SHADER_SOURCE = `
   #define PI 3.141592653589793

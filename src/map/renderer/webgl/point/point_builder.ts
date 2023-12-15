@@ -1,19 +1,14 @@
 import { vec2 } from 'gl-matrix';
-import { WebGlPoint, WebGlPointBufferredGroup, WebGlObjectAttributeType } from '../webgl_map_object';
+import { WebGlObjectAttributeType } from '../object/object';
+import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { WebGlPoint, WebGlPointBufferredGroup } from './point';
 import { MapTileFeatureType } from '../../../tile/tile';
 
-export class PointGroupBuilder {
-  private objects: Array<[WebGlPoint, number]> = [];
-  private vertecies: number[] = [];
-
-  addPoint(point: WebGlPoint) {
+export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
+  addObject(point: WebGlPoint) {
     const objectSize = verticesFromPoint(this.vertecies, point.center, point.radius, point.components);
 
     this.objects.push([point, objectSize]);
-  }
-
-  isEmpty(): boolean {
-    return this.objects.length === 0;
   }
 
   build(): WebGlPointBufferredGroup {

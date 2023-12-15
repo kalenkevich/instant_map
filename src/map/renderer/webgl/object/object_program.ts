@@ -1,5 +1,5 @@
 import { mat3 } from 'gl-matrix';
-import { WebGlObjectBufferredGroup } from '../webgl_map_object';
+import { WebGlObjectBufferredGroup } from './object';
 
 export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
   vertexAttribDivisor(index: number, divisor: number): void;

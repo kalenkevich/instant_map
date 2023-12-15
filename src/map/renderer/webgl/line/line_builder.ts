@@ -1,19 +1,14 @@
 import { vec2 } from 'gl-matrix';
-import { WebGlLine, WebGlObjectAttributeType, WebGlLineBufferredGroup } from '../webgl_map_object';
+import { WebGlObjectAttributeType } from '../object/object';
+import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { WebGlLine, WebGlLineBufferredGroup } from './line';
 import { MapTileFeatureType } from '../../../tile/tile';
 
-export class LineGroupBuilder {
-  private objects: Array<[WebGlLine, number]> = [];
-  private vertecies: number[] = [];
-
-  addLine(line: WebGlLine) {
+export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
+  addObject(line: WebGlLine) {
     const objectSize = verticesFromLine(this.vertecies, line.vertecies);
 
     this.objects.push([line, objectSize]);
-  }
-
-  isEmpty(): boolean {
-    return this.objects.length === 0;
   }
 
   build(): WebGlLineBufferredGroup {

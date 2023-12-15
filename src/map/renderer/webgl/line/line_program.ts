@@ -1,4 +1,4 @@
-import { WebGlLineBufferredGroup } from '../webgl_map_object';
+import { WebGlLineBufferredGroup } from './line';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
 
 const POSITION_BUFFER = new Float32Array([0, -0.5, 1, -0.5, 1, 0.5, 0, -0.5, 1, 0.5, 0, 0.5]);

@@ -1,7 +1,7 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Polygon } from 'geojson';
 import { MapTile, MapTileFormatType, TileRef, MapTileLayer } from '../tile';
-import { WebGlObjectBufferredGroup } from '../../renderer/webgl/webgl_map_object';
+import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
 
 export interface PbfTileLayer extends MapTileLayer {
   layer: string;
