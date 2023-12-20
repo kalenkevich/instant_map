@@ -12,7 +12,8 @@ import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
 import { EasyAnimation } from './animation/easy_animation';
 import { MapTileFormatType } from './tile/tile';
-import { FontManager } from './font_manager/font_manager';
+import { FontManager } from './font/font_manager';
+import { AtlasTextureManager } from './atlas/atlas_manager';
 import { DataTileStyles } from './styles/styles';
 
 const defaultOptions = {
@@ -21,10 +22,7 @@ const defaultOptions = {
   center: [0, 0] as [number, number],
   zoom: 1,
   rotation: 0,
-  minZoom: 0,
-  maxZoom: 15,
   tileBuffer: 1,
-  tileSize: 512,
   projection: 'mercator',
   tileFormatType: MapTileFormatType.pbf,
   resizable: true,
@@ -64,18 +62,12 @@ export interface MapOptions {
     compas?: boolean;
     debug?: boolean;
   };
-
   tileStyles: DataTileStyles;
-
   // TODO: tile meta url
   /** Meta info url to fetch data about tiles and styles. */
   tileMetaUrl?: string;
   tilesUrl: string;
   tileFormatType?: string | MapTileFormatType;
-  /** Map min zoom level. */
-  minZoom?: number;
-  /** Map max zoom level. */
-  maxZoom?: number;
   projection?: string | ProjectionType;
 }
 
@@ -104,6 +96,7 @@ export class GlideMap extends Evented<MapEventType> {
   private tilesGrid: TilesGrid;
   private renderQueue: RenderQueue;
   private fontManager: FontManager;
+  private atlasTextureManager: AtlasTextureManager;
   private renderer: Renderer;
   private projection: Projection;
   private mapOptions: MapOptions;
@@ -111,6 +104,8 @@ export class GlideMap extends Evented<MapEventType> {
   private pixelRatio: number;
   private width: number;
   private height: number;
+  private minZoom: number;
+  private maxZoom: number;
 
   statsWidget: HTMLElement;
   frameStats: {
@@ -127,13 +122,16 @@ export class GlideMap extends Evented<MapEventType> {
     this.rootEl = this.mapOptions.rootEl;
     this.width = this.rootEl.offsetWidth;
     this.height = this.rootEl.offsetHeight;
+    this.minZoom = this.mapOptions.tileStyles.minzoom || 1;
+    this.maxZoom = this.mapOptions.tileStyles.maxzoom || 15;
 
     this.stats = new Stats();
     this.pixelRatio = window.devicePixelRatio;
 
     this.renderQueue = new RenderQueue();
 
-    this.fontManager = new FontManager();
+    this.fontManager = new FontManager(this.mapOptions.tileStyles.fonts);
+    this.atlasTextureManager = new AtlasTextureManager(this.mapOptions.tileStyles.atlas);
     this.projection = getProjectionFromType(this.mapOptions.projection);
     const [x, y] = this.projection.fromLngLat(this.mapOptions.center);
     this.camera = new MapCamera(
@@ -151,12 +149,13 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tilesUrl,
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
-      this.mapOptions.maxZoom,
+      this.maxZoom,
       this.projection,
-      this.fontManager
+      this.fontManager,
+      this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);
-    this.renderer = new WebGlRenderer(this.rootEl, this.pixelRatio);
+    this.renderer = new WebGlRenderer(this.rootEl, this.pixelRatio, this.atlasTextureManager);
 
     this.init().then(() => {
       this.rerender();
@@ -165,6 +164,8 @@ export class GlideMap extends Evented<MapEventType> {
 
   async init() {
     this.setupMapControls();
+
+    await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
 
     this.pan.init();
     this.tilesGrid.init();
@@ -175,7 +176,7 @@ export class GlideMap extends Evented<MapEventType> {
       window.addEventListener('resize', this.resizeEventListener);
     }
 
-    return this.fontManager.init();
+    return;
   }
 
   destroy() {
@@ -212,11 +213,11 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   getMinZoom(): number {
-    return this.mapOptions.minZoom;
+    return this.minZoom;
   }
 
   getMaxZoom(): number {
-    return this.mapOptions.maxZoom;
+    return this.maxZoom;
   }
 
   // Get Geo location
@@ -299,7 +300,7 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   rerender(): Promise<void> {
-    this.tilesGrid.updateTiles(this.camera);
+    this.tilesGrid.updateTiles(this.camera, this.width, this.height);
 
     this.renderQueue.clear();
     return this.renderQueue.render(() => {

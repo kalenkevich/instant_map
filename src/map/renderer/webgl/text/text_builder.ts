@@ -2,12 +2,18 @@ import { getVerticiesFromText, getTextRectangleSize } from './text_utils';
 import { WebGlText, WebGlTextBufferredGroup } from './text';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { FontManager } from '../../../font_manager/font_manager';
+import { FontManager } from '../../../font/font_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
+import { Projection } from '../../../geo/projection/projection';
 
 export class TextGroupBuilder extends ObjectGroupBuilder<WebGlText> {
-  constructor(private readonly fontManager: FontManager) {
-    super();
+  constructor(
+    protected readonly canvasWidth: number,
+    protected readonly canvasHeight: number,
+    protected readonly projection: Projection,
+    private readonly fontManager: FontManager
+  ) {
+    super(canvasWidth, canvasHeight, projection);
   }
 
   addObject(text: WebGlText) {

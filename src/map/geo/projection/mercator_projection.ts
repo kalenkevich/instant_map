@@ -1,10 +1,5 @@
-import { Point } from '../../geometry/point';
-import { LngLat } from '../lng_lat';
 import { Projection, ProjectionType } from './projection';
 
-// helper class for converting lat/lng to "clip" space (x/y only)
-// using Web Mercator Projectino (taken from mapbox, slightly modified):
-//   https://github.com/mapbox/mapbox-gl-js/blob/main/src/geo/mercator_coordinate.js
 export class MercatorProjection implements Projection {
   getType(): ProjectionType {
     return ProjectionType.Mercator;
@@ -19,14 +14,7 @@ export class MercatorProjection implements Projection {
   }
 
   fromLngLat(lngLat: [number, number]): [number, number] {
-    let x = this.mercatorXfromLng(lngLat[0]);
-    let y = this.mercatorYfromLat(lngLat[1]);
-
-    // adjust so relative to origin at center of viewport, instead of top-left
-    x = -1 + x * 2;
-    y = 1 - y * 2;
-
-    return [x, y];
+    return [this.mercatorXfromLng(lngLat[0]), this.mercatorYfromLat(lngLat[1])];
   }
 
   lngFromMercatorX(x: number): number {
@@ -40,8 +28,8 @@ export class MercatorProjection implements Projection {
 
   fromXY(xy: [number, number]): [number, number] {
     let [x, y] = xy;
-    const lng = this.lngFromMercatorX((1 + x) / 2);
-    const lat = this.latFromMercatorY((1 - y) / 2);
+    const lng = this.lngFromMercatorX(x);
+    const lat = this.latFromMercatorY(y);
 
     return [lng, lat];
   }

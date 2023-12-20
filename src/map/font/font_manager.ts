@@ -1,14 +1,7 @@
 import { Font, parse as parseFont } from 'opentype.js';
+import { FontsConfig } from './font_config';
 
-export type FontManagerConfig = Record<string, string>; // font name -> url map;
 export type FontManagerState = Record<string, ArrayBuffer>;
-
-const FONT_NAME_URL_MAP: FontManagerConfig = {
-  arial: './fonts/arial_regular.ttf',
-  roboto: './fonts/roboto_regular.ttf',
-  opensans: './fonts/opensans_regular.ttf',
-  opensansBold: './fonts/opensans_bold.ttf',
-};
 
 const fetchFont = async function (fontUrl: string): Promise<ArrayBuffer> {
   return fetch(fontUrl).then(res => res.arrayBuffer());
@@ -18,7 +11,7 @@ export class FontManager {
   private fontSourceMap: FontManagerState = {};
   private fontMap: Record<string, Font> = {};
 
-  constructor(private readonly fontNameMap: FontManagerConfig = FONT_NAME_URL_MAP) {}
+  constructor(private readonly fontsConfig: FontsConfig = {}) {}
 
   static fromState(state: FontManagerState) {
     const fontManager = new FontManager();
@@ -33,13 +26,11 @@ export class FontManager {
   async init() {
     const promises = [];
 
-    for (const fontName of Object.keys(this.fontNameMap)) {
-      const fontUrl = this.fontNameMap[fontName];
-
-      if (fontUrl) {
+    for (const fontConfig of Object.values(this.fontsConfig)) {
+      if (fontConfig.source) {
         promises.push(
-          fetchFont(fontUrl).then(fontSource => {
-            this.initFont(fontName, fontSource);
+          fetchFont(fontConfig.source).then(fontSource => {
+            this.initFont(fontConfig.name, fontSource);
           })
         );
       }

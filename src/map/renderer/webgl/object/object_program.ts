@@ -11,7 +11,7 @@ export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
 export abstract class ObjectProgram {
   protected program: WebGLProgram;
 
-  // buffers
+  // position buffer
   protected a_positionBuffer: WebGLBuffer;
   protected a_positionAttributeLocation: number = 0;
 
@@ -31,7 +31,7 @@ export abstract class ObjectProgram {
     protected readonly fragmentShaderSource: string
   ) {}
 
-  init() {
+  public init() {
     const gl = this.gl;
 
     gl.clear(gl.COLOR_BUFFER_BIT);

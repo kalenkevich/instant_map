@@ -8,13 +8,19 @@ import { PointProgram } from './point/point_program';
 import { PolygonProgram } from './polygon/polygon_program';
 import { LineProgram } from './line/line_program';
 import { TextProgram } from './text/text_program';
+import { IconProgram } from './icon/icon_program';
+import { AtlasTextureManager } from '../../atlas/atlas_manager';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
   private programs: Record<MapTileFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
-  constructor(private readonly rootEl: HTMLElement, private devicePixelRatio: number) {
+  constructor(
+    private readonly rootEl: HTMLElement,
+    private devicePixelRatio: number,
+    private textureManager: AtlasTextureManager
+  ) {
     this.canvas = this.createCanvasEl();
   }
 
@@ -33,19 +39,21 @@ export class WebGlRenderer implements Renderer {
     const polygonProgram = new PolygonProgram(gl);
     const lineProgram = new LineProgram(gl);
     const textProgram = new TextProgram(gl);
+    const iconProgram = new IconProgram(gl, this.textureManager);
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
       [MapTileFeatureType.polygon]: polygonProgram,
       [MapTileFeatureType.text]: textProgram,
+      [MapTileFeatureType.icon]: iconProgram,
       // TODO: implement
-      [MapTileFeatureType.icon]: polygonProgram,
       [MapTileFeatureType.image]: polygonProgram,
     };
     pointProgram.init();
     polygonProgram.init();
     lineProgram.init();
     textProgram.init();
+    iconProgram.init();
   }
 
   destroy() {}

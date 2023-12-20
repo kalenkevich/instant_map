@@ -2,12 +2,15 @@ import axios from 'axios';
 import Protobuf from 'pbf';
 import { vec4 } from 'gl-matrix';
 import { VectorTile } from '@mapbox/vector-tile';
+import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
-import { FontManager, FontManagerState } from '../../font_manager/font_manager';
+import { ProjectionType } from '../../geo/projection/projection';
+import { FontManager, FontManagerState } from '../../font/font_manager';
+import { AtlasTextureMappingState } from '../../atlas/atlas_manager';
 // Styles
-import { DataTileStyles, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
+import { DataTileStyles, IconStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
 // WEBGL specific
 import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
@@ -16,14 +19,20 @@ import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
 import { TextGroupBuilder } from '../../renderer/webgl/text/text_builder';
+import { IconGroupBuilder } from '../../renderer/webgl/icon/icon_group_builder';
+import { MercatorProjection } from '../../geo/projection/mercator_projection';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
 export interface FetchTileOptions {
   tileId: string;
   url: string;
+  canvasWidth: number;
+  canvasHeight: number;
   tileStyles: DataTileStyles;
+  projectionType: ProjectionType;
   fontManagerState: FontManagerState;
+  atlasTextureMappingState: AtlasTextureMappingState;
 }
 
 function formatTileURL(tileId: string, url: string) {
@@ -56,7 +65,11 @@ export async function fetchTile({
   tileId,
   url,
   tileStyles,
+  canvasWidth,
+  canvasHeight,
+  projectionType,
   fontManagerState,
+  atlasTextureMappingState,
 }: FetchTileOptions): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
 
@@ -65,6 +78,7 @@ export async function fetchTile({
     responseType: 'arraybuffer',
   });
   const fontManager = FontManager.fromState(fontManagerState);
+  const projection = new MercatorProjection();
 
   const pbf = new Protobuf(res.data);
   const vectorTile = new VectorTile(pbf);
@@ -80,10 +94,11 @@ export async function fetchTile({
     const numFeatures = vectorTile.layers[styleLayer.sourceLayer]?._features?.length || 0;
 
     const objectGroups: WebGlObjectBufferredGroup[] = [];
-    const pointsGroupBuilder = new PointGroupBuilder();
-    const polygonGroupBuilder = new PolygonGroupBuilder();
-    const lineGroupBuilder = new LineGroupBuilder();
-    const textGroupBuilder = new TextGroupBuilder(fontManager);
+    const pointsGroupBuilder = new PointGroupBuilder(canvasWidth, canvasHeight, projection);
+    const polygonGroupBuilder = new PolygonGroupBuilder(canvasWidth, canvasHeight, projection);
+    const lineGroupBuilder = new LineGroupBuilder(canvasWidth, canvasHeight, projection);
+    const textGroupBuilder = new TextGroupBuilder(canvasWidth, canvasHeight, projection, fontManager);
+    const iconGroupBuilder = new IconGroupBuilder(canvasWidth, canvasHeight, projection, atlasTextureMappingState);
 
     for (let i = 0; i < numFeatures; i++) {
       const geojson: Feature<SupportedGeometry> = vectorTile.layers[styleLayer.sourceLayer]
@@ -93,8 +108,10 @@ export async function fetchTile({
       const featureType = getMapTileFeatureType(geojson);
       const possibleText =
         styleLayer.feature.type === MapTileFeatureType.text && featureType === MapTileFeatureType.point;
+      const possibleIcon = styleLayer.feature.type === MapTileFeatureType.icon;
+      const isTextOrIcon = [MapTileFeatureType.icon, MapTileFeatureType.text].includes(styleLayer.feature.type);
 
-      if (featureType !== styleLayer.feature.type && !possibleText) {
+      if (featureType !== styleLayer.feature.type && !possibleText && !possibleIcon) {
         continue;
       }
 
@@ -104,7 +121,7 @@ export async function fetchTile({
         continue;
       }
 
-      if (featureType === MapTileFeatureType.point && styleLayer.feature.type !== MapTileFeatureType.text) {
+      if (featureType === MapTileFeatureType.point && !isTextOrIcon) {
         const pointStyle = styleLayer.feature as PointStyle;
 
         if (geojson.geometry.type === 'Point') {
@@ -114,7 +131,7 @@ export async function fetchTile({
             type: MapTileFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
-            radius: 0.0001,
+            radius: 0.000001,
             components: 32,
             borderWidth: 1,
             borderColor: vec4.fromValues(0, 0, 0, 1),
@@ -127,7 +144,7 @@ export async function fetchTile({
               type: MapTileFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
               center: point as [number, number],
-              radius: 0.0001,
+              radius: 0.000001,
               components: 32,
               borderWidth: 1,
               borderColor: vec4.fromValues(0, 0, 0, 1),
@@ -168,6 +185,26 @@ export async function fetchTile({
             });
           }
         }
+      } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.icon) {
+        let center: [number, number];
+
+        if (geojson.geometry.type === 'Point') {
+          center = geojson.geometry.coordinates as [number, number];
+        } else {
+          center = geometryCenter(geojson).geometry.coordinates as [number, number];
+        }
+
+        const pointFeature = geojson as Feature<Point>;
+        const iconStyle = styleLayer.feature as IconStyle;
+
+        iconGroupBuilder.addObject({
+          type: MapTileFeatureType.icon,
+          atlas: compileStatement(iconStyle.atlas, pointFeature),
+          name: compileStatement(iconStyle.name, pointFeature),
+          center,
+          width: iconStyle.width ?? compileStatement(iconStyle.width, pointFeature),
+          height: iconStyle.height ?? compileStatement(iconStyle.height, pointFeature),
+        });
       } else if (featureType === MapTileFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
 
@@ -249,6 +286,10 @@ export async function fetchTile({
 
     if (!textGroupBuilder.isEmpty()) {
       objectGroups.push(textGroupBuilder.build());
+    }
+
+    if (!iconGroupBuilder.isEmpty()) {
+      objectGroups.push(iconGroupBuilder.build());
     }
 
     tileLayers.push({ layer: styleLayer.sourceLayer, objectGroups });

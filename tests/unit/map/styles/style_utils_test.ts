@@ -237,6 +237,7 @@ describe('compileFeatureStyle', () => {
         ['water', 'waterImage'],
         ['ice', 'iceImage'],
       ],
+      atlas: 'some-atlas',
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       width: 256,
       height: 256,

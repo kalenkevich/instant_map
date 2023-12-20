@@ -21,7 +21,7 @@ export default {
 
     void main() {
       v_color = a_color;
-      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(mercatorProject(a_position))), 0, 1);
+      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_position)), 0, 1);
     }
   `,
   fragment: DEFAULT_FRAGMENT_SHADER_SOURCE,

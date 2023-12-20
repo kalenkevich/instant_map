@@ -6,7 +6,12 @@ import { MapTileFeatureType } from '../../../tile/tile';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
   addObject(point: WebGlPoint) {
-    const objectSize = verticesFromPoint(this.vertecies, point.center, point.radius, point.components);
+    const objectSize = verticesFromPoint(
+      this.vertecies,
+      this.projection.fromLngLat([point.center[0], point.center[1]]),
+      point.radius,
+      point.components
+    );
 
     this.objects.push([point, objectSize]);
   }
@@ -79,18 +84,19 @@ export function verticesFromPoint(
 ): number {
   const start = result.length;
   const step = 360 / components;
+  const [x, y] = center;
 
   for (let i = 0; i <= 360; i += step) {
-    result.push(center[0]);
-    result.push(center[1]);
+    result.push(x);
+    result.push(y);
 
     let j1 = (i * Math.PI) / 180;
-    result.push(center[0] + Math.sin(j1) * radius);
-    result.push(center[1] + Math.cos(j1) * radius);
+    result.push(x + Math.sin(j1) * radius);
+    result.push(y + Math.cos(j1) * radius);
 
     let j2 = ((i + step) * Math.PI) / 180;
-    result.push(center[0] + Math.sin(j2) * radius);
-    result.push(center[1] + Math.cos(j2) * radius);
+    result.push(x + Math.sin(j2) * radius);
+    result.push(y + Math.cos(j2) * radius);
   }
 
   return result.length - start;

@@ -1,10 +1,20 @@
 import { Statement, ColorValue } from './style_statement';
 import { MapTileFeatureType } from '../tile/tile';
+import { FontConfig } from '../font/font_config';
+import { AtlasTextrureConfig } from '../atlas/atlas_config';
 
 export interface DataTileStyles {
   tileSize?: number;
+  minzoom?: number;
+  maxzoom?: number;
   layers: {
     [styleLayer: string]: DataLayerStyle;
+  };
+  atlas?: {
+    [atlasName: string]: AtlasTextrureConfig;
+  };
+  fonts?: {
+    [fontName: string]: FontConfig;
   };
 }
 
@@ -71,7 +81,8 @@ export interface TextStyle {
 // TODO support Icon style
 export interface IconStyle {
   type: MapTileFeatureType.icon;
-  name: Statement<string>; // glyph name
+  name: Statement<string>; // icon name
+  atlas: Statement<string>; // atlas name
   width?: Statement<number>; // optional
   height?: Statement<number>;
   show?: Statement<boolean>;

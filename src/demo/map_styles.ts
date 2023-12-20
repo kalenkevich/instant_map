@@ -1,8 +1,12 @@
 import { DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
 
+const showText = false;
+
 export const VectorTileStyles: DataTileStyles = {
   tileSize: 512,
+  minzoom: 1,
+  maxzoom: 15,
   layers: {
     water: {
       sourceLayer: 'water',
@@ -151,6 +155,7 @@ export const VectorTileStyles: DataTileStyles = {
       sourceLayer: 'transportation_name',
       styleLayerName: 'transportation_nameStyles',
       zIndex: 4,
+      show: showText,
       feature: {
         type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
@@ -163,7 +168,7 @@ export const VectorTileStyles: DataTileStyles = {
     poi: {
       sourceLayer: 'poi',
       styleLayerName: 'poiPoint',
-      show: true,
+      show: false,
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.point,
@@ -179,10 +184,25 @@ export const VectorTileStyles: DataTileStyles = {
       maxzoom: 18,
       minzoom: 12,
     },
+    poiIcon: {
+      sourceLayer: 'poi',
+      styleLayerName: 'poiIcon',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.icon,
+        show: ['$and', ['$lte', ['$get', 'properties.rank'], 10], ['$notEmpty', ['$get', 'properties.class']]],
+        name: ['$get', 'properties.class'],
+        atlas: 'iconsAtlas',
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
     poiLabel: {
       sourceLayer: 'poi',
       styleLayerName: 'poiText',
       zIndex: 4,
+      show: showText,
       feature: {
         type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
@@ -197,8 +217,8 @@ export const VectorTileStyles: DataTileStyles = {
     place: {
       sourceLayer: 'place',
       styleLayerName: 'placeStyles',
-      show: true,
       zIndex: 3,
+      show: showText,
       feature: {
         type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
@@ -234,7 +254,7 @@ export const VectorTileStyles: DataTileStyles = {
       sourceLayer: 'housenumber',
       styleLayerName: 'housenumberStyles',
       zIndex: 3,
-      show: true,
+      show: showText,
       feature: {
         type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
@@ -292,5 +312,32 @@ export const VectorTileStyles: DataTileStyles = {
     //   maxzoom: 15,
     //   minzoom: 3,
     // },
+  },
+  fonts: {
+    arial: {
+      name: 'arial',
+      source: './fonts/arial_regular.ttf',
+    },
+    roboto: {
+      name: 'roboto',
+      source: './fonts/roboto_regular.ttf',
+    },
+    opensans: {
+      name: 'opensans',
+      source: './fonts/opensans_regular.ttf',
+    },
+    opensansBold: {
+      name: 'opensansBold',
+      source: './fonts/opensans_bold.ttf',
+    },
+  },
+  atlas: {
+    iconsAtlas: {
+      name: 'iconsAtlas',
+      width: 1024,
+      height: 1024,
+      source: './icons/sprite@2x.png',
+      mapping: './icons/sprite@2x.json',
+    },
   },
 };

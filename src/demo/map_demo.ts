@@ -5,9 +5,9 @@ import { VectorTileStyles } from './map_styles';
 const MAP_LOCATION_PARAM_NAME = 'l';
 
 function createRootEl() {
-  const margin = 20;
+  const margin = 0;
   const width = window.innerWidth - margin * 2 - 2;
-  const height = window.innerHeight - margin * 2 - 2 - 50;
+  const height = window.innerHeight - margin * 2 - 2;
 
   const div = document.createElement('div');
 
@@ -20,7 +20,7 @@ function createRootEl() {
 
   window.addEventListener('resize', () => {
     const width = window.innerWidth - margin * 2 - 2;
-    const height = window.innerHeight - margin * 2 - 2 - 50;
+    const height = window.innerHeight - margin * 2 - 2;
 
     div.style.width = `${width}px`;
     div.style.height = `${height}px`;
@@ -88,8 +88,6 @@ export function renderMap() {
     tilesUrl: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
     zoom,
     center: [lat, lng],
-    minZoom: 1,
-    maxZoom: 15,
     tileStyles: VectorTileStyles,
     projection: 'mercator',
     controls: {

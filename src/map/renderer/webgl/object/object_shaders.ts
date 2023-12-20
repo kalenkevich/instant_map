@@ -21,6 +21,12 @@ export const MAT_UTILS = `
     return (mat * vec3(position, 1)).xy;
   }
 
+  vec2 translate(mat3 a, vec2 v) {
+    mat3 inversed = a;
+
+    return vec2(v.x + 1.0 / inversed[2].x, v.y + 1.0 / inversed[2].y);
+  }
+
   mat3 scale(mat3 a, vec2 v) {
     return mat3(
       v.x * a[0].x, v.x * a[0].y, v.x * a[0].z,
