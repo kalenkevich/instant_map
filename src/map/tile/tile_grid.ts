@@ -9,16 +9,18 @@ import { LRUCache } from '../utils/lru_cache';
 import { FontManager } from '../font/font_manager';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
+import { TileGridWorkerEventType } from './tile_grid_worker';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
-  private tiles: LRUCache<string, MapTile> = new LRUCache(256);
+  private tiles: LRUCache<string, MapTile> = new LRUCache(64);
   private tilesInView: TileRef[];
   private tileWorker: Worker;
   private bufferedTiles: TileRef[];
+  private currentLoadingTiles: Set<string> = new Set();
 
   constructor(
     private readonly tileFormatType: MapTileFormatType,
@@ -117,23 +119,38 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // tile fetching options
     const { tileServerURL: url } = this;
 
-    tilesToLoad.forEach(tileId => {
-      if (this.tiles.has(tileId)) {
-        return;
+    for (const tileId of this.currentLoadingTiles) {
+      if (!tilesToLoad.includes(tileId)) {
+        this.tileWorker.postMessage({
+          type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
+          tileId,
+        });
+        this.currentLoadingTiles.delete(tileId);
+      }
+    }
+
+    for (const tileId of tilesToLoad) {
+      if (this.tiles.has(tileId) || this.currentLoadingTiles.has(tileId)) {
+        continue;
       }
 
       this.tiles.set(tileId, this.createMapTile(tileId));
+      this.currentLoadingTiles.add(tileId);
+
       this.tileWorker.postMessage({
-        tileId,
-        tileStyles: this.tileStyles,
-        url,
-        canvasWidth,
-        canvasHeight,
-        projectionType: this.projection.getType(),
-        fontManagerState: this.fontManager.dumpState(),
-        atlasTextureMappingState: this.atlasManager.getMappingState(),
+        type: TileGridWorkerEventType.FETCH_TILE,
+        data: {
+          tileId,
+          tileStyles: this.tileStyles,
+          url,
+          canvasWidth,
+          canvasHeight,
+          projectionType: this.projection.getType(),
+          fontManagerState: this.fontManager.dumpState(),
+          atlasTextureMappingState: this.atlasManager.getMappingState(),
+        },
       });
-    });
+    }
   }
 
   public getCurrentViewTiles(usePlaceholders: boolean = true): MapTile[] {
@@ -153,7 +170,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     for (const tile of tiles) {
       const tileLayers = tile.getLayers();
 
-      if (tileLayers.length === 0) {
+      if (!tileLayers || tileLayers.length === 0) {
         tile.setLayers(this.getPlaceholderLayers(tile.ref));
       }
     }
@@ -190,7 +207,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     if (parentTile) {
       const parentLayers = parentTile.getLayers();
 
-      if (parentLayers.length > 0) {
+      if (parentLayers && parentLayers.length > 0) {
         return parentLayers;
       }
     }
@@ -204,7 +221,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         continue;
       }
 
-      childFeatureSets.push(...childTile.getLayers());
+      childFeatureSets.push(...(childTile.getLayers() || []));
     }
 
     return childFeatureSets;

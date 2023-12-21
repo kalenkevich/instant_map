@@ -61,28 +61,19 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
 }
 
 // Fetch tile from server, and convert layer coordinates to vertices
-export async function fetchTile({
-  tileId,
-  url,
-  tileStyles,
-  canvasWidth,
-  canvasHeight,
-  projectionType,
-  fontManagerState,
-  atlasTextureMappingState,
-}: FetchTileOptions): Promise<PbfTileLayer[]> {
+export async function fetchTile(
+  { tileId, url, tileStyles, canvasWidth, canvasHeight, fontManagerState, atlasTextureMappingState }: FetchTileOptions,
+  abortController: AbortController
+): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
 
   const tileURL = formatTileURL(tileId, url);
-  const res = await axios.get(tileURL, {
-    responseType: 'arraybuffer',
-  });
-  const fontManager = FontManager.fromState(fontManagerState);
-  const projection = new MercatorProjection();
-
-  const pbf = new Protobuf(res.data);
+  const resData = await fetch(tileURL, { signal: abortController.signal }).then(data => data.arrayBuffer());
+  const pbf = new Protobuf(resData);
   const vectorTile = new VectorTile(pbf);
 
+  const fontManager = FontManager.fromState(fontManagerState);
+  const projection = new MercatorProjection();
   const tileLayers: PbfTileLayer[] = [];
 
   for (const styleLayer of Object.values(tileStyles.layers)) {

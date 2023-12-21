@@ -59,7 +59,7 @@ export class IconGroupBuilder extends ObjectGroupBuilder<WebGlIcon> {
       const padding = 4;
       const u1 = iconMapping.x / textureWidth;
       const v1 = (iconMapping.y + 54) / textureHeight;
-      const u2 = (iconMapping.x + iconMapping.width) / textureWidth;
+      const u2 = (iconMapping.x + iconMapping.width + padding) / textureWidth;
       const v2 = (iconMapping.y + 54 + iconMapping.height + padding) / textureHeight;
 
       // first triangle
