@@ -191,7 +191,7 @@ export const VectorTileStyles: DataTileStyles = {
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.icon,
-        show: ['$and', ['$lte', ['$get', 'properties.rank'], 10], ['$notEmpty', ['$get', 'properties.class']]],
+        // show: ['$and', ['$lte', ['$get', 'properties.rank'], 10], ['$notEmpty', ['$get', 'properties.class']]],
         name: ['$get', 'properties.class'],
         atlas: 'iconsAtlas',
       },
@@ -335,7 +335,7 @@ export const VectorTileStyles: DataTileStyles = {
     iconsAtlas: {
       name: 'iconsAtlas',
       width: 1024,
-      height: 1024,
+      height: 936,
       source: './icons/sprite@2x.png',
       mapping: './icons/sprite@2x.json',
     },

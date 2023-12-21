@@ -47,20 +47,18 @@ export class IconGroupBuilder extends ObjectGroupBuilder<WebGlIcon> {
       const textureHeight = textureAtlas.height;
 
       const customScaleFactor = 0.0001;
-      const scaledIconWidth = iconMapping.width / iconMapping.pixelRatio / this.canvasWidth;
-      const scaledIconHeight = iconMapping.height / iconMapping.pixelRatio / this.canvasHeight;
+      const iconScaledWidth = iconMapping.width / iconMapping.pixelRatio / this.canvasWidth;
 
       let [x1, y1] = this.projection.fromLngLat([icon.center[0], icon.center[1]]);
-      x1 = x1 - (scaledIconWidth / 2) * customScaleFactor;
-      y1 = y1 - (scaledIconHeight / 2) * customScaleFactor;
-      const x2 = x1 + scaledIconWidth * customScaleFactor;
-      const y2 = y1 + scaledIconHeight * customScaleFactor;
+      x1 = x1 - (iconScaledWidth / 2) * customScaleFactor;
+      y1 = y1 - (iconScaledWidth / 2) * customScaleFactor;
+      const x2 = x1 + iconScaledWidth * customScaleFactor;
+      const y2 = y1 + iconScaledWidth * customScaleFactor;
 
-      const padding = 4;
       const u1 = iconMapping.x / textureWidth;
-      const v1 = (iconMapping.y + 54) / textureHeight;
-      const u2 = (iconMapping.x + iconMapping.width + padding) / textureWidth;
-      const v2 = (iconMapping.y + 54 + iconMapping.height + padding) / textureHeight;
+      const v1 = iconMapping.y / textureHeight;
+      const u2 = (iconMapping.x + iconMapping.width) / textureWidth;
+      const v2 = (iconMapping.y + iconMapping.height) / textureHeight;
 
       // first triangle
       verteciesBuffer.push(x1, y1, x2, y1, x1, y2);
