@@ -70,17 +70,52 @@ export class AtlasTextureManager {
     }
 
     if (typeof atlasConfig.mapping === 'string') {
-      promises.push(
-        fetch(atlasConfig.mapping)
-          .then(res => res.json())
-          .then((mapping: Record<string, AtlasTextrureMapping>) => {
-            this.state[atlasConfig.name].mapping = mapping;
+      if (atlasConfig.mapping.startsWith('font_default_mapping')) {
+        const [, , , widthS, heightS, sizeS, pixelRatioS] = atlasConfig.mapping.split('_');
+        const width = parseInt(widthS);
+        const height = parseInt(heightS);
+        const size = parseInt(sizeS);
+        const pixelRatio = parseInt(pixelRatioS);
 
-            if (!!this.state[atlasConfig.name].source) {
-              this.state[atlasConfig.name].ready = true;
-            }
-          })
-      );
+        let currentX = 0;
+        let currentY = 0;
+        const mapping: Record<string, AtlasTextrureMapping> = {};
+        for (let i = 0; i < size; i++) {
+          const char = String.fromCharCode(i);
+
+          mapping[char] = {
+            x: currentX,
+            y: currentY,
+            width,
+            height,
+            pixelRatio,
+            visible: true,
+          };
+
+          currentX += width;
+          if (currentX >= atlasConfig.width) {
+            currentX = 0;
+            currentY += height;
+          }
+        }
+
+        this.state[atlasConfig.name].mapping = mapping;
+        if (!!this.state[atlasConfig.name].source) {
+          this.state[atlasConfig.name].ready = true;
+        }
+      } else {
+        promises.push(
+          fetch(atlasConfig.mapping)
+            .then(res => res.json())
+            .then((mapping: Record<string, AtlasTextrureMapping>) => {
+              this.state[atlasConfig.name].mapping = mapping;
+
+              if (!!this.state[atlasConfig.name].source) {
+                this.state[atlasConfig.name].ready = true;
+              }
+            })
+        );
+      }
     } else {
       this.state[atlasConfig.name].mapping = atlasConfig.mapping;
       if (!!this.state[atlasConfig.name].source) {

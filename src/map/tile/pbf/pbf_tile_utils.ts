@@ -10,7 +10,7 @@ import { ProjectionType } from '../../geo/projection/projection';
 import { FontManager, FontManagerState } from '../../font/font_manager';
 import { AtlasTextureMappingState } from '../../atlas/atlas_manager';
 // Styles
-import { DataTileStyles, IconStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
+import { DataTileStyles, GlyphStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
 // WEBGL specific
 import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
@@ -19,8 +19,10 @@ import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
 import { TextGroupBuilder } from '../../renderer/webgl/text/text_builder';
-import { IconGroupBuilder } from '../../renderer/webgl/icon/icon_group_builder';
+import { GlyphGroupBuilder } from '../../renderer/webgl/glyph/glyph_group_builder';
+import { GlyphTextGroupBuilder } from '../../renderer/webgl/glyph/glyph_text_group_builder';
 import { MercatorProjection } from '../../geo/projection/mercator_projection';
+import { WebGlText } from '../../renderer/webgl/text/text';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
@@ -89,7 +91,13 @@ export async function fetchTile(
     const polygonGroupBuilder = new PolygonGroupBuilder(canvasWidth, canvasHeight, projection);
     const lineGroupBuilder = new LineGroupBuilder(canvasWidth, canvasHeight, projection);
     const textGroupBuilder = new TextGroupBuilder(canvasWidth, canvasHeight, projection, fontManager);
-    const iconGroupBuilder = new IconGroupBuilder(canvasWidth, canvasHeight, projection, atlasTextureMappingState);
+    const glyphGroupBuilder = new GlyphGroupBuilder(canvasWidth, canvasHeight, projection, atlasTextureMappingState);
+    const glyphTextGroupBuilder = new GlyphTextGroupBuilder(
+      canvasWidth,
+      canvasHeight,
+      projection,
+      atlasTextureMappingState
+    );
 
     for (let i = 0; i < numFeatures; i++) {
       const geojson: Feature<SupportedGeometry> = vectorTile.layers[styleLayer.sourceLayer]
@@ -99,10 +107,10 @@ export async function fetchTile(
       const featureType = getMapTileFeatureType(geojson);
       const possibleText =
         styleLayer.feature.type === MapTileFeatureType.text && featureType === MapTileFeatureType.point;
-      const possibleIcon = styleLayer.feature.type === MapTileFeatureType.icon;
-      const isTextOrIcon = [MapTileFeatureType.icon, MapTileFeatureType.text].includes(styleLayer.feature.type);
+      const possibleGlyph = styleLayer.feature.type === MapTileFeatureType.glyph;
+      const isTextOrGlyph = [MapTileFeatureType.glyph, MapTileFeatureType.text].includes(styleLayer.feature.type);
 
-      if (featureType !== styleLayer.feature.type && !possibleText && !possibleIcon) {
+      if (featureType !== styleLayer.feature.type && !possibleText && !possibleGlyph) {
         continue;
       }
 
@@ -112,7 +120,7 @@ export async function fetchTile(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.point && !isTextOrIcon) {
+      if (featureType === MapTileFeatureType.point && !isTextOrGlyph) {
         const pointStyle = styleLayer.feature as PointStyle;
 
         if (geojson.geometry.type === 'Point') {
@@ -148,7 +156,7 @@ export async function fetchTile(
         if (geojson.geometry.type === 'Point') {
           const pointFeature = geojson as Feature<Point>;
 
-          textGroupBuilder.addObject({
+          const textObject: WebGlText = {
             type: MapTileFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
             text: compileStatement(textStyle.text, pointFeature),
@@ -158,12 +166,15 @@ export async function fetchTile(
             // fontSize ? compileStatement(textStyle.fontSize, pointFeature) : 2,
             borderWidth: 1,
             borderColor: vec4.fromValues(0, 0, 0, 1),
-          });
+          };
+
+          // textGroupBuilder.addObject(textObject);
+          glyphTextGroupBuilder.addObject(textObject);
         } else if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
-            textGroupBuilder.addObject({
+            const textObject: WebGlText = {
               type: MapTileFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
               text: compileStatement(textStyle.text, pointFeature),
@@ -173,10 +184,13 @@ export async function fetchTile(
               // fontSize ? compileStatement(textStyle.fontSize, pointFeature) : 2,
               borderWidth: 1,
               borderColor: vec4.fromValues(0, 0, 0, 1),
-            });
+            };
+
+            // textGroupBuilder.addObject(textObject);
+            glyphTextGroupBuilder.addObject(textObject);
           }
         }
-      } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.icon) {
+      } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
         let center: [number, number];
 
         if (geojson.geometry.type === 'Point') {
@@ -186,15 +200,15 @@ export async function fetchTile(
         }
 
         const pointFeature = geojson as Feature<Point>;
-        const iconStyle = styleLayer.feature as IconStyle;
+        const glyphStyle = styleLayer.feature as GlyphStyle;
 
-        iconGroupBuilder.addObject({
-          type: MapTileFeatureType.icon,
-          atlas: compileStatement(iconStyle.atlas, pointFeature),
-          name: compileStatement(iconStyle.name, pointFeature),
+        glyphGroupBuilder.addObject({
+          type: MapTileFeatureType.glyph,
+          atlas: compileStatement(glyphStyle.atlas, pointFeature),
+          name: compileStatement(glyphStyle.name, pointFeature),
           center,
-          width: iconStyle.width ?? compileStatement(iconStyle.width, pointFeature),
-          height: iconStyle.height ?? compileStatement(iconStyle.height, pointFeature),
+          width: glyphStyle.width ?? compileStatement(glyphStyle.width, pointFeature),
+          height: glyphStyle.height ?? compileStatement(glyphStyle.height, pointFeature),
         });
       } else if (featureType === MapTileFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
@@ -275,12 +289,16 @@ export async function fetchTile(
       objectGroups.push(pointsGroupBuilder.build());
     }
 
-    if (!textGroupBuilder.isEmpty()) {
-      objectGroups.push(textGroupBuilder.build());
+    // if (!textGroupBuilder.isEmpty()) {
+    //   objectGroups.push(textGroupBuilder.build());
+    // }
+
+    if (!glyphTextGroupBuilder.isEmpty()) {
+      objectGroups.push(glyphTextGroupBuilder.build());
     }
 
-    if (!iconGroupBuilder.isEmpty()) {
-      objectGroups.push(iconGroupBuilder.build());
+    if (!glyphGroupBuilder.isEmpty()) {
+      objectGroups.push(glyphGroupBuilder.build());
     }
 
     tileLayers.push({ layer: styleLayer.sourceLayer, objectGroups });

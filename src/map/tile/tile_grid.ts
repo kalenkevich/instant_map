@@ -16,7 +16,7 @@ export enum TilesGridEvent {
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
-  private tiles: LRUCache<string, MapTile> = new LRUCache(64);
+  private tiles: LRUCache<string, MapTile> = new LRUCache(128);
   private tilesInView: TileRef[];
   private tileWorker: Worker;
   private bufferedTiles: TileRef[];
@@ -119,23 +119,25 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // tile fetching options
     const { tileServerURL: url } = this;
 
-    for (const tileId of this.currentLoadingTiles) {
-      if (!tilesToLoad.includes(tileId)) {
-        this.tileWorker.postMessage({
-          type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
-          tileId,
-        });
-        this.currentLoadingTiles.delete(tileId);
-      }
-    }
+    // for (const tileId of this.currentLoadingTiles) {
+    //   if (!tilesToLoad.includes(tileId)) {
+    //     this.tileWorker.postMessage({
+    //       type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
+    //       tileId,
+    //     });
+    //     this.currentLoadingTiles.delete(tileId);
+    //   }
+    // }
 
     for (const tileId of tilesToLoad) {
-      if (this.tiles.has(tileId) || this.currentLoadingTiles.has(tileId)) {
+      if (this.tiles.has(tileId)) {
         continue;
       }
 
+      // || this.currentLoadingTiles.has(tileId)
+
       this.tiles.set(tileId, this.createMapTile(tileId));
-      this.currentLoadingTiles.add(tileId);
+      // this.currentLoadingTiles.add(tileId);
 
       this.tileWorker.postMessage({
         type: TileGridWorkerEventType.FETCH_TILE,

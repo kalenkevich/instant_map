@@ -1,11 +1,11 @@
-import { WebGlIcon, WebGlIconBufferredGroup } from './icon';
+import { WebGlGlyph, WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { AtlasTextureMappingState } from '../../../atlas/atlas_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
 
-export class IconGroupBuilder extends ObjectGroupBuilder<WebGlIcon> {
+export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
   constructor(
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
@@ -15,50 +15,50 @@ export class IconGroupBuilder extends ObjectGroupBuilder<WebGlIcon> {
     super(canvasWidth, canvasHeight, projection);
   }
 
-  addObject(icon: WebGlIcon): void {
-    this.objects.push([icon, 0]);
+  addObject(glyph: WebGlGlyph): void {
+    this.objects.push([glyph, 0]);
   }
 
-  build(): WebGlIconBufferredGroup {
+  build(): WebGlGlyphBufferredGroup {
     let textureAtlasName: string;
-    const filteredIcons: WebGlIcon[] = [];
-    for (const [icon] of this.objects) {
-      textureAtlasName = icon.atlas;
-      const textureAtlas = this.atlasesMappingState[icon.atlas];
-      const iconMapping = textureAtlas.mapping[icon.name];
+    const filteredGlyphs: WebGlGlyph[] = [];
+    for (const [glyph] of this.objects) {
+      textureAtlasName = glyph.atlas;
+      const textureAtlas = this.atlasesMappingState[glyph.atlas];
+      const glyphMapping = textureAtlas.mapping[glyph.name];
 
-      if (!iconMapping) {
+      if (!glyphMapping) {
         continue;
       }
 
-      filteredIcons.push(icon);
+      filteredGlyphs.push(glyph);
     }
 
-    const size = filteredIcons.length;
+    const size = filteredGlyphs.length;
 
     const verteciesBuffer = [];
     const texcoordBuffer = [];
 
-    for (const icon of filteredIcons) {
-      const textureAtlas = this.atlasesMappingState[icon.atlas];
-      const iconMapping = textureAtlas.mapping[icon.name];
+    for (const glyph of filteredGlyphs) {
+      const textureAtlas = this.atlasesMappingState[glyph.atlas];
+      const glyphMapping = textureAtlas.mapping[glyph.name];
 
       const textureWidth = textureAtlas.width;
       const textureHeight = textureAtlas.height;
 
       const customScaleFactor = 0.0001;
-      const iconScaledWidth = iconMapping.width / iconMapping.pixelRatio / this.canvasWidth;
+      const glyphScaledWidth = glyphMapping.width / glyphMapping.pixelRatio / this.canvasWidth;
 
-      let [x1, y1] = this.projection.fromLngLat([icon.center[0], icon.center[1]]);
-      x1 = x1 - (iconScaledWidth / 2) * customScaleFactor;
-      y1 = y1 - (iconScaledWidth / 2) * customScaleFactor;
-      const x2 = x1 + iconScaledWidth * customScaleFactor;
-      const y2 = y1 + iconScaledWidth * customScaleFactor;
+      let [x1, y1] = this.projection.fromLngLat([glyph.center[0], glyph.center[1]]);
+      x1 = x1 - (glyphScaledWidth / 2) * customScaleFactor;
+      y1 = y1 - (glyphScaledWidth / 2) * customScaleFactor;
+      const x2 = x1 + glyphScaledWidth * customScaleFactor;
+      const y2 = y1 + glyphScaledWidth * customScaleFactor;
 
-      const u1 = iconMapping.x / textureWidth;
-      const v1 = iconMapping.y / textureHeight;
-      const u2 = (iconMapping.x + iconMapping.width) / textureWidth;
-      const v2 = (iconMapping.y + iconMapping.height) / textureHeight;
+      const u1 = glyphMapping.x / textureWidth;
+      const v1 = glyphMapping.y / textureHeight;
+      const u2 = (glyphMapping.x + glyphMapping.width) / textureWidth;
+      const v2 = (glyphMapping.y + glyphMapping.height) / textureHeight;
 
       // first triangle
       verteciesBuffer.push(x1, y1, x2, y1, x1, y2);
@@ -70,7 +70,7 @@ export class IconGroupBuilder extends ObjectGroupBuilder<WebGlIcon> {
     }
 
     return {
-      type: MapTileFeatureType.icon,
+      type: MapTileFeatureType.glyph,
       size,
       numElements: verteciesBuffer.length / 2,
       atlas: textureAtlasName,

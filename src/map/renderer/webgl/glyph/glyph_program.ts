@@ -1,5 +1,5 @@
-import { WebGlIconBufferredGroup } from './icon';
-import IconShaders from './icon_shaders';
+import { WebGlGlyphBufferredGroup } from './glyph';
+import GlyphShaders from './glyph_shaders';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
 import { AtlasTextureManager } from '../../../atlas/atlas_manager';
 
@@ -11,7 +11,7 @@ export interface WebglAtlasTextureConfig {
   height: number;
 }
 
-export class IconProgram extends ObjectProgram {
+export class GlyphProgram extends ObjectProgram {
   protected u_textureLocation: WebGLUniformLocation;
   protected atlasTextures: Record<string, WebglAtlasTextureConfig> = {};
   protected currentTexture?: string;
@@ -22,8 +22,8 @@ export class IconProgram extends ObjectProgram {
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly atlasTextureManager: AtlasTextureManager,
-    protected readonly vertexShaderSource: string = IconShaders.vertext,
-    protected readonly fragmentShaderSource: string = IconShaders.fragment
+    protected readonly vertexShaderSource: string = GlyphShaders.vertext,
+    protected readonly fragmentShaderSource: string = GlyphShaders.fragment
   ) {
     super(gl, vertexShaderSource, fragmentShaderSource);
   }
@@ -66,6 +66,8 @@ export class IconProgram extends ObjectProgram {
         width: textureInfo.width,
         height: textureInfo.height,
       };
+
+      textureIndex++;
     }
   }
 
@@ -97,7 +99,7 @@ export class IconProgram extends ObjectProgram {
     this.gl.uniform1i(this.u_textureLocation, this.atlasTextures[textureName].textureIndex);
   }
 
-  drawObjectGroup(objectGroup: WebGlIconBufferredGroup): void {
+  drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);

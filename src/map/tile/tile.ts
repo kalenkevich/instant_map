@@ -31,6 +31,6 @@ export enum MapTileFeatureType {
   line = 'line',
   polygon = 'polygon',
   text = 'text',
-  icon = 'icon',
+  glyph = 'glyph',
   image = 'image',
 }

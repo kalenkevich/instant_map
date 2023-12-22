@@ -5,7 +5,7 @@ import {
   LineStyle,
   PolygonStyle,
   TextStyle,
-  IconStyle,
+  GlyphStyle,
 } from '../../../../src/map/styles/styles';
 
 import { MapTileFeatureType } from '../../../../src/map/tile/tile';
@@ -228,8 +228,8 @@ describe('compileFeatureStyle', () => {
   });
 
   it('should return compiled feature style for Image', () => {
-    const featureStyle: IconStyle = {
-      type: MapTileFeatureType.icon,
+    const featureStyle: GlyphStyle = {
+      type: MapTileFeatureType.glyph,
       name: [
         '$switch',
         ['$get', 'properties.class'],
@@ -252,7 +252,7 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.icon,
+      type: MapTileFeatureType.glyph,
       name: 'waterImage',
       show: true,
       width: 256,

@@ -36,7 +36,7 @@ export interface ImageSourceLayer {
   url: string;
 }
 
-export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | IconStyle;
+export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | GlyphStyle;
 
 export interface PointStyle {
   type: MapTileFeatureType.point;
@@ -79,9 +79,9 @@ export interface TextStyle {
 }
 
 // TODO support Icon style
-export interface IconStyle {
-  type: MapTileFeatureType.icon;
-  name: Statement<string>; // icon name
+export interface GlyphStyle {
+  type: MapTileFeatureType.glyph;
+  name: Statement<string>; // glyph name
   atlas: Statement<string>; // atlas name
   width?: Statement<number>; // optional
   height?: Statement<number>;

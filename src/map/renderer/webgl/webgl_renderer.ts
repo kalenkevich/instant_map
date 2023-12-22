@@ -8,7 +8,7 @@ import { PointProgram } from './point/point_program';
 import { PolygonProgram } from './polygon/polygon_program';
 import { LineProgram } from './line/line_program';
 import { TextProgram } from './text/text_program';
-import { IconProgram } from './icon/icon_program';
+import { GlyphProgram } from './glyph/glyph_program';
 import { AtlasTextureManager } from '../../atlas/atlas_manager';
 
 export class WebGlRenderer implements Renderer {
@@ -39,13 +39,13 @@ export class WebGlRenderer implements Renderer {
     const polygonProgram = new PolygonProgram(gl);
     const lineProgram = new LineProgram(gl);
     const textProgram = new TextProgram(gl);
-    const iconProgram = new IconProgram(gl, this.textureManager);
+    const glyphProgram = new GlyphProgram(gl, this.textureManager);
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
       [MapTileFeatureType.polygon]: polygonProgram,
       [MapTileFeatureType.text]: textProgram,
-      [MapTileFeatureType.icon]: iconProgram,
+      [MapTileFeatureType.glyph]: glyphProgram,
       // TODO: implement
       [MapTileFeatureType.image]: polygonProgram,
     };
@@ -53,7 +53,7 @@ export class WebGlRenderer implements Renderer {
     polygonProgram.init();
     lineProgram.init();
     textProgram.init();
-    iconProgram.init();
+    glyphProgram.init();
   }
 
   destroy() {}
