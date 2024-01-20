@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Protobuf from 'pbf';
 import { vec4 } from 'gl-matrix';
 import { VectorTile } from '@mapbox/vector-tile';
@@ -18,7 +17,6 @@ import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../../renderer/webgl
 import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
-import { TextGroupBuilder } from '../../renderer/webgl/text/text_builder';
 import { GlyphGroupBuilder } from '../../renderer/webgl/glyph/glyph_group_builder';
 import { GlyphTextGroupBuilder } from '../../renderer/webgl/glyph/glyph_text_group_builder';
 import { MercatorProjection } from '../../geo/projection/mercator_projection';
@@ -31,6 +29,8 @@ export interface FetchTileOptions {
   url: string;
   canvasWidth: number;
   canvasHeight: number;
+  zoom: number;
+  tileSize: number;
   tileStyles: DataTileStyles;
   projectionType: ProjectionType;
   fontManagerState: FontManagerState;
@@ -64,7 +64,17 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
 
 // Fetch tile from server, and convert layer coordinates to vertices
 export async function fetchTile(
-  { tileId, url, tileStyles, canvasWidth, canvasHeight, fontManagerState, atlasTextureMappingState }: FetchTileOptions,
+  {
+    tileId,
+    url,
+    tileStyles,
+    canvasWidth,
+    canvasHeight,
+    zoom,
+    tileSize,
+    fontManagerState,
+    atlasTextureMappingState,
+  }: FetchTileOptions,
   abortController: AbortController
 ): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
@@ -87,14 +97,22 @@ export async function fetchTile(
     const numFeatures = vectorTile.layers[styleLayer.sourceLayer]?._features?.length || 0;
 
     const objectGroups: WebGlObjectBufferredGroup[] = [];
-    const pointsGroupBuilder = new PointGroupBuilder(canvasWidth, canvasHeight, projection);
-    const polygonGroupBuilder = new PolygonGroupBuilder(canvasWidth, canvasHeight, projection);
-    const lineGroupBuilder = new LineGroupBuilder(canvasWidth, canvasHeight, projection);
-    const textGroupBuilder = new TextGroupBuilder(canvasWidth, canvasHeight, projection, fontManager);
-    const glyphGroupBuilder = new GlyphGroupBuilder(canvasWidth, canvasHeight, projection, atlasTextureMappingState);
+    const pointsGroupBuilder = new PointGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    const polygonGroupBuilder = new PolygonGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    const lineGroupBuilder = new LineGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    const glyphGroupBuilder = new GlyphGroupBuilder(
+      canvasWidth,
+      canvasHeight,
+      zoom,
+      tileSize,
+      projection,
+      atlasTextureMappingState
+    );
     const glyphTextGroupBuilder = new GlyphTextGroupBuilder(
       canvasWidth,
       canvasHeight,
+      zoom,
+      tileSize,
       projection,
       atlasTextureMappingState
     );
@@ -130,10 +148,10 @@ export async function fetchTile(
             type: MapTileFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
-            radius: 0.000001,
+            radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
             components: 32,
-            borderWidth: 1,
-            borderColor: vec4.fromValues(0, 0, 0, 1),
+            borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
+            borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
           });
         } else if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
@@ -143,10 +161,10 @@ export async function fetchTile(
               type: MapTileFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
               center: point as [number, number],
-              radius: 0.000001,
+              radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
               components: 32,
-              borderWidth: 1,
-              borderColor: vec4.fromValues(0, 0, 0, 1),
+              borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
+              borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
             });
           }
         }
@@ -168,7 +186,6 @@ export async function fetchTile(
             borderColor: vec4.fromValues(0, 0, 0, 1),
           };
 
-          // textGroupBuilder.addObject(textObject);
           glyphTextGroupBuilder.addObject(textObject);
         } else if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
@@ -186,7 +203,6 @@ export async function fetchTile(
               borderColor: vec4.fromValues(0, 0, 0, 1),
             };
 
-            // textGroupBuilder.addObject(textObject);
             glyphTextGroupBuilder.addObject(textObject);
           }
         }
@@ -248,8 +264,7 @@ export async function fetchTile(
             type: MapTileFeatureType.line,
             color: compileStatement(lineStyle.color, lineFeature),
             vertecies: lineFeature.geometry.coordinates as Array<[number, number]>,
-            width: 0.003 / Math.pow(2, z),
-            // lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
+            width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
             borderWidth: 0,
             borderColor: vec4.fromValues(0, 0, 0, 1),
             fill: LineFillStyle.solid,
@@ -264,8 +279,7 @@ export async function fetchTile(
               type: MapTileFeatureType.line,
               color: compileStatement(lineStyle.color, lineFeature),
               vertecies: lineGeometry as Array<[number, number]>,
-              width: 0.003 / Math.pow(2, z),
-              // lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
+              width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
               borderWidth: 0,
               borderColor: vec4.fromValues(0, 0, 0, 1),
               fill: LineFillStyle.solid,
@@ -288,10 +302,6 @@ export async function fetchTile(
     if (!pointsGroupBuilder.isEmpty()) {
       objectGroups.push(pointsGroupBuilder.build());
     }
-
-    // if (!textGroupBuilder.isEmpty()) {
-    //   objectGroups.push(textGroupBuilder.build());
-    // }
 
     if (!glyphTextGroupBuilder.isEmpty()) {
       objectGroups.push(glyphTextGroupBuilder.build());

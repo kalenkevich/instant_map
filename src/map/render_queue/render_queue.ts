@@ -39,11 +39,11 @@ export class RenderQueue {
     }
 
     this.isActive = true;
-    const renderFn = this.queue[index][0];
-    const resolveFn = this.queue[index][1];
+    const [renderFn, resolveFn] = this.queue[index];
 
     // invoke render
     renderFn();
+
     // we don't need to cancel it anymore
     delete this.rafIds[index];
     this.rafIds[index + 1] = requestAnimationFrame(() => this.invokeRender(index + 1));

@@ -6,14 +6,17 @@ import { FontManager } from '../../../font/font_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
 
+/** @deprecated Please use GlyphGroupBuilder instead. */
 export class TextGroupBuilder extends ObjectGroupBuilder<WebGlText> {
   constructor(
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
+    protected readonly zoom: number,
+    protected readonly tileSize: number,
     protected readonly projection: Projection,
     private readonly fontManager: FontManager
   ) {
-    super(canvasWidth, canvasHeight, projection);
+    super(canvasWidth, canvasHeight, zoom, tileSize, projection);
   }
 
   addObject(text: WebGlText) {

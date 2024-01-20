@@ -85,7 +85,7 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render(tiles: MapTile[], zoom: number, matrix: mat3) {
+  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
     let program;
     let globalUniformsSet = false;
 
@@ -93,8 +93,8 @@ export class WebGlRenderer implements Renderer {
       const tileLayers = tile.getLayers();
 
       if (program && !globalUniformsSet) {
-        program.setMatrix(matrix);
-        program.setZoom(zoom);
+        program.setMatrix(viewMatrix);
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
         globalUniformsSet = true;
       }
 
@@ -107,8 +107,7 @@ export class WebGlRenderer implements Renderer {
 
           if (prevProgram !== program) {
             program.link();
-            program.setMatrix(matrix);
-            program.setZoom(zoom);
+            this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
           }
 
           program.drawObjectGroup(objectGroup);
@@ -117,5 +116,13 @@ export class WebGlRenderer implements Renderer {
     }
 
     this.gl.flush();
+  }
+
+  private setProgramGlobalUniforms(program: ObjectProgram, viewMatrix: mat3, zoom: number, tileSize: number) {
+    program.setMatrix(viewMatrix);
+    program.setZoom(zoom);
+    program.setTileSize(tileSize);
+    program.setWidth(this.rootEl.offsetWidth);
+    program.setHeight(this.rootEl.offsetHeight);
   }
 }

@@ -132,13 +132,14 @@ export class MapCamera {
 
   private updateProjectionMatrix() {
     // update camera matrix
-    const zoomScale = 1 / Math.pow(2, this.zoom); // inverted
-    const tileWidthScale = this.tileSize / this.width;
-    const tileHeightScale = this.tileSize / this.height;
+    const zoomScale = Math.pow(2, this.zoom);
 
     const cameraMat = mat3.create();
     mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
-    mat3.scale(cameraMat, cameraMat, [zoomScale / tileWidthScale, zoomScale / tileHeightScale]);
+    mat3.scale(cameraMat, cameraMat, [
+      this.width / (this.tileSize * zoomScale),
+      this.height / (this.tileSize * zoomScale),
+    ]);
     mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
 
     // update view projection matrix

@@ -27,6 +27,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileServerURL: string,
     private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
+    private readonly tileSize: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
     private readonly fontManager: FontManager,
@@ -69,7 +70,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     console.error('Uncaught worker error.', error);
   };
 
-  public updateTiles(camera: MapCamera, canvasWidth: number, canvasHeight: number) {
+  public updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
     // update visible tiles based on viewport
     const bbox = camera.getCurrentBounds();
     const z = Math.min(Math.trunc(camera.getZoom()), this.maxTileZoom);
@@ -147,6 +148,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           url,
           canvasWidth,
           canvasHeight,
+          zoom,
+          tileSize: this.tileSize,
           projectionType: this.projection.getType(),
           fontManagerState: this.fontManager.dumpState(),
           atlasTextureMappingState: this.atlasManager.getMappingState(),

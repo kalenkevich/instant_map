@@ -18,8 +18,8 @@ export class LineProgram extends ObjectProgram {
   protected a_colorBuffer: WebGLBuffer;
   protected a_colorAttributeLocation: number = 3;
 
-  protected a_widthBuffer: WebGLBuffer;
-  protected a_widthAttributeLocation: number = 4;
+  protected a_line_widthBuffer: WebGLBuffer;
+  protected a_line_widthAttributeLocation: number = 4;
 
   protected vao: WebGLVertexArrayObjectOES;
 
@@ -68,11 +68,11 @@ export class LineProgram extends ObjectProgram {
     gl.vertexAttribPointer(this.a_colorAttributeLocation, 4, this.gl.FLOAT, false, 0, 0);
     this.gl.vertexAttribDivisor(this.a_colorAttributeLocation, 1);
 
-    this.a_widthBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_widthAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_widthBuffer);
-    gl.vertexAttribPointer(this.a_widthAttributeLocation, 1, this.gl.FLOAT, false, 0, 0);
-    this.gl.vertexAttribDivisor(this.a_widthAttributeLocation, 1);
+    this.a_line_widthBuffer = gl.createBuffer();
+    gl.enableVertexAttribArray(this.a_line_widthAttributeLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_line_widthBuffer);
+    gl.vertexAttribPointer(this.a_line_widthAttributeLocation, 1, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribDivisor(this.a_line_widthAttributeLocation, 1);
 
     this.gl.bindVertexArray(null);
   }
@@ -99,7 +99,7 @@ export class LineProgram extends ObjectProgram {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, lineGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_widthBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_line_widthBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, lineGroup.width.buffer as Float32Array, gl.STATIC_DRAW);
 
     gl.drawArraysInstanced(gl.TRIANGLES, 0, POSITION_BUFFER.length / 2, lineGroup.numElements - 1);

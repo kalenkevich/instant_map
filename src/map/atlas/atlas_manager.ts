@@ -84,9 +84,9 @@ export class AtlasTextureManager {
           const char = String.fromCharCode(i);
 
           mapping[char] = {
-            x: currentX,
+            x: currentX + 5,
             y: currentY,
-            width,
+            width: width,
             height,
             pixelRatio,
             visible: true,

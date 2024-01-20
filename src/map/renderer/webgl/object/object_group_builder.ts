@@ -8,6 +8,8 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
   constructor(
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
+    protected readonly zoom: number,
+    protected readonly tileSize: number,
     protected readonly projection: Projection
   ) {}
 
@@ -15,6 +17,11 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
 
   isEmpty(): boolean {
     return this.objects.length === 0;
+  }
+
+  /** Scales value for webgl canvas value according to the current zoom and tileSize */
+  scale(val: number): number {
+    return val / (Math.pow(2, this.zoom) * this.tileSize);
   }
 
   abstract build(): WebGlObjectBufferredGroup;

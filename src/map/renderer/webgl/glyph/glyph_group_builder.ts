@@ -9,10 +9,12 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
   constructor(
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
+    protected readonly zoom: number,
+    protected readonly tileSize: number,
     protected readonly projection: Projection,
     private readonly atlasesMappingState: AtlasTextureMappingState
   ) {
-    super(canvasWidth, canvasHeight, projection);
+    super(canvasWidth, canvasHeight, zoom, tileSize, projection);
   }
 
   addObject(glyph: WebGlGlyph): void {

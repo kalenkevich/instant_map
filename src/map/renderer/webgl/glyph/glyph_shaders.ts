@@ -8,6 +8,9 @@ export default {
 
     uniform mat3 u_matrix;
     uniform float u_zoom;
+    uniform float u_width;
+    uniform float u_height;
+    uniform float u_tile_size;
 
     attribute vec2 a_position;
     attribute vec2 a_texCoord;

@@ -46,7 +46,7 @@ export interface MapOptions {
   zoom?: number;
   /** Initial rotation value of the map. */
   rotation?: number;
-  /** Number of tiles to featch around. */
+  /** Number of tiles to fetch around. */
   tileBuffer?: number;
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
@@ -107,8 +107,8 @@ export class GlideMap extends Evented<MapEventType> {
   private minZoom: number;
   private maxZoom: number;
 
-  statsWidget: HTMLElement;
-  frameStats: {
+  private statsWidget: HTMLElement;
+  private frameStats: {
     elapsed: number;
   };
 
@@ -149,6 +149,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tilesUrl,
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
+      this.mapOptions.tileStyles.tileSize,
       this.maxZoom,
       this.projection,
       this.fontManager,
@@ -300,9 +301,9 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   rerender(): Promise<void> {
-    this.tilesGrid.updateTiles(this.camera, this.width, this.height);
+    const zoom = this.getZoom();
+    this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
 
-    this.renderQueue.clear();
     return this.renderQueue.render(() => {
       this.render();
       this.fire(MapEventType.RENDER);
@@ -317,9 +318,9 @@ export class GlideMap extends Evented<MapEventType> {
 
     const tiles = this.tilesGrid.getCurrentViewTiles();
     const zoom = this.getZoom();
-    const projectionMatrix = this.camera.getProjectionMatrix();
+    const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, zoom, projectionMatrix);
+    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize);
 
     this.statsWidget.style.display = 'none';
 
