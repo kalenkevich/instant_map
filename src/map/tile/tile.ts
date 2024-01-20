@@ -20,7 +20,10 @@ export interface MapTile {
   toGeoJson(): Polygon;
 }
 
-export interface MapTileLayer {}
+export interface MapTileLayer {
+  layerName: string;
+  zIndex: number;
+}
 
 export interface MapTileFeature {
   type: MapTileFeatureType;

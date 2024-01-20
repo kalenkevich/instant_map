@@ -33,7 +33,6 @@ export interface FetchTileOptions {
   tileSize: number;
   tileStyles: DataTileStyles;
   projectionType: ProjectionType;
-  fontManagerState: FontManagerState;
   atlasTextureMappingState: AtlasTextureMappingState;
 }
 
@@ -64,17 +63,7 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
 
 // Fetch tile from server, and convert layer coordinates to vertices
 export async function fetchTile(
-  {
-    tileId,
-    url,
-    tileStyles,
-    canvasWidth,
-    canvasHeight,
-    zoom,
-    tileSize,
-    fontManagerState,
-    atlasTextureMappingState,
-  }: FetchTileOptions,
+  { tileId, url, tileStyles, canvasWidth, canvasHeight, zoom, tileSize, atlasTextureMappingState }: FetchTileOptions,
   abortController: AbortController
 ): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
@@ -84,7 +73,6 @@ export async function fetchTile(
   const pbf = new Protobuf(resData);
   const vectorTile = new VectorTile(pbf);
 
-  const fontManager = FontManager.fromState(fontManagerState);
   const projection = new MercatorProjection();
   const tileLayers: PbfTileLayer[] = [];
 
@@ -311,7 +299,7 @@ export async function fetchTile(
       objectGroups.push(glyphGroupBuilder.build());
     }
 
-    tileLayers.push({ layer: styleLayer.sourceLayer, objectGroups });
+    tileLayers.push({ layerName: styleLayer.sourceLayer, zIndex: styleLayer.zIndex, objectGroups });
   }
 
   return tileLayers;

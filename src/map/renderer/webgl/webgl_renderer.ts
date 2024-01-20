@@ -2,6 +2,7 @@ import { mat3 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
 import { Renderer } from '../renderer';
 import { MapTile, MapTileFeatureType } from '../../tile/tile';
+import { MapTileLayer } from '../../tile/tile';
 import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
 import { ObjectProgram, ExtendedWebGLRenderingContext } from './object/object_program';
 import { PointProgram } from './point/point_program';
@@ -89,33 +90,40 @@ export class WebGlRenderer implements Renderer {
     let program;
     let globalUniformsSet = false;
 
-    for (const tile of tiles) {
-      const tileLayers = tile.getLayers();
+    const sortedLayers = this.getSortedLayers(tiles);
+
+    for (const layer of sortedLayers) {
+      const { objectGroups } = layer as PbfTileLayer;
 
       if (program && !globalUniformsSet) {
-        program.setMatrix(viewMatrix);
         this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
         globalUniformsSet = true;
       }
 
-      for (const tileLayer of tileLayers) {
-        const { objectGroups } = tileLayer as PbfTileLayer;
+      for (const objectGroup of objectGroups) {
+        const prevProgram: ObjectProgram = program;
+        program = this.programs[objectGroup.type];
 
-        for (const objectGroup of objectGroups) {
-          const prevProgram: ObjectProgram = program;
-          program = this.programs[objectGroup.type];
-
-          if (prevProgram !== program) {
-            program.link();
-            this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
-          }
-
-          program.drawObjectGroup(objectGroup);
+        if (prevProgram !== program) {
+          program.link();
+          this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
         }
+
+        program.drawObjectGroup(objectGroup);
       }
     }
 
     this.gl.flush();
+  }
+
+  private getSortedLayers(tiles: MapTile[]): MapTileLayer[] {
+    const layers: MapTileLayer[] = [];
+
+    for (const tile of tiles) {
+      layers.push(...tile.getLayers());
+    }
+
+    return layers.sort((l1, l2) => l1.zIndex - l2.zIndex);
   }
 
   private setProgramGlobalUniforms(program: ObjectProgram, viewMatrix: mat3, zoom: number, tileSize: number) {

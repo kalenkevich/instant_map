@@ -4,7 +4,6 @@ import { MapTile, MapTileFormatType, TileRef, MapTileLayer } from '../tile';
 import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
 
 export interface PbfTileLayer extends MapTileLayer {
-  layer: string;
   objectGroups: WebGlObjectBufferredGroup[];
 }
 

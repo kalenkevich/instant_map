@@ -152,7 +152,6 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tileStyles.tileSize,
       this.maxZoom,
       this.projection,
-      this.fontManager,
       this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);

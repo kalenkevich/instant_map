@@ -6,7 +6,6 @@ import { Projection } from '../geo/projection/projection';
 import { MapTileFormatType, MapTileLayer } from './tile';
 import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
 import { LRUCache } from '../utils/lru_cache';
-import { FontManager } from '../font/font_manager';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
 import { TileGridWorkerEventType } from './tile_grid_worker';
@@ -30,7 +29,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileSize: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
-    private readonly fontManager: FontManager,
     private readonly atlasManager: AtlasTextureManager
   ) {
     super();
@@ -151,7 +149,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           zoom,
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),
-          fontManagerState: this.fontManager.dumpState(),
           atlasTextureMappingState: this.atlasManager.getMappingState(),
         },
       });

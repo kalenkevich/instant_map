@@ -147,7 +147,7 @@ export const VectorTileStyles: DataTileStyles = {
           ['motorway', ['$rgba', 233, 201, 43, 1]],
           ['$default', ['$rgba', 215, 218, 226, 1]],
         ],
-        width: ['$switch', ['$get', 'properties.class'], ['primary', 6], ['$default', 4]],
+        width: ['$switch', ['$get', 'properties.class'], ['primary', 4], ['$default', 2]],
       },
       minzoom: 6,
     },
