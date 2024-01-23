@@ -297,9 +297,9 @@ export async function fetchTile(
             width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
             borderWidth: 0,
             borderColor: vec4.fromValues(0, 0, 0, 1),
-            fill: LineFillStyle.solid,
-            join: LineJoinStyle.miter,
-            cap: LineCapStyle.butt,
+            fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
+            join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
+            cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
           });
         } else if (geojson.geometry.type === 'MultiLineString') {
           const lineFeature = geojson as Feature<MultiLineString>;
@@ -312,9 +312,9 @@ export async function fetchTile(
               width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
               borderWidth: 0,
               borderColor: vec4.fromValues(0, 0, 0, 1),
-              fill: LineFillStyle.solid,
-              join: LineJoinStyle.miter,
-              cap: LineCapStyle.butt,
+              fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
+              join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
+              cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
             });
           }
         }

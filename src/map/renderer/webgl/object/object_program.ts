@@ -144,7 +144,6 @@ export abstract class ObjectProgram {
   }
 
   setFeatureFlags() {
-    debugger;
     for (const [name, value] of Object.entries(this.featureFlags)) {
       this.gl.uniform1i(this.u_feature_flagsLocations[name], value);
     }

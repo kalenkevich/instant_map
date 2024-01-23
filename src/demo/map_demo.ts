@@ -96,7 +96,7 @@ export function renderMap() {
       debug: true,
     },
     featureFlags: {
-      enableLineV2Rendering: false,
+      enableLineV2Rendering: true,
     },
   });
 

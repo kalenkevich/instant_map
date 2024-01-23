@@ -1,7 +1,6 @@
+import { LineJoinStyle } from '../map/renderer/webgl/line/line';
 import { DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
-
-const showText = false;
 
 export const VectorTileStyles: DataTileStyles = {
   tileSize: 512,
@@ -148,6 +147,7 @@ export const VectorTileStyles: DataTileStyles = {
           ['$default', ['$rgba', 215, 218, 226, 1]],
         ],
         width: ['$switch', ['$get', 'properties.class'], ['primary', 4], ['$default', 2]],
+        joinStyle: LineJoinStyle.round,
       },
       minzoom: 6,
     },

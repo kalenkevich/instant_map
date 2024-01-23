@@ -2,6 +2,7 @@ import { Statement, ColorValue } from './style_statement';
 import { MapTileFeatureType } from '../tile/tile';
 import { FontConfig } from '../font/font_config';
 import { AtlasTextrureConfig } from '../atlas/atlas_config';
+import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../renderer/webgl/line/line';
 
 export interface DataTileStyles {
   tileSize?: number;
@@ -51,7 +52,9 @@ export interface PointStyle {
 export interface LineStyle {
   type: MapTileFeatureType.line;
   color: Statement<ColorValue>;
-  style?: Statement<'solid' | 'dashed' | 'dotted'>; // default 'solid'
+  fillStyle?: Statement<LineFillStyle.solid | LineFillStyle.dashed | LineFillStyle.dotted | LineFillStyle.dotdashed>; // default: 'solid'
+  joinStyle?: Statement<LineJoinStyle.round | LineJoinStyle.bevel | LineJoinStyle.miter>; // default: none
+  capStyle?: Statement<LineCapStyle.butt | LineCapStyle.round | LineCapStyle.square>;
   width?: Statement<number>; // default 1
   show?: Statement<boolean>;
   minzoom?: number;

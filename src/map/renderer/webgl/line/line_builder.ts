@@ -4,7 +4,7 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { LineJoinStyle, WebGlLine, WebGlLineBufferredGroup } from './line';
 import { MapTileFeatureType } from '../../../tile/tile';
 
-const LINE_POSITION = [
+const LINE_POSITION: Array<[number, number]> = [
   [0, -0.5],
   [1, -0.5],
   [1, 0.5],
@@ -13,21 +13,66 @@ const LINE_POSITION = [
   [0, 0.5],
 ];
 
+const ROUND_JOIN_POSITION: Array<[number, number]> = [
+  [0, 0],
+  [0.5, 0],
+  [0.4619397521018982, 0.19134171307086945],
+  [0, 0],
+  [0.4619397521018982, 0.19134171307086945],
+  [0.3535533845424652, 0.3535533845424652],
+  [0, 0],
+  [0.3535533845424652, 0.3535533845424652],
+  [0.19134171307086945, 0.4619397521018982],
+  [0, 0],
+  [0.19134171307086945, 0.4619397521018982],
+  [3.0616171314629196e-17, 0.5],
+  [0, 0],
+  [3.0616171314629196e-17, 0.5],
+  [-0.19134171307086945, 0.4619397521018982],
+  [0, 0],
+  [-0.19134171307086945, 0.4619397521018982],
+  [-0.3535533845424652, 0.3535533845424652],
+  [0, 0],
+  [-0.3535533845424652, 0.3535533845424652],
+  [-0.4619397521018982, 0.19134171307086945],
+  [0, 0],
+  [-0.4619397521018982, 0.19134171307086945],
+  [-0.5, 6.123234262925839e-17],
+  [0, 0],
+  [-0.5, 6.123234262925839e-17],
+  [-0.4619397521018982, -0.19134171307086945],
+  [0, 0],
+  [-0.4619397521018982, -0.19134171307086945],
+  [-0.3535533845424652, -0.3535533845424652],
+  [0, 0],
+  [-0.3535533845424652, -0.3535533845424652],
+  [-0.19134171307086945, -0.4619397521018982],
+  [0, 0],
+  [-0.19134171307086945, -0.4619397521018982],
+  [-9.184850732644269e-17, -0.5],
+  [0, 0],
+  [-9.184850732644269e-17, -0.5],
+  [0.19134171307086945, -0.4619397521018982],
+  [0, 0],
+  [0.19134171307086945, -0.4619397521018982],
+  [0.3535533845424652, -0.3535533845424652],
+  [0, 0],
+  [0.3535533845424652, -0.3535533845424652],
+  [0.4619397521018982, -0.19134171307086945],
+  [0, 0],
+  [0.4619397521018982, -0.19134171307086945],
+  [0.5, -1.2246468525851679e-16],
+];
+
 export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
   addObject(line: WebGlLine) {
-    if (this.featureFlags.enableLineV2Rendering) {
-      const objectSize = this.verticesFromLine(this.vertecies, line.vertecies, line.width, line.join);
+    const objectSize = this.verticesFromLine(this.vertecies, line.vertecies, line.width, line.join);
 
-      this.objects.push([line, objectSize]);
-    } else {
-      const objectSize = verticesFromLine(this.vertecies, line.vertecies, line.join);
-
-      this.objects.push([line, objectSize]);
-    }
+    this.objects.push([line, objectSize]);
   }
 
   build(): WebGlLineBufferredGroup {
-    const numElements = this.vertecies.length / 3;
+    const numElements = this.vertecies.length / 2;
     const verteciesBuffer = new Float32Array(this.vertecies);
 
     const colorBuffer = new Float32Array(numElements * 4);
@@ -106,7 +151,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     this.lineToTriangles(result, coordinates[0], coordinates[1], lineWidth);
     for (let i = 2; i < coordinates.length; i++) {
       if (joinStyle === LineJoinStyle.round) {
-        this.roundJoin(result, coordinates[i - 1]);
+        this.roundJoinToTriangles(result, coordinates[i - 1], lineWidth);
       }
 
       this.lineToTriangles(result, coordinates[i - 1], coordinates[i], lineWidth);
@@ -115,84 +160,63 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     return result.length - start;
   }
 
-  lineToTriangles(result: number[], p1: number[] | vec2, p2: number[] | vec2, lineWidth: number) {
-    const p1Projected = this.projection.fromLngLat([p1[0], p1[1]]);
-    const p2Projected = this.projection.fromLngLat([p2[0], p2[1]]);
-
-    const p1Vector = vec2.fromValues(p1Projected[0], p1Projected[1]);
-    const p2Vector = vec2.fromValues(p2Projected[0], p2Projected[1]);
-
-    console.log('p1Vector', p1Vector);
-    console.log('p2Vector', p2Vector);
+  lineToTriangles(result: number[], p1: [number, number] | vec2, p2: [number, number] | vec2, lineWidth: number) {
+    const scaledLineWidth = this.scalarScale(lineWidth);
+    const p1Projected = vec2.fromValues(...this.projection.fromLngLat(p1));
+    const p2Projected = vec2.fromValues(...this.projection.fromLngLat(p2));
 
     const xBasis = vec2.create();
-    vec2.subtract(xBasis, p2Vector, p1Vector);
+    vec2.subtract(xBasis, p2Projected, p1Projected);
     const yBasis = vec2.create();
     vec2.normalize(yBasis, vec2.fromValues(-xBasis[1], xBasis[0]));
 
-    console.log('xBasis', xBasis);
-    console.log('yBasis', yBasis);
-
     for (const linePos of LINE_POSITION) {
-      vec2.scale(xBasis, xBasis, linePos[0]);
-      vec2.scale(yBasis, yBasis, this.scalarScale(lineWidth) * linePos[1]);
+      const scaledXBasis = vec2.fromValues(xBasis[0] * linePos[0], xBasis[1] * linePos[0]);
+      const scaledYBasis = vec2.fromValues(
+        yBasis[0] * scaledLineWidth * linePos[1],
+        yBasis[1] * scaledLineWidth * linePos[1]
+      );
 
-      console.log('xBasis scaled', xBasis);
-      console.log('yBasis scaled', yBasis);
+      const resultPosition = vec2.create();
+      vec2.add(resultPosition, p1Projected, scaledXBasis);
+      vec2.add(resultPosition, resultPosition, scaledYBasis);
 
-      vec2.add(p1Vector, p1Vector, xBasis);
-      vec2.add(p1Vector, p1Vector, yBasis);
-
-      console.log('p1Vector plus', p1Vector);
-
-      const clipped = this.clipSpace([p1Vector[0], p1Vector[1]]);
-
-      console.log('clipped', clipped);
-
-      const projected = this.applyProjectionViewMatrix(clipped);
-
-      console.log('projected', projected);
-
-      result.push(...projected, 0);
+      result.push(...resultPosition);
     }
   }
 
-  roundJoin(result: number[], center: number[] | vec2, componets = 16) {
-    for (let wedge = 0; wedge <= componets; wedge++) {
-      const theta = (2 * Math.PI * wedge) / componets;
+  roundJoinToTriangles(result: number[], center: [number, number] | vec2, lineWidth: number, componets = 16) {
+    const scaledLineWidth = this.scalarScale(lineWidth);
+    const centerVec = vec2.fromValues(...this.projection.fromLngLat(center));
 
-      const p1 = this.applyProjectionViewMatrix(this.clipSpace([center[0], center[1] * Math.cos(theta)]));
-      const p2 = this.applyProjectionViewMatrix(this.clipSpace([center[1] * Math.cos(theta), center[1]]));
+    for (const pos of ROUND_JOIN_POSITION) {
+      const res = vec2.create();
+      const vecPos = vec2.fromValues(pos[0], pos[1]);
 
-      result.push(...p1, 1);
-      result.push(...p2, 1);
+      vec2.scale(vecPos, vecPos, scaledLineWidth);
+      vec2.add(res, centerVec, vecPos);
+
+      result.push(...res);
     }
   }
 }
 
-function verticesFromLine(result: number[], coordinates: number[][] | vec2[], joinStyle?: LineJoinStyle): number {
-  const start = result.length;
-  // Dublicate last point from prev line
-  if (result.length) {
-    const prevX = result[result.length - 3];
-    const prevY = result[result.length - 2];
+export function getRoundJoinPositions(componets = 16): vec2[] {
+  const positions: vec2[] = [
+    vec2.fromValues(0, 0),
+    vec2.fromValues(0.5, 0),
+    vec2.fromValues(0.5 * Math.cos((2 * Math.PI * 1) / componets), 0.5 * Math.sin((2 * Math.PI * 1) / componets)),
+  ];
 
-    result.push(prevX, prevY, -1);
+  for (let wedge = 2; wedge <= componets; wedge++) {
+    const theta = (2 * Math.PI * wedge) / componets;
+    const next = vec2.fromValues(0.5 * Math.cos(theta), 0.5 * Math.sin(theta));
+    const prev = positions[positions.length - 1];
+
+    positions.push(vec2.fromValues(0, 0));
+    positions.push(prev);
+    positions.push(next);
   }
 
-  // Duplicate first point from new line
-  result.push(coordinates[0][0], coordinates[0][1], -1);
-  result.push(coordinates[0][0], coordinates[0][1], 1);
-  result.push(coordinates[1][0], coordinates[1][1], 1);
-
-  for (let i = 2; i < coordinates.length; i++) {
-    const prevX = result[result.length - 3];
-    const prevY = result[result.length - 2];
-    const prevZ = result[result.length - 1];
-
-    result.push(prevX, prevY, prevZ); // duplicate prev coord
-    result.push(coordinates[i][0], coordinates[i][1], 1);
-  }
-
-  return result.length - start;
+  return positions.map(v => [v[0], v[1]]);
 }

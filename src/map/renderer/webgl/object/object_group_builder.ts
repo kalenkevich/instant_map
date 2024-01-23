@@ -28,7 +28,7 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     return val / (Math.pow(2, this.zoom) * this.tileSize);
   }
 
-  applyProjectionViewMatrix(point: [number, number] | vec2): vec2 {
+  applyProjectionViewMatrix(point: [number, number] | vec2): [number, number] {
     const result = vec3.create();
 
     vec3.transformMat3(result, vec3.fromValues(point[0], point[1], 1), this.projectionViewMat);
@@ -36,7 +36,7 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     return [result[0], result[1]];
   }
 
-  clipSpace(position: [number, number] | vec2): vec2 {
+  clipSpace(position: [number, number] | vec2): [number, number] {
     return [-1.0 + position[0] * 2.0, +1.0 - position[1] * 2.0];
   }
 
