@@ -95,9 +95,7 @@ export function renderMap() {
       zoom: true,
       debug: true,
     },
-    featureFlags: {
-      enableLineV2Rendering: true,
-    },
+    featureFlags: {},
   });
 
   subscribeOnEvents(currentMap);
