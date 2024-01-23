@@ -1,5 +1,6 @@
 import { mat3 } from 'gl-matrix';
 import { WebGlObjectBufferredGroup } from './object';
+import { MapFeatureFlags } from '../../../flags';
 
 export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
   vertexAttribDivisor(index: number, divisor: number): void;
@@ -25,11 +26,13 @@ export abstract class ObjectProgram {
   protected u_widthLocation: WebGLUniformLocation;
   protected u_heightLocation: WebGLUniformLocation;
   protected u_tile_sizeLocation: WebGLUniformLocation;
+  protected u_feature_flagsLocations: Record<string, WebGLUniformLocation>;
 
   protected vao: WebGLVertexArrayObjectOES;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string,
     protected readonly fragmentShaderSource: string
   ) {}
@@ -107,10 +110,16 @@ export abstract class ObjectProgram {
     this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
     this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
     this.u_tile_sizeLocation = this.gl.getUniformLocation(this.program, 'u_tile_size');
+
+    this.u_feature_flagsLocations = {};
+    for (const name of Object.keys(this.featureFlags)) {
+      this.u_feature_flagsLocations[name] = this.gl.getUniformLocation(this.program, `u_feature_flags.${name}`);
+    }
   }
 
   link() {
     this.gl.useProgram(this.program);
+    this.setFeatureFlags();
     this.gl.disable(this.gl.BLEND);
   }
 
@@ -132,6 +141,13 @@ export abstract class ObjectProgram {
 
   setTileSize(tileSize: number) {
     this.gl.uniform1f(this.u_tile_sizeLocation, tileSize);
+  }
+
+  setFeatureFlags() {
+    debugger;
+    for (const [name, value] of Object.entries(this.featureFlags)) {
+      this.gl.uniform1i(this.u_feature_flagsLocations[name], value);
+    }
   }
 
   abstract drawObjectGroup(objectGroup: WebGlObjectBufferredGroup): void;

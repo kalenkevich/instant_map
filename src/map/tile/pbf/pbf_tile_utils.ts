@@ -1,13 +1,13 @@
 import Protobuf from 'pbf';
-import { vec4 } from 'gl-matrix';
+import { mat3, vec4 } from 'gl-matrix';
 import { VectorTile } from '@mapbox/vector-tile';
 import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
 import { ProjectionType } from '../../geo/projection/projection';
-import { FontManager, FontManagerState } from '../../font/font_manager';
 import { AtlasTextureMappingState } from '../../atlas/atlas_manager';
+import { MapFeatureFlags } from '../../flags';
 // Styles
 import { DataTileStyles, GlyphStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
@@ -27,6 +27,7 @@ export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineS
 export interface FetchTileOptions {
   tileId: string;
   url: string;
+  projectionViewMat: [number, number, number, number, number, number, number, number, number];
   canvasWidth: number;
   canvasHeight: number;
   zoom: number;
@@ -34,6 +35,7 @@ export interface FetchTileOptions {
   tileStyles: DataTileStyles;
   projectionType: ProjectionType;
   atlasTextureMappingState: AtlasTextureMappingState;
+  featureFlags: MapFeatureFlags;
 }
 
 function formatTileURL(tileId: string, url: string) {
@@ -63,10 +65,22 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
 
 // Fetch tile from server, and convert layer coordinates to vertices
 export async function fetchTile(
-  { tileId, url, tileStyles, canvasWidth, canvasHeight, zoom, tileSize, atlasTextureMappingState }: FetchTileOptions,
+  {
+    tileId,
+    url,
+    tileStyles,
+    canvasWidth,
+    canvasHeight,
+    zoom,
+    tileSize,
+    atlasTextureMappingState,
+    projectionViewMat: projectionViewMatSource,
+    featureFlags,
+  }: FetchTileOptions,
   abortController: AbortController
 ): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
+  const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
 
   const tileURL = formatTileURL(tileId, url);
   const resData = await fetch(tileURL, { signal: abortController.signal }).then(data => data.arrayBuffer());
@@ -85,23 +99,51 @@ export async function fetchTile(
     const numFeatures = vectorTile.layers[styleLayer.sourceLayer]?._features?.length || 0;
 
     const objectGroups: WebGlObjectBufferredGroup[] = [];
-    const pointsGroupBuilder = new PointGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
-    const polygonGroupBuilder = new PolygonGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
-    const lineGroupBuilder = new LineGroupBuilder(canvasWidth, canvasHeight, zoom, tileSize, projection);
-    const glyphGroupBuilder = new GlyphGroupBuilder(
+    const pointsGroupBuilder = new PointGroupBuilder(
+      projectionViewMat,
       canvasWidth,
       canvasHeight,
       zoom,
       tileSize,
       projection,
+      featureFlags
+    );
+    const polygonGroupBuilder = new PolygonGroupBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
+    const lineGroupBuilder = new LineGroupBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
+    const glyphGroupBuilder = new GlyphGroupBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags,
       atlasTextureMappingState
     );
     const glyphTextGroupBuilder = new GlyphTextGroupBuilder(
+      projectionViewMat,
       canvasWidth,
       canvasHeight,
       zoom,
       tileSize,
       projection,
+      featureFlags,
       atlasTextureMappingState
     );
 

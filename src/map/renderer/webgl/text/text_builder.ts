@@ -1,3 +1,4 @@
+import { mat3 } from 'gl-matrix';
 import { getVerticiesFromText, getTextRectangleSize } from './text_utils';
 import { WebGlText, WebGlTextBufferredGroup } from './text';
 import { WebGlObjectAttributeType } from '../object/object';
@@ -5,18 +6,21 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { FontManager } from '../../../font/font_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
+import { MapFeatureFlags } from '../../../flags';
 
 /** @deprecated Please use GlyphGroupBuilder instead. */
 export class TextGroupBuilder extends ObjectGroupBuilder<WebGlText> {
   constructor(
+    protected readonly projectionViewMat: mat3,
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
     protected readonly zoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
+    protected readonly featureFlags: MapFeatureFlags,
     private readonly fontManager: FontManager
   ) {
-    super(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    super(projectionViewMat, canvasWidth, canvasHeight, zoom, tileSize, projection, featureFlags);
   }
 
   addObject(text: WebGlText) {

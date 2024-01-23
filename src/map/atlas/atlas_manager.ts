@@ -1,4 +1,5 @@
 import { AtlasTextrureConfig, AtlasTextrureMapping } from './atlas_config';
+import { MapFeatureFlags } from '../flags';
 
 export interface AtlasTextureState {
   name: string;
@@ -17,7 +18,10 @@ export class AtlasTextureManager {
   private state: AtlasManagerState = {};
   private mappingState?: AtlasTextureMappingState;
 
-  constructor(private readonly atlasesConfigs: Record<string, AtlasTextrureConfig>) {}
+  constructor(
+    private readonly featureFlags: MapFeatureFlags,
+    private readonly atlasesConfigs: Record<string, AtlasTextrureConfig>
+  ) {}
 
   async init() {
     const promises = [];

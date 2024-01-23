@@ -1,6 +1,6 @@
 import { Font, parse as parseFont } from 'opentype.js';
 import { FontsConfig } from './font_config';
-
+import { MapFeatureFlags } from '../flags';
 export type FontManagerState = Record<string, ArrayBuffer>;
 
 const fetchFont = async function (fontUrl: string): Promise<ArrayBuffer> {
@@ -11,10 +11,10 @@ export class FontManager {
   private fontSourceMap: FontManagerState = {};
   private fontMap: Record<string, Font> = {};
 
-  constructor(private readonly fontsConfig: FontsConfig = {}) {}
+  constructor(private readonly featureFlags: MapFeatureFlags, private readonly fontsConfig: FontsConfig = {}) {}
 
-  static fromState(state: FontManagerState) {
-    const fontManager = new FontManager();
+  static fromState(featureFlags: MapFeatureFlags, state: FontManagerState) {
+    const fontManager = new FontManager(featureFlags);
 
     for (const fontName of Object.keys(state)) {
       fontManager.initFont(fontName, state[fontName]);

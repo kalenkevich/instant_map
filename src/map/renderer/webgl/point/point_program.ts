@@ -1,14 +1,16 @@
 import { WebGlPointBufferredGroup } from './point';
 import PointShaders from './point_shaders';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { MapFeatureFlags } from '../../../flags';
 
 export class PointProgram extends ObjectProgram {
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = PointShaders.vertext,
     protected readonly fragmentShaderSource: string = PointShaders.fragment
   ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
+    super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
   drawObjectGroup(objectGroup: WebGlPointBufferredGroup) {

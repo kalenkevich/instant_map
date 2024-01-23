@@ -106,3 +106,4 @@ export interface MapTilesMeta {
     fields: Record<string, string>;
   }>;
 }
+

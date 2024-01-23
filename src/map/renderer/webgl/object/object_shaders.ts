@@ -8,6 +8,14 @@ export const DEFAULT_FRAGMENT_SHADER_SOURCE = `
   }
 `;
 
+export const FEATURE_FLAGS_UTILS = `
+  struct MapFeatureFlags {
+    bool enableLineV2Rendering;
+  };
+
+  uniform MapFeatureFlags u_feature_flags;
+`;
+
 export const CLIP_UTILS = `
   vec2 clipSpace(vec2 position) {
     return vec2(

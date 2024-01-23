@@ -1,6 +1,7 @@
 import { WebGlLineBufferredGroup } from './line';
 import LineShaders from './line_shaders';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { MapFeatureFlags } from '../../../flags';
 
 const POSITION_BUFFER = new Float32Array([0, -0.5, 1, -0.5, 1, 0.5, 0, -0.5, 1, 0.5, 0, 0.5]);
 
@@ -25,10 +26,11 @@ export class LineProgram extends ObjectProgram {
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = LineShaders.vertext,
     protected readonly fragmentShaderSource: string = LineShaders.fragment
   ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
+    super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
   protected setupBuffer(): void {
@@ -66,7 +68,7 @@ export class LineProgram extends ObjectProgram {
     gl.enableVertexAttribArray(this.a_colorAttributeLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
     gl.vertexAttribPointer(this.a_colorAttributeLocation, 4, this.gl.FLOAT, false, 0, 0);
-    this.gl.vertexAttribDivisor(this.a_colorAttributeLocation, 1);
+    // this.gl.vertexAttribDivisor(this.a_colorAttributeLocation, 1);
 
     this.a_line_widthBuffer = gl.createBuffer();
     gl.enableVertexAttribArray(this.a_line_widthAttributeLocation);
@@ -79,6 +81,7 @@ export class LineProgram extends ObjectProgram {
 
   link() {
     this.gl.useProgram(this.program);
+    this.setFeatureFlags();
 
     const gl = this.gl;
     gl.enable(gl.BLEND);
@@ -102,7 +105,11 @@ export class LineProgram extends ObjectProgram {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.a_line_widthBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, lineGroup.width.buffer as Float32Array, gl.STATIC_DRAW);
 
-    gl.drawArraysInstanced(gl.TRIANGLES, 0, POSITION_BUFFER.length / 2, lineGroup.numElements - 1);
+    if (this.featureFlags.enableLineV2Rendering) {
+      gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
+    } else {
+      gl.drawArraysInstanced(gl.TRIANGLES, 0, POSITION_BUFFER.length / 2, lineGroup.numElements - 1);
+    }
 
     gl.bindVertexArray(null);
   }

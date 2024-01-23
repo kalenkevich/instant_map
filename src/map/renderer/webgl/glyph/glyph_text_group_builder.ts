@@ -1,3 +1,4 @@
+import { mat3 } from 'gl-matrix';
 import { WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlText } from '../text/text';
 import { WebGlObjectAttributeType } from '../object/object';
@@ -6,19 +7,22 @@ import { Projection } from '../../../geo/projection/projection';
 import { AtlasTextrureMapping } from '../../../atlas/atlas_config';
 import { AtlasTextureMappingState } from '../../../atlas/atlas_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
+import { MapFeatureFlags } from '../../../flags';
 
 const customScaleFactor = 0.0001;
 
 export class GlyphTextGroupBuilder extends ObjectGroupBuilder<WebGlText> {
   constructor(
+    protected readonly projectionViewMat: mat3,
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
     protected readonly zoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
+    protected readonly featureFlags: MapFeatureFlags,
     private readonly atlasesMappingState: AtlasTextureMappingState
   ) {
-    super(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    super(projectionViewMat, canvasWidth, canvasHeight, zoom, tileSize, projection, featureFlags);
   }
 
   addObject(text: WebGlText): void {

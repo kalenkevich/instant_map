@@ -1,14 +1,16 @@
 import { WebGlTextBufferredGroup } from './text';
 import TextShaders from './text_shaders';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { MapFeatureFlags } from '../../../flags';
 
 export class TextProgram extends ObjectProgram {
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = TextShaders.vertext,
     protected readonly fragmentShaderSource: string = TextShaders.fragment
   ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
+    super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
   drawObjectGroup(objectGroup: WebGlTextBufferredGroup): void {

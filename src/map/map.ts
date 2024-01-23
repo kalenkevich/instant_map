@@ -15,6 +15,7 @@ import { MapTileFormatType } from './tile/tile';
 import { FontManager } from './font/font_manager';
 import { AtlasTextureManager } from './atlas/atlas_manager';
 import { DataTileStyles } from './styles/styles';
+import { MapFeatureFlags } from './flags';
 
 const defaultOptions = {
   width: 512,
@@ -31,6 +32,7 @@ const defaultOptions = {
     compas: true,
     debug: true,
   },
+  featureFlags: {},
 };
 
 export interface MapOptions {
@@ -69,6 +71,7 @@ export interface MapOptions {
   tilesUrl: string;
   tileFormatType?: string | MapTileFormatType;
   projection?: string | ProjectionType;
+  featureFlags?: MapFeatureFlags;
 }
 
 export enum MapEventType {
@@ -91,6 +94,7 @@ export enum MapEventType {
 
 export class GlideMap extends Evented<MapEventType> {
   private readonly rootEl: HTMLElement;
+  private readonly featureFlags: MapFeatureFlags;
   private pan: MapPan;
   private camera: MapCamera;
   private tilesGrid: TilesGrid;
@@ -118,6 +122,7 @@ export class GlideMap extends Evented<MapEventType> {
       ...defaultOptions,
       ...options,
     };
+    this.featureFlags = this.mapOptions.featureFlags;
 
     this.rootEl = this.mapOptions.rootEl;
     this.width = this.rootEl.offsetWidth;
@@ -130,11 +135,12 @@ export class GlideMap extends Evented<MapEventType> {
 
     this.renderQueue = new RenderQueue();
 
-    this.fontManager = new FontManager(this.mapOptions.tileStyles.fonts);
-    this.atlasTextureManager = new AtlasTextureManager(this.mapOptions.tileStyles.atlas);
+    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts);
+    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas);
     this.projection = getProjectionFromType(this.mapOptions.projection);
     const [x, y] = this.projection.fromLngLat(this.mapOptions.center);
     this.camera = new MapCamera(
+      this.featureFlags,
       [x, y],
       this.mapOptions.zoom,
       this.mapOptions.rotation,
@@ -145,6 +151,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.projection
     );
     this.tilesGrid = new TilesGrid(
+      this.featureFlags,
       this.mapOptions.tileFormatType as MapTileFormatType,
       this.mapOptions.tilesUrl,
       this.mapOptions.tileStyles,
@@ -155,7 +162,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);
-    this.renderer = new WebGlRenderer(this.rootEl, this.pixelRatio, this.atlasTextureManager);
+    this.renderer = new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
 
     this.init().then(() => {
       this.rerender();

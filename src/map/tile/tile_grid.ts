@@ -9,6 +9,7 @@ import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
 import { TileGridWorkerEventType } from './tile_grid_worker';
+import { MapFeatureFlags } from '../flags';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
@@ -22,6 +23,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   private currentLoadingTiles: Set<string> = new Set();
 
   constructor(
+    private readonly featureFlags: MapFeatureFlags,
     private readonly tileFormatType: MapTileFormatType,
     private readonly tileServerURL: string,
     private readonly tileStyles: DataTileStyles,
@@ -144,12 +146,14 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           tileId,
           tileStyles: this.tileStyles,
           url,
+          projectionViewMat: [...camera.getProjectionMatrix()],
           canvasWidth,
           canvasHeight,
           zoom,
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),
           atlasTextureMappingState: this.atlasManager.getMappingState(),
+          featureFlags: this.featureFlags,
         },
       });
     }

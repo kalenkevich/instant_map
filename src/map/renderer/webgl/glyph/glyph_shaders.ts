@@ -1,10 +1,11 @@
-import { CLIP_UTILS, MAT_UTILS, MERCATOR_PROJECTION_UTILS } from '../object/object_shaders';
+import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS, MERCATOR_PROJECTION_UTILS } from '../object/object_shaders';
 
 export default {
   vertext: `
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${MERCATOR_PROJECTION_UTILS}
+    ${FEATURE_FLAGS_UTILS}
 
     uniform mat3 u_matrix;
     uniform float u_zoom;

@@ -9,7 +9,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
     const objectSize = verticesFromPoint(
       this.vertecies,
       this.projection.fromLngLat([point.center[0], point.center[1]]),
-      this.scale(point.radius),
+      this.scalarScale(point.radius),
       point.components
     );
 

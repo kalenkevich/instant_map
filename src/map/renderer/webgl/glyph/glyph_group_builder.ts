@@ -1,20 +1,24 @@
+import { mat3 } from 'gl-matrix';
 import { WebGlGlyph, WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { AtlasTextureMappingState } from '../../../atlas/atlas_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
+import { MapFeatureFlags } from '../../../flags';
 
 export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
   constructor(
+    protected readonly projectionViewMat: mat3,
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
     protected readonly zoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
+    protected readonly featureFlags: MapFeatureFlags,
     private readonly atlasesMappingState: AtlasTextureMappingState
   ) {
-    super(canvasWidth, canvasHeight, zoom, tileSize, projection);
+    super(projectionViewMat, canvasWidth, canvasHeight, zoom, tileSize, projection, featureFlags);
   }
 
   addObject(glyph: WebGlGlyph): void {

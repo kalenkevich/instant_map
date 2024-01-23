@@ -1,4 +1,5 @@
 import {
+  FEATURE_FLAGS_UTILS,
   DEFAULT_FRAGMENT_SHADER_SOURCE,
   CLIP_UTILS,
   MAT_UTILS,
@@ -10,6 +11,7 @@ export default {
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${MERCATOR_PROJECTION_UTILS}
+    ${FEATURE_FLAGS_UTILS}
 
     uniform mat3 u_matrix;
     uniform float u_zoom;

@@ -2,6 +2,7 @@ import { WebGlGlyphBufferredGroup } from './glyph';
 import GlyphShaders from './glyph_shaders';
 import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
 import { AtlasTextureManager } from '../../../atlas/atlas_manager';
+import { MapFeatureFlags } from '../../../flags';
 
 export interface WebglAtlasTextureConfig {
   name: string;
@@ -21,11 +22,12 @@ export class GlyphProgram extends ObjectProgram {
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly atlasTextureManager: AtlasTextureManager,
     protected readonly vertexShaderSource: string = GlyphShaders.vertext,
     protected readonly fragmentShaderSource: string = GlyphShaders.fragment
   ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
+    super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
   public init(): void {
@@ -40,6 +42,7 @@ export class GlyphProgram extends ObjectProgram {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(false);
     gl.useProgram(this.program);
+    this.setFeatureFlags();
   }
 
   protected setupTextures() {

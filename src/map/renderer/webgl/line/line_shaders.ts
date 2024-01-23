@@ -1,4 +1,5 @@
 import {
+  FEATURE_FLAGS_UTILS,
   DEFAULT_FRAGMENT_SHADER_SOURCE,
   CLIP_UTILS,
   MAT_UTILS,
@@ -10,6 +11,7 @@ export default {
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${MERCATOR_PROJECTION_UTILS}
+    ${FEATURE_FLAGS_UTILS}
 
     uniform mat3 u_matrix;
     uniform float u_zoom;
@@ -30,22 +32,28 @@ export default {
     }
 
     void main() {
-      if (point_a.z == -1.0) {
-        // trasparent
-        v_color = vec4(0, 0, 0, 0);
-      } else {
+      if (u_feature_flags.enableLineV2Rendering == true) {
         v_color = a_color;
+        // gl_Position = vec4(applyMatrix(u_matrix, clipSpace(point_a.xy)), 0, 1);
+        gl_Position = vec4(point_a.xy, 0, 1);
+      } else {
+        if (point_a.z == -1.0) {
+          // trasparent
+          v_color = vec4(0, 0, 0, 0);
+        } else {
+          v_color = a_color;
+        }
+  
+        float lineWidth = getScaledLineWidth();
+  
+        vec2 point_a_projected = mercatorProject(point_a);
+        vec2 point_b_projected = mercatorProject(point_b);
+        vec2 xBasis = point_b_projected - point_a_projected;
+        vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
+        vec2 pos = point_a_projected + xBasis * a_position.x + yBasis * lineWidth * a_position.y;
+  
+        gl_Position = vec4(applyMatrix(u_matrix, clipSpace(pos)), 0, 1);
       }
-
-      float lineWidth = getScaledLineWidth();
-
-      vec2 point_a_projected = mercatorProject(point_a);
-      vec2 point_b_projected = mercatorProject(point_b);
-      vec2 xBasis = point_b_projected - point_a_projected;
-      vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
-      vec2 pos = point_a_projected + xBasis * a_position.x + yBasis * lineWidth * a_position.y;
-
-      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(pos)), 0, 1);
     }
   `,
   fragment: DEFAULT_FRAGMENT_SHADER_SOURCE,

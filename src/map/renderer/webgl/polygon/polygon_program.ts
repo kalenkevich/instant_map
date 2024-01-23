@@ -1,6 +1,7 @@
 import { WebGlPolygonBufferredGroup } from './polygon';
 import PolygonShaders from './polygon_shaders';
 import { ObjectProgram, ExtendedWebGLRenderingContext } from '../object/object_program';
+import { MapFeatureFlags } from '../../../flags';
 
 export class PolygonProgram extends ObjectProgram {
   protected program: WebGLProgram;
@@ -8,10 +9,11 @@ export class PolygonProgram extends ObjectProgram {
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
+    protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = PolygonShaders.vertext,
     protected readonly fragmentShaderSource: string = PolygonShaders.fragment
   ) {
-    super(gl, vertexShaderSource, fragmentShaderSource);
+    super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
   drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup) {

@@ -1,37 +1,25 @@
 import { mat3 } from 'gl-matrix';
 import { Projection } from '../geo/projection/projection';
+import { MapFeatureFlags } from '../flags';
 
 export class MapCamera {
   private x: number;
   private y: number;
-  private zoom: number;
-  private rotationInDegree: number;
-  private width: number;
-  private height: number;
   private viewProjectionMat: mat3;
-  private pixelRatio: number;
-  private tileSize: number;
-  private projection: Projection;
 
   constructor(
+    private readonly featureFlags: MapFeatureFlags,
     [x, y]: [number, number],
-    zoom: number,
-    rotationInDegree: number,
-    width: number,
-    height: number,
-    pixelRatio: number,
-    tileSize: number,
-    projection: Projection
+    private zoom: number,
+    private rotationInDegree: number,
+    private width: number,
+    private height: number,
+    private pixelRatio: number,
+    private tileSize: number,
+    private projection: Projection
   ) {
     this.x = x;
     this.y = y;
-    this.zoom = zoom;
-    this.rotationInDegree = rotationInDegree;
-    this.width = width;
-    this.height = height;
-    this.pixelRatio = pixelRatio;
-    this.tileSize = tileSize;
-    this.projection = projection;
 
     this.updateProjectionMatrix();
   }

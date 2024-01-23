@@ -11,6 +11,7 @@ import { LineProgram } from './line/line_program';
 import { TextProgram } from './text/text_program';
 import { GlyphProgram } from './glyph/glyph_program';
 import { AtlasTextureManager } from '../../atlas/atlas_manager';
+import { MapFeatureFlags } from '../../flags';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -19,6 +20,7 @@ export class WebGlRenderer implements Renderer {
 
   constructor(
     private readonly rootEl: HTMLElement,
+    private readonly featureFlags: MapFeatureFlags,
     private devicePixelRatio: number,
     private textureManager: AtlasTextureManager
   ) {
@@ -36,11 +38,11 @@ export class WebGlRenderer implements Renderer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const pointProgram = new PointProgram(gl);
-    const polygonProgram = new PolygonProgram(gl);
-    const lineProgram = new LineProgram(gl);
-    const textProgram = new TextProgram(gl);
-    const glyphProgram = new GlyphProgram(gl, this.textureManager);
+    const pointProgram = new PointProgram(gl, this.featureFlags);
+    const polygonProgram = new PolygonProgram(gl, this.featureFlags);
+    const lineProgram = new LineProgram(gl, this.featureFlags);
+    const textProgram = new TextProgram(gl, this.featureFlags);
+    const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
