@@ -90,8 +90,6 @@ export async function fetchTile(
   const projection = new MercatorProjection();
   const tileLayers: PbfTileLayer[] = [];
 
-  console.time('ProcessTile');
-
   for (const styleLayer of Object.values(tileStyles.layers)) {
     if (styleLayer.show === false || !vectorTile?.layers?.[styleLayer.sourceLayer]) {
       continue;
@@ -345,8 +343,6 @@ export async function fetchTile(
 
     tileLayers.push({ layerName: styleLayer.sourceLayer, zIndex: styleLayer.zIndex, objectGroups });
   }
-
-  console.timeEnd('ProcessTile');
 
   return tileLayers;
 }
