@@ -138,10 +138,9 @@ export class GlideMap extends Evented<MapEventType> {
     this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts);
     this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas);
     this.projection = getProjectionFromType(this.mapOptions.projection);
-    const [x, y] = this.projection.fromLngLat(this.mapOptions.center);
     this.camera = new MapCamera(
       this.featureFlags,
-      [x, y],
+      this.projection.fromLngLat(this.mapOptions.center),
       this.mapOptions.zoom,
       this.mapOptions.rotation,
       this.width,
@@ -310,6 +309,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
 
+    this.renderQueue.clear();
     return this.renderQueue.render(() => {
       this.render();
       this.fire(MapEventType.RENDER);

@@ -26,7 +26,7 @@ export interface DataLayerStyle {
   show?: boolean;
   minzoom?: number;
   maxzoom?: number;
-  feature: FeatureStyle;
+  feature?: FeatureStyle;
 }
 
 export type SourceLayer = string;
