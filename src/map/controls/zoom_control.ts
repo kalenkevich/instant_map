@@ -6,7 +6,7 @@ export class ZoomControl extends MapControl {
   private plusButton: HTMLButtonElement;
   private minusButton: HTMLButtonElement;
 
-  private zoomStep = 0.5;
+  private zoomStep = 1;
   private debounceTimeMs = 0;
 
   public init(): void {

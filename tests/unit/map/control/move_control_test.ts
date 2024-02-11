@@ -12,7 +12,7 @@ describe('MoveControl', () => {
     document = new JSDOM('<!DOCTYPE html><html><body></body></html>').window.document;
     rootEl = document.body;
     fakeMap = {
-      panBy() {}
+      async panBy() {},
     } as unknown as GlideMap;
   });
 
@@ -46,10 +46,13 @@ describe('MoveControl', () => {
     const upMoveButton: HTMLButtonElement = document.querySelector('.move-up');
     upMoveButton.click();
 
-    expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: 0,
-      y: -512,
-    }), { animate: false });
+    expect(panBySpy).toBeCalledWith(
+      expect.objectContaining({
+        x: 0,
+        y: -512,
+      }),
+      { animate: false }
+    );
   });
 
   it('should move map down on the "down button" click.', () => {
@@ -62,10 +65,13 @@ describe('MoveControl', () => {
     const upMoveButton: HTMLButtonElement = document.querySelector('.move-down');
     upMoveButton.click();
 
-    expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: 0,
-      y: 512,
-    }), { animate: false });
+    expect(panBySpy).toBeCalledWith(
+      expect.objectContaining({
+        x: 0,
+        y: 512,
+      }),
+      { animate: false }
+    );
   });
 
   it('should move map left on the "left button" click.', () => {
@@ -78,10 +84,13 @@ describe('MoveControl', () => {
     const upMoveButton: HTMLButtonElement = document.querySelector('.move-left');
     upMoveButton.click();
 
-    expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: -512,
-      y: 0,
-    }), { animate: false });
+    expect(panBySpy).toBeCalledWith(
+      expect.objectContaining({
+        x: -512,
+        y: 0,
+      }),
+      { animate: false }
+    );
   });
 
   it('should move map right on the "right button" click.', () => {
@@ -94,9 +103,12 @@ describe('MoveControl', () => {
     const upMoveButton: HTMLButtonElement = document.querySelector('.move-right');
     upMoveButton.click();
 
-    expect(panBySpy).toBeCalledWith(expect.objectContaining({
-      x: 512,
-      y: 0,
-    }), { animate: false });
+    expect(panBySpy).toBeCalledWith(
+      expect.objectContaining({
+        x: 512,
+        y: 0,
+      }),
+      { animate: false }
+    );
   });
 });

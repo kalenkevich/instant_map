@@ -74,9 +74,7 @@ export type IsNotEmptyCondition = ['$notEmpty', Statement<any>];
 // Color statements
 
 export type ColorValue = RGBColorValue | RGBAColorValue;
-
 export type RGBColorValue = ['$rgb', number, number, number];
-
 export type RGBAColorValue = ['$rgba', number, number, number, number];
 
 // Math statements

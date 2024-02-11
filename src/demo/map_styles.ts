@@ -1,7 +1,11 @@
-import { DataTileStyles, FeatureStyleType } from '../map/styles/styles';
+import { LineJoinStyle } from '../map/renderer/webgl/line/line';
+import { DataTileStyles } from '../map/styles/styles';
+import { MapTileFeatureType } from '../map/tile/tile';
 
-export const VectorStyles: DataTileStyles = {
-  tileSize: 1024,
+export const VectorTileStyles: DataTileStyles = {
+  tileSize: 512,
+  minzoom: 1,
+  maxzoom: 15,
   layers: {
     water: {
       sourceLayer: 'water',
@@ -9,17 +13,8 @@ export const VectorStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: FeatureStyleType.polygon,
-        color: [
-          '$switch',
-          ['$get', 'properties.class'],
-          ['ocean', ['$rgba', 95, 200, 255, 1]],
-          ['dock', ['$rgba', 95, 200, 255, 1]],
-          ['river', ['$rgba', 95, 200, 255, 1]],
-          ['lake', ['$rgba', 95, 200, 255, 1]],
-          ['swimming_pool', ['$rgba', 95, 200, 255, 1]],
-          ['$default', ['$rgba', 95, 200, 255, 1]],
-        ],
+        type: MapTileFeatureType.polygon,
+        color: ['$rgba', 95, 200, 255, 1],
       },
       maxzoom: 15,
       minzoom: 0,
@@ -30,7 +25,7 @@ export const VectorStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: FeatureStyleType.polygon,
+        type: MapTileFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -74,7 +69,7 @@ export const VectorStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: FeatureStyleType.polygon,
+        type: MapTileFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -118,10 +113,10 @@ export const VectorStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: FeatureStyleType.line,
+        type: MapTileFeatureType.line,
         show: ['$lte', ['$get', 'properties.admin_level'], 7],
         color: ['$rgba', 120, 123, 140, 1],
-        width: 10,
+        width: 2,
       },
       maxzoom: 15,
       minzoom: 0,
@@ -131,7 +126,7 @@ export const VectorStyles: DataTileStyles = {
       styleLayerName: 'buildingStyles',
       zIndex: 2,
       feature: {
-        type: FeatureStyleType.polygon,
+        type: MapTileFeatureType.polygon,
         color: ['$rgba', 222, 215, 211, 1],
       },
       minzoom: 12,
@@ -142,7 +137,7 @@ export const VectorStyles: DataTileStyles = {
       zIndex: 2,
       show: true,
       feature: {
-        type: FeatureStyleType.line,
+        type: MapTileFeatureType.line,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -151,7 +146,8 @@ export const VectorStyles: DataTileStyles = {
           ['motorway', ['$rgba', 233, 201, 43, 1]],
           ['$default', ['$rgba', 215, 218, 226, 1]],
         ],
-        width: ['$switch', ['$get', 'properties.class'], ['primary', 24], ['$default', 8]],
+        width: ['$switch', ['$get', 'properties.class'], ['primary', 4], ['$default', 2]],
+        joinStyle: LineJoinStyle.round,
       },
       minzoom: 6,
     },
@@ -159,11 +155,13 @@ export const VectorStyles: DataTileStyles = {
       sourceLayer: 'transportation_name',
       styleLayerName: 'transportation_nameStyles',
       zIndex: 4,
+      show: true,
       feature: {
-        type: FeatureStyleType.text,
+        type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.class'],
-        font: 'opensans',
+        // font: 'opensans',
+        font: 'fontAtlas',
         fontSize: 10,
       },
       minzoom: 12,
@@ -171,18 +169,32 @@ export const VectorStyles: DataTileStyles = {
     poi: {
       sourceLayer: 'poi',
       styleLayerName: 'poiPoint',
-      show: true,
+      show: false,
       zIndex: 3,
       feature: {
-        type: FeatureStyleType.point,
+        type: MapTileFeatureType.point,
         radius: 30,
         color: ['$rgba', 250, 185, 57, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         border: {
-          type: FeatureStyleType.line,
+          type: MapTileFeatureType.line,
           color: ['$rgba', 0, 0, 0, 1],
           width: 1,
         },
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
+    poiIcon: {
+      sourceLayer: 'poi',
+      styleLayerName: 'poiIcon',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.glyph,
+        // show: ['$and', ['$lte', ['$get', 'properties.rank'], 10], ['$notEmpty', ['$get', 'properties.class']]],
+        name: ['$get', 'properties.class'],
+        atlas: 'iconsAtlas',
       },
       maxzoom: 18,
       minzoom: 12,
@@ -191,12 +203,13 @@ export const VectorStyles: DataTileStyles = {
       sourceLayer: 'poi',
       styleLayerName: 'poiText',
       zIndex: 4,
+      show: true,
       feature: {
-        type: FeatureStyleType.text,
+        type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         text: ['$get', 'properties.name'],
-        font: 'opensans',
+        font: 'fontAtlas',
         fontSize: 24,
       },
       maxzoom: 18,
@@ -205,14 +218,15 @@ export const VectorStyles: DataTileStyles = {
     place: {
       sourceLayer: 'place',
       styleLayerName: 'placeStyles',
-      show: true,
       zIndex: 3,
+      show: true,
       feature: {
-        type: FeatureStyleType.text,
+        type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         // show: ['$lte', ['$get', 'properties.rank'], 15],
         text: ['$get', 'properties.name'],
-        font: 'opensans',
+        // font: 'opensans',
+        font: 'fontAtlas',
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
@@ -231,7 +245,7 @@ export const VectorStyles: DataTileStyles = {
       styleLayerName: 'parkStyles',
       zIndex: 1,
       feature: {
-        type: FeatureStyleType.polygon,
+        type: MapTileFeatureType.polygon,
         color: ['$rgba', 173, 226, 167, 1],
       },
       show: true,
@@ -244,14 +258,16 @@ export const VectorStyles: DataTileStyles = {
       zIndex: 3,
       show: true,
       feature: {
-        type: FeatureStyleType.text,
+        type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.housenumber'],
-        font: 'opensans',
+        // font: 'opensans',
+        font: 'fontAtlas',
         fontSize: 10,
       },
       minzoom: 16,
     },
+
     aerodrome_label: {
       sourceLayer: 'aerodrome_label',
       styleLayerName: 'aerodromeLabelStyles',
@@ -301,19 +317,38 @@ export const VectorStyles: DataTileStyles = {
       minzoom: 3,
     },
   },
-};
-
-export const ImageStyles: DataTileStyles = {
-  tileSize: 256,
-  layers: {
-    image: {
-      zIndex: 1,
-      sourceLayer: {
-        name: 'background',
-        type: 'image',
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      },
-      styleLayerName: 'background',
+  fonts: {
+    arial: {
+      name: 'arial',
+      source: './fonts/arial_regular.ttf',
+    },
+    roboto: {
+      name: 'roboto',
+      source: './fonts/roboto_regular.ttf',
+    },
+    opensans: {
+      name: 'opensans',
+      source: './fonts/opensans_regular.ttf',
+    },
+    opensansBold: {
+      name: 'opensansBold',
+      source: './fonts/opensans_bold.ttf',
+    },
+  },
+  atlas: {
+    iconsAtlas: {
+      name: 'iconsAtlas',
+      width: 1024,
+      height: 936,
+      source: './icons/sprite@2x.png',
+      mapping: './icons/sprite@2x.json',
+    },
+    fontAtlas: {
+      name: 'fontAtlas',
+      width: 512,
+      height: 512,
+      source: './icons/font_sprite.png',
+      mapping: 'font_default_mapping_32_32_256_2',
     },
   },
 };

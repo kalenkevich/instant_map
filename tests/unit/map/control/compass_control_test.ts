@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import {describe, expect, it, jest} from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { GlideMap } from '../../../../src/map/map';
 import { CompassControl } from '../../../../src/map/controls/compass_control';
 

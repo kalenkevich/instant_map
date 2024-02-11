@@ -1,6 +1,5 @@
-import { LatLng } from './geo/lat_lng';
-import { CoordinateReferenceSystem } from './geo/crs/crs';
-import { MapRenderer, MapRendererType } from './render/renderer';
+import { LngLat } from './geo/lng_lat';
+// import { MapRenderer, MapRendererType } from './render/renderer';
 import { MapTileFormatType } from './tile/tile';
 import { DataTileStyles } from './styles/styles';
 
@@ -17,7 +16,7 @@ export interface MapOptions {
   /** Initial rotation value of the map. */
   rotation?: number;
   /** Initial center point of the map. */
-  center?: LatLng;
+  center?: LngLat;
   /** Meta info object about tiles and styles. */
   mapMeta?: MapMeta;
   /** Meta info url to fetch data about tiles and styles. */
@@ -25,9 +24,9 @@ export interface MapOptions {
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
   /** Renderer name or custom implementation. By defualt will be used webgl. */
-  renderer?: MapRendererType | MapRendererOptions;
+  // renderer?: MapRendererType | MapRendererOptions;
   /** Coordinate refference  system applied to the map data. */
-  crs?: MapCrs;
+  // crs?: MapCrs;
   /** When `true` then map will listen for `rootEl` width/height changes. */
   resizable?: boolean;
   /**
@@ -44,15 +43,15 @@ export interface MapOptions {
 
 export { MapTileFormatType };
 
-export type MapCrs = CoordinateReferenceSystem | MapCrsType;
+// export type MapCrs = CoordinateReferenceSystem | MapCrsType;
 
 export enum MapCrsType {
   earth = 'earth',
 }
 
 export interface MapRendererOptions {
-  type: MapRendererType;
-  renderer: MapRenderer;
+  // type: MapRendererType;
+  // renderer: MapRenderer;
 }
 
 export interface MapMeta {
@@ -107,3 +106,4 @@ export interface MapTilesMeta {
     fields: Record<string, string>;
   }>;
 }
+

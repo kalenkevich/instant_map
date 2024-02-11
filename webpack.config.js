@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
@@ -12,26 +13,37 @@ module.exports = {
   },
   devServer: {
     static: './dist',
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
   },
   module: {
-    rules: [{
-      test: /\.tsx?$/,
-      use: 'ts-loader',
-      exclude: /node_modules/,
-    }, {    
-      test: /\.(woff|woff2|eot|ttf|otf)$/,
-      loader: 'arraybuffer-loader'
-    }, {    
-      test: /\.glsl$/,
-      loader: 'raw-loader'
-    }],
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        loader: 'arraybuffer-loader',
+      },
+      {
+        test: /\.glsl$/,
+        loader: 'raw-loader',
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'public/index.html'),
       filename: 'index.html',
-      inject: 'body'
-    })
+      inject: 'body',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [{ from: path.resolve(__dirname, 'assets'), to: path.resolve(__dirname, 'dist') }],
+    }),
   ],
   mode: 'development',
   devtool: 'inline-source-map',

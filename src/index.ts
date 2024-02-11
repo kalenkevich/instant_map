@@ -1,5 +1,5 @@
-import { ButtonMapOptions, renderMapOptions } from './demo/map_demo';
+import { renderMap } from './demo/map_demo';
 
 window.addEventListener('load', () => {
-  renderMapOptions(ButtonMapOptions);
+  renderMap();
 });
