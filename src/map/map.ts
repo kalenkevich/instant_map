@@ -156,6 +156,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
       this.mapOptions.tileStyles.tileSize,
+      this.pixelRatio,
       this.maxZoom,
       this.projection,
       this.atlasTextureManager

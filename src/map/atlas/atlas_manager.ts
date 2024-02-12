@@ -6,7 +6,7 @@ export interface AtlasTextureState {
   width: number;
   height: number;
   ready: boolean;
-  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement;
+  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
   mapping: Record<string, AtlasTextrureMapping>;
 }
 

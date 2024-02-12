@@ -12,13 +12,14 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
     protected readonly projectionViewMat: mat3,
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
+    protected readonly pixelRatio: number,
     protected readonly zoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags,
     private readonly atlasesMappingState: AtlasTextureMappingState
   ) {
-    super(projectionViewMat, canvasWidth, canvasHeight, zoom, tileSize, projection, featureFlags);
+    super(projectionViewMat, canvasWidth, canvasHeight, pixelRatio, zoom, tileSize, projection, featureFlags);
   }
 
   addObject(glyph: WebGlGlyph): void {
@@ -51,15 +52,14 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
 
       const textureWidth = textureAtlas.width;
       const textureHeight = textureAtlas.height;
-
-      const customScaleFactor = 0.0001;
-      const glyphScaledWidth = glyphMapping.width / glyphMapping.pixelRatio / this.canvasWidth;
+      const glyphScaledWidth = this.scalarScale(glyphMapping.width / glyphMapping.pixelRatio);
+      const glyphScaledHeight = this.scalarScale(glyphMapping.height / glyphMapping.pixelRatio);
 
       let [x1, y1] = this.projection.fromLngLat([glyph.center[0], glyph.center[1]]);
-      x1 = x1 - (glyphScaledWidth / 2) * customScaleFactor;
-      y1 = y1 - (glyphScaledWidth / 2) * customScaleFactor;
-      const x2 = x1 + glyphScaledWidth * customScaleFactor;
-      const y2 = y1 + glyphScaledWidth * customScaleFactor;
+      x1 = x1 - glyphScaledWidth / 2;
+      y1 = y1 - glyphScaledHeight / 2;
+      const x2 = x1 + glyphScaledWidth;
+      const y2 = y1 + glyphScaledHeight;
 
       const u1 = glyphMapping.x / textureWidth;
       const v1 = glyphMapping.y / textureHeight;

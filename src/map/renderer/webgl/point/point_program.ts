@@ -13,6 +13,10 @@ export class PointProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
+  onLink(): void {}
+
+  onUnlink(): void {}
+
   drawObjectGroup(objectGroup: WebGlPointBufferredGroup) {
     const gl = this.gl;
 

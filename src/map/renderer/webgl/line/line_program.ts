@@ -39,13 +39,17 @@ export class LineProgram extends ObjectProgram {
     this.gl.bindVertexArray(null);
   }
 
-  link() {
-    this.gl.useProgram(this.program);
-    this.setFeatureFlags();
-
+  public onLink(): void {
     const gl = this.gl;
+
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  public onUnlink() {
+    const gl = this.gl;
+
+    gl.disable(gl.BLEND);
   }
 
   drawObjectGroup(lineGroup: WebGlLineBufferredGroup) {

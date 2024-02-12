@@ -107,6 +107,7 @@ export class WebGlRenderer implements Renderer {
         program = this.programs[objectGroup.type];
 
         if (prevProgram !== program) {
+          prevProgram?.unlink();
           program.link();
           this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
         }

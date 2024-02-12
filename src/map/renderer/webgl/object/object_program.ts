@@ -120,8 +120,16 @@ export abstract class ObjectProgram {
   link() {
     this.gl.useProgram(this.program);
     this.setFeatureFlags();
-    this.gl.disable(this.gl.BLEND);
+    this.onLink();
   }
+
+  unlink() {
+    this.onUnlink();
+  }
+
+  abstract onLink(): void;
+
+  abstract onUnlink(): void;
 
   setMatrix(matrix: mat3) {
     this.gl.uniformMatrix3fv(this.u_matrixLocation, false, matrix);

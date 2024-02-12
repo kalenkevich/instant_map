@@ -1,5 +1,6 @@
 import { vec4, vec2 } from 'gl-matrix';
 import { MapTileFeatureType } from '../../../tile/tile';
+import { TextureAtlas } from '../../../atlas/atlas_config';
 import {
   WebGlObject,
   WebGlObjectBufferredGroup,
@@ -20,12 +21,23 @@ export interface WebGlText extends WebGlObject {
   borderColor: vec4;
 }
 
+export interface TextMapping {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text: string;
+  font: string;
+  fontSize: number;
+}
+
 export interface WebGlTextBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapTileFeatureType.text;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
-  color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  texture: TextureAtlas;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
-  borderWidth: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 1, Float32Array>; // Array<number>;
-  borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  textcoords: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
+  color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  mappings: TextMapping[];
 }

@@ -11,6 +11,7 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     protected readonly projectionViewMat: mat3,
     protected readonly canvasWidth: number,
     protected readonly canvasHeight: number,
+    protected readonly pixelRatio: number,
     protected readonly zoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
@@ -40,5 +41,5 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     return [-1.0 + position[0] * 2.0, +1.0 - position[1] * 2.0];
   }
 
-  abstract build(): WebGlObjectBufferredGroup;
+  abstract build(): Promise<WebGlObjectBufferredGroup> | WebGlObjectBufferredGroup;
 }

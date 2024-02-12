@@ -29,6 +29,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
     private readonly tileSize: number,
+    private readonly pixelRatio: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
     private readonly atlasManager: AtlasTextureManager
@@ -147,6 +148,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           projectionViewMat: [...camera.getProjectionMatrix()],
           canvasWidth,
           canvasHeight,
+          pixelRatio: this.pixelRatio,
           zoom,
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),

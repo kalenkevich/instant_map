@@ -18,7 +18,7 @@ import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
 import { GlyphGroupBuilder } from '../../renderer/webgl/glyph/glyph_group_builder';
-import { GlyphTextGroupBuilder } from '../../renderer/webgl/glyph/glyph_text_group_builder';
+import { TextTextureGroupBuilder } from '../../renderer/webgl/text/text_texture_builder';
 import { MercatorProjection } from '../../geo/projection/mercator_projection';
 import { WebGlText } from '../../renderer/webgl/text/text';
 
@@ -30,6 +30,7 @@ export interface FetchTileOptions {
   projectionViewMat: [number, number, number, number, number, number, number, number, number];
   canvasWidth: number;
   canvasHeight: number;
+  pixelRatio: number;
   zoom: number;
   tileSize: number;
   tileStyles: DataTileStyles;
@@ -71,6 +72,7 @@ export async function fetchTile(
     tileStyles,
     canvasWidth,
     canvasHeight,
+    pixelRatio,
     zoom,
     tileSize,
     atlasTextureMappingState,
@@ -103,6 +105,7 @@ export async function fetchTile(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
+      pixelRatio,
       zoom,
       tileSize,
       projection,
@@ -112,6 +115,7 @@ export async function fetchTile(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
+      pixelRatio,
       zoom,
       tileSize,
       projection,
@@ -121,6 +125,7 @@ export async function fetchTile(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
+      pixelRatio,
       zoom,
       tileSize,
       projection,
@@ -130,21 +135,22 @@ export async function fetchTile(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
+      pixelRatio,
       zoom,
       tileSize,
       projection,
       featureFlags,
       atlasTextureMappingState
     );
-    const glyphTextGroupBuilder = new GlyphTextGroupBuilder(
+    const textTextureGroupBuilder = new TextTextureGroupBuilder(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
+      pixelRatio,
       zoom,
       tileSize,
       projection,
-      featureFlags,
-      atlasTextureMappingState
+      featureFlags
     );
 
     for (let i = 0; i < numFeatures; i++) {
@@ -210,13 +216,12 @@ export async function fetchTile(
             text: compileStatement(textStyle.text, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
             font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensansBold',
-            fontSize: 2,
-            // fontSize ? compileStatement(textStyle.fontSize, pointFeature) : 2,
+            fontSize: compileStatement(textStyle.fontSize, pointFeature),
             borderWidth: 1,
             borderColor: vec4.fromValues(0, 0, 0, 1),
           };
 
-          glyphTextGroupBuilder.addObject(textObject);
+          textTextureGroupBuilder.addObject(textObject);
         } else if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
 
@@ -227,13 +232,12 @@ export async function fetchTile(
               text: compileStatement(textStyle.text, pointFeature),
               center: point as [number, number],
               font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensansBold',
-              fontSize: 2,
-              // fontSize ? compileStatement(textStyle.fontSize, pointFeature) : 2,
+              fontSize: compileStatement(textStyle.fontSize, pointFeature),
               borderWidth: 1,
               borderColor: vec4.fromValues(0, 0, 0, 1),
             };
 
-            glyphTextGroupBuilder.addObject(textObject);
+            textTextureGroupBuilder.addObject(textObject);
           }
         }
       } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
@@ -333,8 +337,8 @@ export async function fetchTile(
       objectGroups.push(pointsGroupBuilder.build());
     }
 
-    if (!glyphTextGroupBuilder.isEmpty()) {
-      objectGroups.push(glyphTextGroupBuilder.build());
+    if (!textTextureGroupBuilder.isEmpty()) {
+      objectGroups.push(await textTextureGroupBuilder.build());
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
