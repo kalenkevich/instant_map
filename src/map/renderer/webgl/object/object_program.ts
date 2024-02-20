@@ -1,24 +1,14 @@
 import { mat3 } from 'gl-matrix';
 import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../flags';
-
-export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
-  vertexAttribDivisor(index: number, divisor: number): void;
-  drawArraysInstanced(primitiveType: number, offset: number, numElements: number, instanceCount: number): void;
-  createVertexArray(): WebGLVertexArrayObjectOES;
-  bindVertexArray(vao: WebGLVertexArrayObjectOES): void;
-};
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
+import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 
 export abstract class ObjectProgram {
   protected program: WebGLProgram;
 
-  // position buffer
-  protected a_positionBuffer: WebGLBuffer;
-  protected a_positionAttributeLocation: number = 0;
-
-  // color buffer
-  protected a_colorBuffer: WebGLBuffer;
-  protected a_colorAttributeLocation: number = 1;
+  protected positionBuffer: WebGlBuffer;
+  protected colorBuffer: WebGlBuffer;
 
   // uniform locations
   protected u_matrixLocation: WebGLUniformLocation;
@@ -91,15 +81,8 @@ export abstract class ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.a_positionBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_positionAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.vertexAttribPointer(this.a_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-
-    this.a_colorBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_colorAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.vertexAttribPointer(this.a_colorAttributeLocation, 4, this.gl.FLOAT, false, 0, 0);
+    this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 2 });
+    this.colorBuffer = createWebGlBuffer(this.gl, { location: 1, size: 4 });
 
     gl.bindVertexArray(null);
   }

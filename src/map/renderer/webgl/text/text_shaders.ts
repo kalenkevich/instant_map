@@ -1,10 +1,4 @@
-import {
-  FEATURE_FLAGS_UTILS,
-  DEFAULT_FRAGMENT_SHADER_SOURCE,
-  CLIP_UTILS,
-  MAT_UTILS,
-  MERCATOR_PROJECTION_UTILS,
-} from '../object/object_shaders';
+import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS, MERCATOR_PROJECTION_UTILS } from '../object/object_shaders';
 
 export default {
   vertext: `

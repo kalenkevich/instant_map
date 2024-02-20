@@ -169,7 +169,7 @@ export const VectorTileStyles: DataTileStyles = {
       sourceLayer: 'poi',
       styleLayerName: 'poiPoint',
       show: false,
-      zIndex: 3,
+      zIndex: 4,
       feature: {
         type: MapTileFeatureType.point,
         radius: 30,
@@ -217,7 +217,7 @@ export const VectorTileStyles: DataTileStyles = {
     place: {
       sourceLayer: 'place',
       styleLayerName: 'placeStyles',
-      zIndex: 3,
+      zIndex: 4,
       show: true,
       feature: {
         type: MapTileFeatureType.text,
@@ -228,11 +228,17 @@ export const VectorTileStyles: DataTileStyles = {
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
-          ['country', 72],
-          ['state', 60],
-          ['county', 60],
-          ['town', 45],
+          ['continent', 36],
+          ['country', 34],
+          ['state', 32],
+          ['province', 32],
+          ['county', 30],
+          ['island', 30],
+          ['city', 28],
+          ['town', 28],
           ['village', 24],
+          ['suburb', 18],
+          ['neighbourhood', 18],
         ],
       },
       maxzoom: 14,
@@ -253,18 +259,17 @@ export const VectorTileStyles: DataTileStyles = {
     housenumber: {
       sourceLayer: 'housenumber',
       styleLayerName: 'housenumberStyles',
-      zIndex: 3,
+      zIndex: 4,
       show: true,
       feature: {
         type: MapTileFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.housenumber'],
         font: 'opensans',
-        fontSize: 10,
+        fontSize: 8,
       },
       minzoom: 16,
     },
-
     aerodrome_label: {
       sourceLayer: 'aerodrome_label',
       styleLayerName: 'aerodromeLabelStyles',

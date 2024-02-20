@@ -1,8 +1,10 @@
 import { WebGlGlyphBufferredGroup } from './glyph';
 import GlyphShaders from './glyph_shaders';
-import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { AtlasTextureManager } from '../../../atlas/atlas_manager';
 import { MapFeatureFlags } from '../../../flags';
+import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 
 export interface WebglAtlasTextureConfig {
   name: string;
@@ -19,6 +21,8 @@ export class GlyphProgram extends ObjectProgram {
 
   protected a_textcoordBuffer: WebGLBuffer;
   protected a_textcoordAttributeLocation: number = 1;
+
+  protected textcoordBuffer: WebGlBuffer;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -82,15 +86,8 @@ export class GlyphProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.a_positionBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_positionAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.vertexAttribPointer(this.a_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-
-    this.a_textcoordBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_textcoordAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_textcoordBuffer);
-    gl.vertexAttribPointer(this.a_textcoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+    this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 2 });
+    this.textcoordBuffer = createWebGlBuffer(this.gl, { location: 1, size: 2 });
 
     gl.bindVertexArray(null);
   }
@@ -114,11 +111,8 @@ export class GlyphProgram extends ObjectProgram {
       this.setCurrentTexture(objectGroup.atlas);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.vertecies.buffer, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_textcoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.textcoords.buffer, gl.STATIC_DRAW);
+    this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
+    this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 

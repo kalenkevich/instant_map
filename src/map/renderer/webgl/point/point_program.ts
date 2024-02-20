@@ -1,6 +1,7 @@
 import { WebGlPointBufferredGroup } from './point';
 import PointShaders from './point_shaders';
-import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 
 export class PointProgram extends ObjectProgram {
@@ -22,11 +23,8 @@ export class PointProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.vertecies.buffer, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.color.buffer, gl.STATIC_DRAW);
+    this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
+    this.colorBuffer.bufferData(objectGroup.color.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 

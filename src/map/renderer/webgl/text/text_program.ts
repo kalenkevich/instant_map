@@ -1,19 +1,15 @@
 import { WebGlTextBufferredGroup } from './text';
 import TextShaders from './text_shaders';
-import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
+import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 
 const TEXTURE_INDEX = 5;
 
 export class TextProgram extends ObjectProgram {
-  protected a_positionBuffer: WebGLBuffer;
-  protected a_positionAttributeLocation: number = 0;
-
-  protected a_textcoordBuffer: WebGLBuffer;
-  protected a_textcoordAttributeLocation: number = 1;
-
-  protected a_colorBuffer: WebGLBuffer;
-  protected a_colorAttributeLocation: number = 2;
+  textcoordBuffer: WebGlBuffer;
+  colorBuffer: WebGlBuffer;
 
   protected u_textureLocation: WebGLUniformLocation;
 
@@ -45,20 +41,9 @@ export class TextProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.a_positionBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_positionAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.vertexAttribPointer(this.a_positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-
-    this.a_textcoordBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_textcoordAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_textcoordBuffer);
-    gl.vertexAttribPointer(this.a_textcoordAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
-
-    this.a_colorBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_colorAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.vertexAttribPointer(this.a_colorAttributeLocation, 4, this.gl.FLOAT, false, 0, 0);
+    this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 2 });
+    this.textcoordBuffer = createWebGlBuffer(gl, { location: 1, size: 2 });
+    this.colorBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
 
     gl.bindVertexArray(null);
   }
@@ -89,14 +74,9 @@ export class TextProgram extends ObjectProgram {
 
     this.setTexture(textGroup.texture.source);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, textGroup.vertecies.buffer, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_textcoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, textGroup.textcoords.buffer, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, textGroup.color.buffer, gl.STATIC_DRAW);
+    this.positionBuffer.bufferData(textGroup.vertecies.buffer);
+    this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
+    this.colorBuffer.bufferData(textGroup.color.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 

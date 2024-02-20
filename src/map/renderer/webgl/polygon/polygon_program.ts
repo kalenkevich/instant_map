@@ -1,6 +1,7 @@
 import { WebGlPolygonBufferredGroup } from './polygon';
 import PolygonShaders from './polygon_shaders';
-import { ObjectProgram, ExtendedWebGLRenderingContext } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 
 export class PolygonProgram extends ObjectProgram {
@@ -25,11 +26,8 @@ export class PolygonProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.vertecies.buffer as Float32Array, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, objectGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
+    this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
+    this.colorBuffer.bufferData(objectGroup.color.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 

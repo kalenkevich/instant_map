@@ -11,7 +11,7 @@ export async function buildTextCanvas(
   height: number,
   mappings: TextMapping[]
 ) {
-  const canvasCtx = canvas.getContext('2d');
+  const canvasCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D = canvas.getContext('2d');
   canvasCtx.clearRect(0, 0, width, height);
   canvasCtx.strokeStyle = 'red';
   canvasCtx.fillStyle = 'black';
@@ -23,6 +23,9 @@ export async function buildTextCanvas(
   }
 }
 
+/**
+ * Builds canvas texture containing all the text, followed one by one, pushed by `addTextToCanvas` method.
+ */
 export class DynamicTextCanvas {
   private cursor = { row: 0, x: 0, y: 0 };
   private rowsHeight: number[] = [0];
@@ -31,7 +34,7 @@ export class DynamicTextCanvas {
   private height: number = 0;
   private mappings: TextMapping[] = [];
 
-  constructor(private readonly width: number, startHeight: number) {
+  constructor(private readonly width: number, startHeight: number, private readonly pixelRatio: number) {
     this.canvas = new OffscreenCanvas(width, startHeight);
     this.height = startHeight;
     this.canvasCtx = this.canvas.getContext('2d');
@@ -42,7 +45,7 @@ export class DynamicTextCanvas {
     this.canvasCtx.font = `${fontSize}px sans-serif`;
     const textMetrics = this.canvasCtx.measureText(text);
     const widthPadding = 10;
-    const heightPadding = 10;
+    const heightPadding = 20;
     const width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft + widthPadding;
     const height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + heightPadding;
 
@@ -63,6 +66,8 @@ export class DynamicTextCanvas {
       y: this.cursor.y + heightPadding / 2,
       width: width,
       height: height,
+      widthPadding,
+      heightPadding,
     };
     this.cursor.x += width;
     this.height = Math.max(this.height, this.cursor.y + height);
@@ -76,12 +81,16 @@ export class DynamicTextCanvas {
     const canvas = new OffscreenCanvas(this.width, this.height);
     const canvasCtx = canvas.getContext('2d');
     canvasCtx.clearRect(0, 0, this.width, this.height);
-    canvasCtx.fillStyle = 'black';
+    canvasCtx.fillStyle = 'white';
 
     for (const textMapping of this.mappings) {
       canvasCtx.font = `${textMapping.fontSize}px sans-serif`;
       // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/fillText
-      canvasCtx.fillText(textMapping.text, textMapping.x, textMapping.y + textMapping.height - 10);
+      canvasCtx.fillText(
+        textMapping.text,
+        textMapping.x,
+        textMapping.y + textMapping.height - textMapping.heightPadding
+      );
     }
 
     return {
@@ -99,7 +108,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
 
   async build(): Promise<WebGlTextBufferredGroup> {
     const size = this.objects.length;
-    const dynamicTextCanvas = new DynamicTextCanvas(this.canvasWidth, this.canvasHeight);
+    const dynamicTextCanvas = new DynamicTextCanvas(this.canvasWidth, this.canvasHeight, this.pixelRatio);
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];
@@ -112,8 +121,8 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const texture = await dynamicTextCanvas.getTexture();
 
     for (const [text, textMapping] of textMappings) {
-      const textScaledWidth = this.scalarScale(textMapping.width / this.pixelRatio);
-      const textScaledHeight = this.scalarScale(textMapping.height / this.pixelRatio);
+      const textScaledWidth = this.scalarScale(textMapping.width);
+      const textScaledHeight = this.scalarScale(textMapping.height);
 
       // vertex coordinates
       let [x1, y1] = this.projection.fromLngLat([text.center[0], text.center[1]]);
@@ -160,7 +169,6 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
         size: 4,
         buffer: new Float32Array(colorBuffer),
       },
-      mappings: textMappings.map(m => m[1]),
     };
   }
 }

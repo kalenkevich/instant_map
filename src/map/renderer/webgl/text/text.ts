@@ -29,6 +29,8 @@ export interface TextMapping {
   text: string;
   font: string;
   fontSize: number;
+  widthPadding: number;
+  heightPadding: number;
 }
 
 export interface WebGlTextBufferredGroup extends WebGlObjectBufferredGroup {
@@ -39,5 +41,4 @@ export interface WebGlTextBufferredGroup extends WebGlObjectBufferredGroup {
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   textcoords: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
-  mappings: TextMapping[];
 }

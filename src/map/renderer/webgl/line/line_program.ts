@@ -1,14 +1,12 @@
 import { WebGlLineBufferredGroup } from './line';
 import LineShaders from './line_shaders';
-import { ExtendedWebGLRenderingContext, ObjectProgram } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
+import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
+import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 
 export class LineProgram extends ObjectProgram {
-  protected point_aBuffer: WebGLBuffer;
-  protected point_aAttributeLocation: number = 0;
-
-  protected a_colorBuffer: WebGLBuffer;
-  protected a_colorAttributeLocation: number = 1;
+  protected pointABuffer: WebGlBuffer;
 
   protected vao: WebGLVertexArrayObjectOES;
 
@@ -26,15 +24,8 @@ export class LineProgram extends ObjectProgram {
 
     this.gl.bindVertexArray(this.vao);
 
-    this.point_aBuffer = this.gl.createBuffer();
-    this.gl.enableVertexAttribArray(this.point_aAttributeLocation);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
-    this.gl.vertexAttribPointer(this.point_aAttributeLocation, 2, this.gl.FLOAT, true, 0, 0);
-
-    this.a_colorBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(this.a_colorAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.vertexAttribPointer(this.a_colorAttributeLocation, 4, this.gl.FLOAT, false, 0, 0);
+    this.pointABuffer = createWebGlBuffer(gl, { location: 0, size: 2 });
+    this.colorBuffer = createWebGlBuffer(gl, { location: 1, size: 4 });
 
     this.gl.bindVertexArray(null);
   }
@@ -57,11 +48,14 @@ export class LineProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
-    gl.bufferData(this.gl.ARRAY_BUFFER, lineGroup.vertecies.buffer, gl.STATIC_DRAW);
+    this.pointABuffer.bufferData(lineGroup.vertecies.buffer);
+    this.colorBuffer.bufferData(lineGroup.color.buffer);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, lineGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
+    // gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
+    // gl.bufferData(this.gl.ARRAY_BUFFER, lineGroup.vertecies.buffer, gl.STATIC_DRAW);
+
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, lineGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
 
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
 
