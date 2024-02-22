@@ -7,4 +7,5 @@ export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
   drawArraysInstanced(primitiveType: number, offset: number, numElements: number, instanceCount: number): void;
   createVertexArray(): WebGLVertexArrayObjectOES;
   bindVertexArray(vao: WebGLVertexArrayObjectOES): void;
+  drawBuffers(buffers: Array<GLenum>): void;
 };

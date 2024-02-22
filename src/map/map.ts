@@ -310,11 +310,13 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
 
-    this.renderQueue.clear();
-    return this.renderQueue.render(() => {
-      this.render();
-      this.fire(MapEventType.RENDER);
-    });
+    // this.renderQueue.clear();
+    // return this.renderQueue.render(() => {
+    this.render();
+    this.fire(MapEventType.RENDER);
+    // });
+
+    return Promise.resolve();
   }
 
   private render() {
@@ -327,7 +329,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize);
+    this.renderer.renderV2(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize);
 
     this.statsWidget.style.display = 'none';
 

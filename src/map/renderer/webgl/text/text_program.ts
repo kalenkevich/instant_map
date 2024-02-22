@@ -4,14 +4,15 @@ import { ObjectProgram } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
-
-const TEXTURE_INDEX = 5;
+import { WebGlTexture, createTexture } from '../utils/weblg_texture';
 
 export class TextProgram extends ObjectProgram {
   textcoordBuffer: WebGlBuffer;
   colorBuffer: WebGlBuffer;
 
   protected u_textureLocation: WebGLUniformLocation;
+
+  protected texture: WebGlTexture;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -20,6 +21,10 @@ export class TextProgram extends ObjectProgram {
     protected readonly fragmentShaderSource: string = TextShaders.fragment
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
+  }
+
+  public onInit(): void {
+    this.setupTexture();
   }
 
   onLink(): void {
@@ -53,18 +58,18 @@ export class TextProgram extends ObjectProgram {
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
   }
 
-  setTexture(source: TexImageSource) {
+  protected setupTexture() {
     const gl = this.gl;
-    const texture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0 + TEXTURE_INDEX);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.uniform1i(this.u_textureLocation, TEXTURE_INDEX);
+
+    this.texture = createTexture(gl, {
+      width: 0,
+      height: 0,
+      unpackPremultiplyAlpha: true,
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+      minFilter: gl.NEAREST,
+      magFilter: gl.NEAREST,
+    });
   }
 
   drawObjectGroup(textGroup: WebGlTextBufferredGroup) {
@@ -72,8 +77,8 @@ export class TextProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.setTexture(textGroup.texture.source);
-
+    gl.uniform1i(this.u_textureLocation, this.texture.index);
+    this.texture.setSource(textGroup.texture.source);
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
     this.colorBuffer.bufferData(textGroup.color.buffer);

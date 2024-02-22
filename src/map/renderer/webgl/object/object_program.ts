@@ -35,6 +35,7 @@ export abstract class ObjectProgram {
     this.setupProgram();
     this.setupBuffer();
     this.setupUniforms();
+    this.onInit();
   }
 
   protected setupProgram() {
@@ -109,6 +110,8 @@ export abstract class ObjectProgram {
   unlink() {
     this.onUnlink();
   }
+
+  abstract onInit(): void;
 
   abstract onLink(): void;
 

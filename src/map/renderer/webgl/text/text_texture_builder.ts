@@ -146,7 +146,6 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
 
       colorBuffer.push(...text.color);
-      // colorBuffer.push(...getRgbRandomColor());
     }
 
     return {

@@ -345,7 +345,7 @@ export async function fetchTile(
       objectGroups.push(glyphGroupBuilder.build());
     }
 
-    tileLayers.push({ layerName: styleLayer.sourceLayer, zIndex: styleLayer.zIndex, objectGroups });
+    tileLayers.push({ layerName: styleLayer.sourceLayer, zIndex: styleLayer.zIndex, objectGroups, tileId });
   }
 
   return tileLayers;

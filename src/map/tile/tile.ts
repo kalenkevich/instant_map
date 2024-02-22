@@ -21,6 +21,7 @@ export interface MapTile {
 }
 
 export interface MapTileLayer {
+  tileId: string;
   layerName: string;
   zIndex: number;
 }

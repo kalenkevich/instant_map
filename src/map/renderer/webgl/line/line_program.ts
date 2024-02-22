@@ -30,6 +30,8 @@ export class LineProgram extends ObjectProgram {
     this.gl.bindVertexArray(null);
   }
 
+  onInit(): void {}
+
   public onLink(): void {
     const gl = this.gl;
 
@@ -50,12 +52,6 @@ export class LineProgram extends ObjectProgram {
 
     this.pointABuffer.bufferData(lineGroup.vertecies.buffer);
     this.colorBuffer.bufferData(lineGroup.color.buffer);
-
-    // gl.bindBuffer(this.gl.ARRAY_BUFFER, this.point_aBuffer);
-    // gl.bufferData(this.gl.ARRAY_BUFFER, lineGroup.vertecies.buffer, gl.STATIC_DRAW);
-
-    // gl.bindBuffer(gl.ARRAY_BUFFER, this.a_colorBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, lineGroup.color.buffer as Float32Array, gl.STATIC_DRAW);
 
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
 

@@ -4,19 +4,27 @@ import { Renderer } from '../renderer';
 import { MapTile, MapTileFeatureType } from '../../tile/tile';
 import { MapTileLayer } from '../../tile/tile';
 import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
-import { ObjectProgram, ExtendedWebGLRenderingContext } from './object/object_program';
+import { ExtendedWebGLRenderingContext } from './webgl_context';
+import { ObjectProgram } from './object/object_program';
 import { PointProgram } from './point/point_program';
 import { PolygonProgram } from './polygon/polygon_program';
 import { LineProgram } from './line/line_program';
 import { TextProgram } from './text/text_program';
 import { GlyphProgram } from './glyph/glyph_program';
+import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { AtlasTextureManager } from '../../atlas/atlas_manager';
 import { MapFeatureFlags } from '../../flags';
+import { WebGlTexture, createTexture } from './utils/weblg_texture';
+import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
   private programs: Record<MapTileFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
+
+  private texture: WebGlTexture;
+  private framebuffer: WebGlFrameBuffer;
+  private framebufferProgram: FramebufferProgram;
 
   constructor(
     private readonly rootEl: HTMLElement,
@@ -38,11 +46,34 @@ export class WebGlRenderer implements Renderer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    this.texture = createTexture(gl, {
+      width: this.canvas.width,
+      height: this.canvas.height,
+      pixels: null,
+      minFilter: gl.LINEAR,
+      magFilter: gl.LINEAR,
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+    });
+    this.framebuffer = createFrameBuffer(gl, { texture: this.texture });
+    this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
+    this.framebufferProgram.init();
+
     const pointProgram = new PointProgram(gl, this.featureFlags);
+    pointProgram.init();
+
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
+    polygonProgram.init();
+
     const lineProgram = new LineProgram(gl, this.featureFlags);
+    lineProgram.init();
+
     const textProgram = new TextProgram(gl, this.featureFlags);
+    textProgram.init();
+
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
+    glyphProgram.init();
+
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
@@ -52,11 +83,6 @@ export class WebGlRenderer implements Renderer {
       // TODO: implement
       [MapTileFeatureType.image]: polygonProgram,
     };
-    pointProgram.init();
-    polygonProgram.init();
-    lineProgram.init();
-    textProgram.init();
-    glyphProgram.init();
   }
 
   destroy() {}
@@ -117,6 +143,67 @@ export class WebGlRenderer implements Renderer {
     }
 
     this.gl.flush();
+  }
+
+  private currentStateId?: string;
+  private alreadyRenderedTileLayer = new Set<string>();
+  private getCurrentStateId(viewMatrix: mat3, zoom: number, tileSize: number) {
+    return [...viewMatrix, zoom, tileSize].join('-');
+  }
+  renderV2(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
+    let program: ObjectProgram;
+
+    const sortedLayers = this.getSortedLayers(tiles);
+    const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
+    if (this.currentStateId !== stateId) {
+      this.currentStateId = stateId;
+      this.alreadyRenderedTileLayer.clear();
+      this.framebuffer.clear();
+    }
+
+    const renderLayer = (layerIndex: number) => {
+      if (layerIndex === sortedLayers.length) {
+        return;
+      }
+
+      const { objectGroups, layerName, tileId } = sortedLayers[layerIndex] as PbfTileLayer;
+      const renderLayerId = `${tileId}-${layerName}`;
+
+      if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
+        requestAnimationFrame(() => {
+          renderLayer(layerIndex + 1);
+        });
+
+        return;
+      } else {
+        this.alreadyRenderedTileLayer.add(renderLayerId);
+      }
+
+      for (const objectGroup of objectGroups) {
+        const prevProgram: ObjectProgram = program;
+        program = this.programs[objectGroup.type];
+
+        prevProgram?.unlink();
+        program.link();
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+
+        // render to framebuffer texture
+        this.framebuffer.bind();
+        program.drawObjectGroup(objectGroup);
+        this.framebuffer.unbind();
+      }
+
+      // render texture to canvas
+      this.framebufferProgram.link();
+      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
+      this.framebufferProgram.draw(this.texture);
+      this.framebufferProgram.unlink();
+
+      requestAnimationFrame(() => {
+        renderLayer(layerIndex + 1);
+      });
+    };
+    renderLayer(0);
   }
 
   private getSortedLayers(tiles: MapTile[]): MapTileLayer[] {

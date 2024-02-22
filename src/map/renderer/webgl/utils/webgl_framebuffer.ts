@@ -15,12 +15,12 @@ export interface WebGlFrameBuffer {
 
 export function createFrameBuffer(gl: ExtendedWebGLRenderingContext, options: CreateFrameBufferOptions) {
   const framebuffer = gl.createFramebuffer();
-  const attachmentPoint = options.attachmentPoint || gl.COLOR_ATTACHMENT0;
+  const COLOR_ATTACHMENT0 = 0x8ce0;
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.framebufferTexture2D(
     gl.FRAMEBUFFER,
-    attachmentPoint,
+    COLOR_ATTACHMENT0,
     gl.TEXTURE_2D,
     options.texture.texture,
     options.texture.level

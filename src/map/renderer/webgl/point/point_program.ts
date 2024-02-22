@@ -14,6 +14,8 @@ export class PointProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
+  onInit(): void {}
+
   onLink(): void {}
 
   onUnlink(): void {}

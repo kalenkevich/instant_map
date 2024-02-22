@@ -205,7 +205,7 @@ export const VectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 255, 0, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         text: ['$get', 'properties.name'],
         font: 'fontAtlas',
@@ -221,7 +221,7 @@ export const VectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 255, 0, 0, 1],
         show: ['$lte', ['$get', 'properties.rank'], 15],
         text: ['$get', 'properties.name'],
         font: 'opensans',
