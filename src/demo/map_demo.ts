@@ -95,6 +95,7 @@ export function renderMap() {
       zoom: true,
       debug: true,
     },
+    workerPool: 8,
     featureFlags: {},
   });
 

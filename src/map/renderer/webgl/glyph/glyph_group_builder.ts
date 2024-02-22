@@ -6,6 +6,7 @@ import { AtlasTextureMappingState } from '../../../atlas/atlas_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
 import { MapFeatureFlags } from '../../../flags';
+import { createdSharedArrayBuffer } from '../utils/array_buffer';
 
 export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
   constructor(
@@ -83,12 +84,12 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: new Float32Array(verteciesBuffer),
+        buffer: createdSharedArrayBuffer(verteciesBuffer),
       },
       textcoords: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: new Float32Array(texcoordBuffer),
+        buffer: createdSharedArrayBuffer(texcoordBuffer),
       },
     };
   }

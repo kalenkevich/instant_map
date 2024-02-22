@@ -3,6 +3,7 @@ import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { LineJoinStyle, WebGlLine, WebGlLineBufferredGroup } from './line';
 import { MapTileFeatureType } from '../../../tile/tile';
+import { createdSharedArrayBuffer } from '../utils/array_buffer';
 
 const LINE_POSITION: Array<[number, number]> = [
   [0, -0.5],
@@ -73,16 +74,10 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
 
   build(): WebGlLineBufferredGroup {
     const numElements = this.vertecies.length / 2;
-    const verteciesBuffer = new Float32Array(this.vertecies);
-
-    const colorBuffer = new Float32Array(numElements * 4);
-    let colorBufferOffset = 0;
-    const widthBuffer = new Float32Array(numElements);
-    let widthBufferOffset = 0;
-    const borderWidthBuffer = new Float32Array(numElements);
-    let borderWidthBufferOffset = 0;
-    const borderColorBuffer = new Float32Array(numElements * 4);
-    let borderColorBufferOffset = 0;
+    const colorBuffer: number[] = [];
+    const widthBuffer: number[] = [];
+    const borderWidthBuffer: number[] = [];
+    const borderColorBuffer: number[] = [];
 
     let currentObjectIndex = 0;
     let currentObject: WebGlLine = this.objects[currentObjectIndex][0];
@@ -95,17 +90,10 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
         currentOffset += this.objects[currentObjectIndex][1];
       }
 
-      colorBuffer.set(currentObject.color, colorBufferOffset);
-      colorBufferOffset += 4;
-
-      widthBuffer.set([currentObject.width], i);
-      widthBufferOffset += 1;
-
-      borderWidthBuffer.set([currentObject.borderWidth], i);
-      borderWidthBufferOffset += 1;
-
-      borderColorBuffer.set(currentObject.borderColor, borderColorBufferOffset);
-      borderColorBufferOffset += 4;
+      colorBuffer.push(...currentObject.color);
+      widthBuffer.push(currentObject.width);
+      borderWidthBuffer.push(currentObject.borderWidth);
+      borderColorBuffer.push(...currentObject.borderColor);
     }
 
     return {
@@ -115,27 +103,27 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: colorBuffer,
+        buffer: createdSharedArrayBuffer(colorBuffer),
       },
       width: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 1,
-        buffer: widthBuffer,
+        buffer: createdSharedArrayBuffer(widthBuffer),
       },
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 3,
-        buffer: verteciesBuffer,
+        buffer: createdSharedArrayBuffer(this.vertecies),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 1,
-        buffer: borderWidthBuffer,
+        buffer: createdSharedArrayBuffer(borderWidthBuffer),
       },
       borderColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: borderColorBuffer,
+        buffer: createdSharedArrayBuffer(borderColorBuffer),
       },
     };
   }

@@ -1,10 +1,6 @@
-import { FetchTileOptions } from './pbf/pbf_tile_utils';
-import { fetchTile as fetchPbfTile } from './pbf/pbf_tile_utils';
-
-export enum TileGridWorkerEventType {
-  FETCH_TILE = 'FETCH_TILE',
-  CANCEL_TILE_FETCH = 'CANCEL_TILE_FETCH',
-}
+import { TileGridWorkerEventType } from './worker_actions';
+import { FetchTileOptions } from '../tile/pbf/pbf_tile_utils';
+import { fetchTile as fetchPbfTile } from '../tile/pbf/pbf_tile_utils';
 
 export type TileEventData = FetchTileEventData | CancelTileFetchEventData;
 

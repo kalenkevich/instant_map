@@ -36,14 +36,17 @@ export function createFrameBuffer(gl: ExtendedWebGLRenderingContext, options: Cr
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
     clear(color?: [number, number, number, number]) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
       if (color) {
         gl.clearColor(...color);
       } else {
         // default is white
         gl.clearColor(1, 1, 1, 1);
       }
-
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     },
   };
 }

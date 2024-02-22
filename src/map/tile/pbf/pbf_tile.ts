@@ -16,7 +16,7 @@ export class PbfMapTile implements MapTile {
   }
 
   getLayers(): PbfTileLayer[] {
-    return this.layers;
+    return this.layers || [];
   }
 
   setLayers(layers: PbfTileLayer[]): void {

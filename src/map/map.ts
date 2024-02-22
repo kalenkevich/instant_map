@@ -50,6 +50,8 @@ export interface MapOptions {
   rotation?: number;
   /** Number of tiles to fetch around. */
   tileBuffer?: number;
+  /** Number of workers to run in background. */
+  workerPool?: number;
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
   /** When `true` then map will listen for `rootEl` width/height changes. */
@@ -155,6 +157,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tilesUrl,
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
+      this.mapOptions.workerPool || 8,
       this.mapOptions.tileStyles.tileSize,
       this.pixelRatio,
       this.maxZoom,

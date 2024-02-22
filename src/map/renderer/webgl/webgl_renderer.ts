@@ -153,7 +153,6 @@ export class WebGlRenderer implements Renderer {
   renderV2(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
     let program: ObjectProgram;
 
-    const sortedLayers = this.getSortedLayers(tiles);
     const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
     if (this.currentStateId !== stateId) {
       this.currentStateId = stateId;
@@ -161,49 +160,54 @@ export class WebGlRenderer implements Renderer {
       this.framebuffer.clear();
     }
 
-    const renderLayer = (layerIndex: number) => {
-      if (layerIndex === sortedLayers.length) {
-        return;
-      }
-
-      const { objectGroups, layerName, tileId } = sortedLayers[layerIndex] as PbfTileLayer;
-      const renderLayerId = `${tileId}-${layerName}`;
-
-      if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
-        requestAnimationFrame(() => {
-          renderLayer(layerIndex + 1);
-        });
+    let shouldRenderToCanvas = false;
+    const renderTile = (tileIndex: number) => {
+      if (tileIndex == tiles.length) {
+        if (shouldRenderToCanvas) {
+          // render texture to canvas
+          this.framebufferProgram.link();
+          this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
+          this.framebufferProgram.draw(this.texture);
+          this.framebufferProgram.unlink();
+        }
 
         return;
-      } else {
-        this.alreadyRenderedTileLayer.add(renderLayerId);
       }
 
-      for (const objectGroup of objectGroups) {
-        const prevProgram: ObjectProgram = program;
-        program = this.programs[objectGroup.type];
+      const layers = tiles[tileIndex].getLayers() || [];
+      const sortedLayers = [...layers].sort((l1, l2) => l1.zIndex - l2.zIndex);
 
-        prevProgram?.unlink();
-        program.link();
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+      for (const layer of sortedLayers) {
+        const { objectGroups, layerName, tileId } = layer as PbfTileLayer;
+        const renderLayerId = `${tileId}-${layerName}`;
 
-        // render to framebuffer texture
-        this.framebuffer.bind();
-        program.drawObjectGroup(objectGroup);
-        this.framebuffer.unbind();
+        if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
+          continue;
+        } else {
+          this.alreadyRenderedTileLayer.add(renderLayerId);
+        }
+
+        for (const objectGroup of objectGroups) {
+          const prevProgram: ObjectProgram = program;
+          program = this.programs[objectGroup.type];
+
+          prevProgram?.unlink();
+          program.link();
+          this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+
+          // render to framebuffer texture
+          this.framebuffer.bind();
+          program.drawObjectGroup(objectGroup);
+          this.framebuffer.unbind();
+          shouldRenderToCanvas = true;
+        }
       }
-
-      // render texture to canvas
-      this.framebufferProgram.link();
-      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
-      this.framebufferProgram.draw(this.texture);
-      this.framebufferProgram.unlink();
 
       requestAnimationFrame(() => {
-        renderLayer(layerIndex + 1);
+        renderTile(tileIndex + 1);
       });
     };
-    renderLayer(0);
+    renderTile(0);
   }
 
   private getSortedLayers(tiles: MapTile[]): MapTileLayer[] {

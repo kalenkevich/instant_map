@@ -8,8 +8,9 @@ import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
 import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
-import { TileGridWorkerEventType } from './tile_grid_worker';
 import { MapFeatureFlags } from '../flags';
+import { TileGridWorkerEventType } from '../worker/worker_actions';
+import { WorkerPool, WorkerTask, CANCEL_WORKER_ERROR_MESSAGE } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
   TILE_LOADED = 'tileLoaded',
@@ -18,9 +19,9 @@ export enum TilesGridEvent {
 export class TilesGrid extends Evented<TilesGridEvent> {
   private tiles: LRUCache<string, MapTile> = new LRUCache(128);
   private tilesInView: TileRef[];
-  private tileWorker: Worker;
+  private workerPool: WorkerPool;
   private bufferedTiles: TileRef[];
-  private currentLoadingTiles: Set<string> = new Set();
+  private currentLoadingTiles: Map<string, WorkerTask<any>> = new Map();
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
@@ -28,6 +29,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileServerURL: string,
     private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
+    private readonly maxWorkerPool: number,
     private readonly tileSize: number,
     private readonly pixelRatio: number,
     private readonly maxTileZoom: number,
@@ -39,9 +41,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
   init() {
     this.tilesInView = [];
-    this.tileWorker = new Worker(new URL('./tile_grid_worker.ts', import.meta.url));
-    this.tileWorker.onmessage = this.handleTileWorker;
-    this.tileWorker.onerror = this.handleTileWorkerError;
+    this.workerPool = new WorkerPool(this.maxWorkerPool);
   }
 
   destroy() {}
@@ -66,12 +66,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     }, 0);
   };
 
-  // errors from tile worker
-  private handleTileWorkerError = (error: any) => {
-    console.error('Uncaught worker error.', error);
-  };
-
-  public updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
+  public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
     // update visible tiles based on viewport
     const bbox = camera.getCurrentBounds();
     const z = Math.min(Math.trunc(camera.getZoom()), this.maxTileZoom);
@@ -121,12 +116,16 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // tile fetching options
     const { tileServerURL: url } = this;
 
-    for (const tileId of this.currentLoadingTiles) {
+    for (const [tileId, task] of this.currentLoadingTiles) {
       if (!tilesToLoad.includes(tileId)) {
-        this.tileWorker.postMessage({
-          type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
-          tileId,
-        });
+        if (task) {
+          task.worker.postMessage({
+            type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
+            tileId,
+          });
+          this.workerPool.cancel(task.taskId);
+        }
+
         this.currentLoadingTiles.delete(tileId);
       }
     }
@@ -137,9 +136,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
 
       this.tiles.set(tileId, this.createMapTile(tileId));
-      this.currentLoadingTiles.add(tileId);
 
-      this.tileWorker.postMessage({
+      const workerTask = await this.workerPool.execute({
         type: TileGridWorkerEventType.FETCH_TILE,
         data: {
           tileId,
@@ -156,6 +154,14 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           featureFlags: this.featureFlags,
         },
       });
+      this.currentLoadingTiles.set(tileId, workerTask);
+      workerTask.task
+        .then((result: any) => this.handleTileWorker(result))
+        .catch(error => {
+          if (error !== CANCEL_WORKER_ERROR_MESSAGE) {
+            console.log(error);
+          }
+        });
     }
   }
 

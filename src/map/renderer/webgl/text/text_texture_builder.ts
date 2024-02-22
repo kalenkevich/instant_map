@@ -4,6 +4,7 @@ import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { TextureAtlas } from '../../../atlas/atlas_config';
+import { createdSharedArrayBuffer } from '../utils/array_buffer';
 
 export async function buildTextCanvas(
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -156,17 +157,17 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: new Float32Array(verteciesBuffer),
+        buffer: createdSharedArrayBuffer(verteciesBuffer),
       },
       textcoords: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: new Float32Array(texcoordBuffer),
+        buffer: createdSharedArrayBuffer(texcoordBuffer),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: new Float32Array(colorBuffer),
+        buffer: createdSharedArrayBuffer(colorBuffer),
       },
     };
   }
