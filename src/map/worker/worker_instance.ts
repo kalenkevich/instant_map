@@ -1,3 +1,5 @@
+import { WorkerTaskRequest, WorkerTaskResponse } from './worker_actions';
+
 export const CANCEL_WORKER_ERROR_MESSAGE = '__WORKER_CANCELLED__';
 
 export enum WorkerStatus {
@@ -5,18 +7,22 @@ export enum WorkerStatus {
   BUZY = 1,
 }
 
+/**
+ * Wrapper for native Worker API.
+ * Promisifies the postMessage execution, waits for the worker response and makes it's cancellable.
+ * */
 export class WorkerInstance {
   private worker: Worker;
   private cancelled = false;
   private currentReject?: (message: any) => void;
   private status: WorkerStatus = WorkerStatus.FREE;
 
-  constructor(workerIndex: number) {
+  constructor(workerIndex: number, private readonly onMessageHandler: (response: WorkerTaskResponse) => void) {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { name: `tile worker ${workerIndex}` });
   }
 
-  postMessage(message: any) {
-    this.worker.postMessage(message);
+  sendRequest(request: WorkerTaskRequest<any>) {
+    this.worker.postMessage(request);
   }
 
   execute<InputMessage, OutputMessage>(inputMessage: InputMessage): Promise<OutputMessage> {
@@ -27,11 +33,13 @@ export class WorkerInstance {
       this.currentReject = reject;
 
       this.worker.onmessage = (result: any) => {
+        this.onMessageHandler(result.data);
+
         if (this.cancelled) {
           return;
         }
 
-        resolve(result as OutputMessage);
+        resolve(result.data as OutputMessage);
         this.status = WorkerStatus.FREE;
       };
 

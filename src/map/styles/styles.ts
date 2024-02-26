@@ -47,6 +47,12 @@ export interface PointStyle {
   border?: LineStyle;
   minzoom?: number;
   maxzoom?: number;
+  margin?: PointMargin;
+}
+
+export interface PointMargin {
+  top?: Statement<number>;
+  left?: Statement<number>;
 }
 
 export interface LineStyle {
@@ -73,15 +79,16 @@ export interface PolygonStyle {
 export interface TextStyle {
   type: MapTileFeatureType.text;
   color: Statement<ColorValue>;
+  borderColor: Statement<ColorValue>;
   text: Statement<string>;
   font?: Statement<string>; // default roboto
   fontSize?: Statement<number>; // default 14
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
+  margin?: PointMargin;
 }
 
-// TODO support Icon style
 export interface GlyphStyle {
   type: MapTileFeatureType.glyph;
   name: Statement<string>; // glyph name
@@ -91,4 +98,5 @@ export interface GlyphStyle {
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
+  margin?: PointMargin;
 }

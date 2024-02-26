@@ -1,6 +1,6 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { VectorTileStyles } from './map_styles';
+import { MapTilerVectorTileStyles, MapboxVectorTileStyles } from './map_styles';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
 
@@ -16,6 +16,7 @@ function createRootEl() {
   div.style.width = `${width}px`;
   div.style.height = `${height}px`;
   div.style.position = `relative`;
+  div.style.overflow = 'hidden';
   document.body.appendChild(div);
 
   window.addEventListener('resize', () => {
@@ -85,10 +86,13 @@ export function renderMap() {
 
   currentMap = new GlideMap({
     rootEl: rootDiv,
-    tilesUrl: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
+    tilesUrl:
+      'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    tileStyles: MapboxVectorTileStyles,
+    // tilesUrl: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
+    // tileStyles: MapTilerVectorTileStyles,
     zoom,
     center: [lat, lng],
-    tileStyles: VectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
@@ -96,7 +100,10 @@ export function renderMap() {
       debug: true,
     },
     workerPool: 8,
-    featureFlags: {},
+    featureFlags: {
+      debugLayer: true,
+      webglRendererDebug: true,
+    },
   });
 
   subscribeOnEvents(currentMap);

@@ -5,6 +5,7 @@ import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../utils/weblg_texture';
+import { downloadBitmapImage } from '../../../utils/download_utils';
 
 export class TextProgram extends ObjectProgram {
   textcoordBuffer: WebGlBuffer;

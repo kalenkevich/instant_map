@@ -202,6 +202,7 @@ describe('compileFeatureStyle', () => {
         ['water', ['$rgb', 1, 1, 2]],
         ['ice', ['$rgb', 1, 1, 3]],
       ],
+      borderColor: ['$rgba', 0, 0, 0, 1],
       font: 'Arial',
       fontSize: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
       minzoom: 0,

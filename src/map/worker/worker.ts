@@ -1,43 +1,34 @@
-import { TileGridWorkerEventType } from './worker_actions';
-import { FetchTileOptions } from '../tile/pbf/pbf_tile_utils';
-import { fetchTile as fetchPbfTile } from '../tile/pbf/pbf_tile_utils';
-
-export type TileEventData = FetchTileEventData | CancelTileFetchEventData;
-
-export interface FetchTileEventData {
-  type: TileGridWorkerEventType.FETCH_TILE;
-  data: FetchTileOptions;
-}
-
-export interface CancelTileFetchEventData {
-  type: TileGridWorkerEventType.CANCEL_TILE_FETCH;
-  tileId: string;
-}
+import { WorkerTaskRequestType, WorkerTaskResponseType, WorkerTaskRequest } from './worker_actions';
+import { FetchTileOptions } from '../tile/tile_transformer';
+import { fetchTile as fetchPbfTile } from '../tile/pbf/pbf_tile_to_webgl';
+import { PbfTileLayer } from '../tile/pbf/pbf_tile';
 
 const TileFetchPromiseMap = new Map<string, FetchTilePromise<void>>();
+type FetchTilePromise<T> = Promise<T> & { cancel: () => void };
 
-addEventListener('message', async event => {
-  if ((event.data as TileEventData).type === TileGridWorkerEventType.FETCH_TILE) {
-    const fetchData = event.data.data;
+addEventListener('message', async message => {
+  const request = message.data as WorkerTaskRequest<FetchTileOptions | string>;
 
-    TileFetchPromiseMap.set(fetchData.tileId, startTileFetch(fetchData));
+  switch (request.type) {
+    case WorkerTaskRequestType.FETCH_TILE: {
+      const fetchData = request.data as FetchTileOptions;
 
-    return;
-  }
+      TileFetchPromiseMap.set(fetchData.tileId, startTileFetch(fetchData));
 
-  if ((event.data as TileEventData).type === TileGridWorkerEventType.CANCEL_TILE_FETCH) {
-    const tileId = event.data.tileId;
-
-    if (!TileFetchPromiseMap.has(tileId)) {
       return;
     }
+    case WorkerTaskRequestType.CANCEL_TILE_FETCH: {
+      const tileId = request.data as string;
 
-    TileFetchPromiseMap.get(tileId).cancel();
-    TileFetchPromiseMap.delete(tileId);
+      if (!TileFetchPromiseMap.has(tileId)) {
+        return;
+      }
+
+      TileFetchPromiseMap.get(tileId).cancel();
+      TileFetchPromiseMap.delete(tileId);
+    }
   }
 });
-
-type FetchTilePromise<T> = Promise<T> & { cancel: () => void };
 
 function startTileFetch(data: FetchTileOptions): FetchTilePromise<void> {
   let cancelled = false;
@@ -46,12 +37,28 @@ function startTileFetch(data: FetchTileOptions): FetchTilePromise<void> {
   let abortController = new AbortController();
   let promiseResolve: () => void;
 
+  const onLayerReady = (tileLayer: PbfTileLayer) => {
+    postMessage({
+      type: WorkerTaskResponseType.TILE_LAYER_COMPLETE,
+      data: {
+        tileId: data.tileId,
+        tileLayer,
+      },
+    });
+  };
+
   const promise = new Promise<void>((resolve, reject) => {
     promiseResolve = resolve;
 
-    fetchPbfTile(data, abortController)
+    fetchPbfTile(data, abortController, onLayerReady)
       .then(tileLayers => {
-        postMessage({ tileId: data.tileId, tileLayers });
+        postMessage({
+          type: WorkerTaskResponseType.TILE_FULL_COMPLETE,
+          data: {
+            tileId: data.tileId,
+            tileLayers,
+          },
+        });
         resolve();
         resolved = true;
       })

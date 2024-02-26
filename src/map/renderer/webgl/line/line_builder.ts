@@ -90,7 +90,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
         currentOffset += this.objects[currentObjectIndex][1];
       }
 
-      colorBuffer.push(...currentObject.color);
+      colorBuffer.push(...(currentObject.color || [0, 0, 0, 1]));
       widthBuffer.push(currentObject.width);
       borderWidthBuffer.push(currentObject.borderWidth);
       borderColorBuffer.push(...currentObject.borderColor);

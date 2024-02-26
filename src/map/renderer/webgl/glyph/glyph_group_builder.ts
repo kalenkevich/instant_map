@@ -55,10 +55,12 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
       const textureHeight = textureAtlas.height;
       const glyphScaledWidth = this.scalarScale(glyphMapping.width / glyphMapping.pixelRatio);
       const glyphScaledHeight = this.scalarScale(glyphMapping.height / glyphMapping.pixelRatio);
+      const marginTop = this.scalarScale((glyph.margin?.top || 0) / this.pixelRatio);
+      const marginLeft = this.scalarScale((glyph.margin?.left || 0) / this.pixelRatio);
 
       let [x1, y1] = this.projection.fromLngLat([glyph.center[0], glyph.center[1]]);
-      x1 = x1 - glyphScaledWidth / 2;
-      y1 = y1 - glyphScaledHeight / 2;
+      x1 = x1 - glyphScaledWidth / 2 + marginTop;
+      y1 = y1 - glyphScaledHeight / 2 + marginLeft;
       const x2 = x1 + glyphScaledWidth;
       const y2 = y1 + glyphScaledHeight;
 

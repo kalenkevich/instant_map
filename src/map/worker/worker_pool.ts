@@ -1,4 +1,6 @@
+import { WorkerTaskResponse, WorkerTaskResponseType } from './worker_actions';
 import { WorkerInstance, WorkerStatus, CANCEL_WORKER_ERROR_MESSAGE } from './worker_instance';
+import { Evented } from '../evented';
 
 export { CANCEL_WORKER_ERROR_MESSAGE };
 
@@ -16,12 +18,22 @@ export interface WorkerTask<TaskResult extends any> {
   status: TaskStatus;
 }
 
-export class WorkerPool {
+/**
+ * Manage Worker instances as a group.
+ * Operate promises of the worker executions.
+ * Can cancel any current worker task.
+ * If all workers are busy and new request is comming will wait till any of the worker became free again.
+ */
+export type WorkerEventListener = (response: WorkerTaskResponse) => void;
+
+export class WorkerPool extends Evented<WorkerTaskResponseType> {
   private workerInstances: WorkerInstance[] = [];
   private currentTasks: Record<number, WorkerTask<any>> = {};
   private currentTaskId = 0;
 
-  constructor(private readonly maxPool: number = 8) {}
+  constructor(private readonly maxPool: number = 8) {
+    super();
+  }
 
   async execute<InputMessage, OutputMessage>(inputMessage: InputMessage): Promise<WorkerTask<OutputMessage>> {
     const worker = await this.getAvailableWorkerInstance();
@@ -97,7 +109,9 @@ export class WorkerPool {
   }
 
   private createNewWorker(): WorkerInstance {
-    const workerInstance = new WorkerInstance(this.workerInstances.length);
+    const workerInstance = new WorkerInstance(this.workerInstances.length, (response: WorkerTaskResponse) => {
+      this.fire(response.type, response);
+    });
 
     this.workerInstances.push(workerInstance);
 

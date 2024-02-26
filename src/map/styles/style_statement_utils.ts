@@ -45,6 +45,8 @@ import {
   ColorValue,
   RGBColorValue,
   RGBAColorValue,
+  StringStatement,
+  ConcatStatement,
 } from './style_statement';
 
 export interface CompileStatementConfig {
@@ -103,6 +105,10 @@ export function compileStatement<V>(
 
   if (isMathStatement(statement)) {
     return compileMathStatement(statement as MathStatement, context, config) as V;
+  }
+
+  if (isStringStatement(statement)) {
+    return compileStringStatement(statement as StringStatement, context, config) as V;
   }
 
   throw new Error('Statement is invalid: ' + JSON.stringify(statement));
@@ -939,6 +945,36 @@ export function compileRgbaColorStatement(
   return [statement[1] / 255, statement[2] / 255, statement[3] / 255, statement[4]];
 }
 
+export function compileStringStatement(
+  statement: StringStatement,
+  context: ContextLike,
+  config = DefaultCompileStatementConfig
+): string {
+  if (config.validate && !Array.isArray(statement)) {
+    throw new Error('String statement is invalid: ' + JSON.stringify(statement));
+  }
+
+  if (statement[0] === '$concat') {
+    return compileConcatStatement(statement, context, config);
+  }
+
+  throw new Error('Unrecognised String statement: ' + JSON.stringify(statement));
+}
+
+export function compileConcatStatement(
+  statement: StringStatement,
+  context: ContextLike,
+  config = DefaultCompileStatementConfig
+): string {
+  if (config.validate && (!Array.isArray(statement) || statement[0] !== '$concat' || statement.length < 2)) {
+    throw new Error('ConcatStatement is invalid: ' + JSON.stringify(statement));
+  }
+
+  const [, ...values] = statement;
+
+  return values.map(v => compileStatement(v, context, config)).join('');
+}
+
 export function hasPropertyValue(source: any, property?: string | number): boolean {
   if (property === undefined || property === null) {
     return false;
@@ -1127,4 +1163,12 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
   }
 
   return true;
+}
+
+export function isStringStatement(statement: unknown): boolean {
+  if (!Array.isArray(statement) || typeof statement[0] !== 'string') {
+    return false;
+  }
+
+  return ['$concat'].includes(statement[0]);
 }

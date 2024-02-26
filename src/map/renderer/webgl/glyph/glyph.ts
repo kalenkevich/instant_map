@@ -6,6 +6,7 @@ import {
   WebGlObjectAttributeDescriptor,
   WebGlObjectAttributeType,
 } from '../object/object';
+import { PointMargin } from '../point/point';
 
 export interface WebGlGlyph extends WebGlObject {
   type: MapTileFeatureType.glyph;
@@ -14,6 +15,7 @@ export interface WebGlGlyph extends WebGlObject {
   center: vec2 | [number, number];
   width: number;
   height: number;
+  margin?: PointMargin;
 }
 
 export interface WebGlGlyphBufferredGroup extends WebGlObjectBufferredGroup {

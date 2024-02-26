@@ -13,10 +13,16 @@ export interface WebGlPoint extends WebGlObject {
   center: vec2 | [number, number];
   radius: number;
   components?: number;
+  margin?: PointMargin;
 
   // TODO: support this
   borderWidth: number;
   borderColor: vec4 | [number, number, number, number];
+}
+
+export interface PointMargin {
+  top?: number;
+  left?: number;
 }
 
 export interface WebGlPointBufferredGroup extends WebGlObjectBufferredGroup {

@@ -23,8 +23,8 @@ export class MapParentControl extends MapControl {
   public init() {
     this.el = document.createElement('div');
     this.el.style.position = 'absolute';
-    this.el.style.bottom = '0';
-    this.el.style.right = '0';
+    this.el.style.bottom = '10px';
+    this.el.style.right = '10px';
     this.el.style.display = 'flex';
     this.el.style.flexDirection = 'column';
     this.el.style.alignItems = 'center';

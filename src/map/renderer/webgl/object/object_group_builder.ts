@@ -42,4 +42,8 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
   }
 
   abstract build(): Promise<WebGlObjectBufferredGroup> | WebGlObjectBufferredGroup;
+
+  clear(): void {
+    this.objects = [];
+  }
 }

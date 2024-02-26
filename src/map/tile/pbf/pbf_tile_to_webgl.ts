@@ -1,15 +1,13 @@
 import Protobuf from 'pbf';
 import { mat3, vec4 } from 'gl-matrix';
 import { VectorTile } from '@mapbox/vector-tile';
+import tilebelt from '@mapbox/tilebelt';
 import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 import { MapTileFeatureType } from '../tile';
 import { PbfTileLayer } from './pbf_tile';
-import { ProjectionType } from '../../geo/projection/projection';
-import { AtlasTextureMappingState } from '../../atlas/atlas_manager';
-import { MapFeatureFlags } from '../../flags';
 // Styles
-import { DataTileStyles, GlyphStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
+import { GlyphStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
 // WEBGL specific
 import { WebGlObjectBufferredGroup } from '../../renderer/webgl/object/object';
@@ -21,23 +19,9 @@ import { GlyphGroupBuilder } from '../../renderer/webgl/glyph/glyph_group_builde
 import { TextTextureGroupBuilder } from '../../renderer/webgl/text/text_texture_builder';
 import { MercatorProjection } from '../../geo/projection/mercator_projection';
 import { WebGlText } from '../../renderer/webgl/text/text';
+import { FetchTileOptions } from '../tile_transformer';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
-
-export interface FetchTileOptions {
-  tileId: string;
-  url: string;
-  projectionViewMat: [number, number, number, number, number, number, number, number, number];
-  canvasWidth: number;
-  canvasHeight: number;
-  pixelRatio: number;
-  zoom: number;
-  tileSize: number;
-  tileStyles: DataTileStyles;
-  projectionType: ProjectionType;
-  atlasTextureMappingState: AtlasTextureMappingState;
-  featureFlags: MapFeatureFlags;
-}
 
 function formatTileURL(tileId: string, url: string) {
   const [x, y, z] = tileId.split('/');
@@ -79,7 +63,8 @@ export async function fetchTile(
     projectionViewMat: projectionViewMatSource,
     featureFlags,
   }: FetchTileOptions,
-  abortController: AbortController
+  abortController: AbortController,
+  onLayerReady: (tileLayer: PbfTileLayer) => void
 ): Promise<PbfTileLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
   const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
@@ -188,6 +173,10 @@ export async function fetchTile(
             components: 32,
             borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
             borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
+            margin: {
+              top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
+              left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
+            },
           });
         } else if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
@@ -201,6 +190,10 @@ export async function fetchTile(
               components: 32,
               borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
               borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
+              margin: {
+                top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
+                left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
+              },
             });
           }
         }
@@ -213,12 +206,16 @@ export async function fetchTile(
           const textObject: WebGlText = {
             type: MapTileFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
+            borderColor: compileStatement(textStyle.borderColor, pointFeature),
             text: compileStatement(textStyle.text, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
-            font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensansBold',
+            font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
             fontSize: compileStatement(textStyle.fontSize, pointFeature),
             borderWidth: 1,
-            borderColor: vec4.fromValues(0, 0, 0, 1),
+            margin: {
+              top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
+              left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
+            },
           };
 
           textTextureGroupBuilder.addObject(textObject);
@@ -229,12 +226,16 @@ export async function fetchTile(
             const textObject: WebGlText = {
               type: MapTileFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
+              borderColor: compileStatement(textStyle.borderColor, pointFeature),
               text: compileStatement(textStyle.text, pointFeature),
               center: point as [number, number],
-              font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensansBold',
+              font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
               fontSize: compileStatement(textStyle.fontSize, pointFeature),
               borderWidth: 1,
-              borderColor: vec4.fromValues(0, 0, 0, 1),
+              margin: {
+                top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
+                left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
+              },
             };
 
             textTextureGroupBuilder.addObject(textObject);
@@ -259,6 +260,10 @@ export async function fetchTile(
           center,
           width: glyphStyle.width ?? compileStatement(glyphStyle.width, pointFeature),
           height: glyphStyle.height ?? compileStatement(glyphStyle.height, pointFeature),
+          margin: {
+            top: glyphStyle.margin?.top ? compileStatement(glyphStyle.margin?.top, pointFeature) : 0,
+            left: glyphStyle.margin?.left ? compileStatement(glyphStyle.margin?.left, pointFeature) : 0,
+          },
         });
       } else if (featureType === MapTileFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
@@ -345,7 +350,73 @@ export async function fetchTile(
       objectGroups.push(glyphGroupBuilder.build());
     }
 
-    tileLayers.push({ layerName: styleLayer.sourceLayer, zIndex: styleLayer.zIndex, objectGroups, tileId });
+    const layer = { tileId, layerName: styleLayer.styleLayerName, zIndex: styleLayer.zIndex, objectGroups };
+    onLayerReady(layer);
+
+    tileLayers.push(layer);
+  }
+
+  if (featureFlags.debugLayer) {
+    const tilePiolygon = tilebelt.tileToGeoJSON([x, y, z]);
+    const tileCenter = geometryCenter(tilePiolygon).geometry.coordinates as [number, number];
+    const tileBbox = tilePiolygon.coordinates[0] as Array<[number, number]>;
+    const lineGroupBuilder = new LineGroupBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
+    const textTextureGroupBuilder = new TextTextureGroupBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
+
+    textTextureGroupBuilder.addObject({
+      type: MapTileFeatureType.text,
+      text: tileId,
+      center: tileCenter,
+      font: 'opensans',
+      fontSize: 24,
+      borderWidth: 1,
+      color: [1, 1, 1, 1],
+      borderColor: [0, 0, 0, 1],
+      margin: {
+        top: 0,
+        left: 0,
+      },
+    });
+
+    lineGroupBuilder.addObject({
+      type: MapTileFeatureType.line,
+      color: [1, 0, 0, 1],
+      borderColor: [0, 0, 0, 1],
+      vertecies: tileBbox,
+      width: 3,
+      borderWidth: 0,
+      fill: LineFillStyle.solid,
+      join: LineJoinStyle.miter,
+      cap: LineCapStyle.square,
+    });
+
+    const debugObjectGroups = [await textTextureGroupBuilder.build(), lineGroupBuilder.build()];
+    const debugLayer = {
+      layerName: 'debugLayer',
+      tileId,
+      zIndex: 99,
+      objectGroups: debugObjectGroups,
+    };
+    tileLayers.push(debugLayer);
+    onLayerReady(debugLayer);
   }
 
   return tileLayers;

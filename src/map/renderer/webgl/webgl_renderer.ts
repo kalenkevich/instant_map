@@ -114,7 +114,7 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
+  render_old(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
     let program;
     let globalUniformsSet = false;
 
@@ -148,66 +148,72 @@ export class WebGlRenderer implements Renderer {
   private currentStateId?: string;
   private alreadyRenderedTileLayer = new Set<string>();
   private getCurrentStateId(viewMatrix: mat3, zoom: number, tileSize: number) {
-    return [...viewMatrix, zoom, tileSize].join('-');
+    return [...viewMatrix, zoom, tileSize, this.canvas.width, this.canvas.height].join('-');
   }
-  renderV2(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
+
+  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
     let program: ObjectProgram;
+    let globalUniformsSet = false;
+    let shouldRenderToCanvas = false;
 
     const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
     if (this.currentStateId !== stateId) {
       this.currentStateId = stateId;
       this.alreadyRenderedTileLayer.clear();
       this.framebuffer.clear();
+      this.debugLog('clear');
     }
 
-    let shouldRenderToCanvas = false;
-    const renderTile = (tileIndex: number) => {
-      if (tileIndex == tiles.length) {
-        if (shouldRenderToCanvas) {
-          // render texture to canvas
-          this.framebufferProgram.link();
-          this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
-          this.framebufferProgram.draw(this.texture);
-          this.framebufferProgram.unlink();
-        }
+    const sortedLayers = this.getSortedLayers(tiles);
 
-        return;
+    for (const layer of sortedLayers) {
+      const { objectGroups, layerName, tileId } = layer as PbfTileLayer;
+      const renderLayerId = `${tileId}-${layerName}`;
+
+      if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
+        this.debugLog(`skip layer render "${renderLayerId}"`);
+        continue;
+      } else {
+        this.alreadyRenderedTileLayer.add(renderLayerId);
+        this.debugLog(`layer render "${renderLayerId}"`);
       }
 
-      const layers = tiles[tileIndex].getLayers() || [];
-      const sortedLayers = [...layers].sort((l1, l2) => l1.zIndex - l2.zIndex);
-
-      for (const layer of sortedLayers) {
-        const { objectGroups, layerName, tileId } = layer as PbfTileLayer;
-        const renderLayerId = `${tileId}-${layerName}`;
-
-        if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
-          continue;
-        } else {
-          this.alreadyRenderedTileLayer.add(renderLayerId);
-        }
-
-        for (const objectGroup of objectGroups) {
-          const prevProgram: ObjectProgram = program;
-          program = this.programs[objectGroup.type];
-
-          prevProgram?.unlink();
-          program.link();
-          this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
-
-          // render to framebuffer texture
-          this.framebuffer.bind();
-          program.drawObjectGroup(objectGroup);
-          this.framebuffer.unbind();
-          shouldRenderToCanvas = true;
-        }
+      if (program && !globalUniformsSet) {
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+        globalUniformsSet = true;
       }
 
-      requestAnimationFrame(() => {
-        renderTile(tileIndex + 1);
-      });
-    };
-    renderTile(0);
+      for (const objectGroup of objectGroups) {
+        const prevProgram: ObjectProgram = program;
+        program = this.programs[objectGroup.type];
+
+        this.framebuffer.bind();
+        prevProgram?.unlink();
+        program.link();
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+        program.drawObjectGroup(objectGroup);
+        this.framebuffer.unbind();
+        shouldRenderToCanvas = true;
+      }
+    }
+
+    if (shouldRenderToCanvas) {
+      // render texture to canvas
+      this.framebufferProgram.link();
+      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
+      this.framebufferProgram.draw(this.texture);
+      this.framebufferProgram.unlink();
+      this.debugLog(`canvas render`);
+    } else {
+      this.debugLog(`skip canvas render`);
+    }
+    this.debugLog('----------------------');
+  }
+
+  private debugLog(message: string) {
+    if (this.featureFlags.webglRendererDebug) {
+      console.log('[WebGl Renderer]: ' + message);
+    }
   }
 
   private getSortedLayers(tiles: MapTile[]): MapTileLayer[] {

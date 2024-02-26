@@ -9,7 +9,12 @@ import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
 import { MapFeatureFlags } from '../flags';
-import { TileGridWorkerEventType } from '../worker/worker_actions';
+import {
+  WorkerTaskRequestType,
+  WorkerTaskResponseType,
+  TileFullCompleteResponse,
+  TileLayerCompleteResponse,
+} from '../worker/worker_actions';
 import { WorkerPool, WorkerTask, CANCEL_WORKER_ERROR_MESSAGE } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
@@ -42,13 +47,23 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   init() {
     this.tilesInView = [];
     this.workerPool = new WorkerPool(this.maxWorkerPool);
+
+    this.workerPool.on(
+      WorkerTaskResponseType.TILE_LAYER_COMPLETE,
+      (event: WorkerTaskResponseType, response: TileLayerCompleteResponse) => {
+        this.onTileLayerReady(response);
+      }
+    );
   }
 
   destroy() {}
 
-  // update tiles with data from worker
-  private handleTileWorker = (workerEvent: any) => {
-    const { tileId, tileLayers } = workerEvent.data;
+  private onTileFullReady(response: TileFullCompleteResponse) {
+    if (!response.data) {
+      return;
+    }
+
+    const { tileId, tileLayers } = response.data;
 
     let tile: MapTile;
     if (this.tiles.has(tileId)) {
@@ -64,7 +79,44 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     setTimeout(() => {
       this.fire(TilesGridEvent.TILE_LOADED, tile);
     }, 0);
-  };
+  }
+
+  private onTileLayerReady(response: TileLayerCompleteResponse) {
+    if (!response.data) {
+      return;
+    }
+
+    const { tileId, tileLayer } = response.data;
+
+    let tile: MapTile;
+    if (this.tiles.has(tileId)) {
+      tile = this.tiles.get(tileId);
+      const layers = tile.getLayers();
+      const hasLayer = layers.find(l => l.layerName === tileLayer.layerName);
+
+      if (hasLayer) {
+        tile.setLayers(
+          layers.map(l => {
+            if (l.layerName === tileLayer.layerName) {
+              return tileLayer;
+            }
+
+            return l;
+          })
+        );
+      } else {
+        layers.push(tileLayer);
+      }
+    } else {
+      tile = this.createMapTile(tileId, [tileLayer]);
+
+      this.tiles.set(tileId, tile);
+    }
+
+    setTimeout(() => {
+      this.fire(TilesGridEvent.TILE_LOADED, tile);
+    }, 0);
+  }
 
   public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
     // update visible tiles based on viewport
@@ -119,9 +171,9 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     for (const [tileId, task] of this.currentLoadingTiles) {
       if (!tilesToLoad.includes(tileId)) {
         if (task) {
-          task.worker.postMessage({
-            type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
-            tileId,
+          task.worker.sendRequest({
+            type: WorkerTaskRequestType.CANCEL_TILE_FETCH,
+            data: tileId,
           });
           this.workerPool.cancel(task.taskId);
         }
@@ -138,7 +190,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       this.tiles.set(tileId, this.createMapTile(tileId));
 
       const workerTask = await this.workerPool.execute({
-        type: TileGridWorkerEventType.FETCH_TILE,
+        type: WorkerTaskRequestType.FETCH_TILE,
         data: {
           tileId,
           tileStyles: this.tileStyles,
@@ -156,10 +208,10 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       });
       this.currentLoadingTiles.set(tileId, workerTask);
       workerTask.task
-        .then((result: any) => this.handleTileWorker(result))
+        .then((result: any) => this.onTileFullReady(result))
         .catch(error => {
           if (error !== CANCEL_WORKER_ERROR_MESSAGE) {
-            console.log(error);
+            console.error(error);
           }
         });
     }

@@ -1,13 +1,8 @@
-export const downloadFile = async (
-  filename: string,
-  data: ArrayBuffer|string|Blob,
-  contentType: string,
-) => {
+export const downloadFile = async (filename: string, data: ArrayBuffer | string | Blob, contentType: string) => {
   return new Promise<void>(resolve => {
-    const fileBlob =
-        data instanceof Blob ? data : new Blob([data], {type: contentType});
+    const fileBlob = data instanceof Blob ? data : new Blob([data], { type: contentType });
     const fileReader = new FileReader();
-  
+
     fileReader.readAsDataURL(fileBlob);
     fileReader.onload = () => {
       const aElem = document.createElement('a');
@@ -22,11 +17,8 @@ export const downloadFile = async (
   });
 };
 
-export const downloadImage = (
-  filename: string,
-  url: string,
-): Promise<void> => {
-  return new Promise<void>((resolve) => {
+export const downloadImage = (filename: string, url: string): Promise<void> => {
+  return new Promise<void>(resolve => {
     const a = document.createElement('a');
 
     a.href = url;
@@ -38,4 +30,13 @@ export const downloadImage = (
 
     resolve();
   });
-}
+};
+
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('bitmaprenderer');
+export const downloadBitmapImage = async (bmp: ImageBitmap) => {
+  ctx.transferFromImageBitmap(bmp);
+  const blob2: Blob = await new Promise(res => canvas.toBlob(res));
+  const img = document.body.appendChild(new Image());
+  img.src = URL.createObjectURL(blob2);
+};

@@ -7,6 +7,7 @@ import {
   WebGlObjectAttributeDescriptor,
   WebGlObjectAttributeType,
 } from '../object/object';
+import { PointMargin } from '../point/point';
 
 export interface WebGlText extends WebGlObject {
   type: MapTileFeatureType.text;
@@ -15,6 +16,7 @@ export interface WebGlText extends WebGlObject {
   fontSize: number;
   text: string;
   center: vec2 | [number, number];
+  margin?: PointMargin;
 
   // TODO: support this
   borderWidth: number;
@@ -29,6 +31,8 @@ export interface TextMapping {
   text: string;
   font: string;
   fontSize: number;
+  color: vec4 | [number, number, number, number];
+  borderColor: vec4 | [number, number, number, number];
   widthPadding: number;
   heightPadding: number;
 }
