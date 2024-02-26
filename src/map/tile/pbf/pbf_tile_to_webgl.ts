@@ -178,7 +178,11 @@ export async function fetchTile(
               left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
             },
           });
-        } else if (geojson.geometry.type === 'MultiPoint') {
+
+          continue;
+        }
+        
+        if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
@@ -197,7 +201,11 @@ export async function fetchTile(
             });
           }
         }
-      } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.text) {
+
+        continue;
+      }
+      
+      if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.text) {
         const textStyle = styleLayer.feature as TextStyle;
 
         if (geojson.geometry.type === 'Point') {
@@ -219,7 +227,11 @@ export async function fetchTile(
           };
 
           textTextureGroupBuilder.addObject(textObject);
-        } else if (geojson.geometry.type === 'MultiPoint') {
+
+          continue;
+        }
+
+        if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
@@ -241,7 +253,11 @@ export async function fetchTile(
             textTextureGroupBuilder.addObject(textObject);
           }
         }
-      } else if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
+
+        continue;
+      }
+      
+      if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
         let center: [number, number];
 
         if (geojson.geometry.type === 'Point') {
@@ -265,7 +281,15 @@ export async function fetchTile(
             left: glyphStyle.margin?.left ? compileStatement(glyphStyle.margin?.left, pointFeature) : 0,
           },
         });
-      } else if (featureType === MapTileFeatureType.polygon) {
+
+        continue;
+      }
+
+      if (isTextOrGlyph) {
+        continue;
+      }
+      
+      if (featureType === MapTileFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
 
         if (geojson.geometry.type === 'Polygon') {
@@ -279,7 +303,11 @@ export async function fetchTile(
             borderColor: vec4.fromValues(0, 0, 0, 1),
             borderJoin: LineJoinStyle.bevel,
           });
-        } else if (geojson.geometry.type === 'MultiPolygon') {
+
+          continue;
+        }
+        
+        if (geojson.geometry.type === 'MultiPolygon') {
           const polygonFeature = geojson as Feature<MultiPolygon>;
 
           for (const polygons of geojson.geometry.coordinates) {
@@ -293,7 +321,11 @@ export async function fetchTile(
             });
           }
         }
-      } else if (featureType === MapTileFeatureType.line) {
+
+        continue;
+      }
+      
+      if (featureType === MapTileFeatureType.line) {
         const lineStyle = styleLayer.feature as LineStyle;
 
         if (geojson.geometry.type === 'LineString') {
@@ -310,7 +342,11 @@ export async function fetchTile(
             join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
             cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
           });
-        } else if (geojson.geometry.type === 'MultiLineString') {
+
+          continue;
+        }
+        
+        if (geojson.geometry.type === 'MultiLineString') {
           const lineFeature = geojson as Feature<MultiLineString>;
 
           for (const lineGeometry of lineFeature.geometry.coordinates) {
@@ -327,6 +363,8 @@ export async function fetchTile(
             });
           }
         }
+
+        continue;
       }
     }
 

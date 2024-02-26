@@ -114,37 +114,6 @@ export class WebGlRenderer implements Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  render_old(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
-    let program;
-    let globalUniformsSet = false;
-
-    const sortedLayers = this.getSortedLayers(tiles);
-
-    for (const layer of sortedLayers) {
-      const { objectGroups } = layer as PbfTileLayer;
-
-      if (program && !globalUniformsSet) {
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
-        globalUniformsSet = true;
-      }
-
-      for (const objectGroup of objectGroups) {
-        const prevProgram: ObjectProgram = program;
-        program = this.programs[objectGroup.type];
-
-        if (prevProgram !== program) {
-          prevProgram?.unlink();
-          program.link();
-          this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
-        }
-
-        program.drawObjectGroup(objectGroup);
-      }
-    }
-
-    this.gl.flush();
-  }
-
   private currentStateId?: string;
   private alreadyRenderedTileLayer = new Set<string>();
   private getCurrentStateId(viewMatrix: mat3, zoom: number, tileSize: number) {
@@ -198,7 +167,6 @@ export class WebGlRenderer implements Renderer {
     }
 
     if (shouldRenderToCanvas) {
-      // render texture to canvas
       this.framebufferProgram.link();
       this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
       this.framebufferProgram.draw(this.texture);

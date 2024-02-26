@@ -65,6 +65,10 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     const { tileId, tileLayers } = response.data;
 
+    if (!tileLayers || tileLayers.length === 0) {
+      return;
+    }
+
     let tile: MapTile;
     if (this.tiles.has(tileId)) {
       tile = this.tiles.get(tileId);
@@ -112,10 +116,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
       this.tiles.set(tileId, tile);
     }
-
-    setTimeout(() => {
-      this.fire(TilesGridEvent.TILE_LOADED, tile);
-    }, 0);
   }
 
   public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {

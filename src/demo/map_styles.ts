@@ -406,6 +406,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       sourceLayer: 'landuse',
       styleLayerName: 'landuseStyles',
       zIndex: 1,
+      show: true,
       feature: {
         type: MapTileFeatureType.polygon,
         color: [
@@ -511,7 +512,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.glyph,
-        name: ['$get', 'properties.class'],
+        name: ['$get', 'properties.maki'],
         atlas: 'iconsAtlas',
       },
       maxzoom: 18,
@@ -560,6 +561,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       sourceLayer: 'building',
       styleLayerName: 'buildingStyles',
       zIndex: 2,
+      show: true,
       feature: {
         type: MapTileFeatureType.polygon,
         color: ['$rgba', 222, 215, 211, 1],

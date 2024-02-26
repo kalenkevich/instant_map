@@ -102,7 +102,7 @@ export function renderMap() {
     workerPool: 8,
     featureFlags: {
       debugLayer: true,
-      webglRendererDebug: true,
+      webglRendererDebug: false,
     },
   });
 
