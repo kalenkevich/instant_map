@@ -9,7 +9,8 @@ import { ObjectProgram } from './object/object_program';
 import { PointProgram } from './point/point_program';
 import { PolygonProgram } from './polygon/polygon_program';
 import { LineProgram } from './line/line_program';
-import { TextProgram } from './text/text_program';
+import { TextTextureProgram } from './text_texture/text_texture_program';
+import { TextPolygonProgram } from './text_polygon/text_polygon_program';
 import { GlyphProgram } from './glyph/glyph_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { AtlasTextureManager } from '../../atlas/atlas_manager';
@@ -47,9 +48,11 @@ export class WebGlRenderer implements Renderer {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.texture = createTexture(gl, {
+      name: 'framebuffer texture',
       width: this.canvas.width,
       height: this.canvas.height,
       pixels: null,
+      unpackPremultiplyAlpha: true,
       minFilter: gl.LINEAR,
       magFilter: gl.LINEAR,
       wrapS: gl.CLAMP_TO_EDGE,
@@ -68,11 +71,13 @@ export class WebGlRenderer implements Renderer {
     const lineProgram = new LineProgram(gl, this.featureFlags);
     lineProgram.init();
 
-    const textProgram = new TextProgram(gl, this.featureFlags);
-    textProgram.init();
-
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
     glyphProgram.init();
+
+    const textProgram = this.featureFlags.webglRendererUsePolygonText
+      ? new TextPolygonProgram(gl, this.featureFlags)
+      : new TextTextureProgram(gl, this.featureFlags);
+    textProgram.init();
 
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
@@ -120,13 +125,13 @@ export class WebGlRenderer implements Renderer {
     return [...viewMatrix, zoom, tileSize, this.canvas.width, this.canvas.height].join('-');
   }
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number) {
+  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, pruneCache: boolean = false) {
     let program: ObjectProgram;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
 
     const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
-    if (this.currentStateId !== stateId) {
+    if (pruneCache || this.currentStateId !== stateId) {
       this.currentStateId = stateId;
       this.alreadyRenderedTileLayer.clear();
       this.framebuffer.clear();

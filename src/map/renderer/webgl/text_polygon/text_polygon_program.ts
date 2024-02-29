@@ -1,26 +1,29 @@
-import { WebGlPolygonBufferredGroup } from './polygon';
-import PolygonShaders from './polygon_shaders';
+import { WebGlTextPolygonBufferredGroup } from '../text_texture/text';
+import { MapFeatureFlags } from '../../../flags';
+import TextShaders from './text_polygon_shaders';
 import { ObjectProgram } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
-import { MapFeatureFlags } from '../../../flags';
 
-export class PolygonProgram extends ObjectProgram {
+export class TextPolygonProgram extends ObjectProgram {
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
-    protected readonly vertexShaderSource: string = PolygonShaders.vertext,
-    protected readonly fragmentShaderSource: string = PolygonShaders.fragment
+    protected readonly vertexShaderSource: string = TextShaders.vertext,
+    protected readonly fragmentShaderSource: string = TextShaders.fragment
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  onInit(): void {}
+  onInit(): void {
+  }
 
-  onLink(): void {}
+  onLink(): void {
+  }
 
-  onUnlink(): void {}
+  onUnlink(): void {
+  }
 
-  drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup) {
+  drawObjectGroup(objectGroup: WebGlTextPolygonBufferredGroup): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);

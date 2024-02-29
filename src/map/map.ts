@@ -161,6 +161,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.pixelRatio,
       this.maxZoom,
       this.projection,
+      this.fontManager,
       this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);
@@ -196,7 +197,7 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   private onTileLoaded = () => {
-    this.rerender();
+    this.rerender(true);
   };
 
   private resizeEventListener = () => {
@@ -308,18 +309,19 @@ export class GlideMap extends Evented<MapEventType> {
     return this.camera.getProjectionMatrix();
   }
 
-  rerender(): Promise<void> {
+  rerender(pruneCache = false): Promise<void> {
     const zoom = this.getZoom();
     this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
 
     this.renderQueue.clear();
     return this.renderQueue.render(() => {
-      this.render();
+      this.render(pruneCache);
+      pruneCache = false;
       this.fire(MapEventType.RENDER);
     });
   }
 
-  private render() {
+  private render(pruneCache = false) {
     let start = performance.now();
     if (this.mapOptions.controls.debug) {
       this.stats.begin();
@@ -329,7 +331,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize);
+    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize, pruneCache);
 
     this.statsWidget.style.display = 'none';
 

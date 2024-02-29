@@ -2,6 +2,7 @@ import { ProjectionType } from '../geo/projection/projection';
 import { AtlasTextureMappingState } from '../atlas/atlas_manager';
 import { MapFeatureFlags } from '../flags';
 import { DataTileStyles } from '../styles/styles';
+import { FontManagerState } from '../font/font_manager';
 
 export enum TileSourceType {
   pbf = 'pbf',
@@ -28,6 +29,7 @@ export interface FetchTileOptions {
   tileSize: number;
   tileStyles: DataTileStyles;
   projectionType: ProjectionType;
+  fontManagerState: FontManagerState,
   atlasTextureMappingState: AtlasTextureMappingState;
   featureFlags: MapFeatureFlags;
 }

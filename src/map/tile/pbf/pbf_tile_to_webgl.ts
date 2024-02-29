@@ -16,10 +16,12 @@ import { PointGroupBuilder } from '../../renderer/webgl/point/point_builder';
 import { PolygonGroupBuilder } from '../../renderer/webgl/polygon/polygon_builder';
 import { LineGroupBuilder } from '../../renderer/webgl/line/line_builder';
 import { GlyphGroupBuilder } from '../../renderer/webgl/glyph/glyph_group_builder';
-import { TextTextureGroupBuilder } from '../../renderer/webgl/text/text_texture_builder';
+import { TextPolygonBuilder } from '../../renderer/webgl/text_polygon/text_polygon_builder';
+import { TextTextureGroupBuilder } from '../../renderer/webgl/text_texture/text_texture_builder';
 import { MercatorProjection } from '../../geo/projection/mercator_projection';
-import { WebGlText } from '../../renderer/webgl/text/text';
+import { WebGlText } from '../../renderer/webgl/text_texture/text';
 import { FetchTileOptions } from '../tile_transformer';
+import { FontManager } from '../../font/font_manager';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
@@ -60,6 +62,7 @@ export async function fetchTile(
     zoom,
     tileSize,
     atlasTextureMappingState,
+    fontManagerState,
     projectionViewMat: projectionViewMatSource,
     featureFlags,
   }: FetchTileOptions,
@@ -74,6 +77,7 @@ export async function fetchTile(
   const pbf = new Protobuf(resData);
   const vectorTile = new VectorTile(pbf);
 
+  const fontManager = featureFlags.webglRendererUsePolygonText && FontManager.fromState(featureFlags, fontManagerState);
   const projection = new MercatorProjection();
   const tileLayers: PbfTileLayer[] = [];
 
@@ -127,7 +131,17 @@ export async function fetchTile(
       featureFlags,
       atlasTextureMappingState
     );
-    const textTextureGroupBuilder = new TextTextureGroupBuilder(
+    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText ? new TextPolygonBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags,
+      fontManager
+    ) : new TextTextureGroupBuilder(
       projectionViewMat,
       canvasWidth,
       canvasHeight,
@@ -408,7 +422,17 @@ export async function fetchTile(
       projection,
       featureFlags
     );
-    const textTextureGroupBuilder = new TextTextureGroupBuilder(
+    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText ? new TextPolygonBuilder(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      tileSize,
+      projection,
+      featureFlags,
+      fontManager
+    ) : new TextTextureGroupBuilder(
       projectionViewMat,
       canvasWidth,
       canvasHeight,

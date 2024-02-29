@@ -1,6 +1,6 @@
 import { vec4 } from 'gl-matrix';
 import { WebGlText } from './text';
-import { WebGlTextBufferredGroup, TextMapping } from './text';
+import { WebGlTextTextureBufferredGroup, TextMapping } from './text';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { MapTileFeatureType } from '../../../tile/tile';
@@ -106,7 +106,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     this.objects.push([text, 0]);
   }
 
-  async build(): Promise<WebGlTextBufferredGroup> {
+  async build(): Promise<WebGlTextTextureBufferredGroup> {
     const size = this.objects.length;
     const dynamicTextCanvas = new DynamicTextCanvas();
     const verteciesBuffer: number[] = [];

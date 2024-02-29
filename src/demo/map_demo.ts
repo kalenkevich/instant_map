@@ -103,6 +103,7 @@ export function renderMap() {
     featureFlags: {
       debugLayer: true,
       webglRendererDebug: false,
+      webglRendererUsePolygonText: true,
     },
   });
 

@@ -10,7 +10,7 @@ import { WebGlTexture, createTexture } from '../utils/weblg_texture';
 export class GlyphProgram extends ObjectProgram {
   protected u_textureLocation: WebGLUniformLocation;
   protected atlasTextures: Record<string, WebGlTexture> = {};
-  protected currentTexture?: string;
+  protected currentAtlasTexture?: WebGlTexture;
 
   protected textcoordBuffer: WebGlBuffer;
 
@@ -48,6 +48,7 @@ export class GlyphProgram extends ObjectProgram {
     const textures = this.atlasTextureManager.getAll();
     for (const textureInfo of textures) {
       this.atlasTextures[textureInfo.name] = createTexture(gl, {
+        name: textureInfo.name,
         width: textureInfo.width,
         height: textureInfo.height,
         unpackPremultiplyAlpha: true,
@@ -77,7 +78,7 @@ export class GlyphProgram extends ObjectProgram {
   }
 
   protected setCurrentTexture(textureName: string) {
-    this.currentTexture = textureName;
+    this.currentAtlasTexture = this.atlasTextures[textureName];
     this.gl.uniform1i(this.u_textureLocation, this.atlasTextures[textureName].index);
   }
 
@@ -86,14 +87,16 @@ export class GlyphProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    if (!this.currentTexture || this.currentTexture !== objectGroup.atlas) {
+    if (!this.currentAtlasTexture || this.currentAtlasTexture.name !== objectGroup.atlas) {
       this.setCurrentTexture(objectGroup.atlas);
     }
 
+    this.currentAtlasTexture?.bind();
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
+    this.currentAtlasTexture?.unbind();
 
     gl.bindVertexArray(null);
   }

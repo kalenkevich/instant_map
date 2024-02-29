@@ -440,7 +440,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name_en'],
-        font: 'opensans',
+        font: 'opensansBold',
         fontSize: 32,
       },
     },
@@ -499,7 +499,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
-        font: 'opensans',
+        font: 'opensansBold',
         fontSize: 14,
       },
       maxzoom: 18,
@@ -528,7 +528,15 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
-        font: 'opensans',
+        show: [
+          "$lte",
+          [
+              "$get",
+              "properties.filterrank"
+          ],
+          3
+      ],
+        font: 'opensansBold',
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
@@ -578,7 +586,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.house_num'],
-        font: 'opensans',
+        font: 'opensansBold',
         fontSize: 14,
       },
     },
@@ -610,6 +618,24 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       height: 512,
       source: './icons/font_sprite.png',
       mapping: 'font_default_mapping_32_32_256_2',
+    },
+  },
+  fonts: {
+    arial: {
+      name: 'arial',
+      source: './fonts/arial_regular.ttf',
+    },
+    roboto: {
+      name: 'roboto',
+      source: './fonts/roboto_regular.ttf',
+    },
+    opensans: {
+      name: 'opensans',
+      source: './fonts/opensans_regular.ttf',
+    },
+    opensansBold: {
+      name: 'opensansBold',
+      source: './fonts/opensans_bold.ttf',
     },
   },
 };

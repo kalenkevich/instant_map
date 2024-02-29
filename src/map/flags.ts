@@ -4,4 +4,6 @@ export interface MapFeatureFlags {
 
   /** Log all debug events of webgl rendrer. */
   webglRendererDebug?: boolean;
+
+  webglRendererUsePolygonText?: boolean;
 }

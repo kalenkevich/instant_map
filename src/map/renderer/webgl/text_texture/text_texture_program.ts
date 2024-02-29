@@ -1,13 +1,12 @@
-import { WebGlTextBufferredGroup } from './text';
-import TextShaders from './text_shaders';
+import { WebGlTextTextureBufferredGroup } from './text';
+import TextShaders from './text_texture_shaders';
 import { ObjectProgram } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../utils/weblg_texture';
-import { downloadBitmapImage } from '../../../utils/download_utils';
 
-export class TextProgram extends ObjectProgram {
+export class TextTextureProgram extends ObjectProgram {
   textcoordBuffer: WebGlBuffer;
   colorBuffer: WebGlBuffer;
 
@@ -63,6 +62,7 @@ export class TextProgram extends ObjectProgram {
     const gl = this.gl;
 
     this.texture = createTexture(gl, {
+      name: 'text',
       width: 0,
       height: 0,
       unpackPremultiplyAlpha: true,
@@ -73,7 +73,7 @@ export class TextProgram extends ObjectProgram {
     });
   }
 
-  drawObjectGroup(textGroup: WebGlTextBufferredGroup) {
+  drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);

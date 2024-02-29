@@ -1,6 +1,7 @@
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 
 export interface CreateTextureOptions {
+  name: string;
   width: number;
   height: number;
   flipY?: boolean;
@@ -19,6 +20,7 @@ export interface CreateTextureOptions {
 }
 
 export interface WebGlTexture {
+  name: string;
   texture: WebGLTexture;
   index: number;
   width: number;
@@ -61,6 +63,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       options.pixels
     );
   }
+
   if (options.unpackPremultiplyAlpha) {
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   }
@@ -83,6 +86,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
   gl.bindTexture(gl.TEXTURE_2D, null);
 
   return {
+    name: options.name,
     texture,
     index: textureIndex,
     width: options.width,
@@ -103,9 +107,11 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
     bind() {
+      gl.activeTexture(gl.TEXTURE0 + textureIndex);
       gl.bindTexture(gl.TEXTURE_2D, texture);
     },
     unbind() {
+      gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
   };

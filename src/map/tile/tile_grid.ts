@@ -9,6 +9,7 @@ import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
 import { MapFeatureFlags } from '../flags';
+import { FontManager } from '../font/font_manager';
 import {
   WorkerTaskRequestType,
   WorkerTaskResponseType,
@@ -18,7 +19,8 @@ import {
 import { WorkerPool, WorkerTask, CANCEL_WORKER_ERROR_MESSAGE } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
-  TILE_LOADED = 'tileLoaded',
+  TILE_LOADED = 0,
+  TILE_LAYER_COMPLETE = 1,
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
@@ -39,6 +41,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly pixelRatio: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
+    private readonly fontManager: FontManager,
     private readonly atlasManager: AtlasTextureManager
   ) {
     super();
@@ -116,6 +119,10 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
       this.tiles.set(tileId, tile);
     }
+
+    setTimeout(() => {
+      this.fire(TilesGridEvent.TILE_LAYER_COMPLETE, tile);
+    }, 0);
   }
 
   public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
@@ -203,6 +210,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),
           atlasTextureMappingState: this.atlasManager.getMappingState(),
+          fontManagerState: this.featureFlags.webglRendererUsePolygonText && this.fontManager.dumpState(),
           featureFlags: this.featureFlags,
         },
       });
