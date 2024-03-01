@@ -10,6 +10,7 @@ import {
 import { PointMargin } from '../point/point';
 
 export interface WebGlText extends WebGlObject {
+  id: number;
   type: MapTileFeatureType.text;
   color: vec4;
   font: string;
@@ -45,12 +46,14 @@ export interface WebGlTextTextureBufferredGroup extends WebGlObjectBufferredGrou
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   textcoords: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }
 
 export interface WebGlTextPolygonBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapTileFeatureType.text;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
-  color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
+  color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }

@@ -1,6 +1,6 @@
 import Stats from 'stats.js';
 import { Evented } from './evented';
-import { MapPan } from './pan/map_pan';
+import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
 import { Renderer } from './renderer/renderer';
@@ -178,6 +178,7 @@ export class GlideMap extends Evented<MapEventType> {
     await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
 
     this.pan.init();
+    this.pan.on(MapPanEvents.click, this.onMapClick);
     this.tilesGrid.init();
     this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
     this.renderer.init();
@@ -190,14 +191,31 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   destroy() {
+    this.pan.off(MapPanEvents.click, this.onMapClick);
     this.pan.destroy();
-    this.tilesGrid.destroy();
     this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.tilesGrid.destroy();
     this.renderer.destroy();
   }
 
   private onTileLoaded = () => {
     this.rerender(true);
+  };
+
+  private onMapClick = (event: MapPanEvents, clickEvent: MouseEvent, clippedWebGlSpaceCoords: [number, number]) => {
+    const tiles = this.tilesGrid.getCurrentViewTiles();
+    const zoom = this.getZoom();
+    const viewMatrix = this.camera.getProjectionMatrix();
+    const objectId = this.renderer.getObjectId(
+      tiles,
+      viewMatrix,
+      zoom,
+      this.mapOptions.tileStyles.tileSize,
+      clippedWebGlSpaceCoords[0],
+      clippedWebGlSpaceCoords[1]
+    );
+
+    console.log('objectId', objectId);
   };
 
   private resizeEventListener = () => {
@@ -331,7 +349,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize, pruneCache);
+    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize, { pruneCache });
 
     this.statsWidget.style.display = 'none';
 

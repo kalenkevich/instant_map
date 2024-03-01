@@ -15,11 +15,14 @@ export default {
 
     attribute vec2 a_position;
     attribute vec2 a_texCoord;
+    attribute vec4 a_color;
 
     varying vec2 v_texCoord;
+    varying vec4 v_color;
 
     void main() {
       v_texCoord = a_texCoord;
+      v_color = a_color;
 
       gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_position)), 0, 1);
     }
@@ -30,9 +33,15 @@ export default {
     uniform sampler2D u_texture;
 
     varying vec2 v_texCoord;
+    varying vec4 v_color;
+    uniform bool u_is_read_pixel_render_mode;
     
     void main() {
-      gl_FragColor = texture2D(u_texture, v_texCoord);
+      if (u_is_read_pixel_render_mode) {
+        gl_FragColor = v_color;
+      } else {
+        gl_FragColor = texture2D(u_texture, v_texCoord);
+      }
     }
   `,
 };

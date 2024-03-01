@@ -6,6 +6,7 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { TextureAtlas } from '../../../atlas/atlas_config';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 function webglColorToHex(color: vec4 | [number, number, number, number]) {
   const [r, g, b, a] = color;
@@ -112,6 +113,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];
+    const selectionColorBuffer: number[] = [];
     const textMappings: Array<[WebGlText, TextMapping]> = [];
 
     for (const [text] of this.objects) {
@@ -148,6 +150,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
 
       colorBuffer.push(...text.color);
+      selectionColorBuffer.push(...integerToVector4(text.id));
     }
 
     return {
@@ -169,6 +172,11 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }

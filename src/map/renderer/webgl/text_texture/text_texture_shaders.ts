@@ -12,6 +12,7 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_tile_size;
+    uniform bool u_is_read_pixel_render_mode;
 
     attribute vec2 a_position;
     attribute vec2 a_texCoord;
@@ -36,7 +37,11 @@ export default {
     varying vec4 v_color;
     
     void main() {
-      gl_FragColor = texture2D(u_texture, v_texCoord);
+      if (u_is_read_pixel_render_mode) {
+        gl_FragColor = v_color;
+      } else {
+        gl_FragColor = texture2D(u_texture, v_texCoord);
+      }
     }
   `,
 };

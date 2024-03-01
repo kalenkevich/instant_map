@@ -29,6 +29,7 @@ export enum LineFillStyle {
 }
 
 export interface WebGlLine extends WebGlObject {
+  id: number;
   type: MapTileFeatureType.line;
   color: vec4;
   width: number;
@@ -52,4 +53,5 @@ export interface WebGlLineBufferredGroup extends WebGlObjectBufferredGroup {
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>; // Array<vec2>;
   borderWidth: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 1, Float32Array>; // Array<number>;
   borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }

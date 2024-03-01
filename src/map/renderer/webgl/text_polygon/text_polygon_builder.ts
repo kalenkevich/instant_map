@@ -8,6 +8,7 @@ import { FontManager } from '../../../font/font_manager';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 const fontsCache: Record<string, Record<string, number[]>> = {};
 export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
@@ -34,6 +35,7 @@ export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
   build(): WebGlTextPolygonBufferredGroup {
     const numElements = this.vertecies.length / 2;
     const colorBuffer: number[] = [];
+    const selectionColorBuffer: number[] = [];
 
     let currentObjectIndex = 0;
     let currentObject: WebGlText = this.objects[currentObjectIndex][0];
@@ -47,6 +49,7 @@ export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
       }
 
       colorBuffer.push(...currentObject.color);
+      selectionColorBuffer.push(...integerToVector4(currentObject.id));
     }
 
     return {
@@ -62,6 +65,11 @@ export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
         buffer: createdSharedArrayBuffer(this.vertecies),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }
@@ -79,7 +87,7 @@ export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
     if (!fontsCache[text.font]) {
       fontsCache[text.font] = {};
     }
-    const fontSize = text.fontSize / this.pixelRatio;
+    const fontSize = text.fontSize / 2;
     const textVerticies: number[] = [];
     const { vertices, indices, width } = getVerticiesFromText(font, text.text, [0, 0], fontSize, true);
     const scaleFactor = width / fontSize;

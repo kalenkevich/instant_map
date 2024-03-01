@@ -1,18 +1,26 @@
 import 'hammerjs';
 import { vec3, mat3 } from 'gl-matrix';
 import { GlideMap } from '../map';
+import { Evented } from '../evented';
 
-export class MapPan {
+export enum MapPanEvents {
+  click = 'click',
+}
+
+export class MapPan extends Evented<MapPanEvents> {
   private hammer: any;
   private startX: number;
   private startY: number;
 
-  constructor(private readonly map: GlideMap, private readonly el: HTMLElement) {}
+  constructor(private readonly map: GlideMap, private readonly el: HTMLElement) {
+    super();
+  }
 
   init() {
     this.handleMove = this.handleMove.bind(this);
     this.handlePan = this.handlePan.bind(this);
     this.handleZoom = this.handleZoom.bind(this);
+    this.handleMouseClick = this.handleMouseClick.bind(this);
 
     this.subscribeOnEvents();
   }
@@ -25,6 +33,7 @@ export class MapPan {
     // setup event handlers
     this.el.addEventListener('mousedown', this.handlePan);
     this.el.addEventListener('wheel', this.handleZoom);
+    this.el.addEventListener('click', this.handleMouseClick);
 
     // mobile event handlers
     this.hammer = new Hammer(this.el);
@@ -37,9 +46,14 @@ export class MapPan {
   private unsubscribeFromEvents() {
     this.el.removeEventListener('mousedown', this.handlePan);
     this.el.removeEventListener('wheel', this.handleZoom);
+    this.el.removeEventListener('click', this.handleMouseClick);
 
     this.hammer.off('panstart', this.handlePan);
     this.hammer.off('pinch', this.handleZoom);
+  }
+
+  private handleMouseClick(clickEvent: MouseEvent) {
+    this.fire(MapPanEvents.click, clickEvent, this.getClipSpacePosition(clickEvent));
   }
 
   private handleMove(moveEvent: MouseEvent) {

@@ -1,6 +1,6 @@
 import { mat3 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
-import { Renderer } from '../renderer';
+import { Renderer, RenderOptions } from '../renderer';
 import { MapTile, MapTileFeatureType } from '../../tile/tile';
 import { MapTileLayer } from '../../tile/tile';
 import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
@@ -17,6 +17,7 @@ import { AtlasTextureManager } from '../../atlas/atlas_manager';
 import { MapFeatureFlags } from '../../flags';
 import { WebGlTexture, createTexture } from './utils/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
+import { vector4ToInteger } from './utils/number2vec';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -125,13 +126,30 @@ export class WebGlRenderer implements Renderer {
     return [...viewMatrix, zoom, tileSize, this.canvas.width, this.canvas.height].join('-');
   }
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, pruneCache: boolean = false) {
+  getObjectId(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, x: number, y: number): number {
+    const gl = this.gl;
+    const pixels = new Uint8Array(4);
+
+    this.render(tiles, viewMatrix, zoom, tileSize, {
+      pruneCache: true,
+      readPixelRenderMode: true,
+    });
+    gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    this.render(tiles, viewMatrix, zoom, tileSize, {
+      pruneCache: true,
+      readPixelRenderMode: false,
+    });
+
+    return vector4ToInteger([pixels[0], pixels[1], pixels[2], pixels[3]]);
+  }
+
+  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, options: RenderOptions) {
     let program: ObjectProgram;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
 
     const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
-    if (pruneCache || this.currentStateId !== stateId) {
+    if (options.pruneCache || this.currentStateId !== stateId) {
       this.currentStateId = stateId;
       this.alreadyRenderedTileLayer.clear();
       this.framebuffer.clear();
@@ -153,7 +171,7 @@ export class WebGlRenderer implements Renderer {
       }
 
       if (program && !globalUniformsSet) {
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize, options);
         globalUniformsSet = true;
       }
 
@@ -164,8 +182,8 @@ export class WebGlRenderer implements Renderer {
         this.framebuffer.bind();
         prevProgram?.unlink();
         program.link();
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize);
-        program.drawObjectGroup(objectGroup);
+        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize, options);
+        program.drawObjectGroup(objectGroup, { readPixelRenderMode: options.readPixelRenderMode });
         this.framebuffer.unbind();
         shouldRenderToCanvas = true;
       }
@@ -173,7 +191,7 @@ export class WebGlRenderer implements Renderer {
 
     if (shouldRenderToCanvas) {
       this.framebufferProgram.link();
-      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize);
+      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize, options);
       this.framebufferProgram.draw(this.texture);
       this.framebufferProgram.unlink();
       this.debugLog(`canvas render`);
@@ -199,11 +217,18 @@ export class WebGlRenderer implements Renderer {
     return layers.sort((l1, l2) => l1.zIndex - l2.zIndex);
   }
 
-  private setProgramGlobalUniforms(program: ObjectProgram, viewMatrix: mat3, zoom: number, tileSize: number) {
+  private setProgramGlobalUniforms(
+    program: ObjectProgram,
+    viewMatrix: mat3,
+    zoom: number,
+    tileSize: number,
+    options: RenderOptions
+  ) {
     program.setMatrix(viewMatrix);
     program.setZoom(zoom);
     program.setTileSize(tileSize);
     program.setWidth(this.rootEl.offsetWidth);
     program.setHeight(this.rootEl.offsetHeight);
+    program.setReadPixelRenderMode(options.readPixelRenderMode || false);
   }
 }

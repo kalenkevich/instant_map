@@ -7,6 +7,7 @@ import { MapTileFeatureType } from '../../../tile/tile';
 import { Projection } from '../../../geo/projection/projection';
 import { MapFeatureFlags } from '../../../flags';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
   constructor(
@@ -46,6 +47,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
 
     const verteciesBuffer = [];
     const texcoordBuffer = [];
+    const selectionColorBuffer: number[] = [];
 
     for (const glyph of filteredGlyphs) {
       const textureAtlas = this.atlasesMappingState[glyph.atlas];
@@ -76,6 +78,8 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
       // second triangle
       verteciesBuffer.push(x1, y2, x2, y1, x2, y2);
       texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
+
+      selectionColorBuffer.push(...integerToVector4(glyph.id));
     }
 
     return {
@@ -92,6 +96,11 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
         buffer: createdSharedArrayBuffer(texcoordBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }

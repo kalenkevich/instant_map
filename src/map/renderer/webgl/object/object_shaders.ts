@@ -1,6 +1,7 @@
 export const DEFAULT_FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
+  uniform bool u_is_read_pixel_render_mode;
   varying vec4 v_color;
 
   void main() {

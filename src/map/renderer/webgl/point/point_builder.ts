@@ -4,6 +4,7 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { WebGlPoint, WebGlPointBufferredGroup } from './point';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
   addObject(point: WebGlPoint) {
@@ -22,6 +23,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
+    const selectionColorBuffer: number[] = [];
 
     let currentObjectIndex = 0;
     let currentObject: WebGlPoint = this.objects[currentObjectIndex][0];
@@ -37,6 +39,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
       colorBuffer.push(...currentObject.color);
       borderWidthBuffer.push(currentObject.borderWidth);
       borderColorBuffer.push(...currentObject.borderColor);
+      selectionColorBuffer.push(...integerToVector4(currentObject.id));
     }
 
     return {
@@ -62,6 +65,11 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(borderColorBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }

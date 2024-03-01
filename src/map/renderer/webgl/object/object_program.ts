@@ -4,6 +4,10 @@ import { MapFeatureFlags } from '../../../flags';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
 
+export interface DrawObjectGroupOptions {
+  readPixelRenderMode?: boolean;
+}
+
 export abstract class ObjectProgram {
   protected program: WebGLProgram;
 
@@ -16,6 +20,7 @@ export abstract class ObjectProgram {
   protected u_widthLocation: WebGLUniformLocation;
   protected u_heightLocation: WebGLUniformLocation;
   protected u_tile_sizeLocation: WebGLUniformLocation;
+  protected u_is_read_pixel_render_modeLocation: WebGLUniformLocation;
   protected u_feature_flagsLocations: Record<string, WebGLUniformLocation>;
 
   protected vao: WebGLVertexArrayObjectOES;
@@ -94,6 +99,7 @@ export abstract class ObjectProgram {
     this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
     this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
     this.u_tile_sizeLocation = this.gl.getUniformLocation(this.program, 'u_tile_size');
+    this.u_is_read_pixel_render_modeLocation = this.gl.getUniformLocation(this.program, 'u_is_read_pixel_render_mode');
 
     this.u_feature_flagsLocations = {};
     for (const name of Object.keys(this.featureFlags)) {
@@ -137,11 +143,15 @@ export abstract class ObjectProgram {
     this.gl.uniform1f(this.u_tile_sizeLocation, tileSize);
   }
 
+  setReadPixelRenderMode(isReadPixelRenderMode: boolean) {
+    this.gl.uniform1i(this.u_is_read_pixel_render_modeLocation, isReadPixelRenderMode ? 1 : 0);
+  }
+
   setFeatureFlags() {
     for (const [name, value] of Object.entries(this.featureFlags)) {
       this.gl.uniform1i(this.u_feature_flagsLocations[name], value);
     }
   }
 
-  abstract drawObjectGroup(objectGroup: WebGlObjectBufferredGroup): void;
+  abstract drawObjectGroup(objectGroup: WebGlObjectBufferredGroup, options?: DrawObjectGroupOptions): void;
 }

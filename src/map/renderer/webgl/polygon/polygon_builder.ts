@@ -5,6 +5,7 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { WebGlPolygon, WebGlPolygonBufferredGroup } from './polygon';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
   addObject(polygon: WebGlPolygon) {
@@ -18,6 +19,7 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
+    const selectionColorBuffer: number[] = [];
 
     let currentObjectIndex = 0;
     let currentObject: WebGlPolygon = this.objects[currentObjectIndex][0];
@@ -33,6 +35,7 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
       colorBuffer.push(...(currentObject.color || [0, 0, 0, 1]));
       borderWidthBuffer.push(currentObject.borderWidth);
       borderColorBuffer.push(...currentObject.borderColor);
+      selectionColorBuffer.push(...integerToVector4(currentObject.id));
     }
 
     return {
@@ -58,6 +61,11 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(borderColorBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }

@@ -1,6 +1,6 @@
 import { WebGlLineBufferredGroup } from './line';
 import LineShaders from './line_shaders';
-import { ObjectProgram } from '../object/object_program';
+import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
@@ -45,13 +45,13 @@ export class LineProgram extends ObjectProgram {
     gl.disable(gl.BLEND);
   }
 
-  drawObjectGroup(lineGroup: WebGlLineBufferredGroup) {
+  drawObjectGroup(lineGroup: WebGlLineBufferredGroup, options: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     this.pointABuffer.bufferData(lineGroup.vertecies.buffer);
-    this.colorBuffer.bufferData(lineGroup.color.buffer);
+    this.colorBuffer.bufferData(options.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
 

@@ -1,6 +1,6 @@
 import { WebGlTextTextureBufferredGroup } from './text';
 import TextShaders from './text_texture_shaders';
-import { ObjectProgram } from '../object/object_program';
+import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
@@ -73,7 +73,7 @@ export class TextTextureProgram extends ObjectProgram {
     });
   }
 
-  drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup) {
+  drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
@@ -82,7 +82,7 @@ export class TextTextureProgram extends ObjectProgram {
     this.texture.setSource(textGroup.texture.source);
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
-    this.colorBuffer.bufferData(textGroup.color.buffer);
+    this.colorBuffer.bufferData(options.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 

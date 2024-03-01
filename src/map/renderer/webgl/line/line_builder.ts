@@ -4,6 +4,7 @@ import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { LineJoinStyle, WebGlLine, WebGlLineBufferredGroup } from './line';
 import { MapTileFeatureType } from '../../../tile/tile';
 import { createdSharedArrayBuffer } from '../utils/array_buffer';
+import { integerToVector4 } from '../utils/number2vec';
 
 const LINE_POSITION: Array<[number, number]> = [
   [0, -0.5],
@@ -78,6 +79,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     const widthBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
+    const selectionColorBuffer: number[] = [];
 
     let currentObjectIndex = 0;
     let currentObject: WebGlLine = this.objects[currentObjectIndex][0];
@@ -94,6 +96,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
       widthBuffer.push(currentObject.width);
       borderWidthBuffer.push(currentObject.borderWidth);
       borderColorBuffer.push(...currentObject.borderColor);
+      selectionColorBuffer.push(...integerToVector4(currentObject.id));
     }
 
     return {
@@ -124,6 +127,11 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(borderColorBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
   }

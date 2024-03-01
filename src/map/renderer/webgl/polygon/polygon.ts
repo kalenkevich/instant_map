@@ -9,6 +9,7 @@ import {
 import { LineJoinStyle } from '../line/line';
 
 export interface WebGlPolygon extends WebGlObject {
+  id: number;
   type: MapTileFeatureType.polygon;
   color: vec4;
   vertecies: Array<Array<vec2 | [number, number]>>;
@@ -27,4 +28,5 @@ export interface WebGlPolygonBufferredGroup extends WebGlObjectBufferredGroup {
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   borderWidth: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 1, Float32Array>; // Array<number>;
   borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }

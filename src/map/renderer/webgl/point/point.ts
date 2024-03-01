@@ -8,6 +8,7 @@ import {
 } from '../object/object';
 
 export interface WebGlPoint extends WebGlObject {
+  id: number;
   type: MapTileFeatureType.point;
   color: vec4 | [number, number, number, number];
   center: vec2 | [number, number];
@@ -33,4 +34,5 @@ export interface WebGlPointBufferredGroup extends WebGlObjectBufferredGroup {
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   borderWidth: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 1, Float32Array>; // Array<number>;
   borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
+  selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }

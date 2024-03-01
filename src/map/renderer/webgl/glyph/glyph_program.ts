@@ -1,6 +1,6 @@
 import { WebGlGlyphBufferredGroup } from './glyph';
 import GlyphShaders from './glyph_shaders';
-import { ObjectProgram } from '../object/object_program';
+import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { AtlasTextureManager } from '../../../atlas/atlas_manager';
 import { MapFeatureFlags } from '../../../flags';
@@ -13,6 +13,7 @@ export class GlyphProgram extends ObjectProgram {
   protected currentAtlasTexture?: WebGlTexture;
 
   protected textcoordBuffer: WebGlBuffer;
+  protected colorBuffer: WebGlBuffer;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -68,6 +69,7 @@ export class GlyphProgram extends ObjectProgram {
 
     this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 2 });
     this.textcoordBuffer = createWebGlBuffer(this.gl, { location: 1, size: 2 });
+    this.colorBuffer = createWebGlBuffer(this.gl, { location: 2, size: 4 });
 
     gl.bindVertexArray(null);
   }
@@ -82,7 +84,7 @@ export class GlyphProgram extends ObjectProgram {
     this.gl.uniform1i(this.u_textureLocation, this.atlasTextures[textureName].index);
   }
 
-  drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup): void {
+  drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup, options: DrawObjectGroupOptions): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
@@ -94,6 +96,9 @@ export class GlyphProgram extends ObjectProgram {
     this.currentAtlasTexture?.bind();
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
+    if (options.readPixelRenderMode) {
+      this.colorBuffer.bufferData(objectGroup.selectionColor.buffer);
+    }
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
     this.currentAtlasTexture?.unbind();

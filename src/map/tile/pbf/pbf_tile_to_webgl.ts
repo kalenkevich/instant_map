@@ -131,26 +131,28 @@ export async function fetchTile(
       featureFlags,
       atlasTextureMappingState
     );
-    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText ? new TextPolygonBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      tileSize,
-      projection,
-      featureFlags,
-      fontManager
-    ) : new TextTextureGroupBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
+    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText
+      ? new TextPolygonBuilder(
+          projectionViewMat,
+          canvasWidth,
+          canvasHeight,
+          pixelRatio,
+          zoom,
+          tileSize,
+          projection,
+          featureFlags,
+          fontManager
+        )
+      : new TextTextureGroupBuilder(
+          projectionViewMat,
+          canvasWidth,
+          canvasHeight,
+          pixelRatio,
+          zoom,
+          tileSize,
+          projection,
+          featureFlags
+        );
 
     for (let i = 0; i < numFeatures; i++) {
       const geojson: Feature<SupportedGeometry> = vectorTile.layers[styleLayer.sourceLayer]
@@ -180,6 +182,7 @@ export async function fetchTile(
           const pointFeature = geojson as Feature<Point>;
 
           pointsGroupBuilder.addObject({
+            id: pointFeature.id! as number,
             type: MapTileFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
             center: pointFeature.geometry.coordinates as [number, number],
@@ -195,12 +198,13 @@ export async function fetchTile(
 
           continue;
         }
-        
+
         if (geojson.geometry.type === 'MultiPoint') {
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
             pointsGroupBuilder.addObject({
+              id: pointFeature.id! as number,
               type: MapTileFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
               center: point as [number, number],
@@ -218,7 +222,7 @@ export async function fetchTile(
 
         continue;
       }
-      
+
       if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.text) {
         const textStyle = styleLayer.feature as TextStyle;
 
@@ -226,6 +230,7 @@ export async function fetchTile(
           const pointFeature = geojson as Feature<Point>;
 
           const textObject: WebGlText = {
+            id: pointFeature.id! as number,
             type: MapTileFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
             borderColor: compileStatement(textStyle.borderColor, pointFeature),
@@ -250,6 +255,7 @@ export async function fetchTile(
 
           for (const point of geojson.geometry.coordinates) {
             const textObject: WebGlText = {
+              id: pointFeature.id! as number,
               type: MapTileFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
               borderColor: compileStatement(textStyle.borderColor, pointFeature),
@@ -270,7 +276,7 @@ export async function fetchTile(
 
         continue;
       }
-      
+
       if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
         let center: [number, number];
 
@@ -284,6 +290,7 @@ export async function fetchTile(
         const glyphStyle = styleLayer.feature as GlyphStyle;
 
         glyphGroupBuilder.addObject({
+          id: pointFeature.id! as number,
           type: MapTileFeatureType.glyph,
           atlas: compileStatement(glyphStyle.atlas, pointFeature),
           name: compileStatement(glyphStyle.name, pointFeature),
@@ -302,7 +309,7 @@ export async function fetchTile(
       if (isTextOrGlyph) {
         continue;
       }
-      
+
       if (featureType === MapTileFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
 
@@ -310,6 +317,7 @@ export async function fetchTile(
           const polygonFeature = geojson as Feature<Polygon>;
 
           polygonGroupBuilder.addObject({
+            id: polygonFeature.id! as number,
             type: MapTileFeatureType.polygon,
             color: compileStatement(polygonStyle.color, polygonFeature),
             vertecies: geojson.geometry.coordinates as Array<Array<[number, number]>>,
@@ -320,12 +328,13 @@ export async function fetchTile(
 
           continue;
         }
-        
+
         if (geojson.geometry.type === 'MultiPolygon') {
           const polygonFeature = geojson as Feature<MultiPolygon>;
 
           for (const polygons of geojson.geometry.coordinates) {
             polygonGroupBuilder.addObject({
+              id: polygonFeature.id! as number,
               type: MapTileFeatureType.polygon,
               color: compileStatement(polygonStyle.color, polygonFeature),
               vertecies: [polygons[0]] as Array<Array<[number, number]>>,
@@ -338,7 +347,7 @@ export async function fetchTile(
 
         continue;
       }
-      
+
       if (featureType === MapTileFeatureType.line) {
         const lineStyle = styleLayer.feature as LineStyle;
 
@@ -346,6 +355,7 @@ export async function fetchTile(
           const lineFeature = geojson as Feature<LineString>;
 
           lineGroupBuilder.addObject({
+            id: lineFeature.id! as number,
             type: MapTileFeatureType.line,
             color: compileStatement(lineStyle.color, lineFeature),
             vertecies: lineFeature.geometry.coordinates as Array<[number, number]>,
@@ -359,12 +369,13 @@ export async function fetchTile(
 
           continue;
         }
-        
+
         if (geojson.geometry.type === 'MultiLineString') {
           const lineFeature = geojson as Feature<MultiLineString>;
 
           for (const lineGeometry of lineFeature.geometry.coordinates) {
             lineGroupBuilder.addObject({
+              id: lineFeature.id! as number,
               type: MapTileFeatureType.line,
               color: compileStatement(lineStyle.color, lineFeature),
               vertecies: lineGeometry as Array<[number, number]>,
@@ -399,7 +410,7 @@ export async function fetchTile(
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
-      objectGroups.push(glyphGroupBuilder.build());
+      // objectGroups.push(glyphGroupBuilder.build());
     }
 
     const layer = { tileId, layerName: styleLayer.styleLayerName, zIndex: styleLayer.zIndex, objectGroups };
@@ -422,28 +433,31 @@ export async function fetchTile(
       projection,
       featureFlags
     );
-    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText ? new TextPolygonBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      tileSize,
-      projection,
-      featureFlags,
-      fontManager
-    ) : new TextTextureGroupBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
+    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText
+      ? new TextPolygonBuilder(
+          projectionViewMat,
+          canvasWidth,
+          canvasHeight,
+          pixelRatio,
+          zoom,
+          tileSize,
+          projection,
+          featureFlags,
+          fontManager
+        )
+      : new TextTextureGroupBuilder(
+          projectionViewMat,
+          canvasWidth,
+          canvasHeight,
+          pixelRatio,
+          zoom,
+          tileSize,
+          projection,
+          featureFlags
+        );
 
     textTextureGroupBuilder.addObject({
+      id: 1,
       type: MapTileFeatureType.text,
       text: tileId,
       center: tileCenter,
@@ -459,6 +473,7 @@ export async function fetchTile(
     });
 
     lineGroupBuilder.addObject({
+      id: 2,
       type: MapTileFeatureType.line,
       color: [1, 0, 0, 1],
       borderColor: [0, 0, 0, 1],

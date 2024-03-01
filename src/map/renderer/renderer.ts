@@ -6,6 +6,11 @@ export interface MapStyles {
   layers: Record<string, [number, number, number, number]>;
 }
 
+export interface RenderOptions {
+  pruneCache?: boolean;
+  readPixelRenderMode?: boolean;
+}
+
 export interface Renderer {
   init(): void;
 
@@ -13,5 +18,14 @@ export interface Renderer {
 
   resize(width: number, height: number): void;
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, pruneCache?: boolean): void;
+  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, renderOptions?: RenderOptions): void;
+
+  getObjectId(
+    tiles: MapTile[],
+    viewMatrix: mat3,
+    zoom: number,
+    tileSize: number,
+    x: number,
+    y: number
+  ): number | undefined;
 }

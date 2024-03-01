@@ -1,7 +1,7 @@
 import { WebGlTextPolygonBufferredGroup } from '../text_texture/text';
 import { MapFeatureFlags } from '../../../flags';
 import TextShaders from './text_polygon_shaders';
-import { ObjectProgram } from '../object/object_program';
+import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 
 export class TextPolygonProgram extends ObjectProgram {
@@ -14,24 +14,21 @@ export class TextPolygonProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  onInit(): void {
-  }
+  onInit(): void {}
 
-  onLink(): void {
-  }
+  onLink(): void {}
 
-  onUnlink(): void {
-  }
+  onUnlink(): void {}
 
-  drawObjectGroup(objectGroup: WebGlTextPolygonBufferredGroup): void {
+  drawObjectGroup(textGroup: WebGlTextPolygonBufferredGroup, options: DrawObjectGroupOptions): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
-    this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
-    this.colorBuffer.bufferData(objectGroup.color.buffer);
+    this.positionBuffer.bufferData(textGroup.vertecies.buffer);
+    this.colorBuffer.bufferData(options.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer);
 
-    gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
+    gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
     gl.bindVertexArray(null);
   }
