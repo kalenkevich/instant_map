@@ -1,31 +1,27 @@
 import Stats from 'stats.js';
 import { Evented } from './evented';
-import { MapPan } from './pan/map_pan';
+import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
-import { Renderer } from './renderer/renderer';
-import { RenderQueue } from './render_queue/render_queue';
+import { MapTileRendererType, Renderer } from './renderer/renderer';
+import { RenderQueue } from './renderer/render_queue/render_queue';
 import { TilesGrid, TilesGridEvent } from './tile/tile_grid';
 import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
 import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
 import { EasyAnimation } from './animation/easy_animation';
-import { MapTileFormatType } from './tile/tile';
 import { FontManager } from './font/font_manager';
 import { AtlasTextureManager } from './atlas/atlas_manager';
 import { DataTileStyles } from './styles/styles';
 import { MapFeatureFlags } from './flags';
 
 const defaultOptions = {
-  width: 512,
-  height: 512,
   center: [0, 0] as [number, number],
   zoom: 1,
   rotation: 0,
   tileBuffer: 1,
   projection: 'mercator',
-  tileFormatType: MapTileFormatType.pbf,
   resizable: true,
   controls: {
     zoom: true,
@@ -41,7 +37,7 @@ export interface MapOptions {
   id?: string;
   width?: number;
   height?: number;
-
+  rendrer: MapTileRendererType;
   /** Initial map camera position. */
   center?: [number, number];
   /** Initial zoom value of the map. */
@@ -50,6 +46,8 @@ export interface MapOptions {
   rotation?: number;
   /** Number of tiles to fetch around. */
   tileBuffer?: number;
+  /** Number of workers to run in background. */
+  workerPool?: number;
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
   /** When `true` then map will listen for `rootEl` width/height changes. */
@@ -68,8 +66,6 @@ export interface MapOptions {
   // TODO: tile meta url
   /** Meta info url to fetch data about tiles and styles. */
   tileMetaUrl?: string;
-  tilesUrl: string;
-  tileFormatType?: string | MapTileFormatType;
   projection?: string | ProjectionType;
   featureFlags?: MapFeatureFlags;
 }
@@ -131,12 +127,12 @@ export class GlideMap extends Evented<MapEventType> {
     this.maxZoom = this.mapOptions.tileStyles.maxzoom || 15;
 
     this.stats = new Stats();
-    this.pixelRatio = window.devicePixelRatio;
+    this.pixelRatio = this.mapOptions.devicePixelRatio || window.devicePixelRatio;
 
     this.renderQueue = new RenderQueue();
 
-    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts);
-    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas);
+    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts || {});
+    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas || {});
     this.projection = getProjectionFromType(this.mapOptions.projection);
     this.camera = new MapCamera(
       this.featureFlags,
@@ -145,23 +141,24 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.rotation,
       this.width,
       this.height,
-      this.pixelRatio,
       this.mapOptions.tileStyles.tileSize,
       this.projection
     );
     this.tilesGrid = new TilesGrid(
       this.featureFlags,
-      this.mapOptions.tileFormatType as MapTileFormatType,
-      this.mapOptions.tilesUrl,
+      this.mapOptions.rendrer,
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
+      this.mapOptions.workerPool || 8,
       this.mapOptions.tileStyles.tileSize,
+      this.pixelRatio,
       this.maxZoom,
       this.projection,
+      this.fontManager,
       this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);
-    this.renderer = new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+    this.renderer = this.getRenderer(this.mapOptions.rendrer);
 
     this.init().then(() => {
       this.rerender();
@@ -174,6 +171,9 @@ export class GlideMap extends Evented<MapEventType> {
     await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
 
     this.pan.init();
+    if (this.featureFlags.enableObjectSelection) {
+      this.pan.on(MapPanEvents.click, this.onMapClick);
+    }
     this.tilesGrid.init();
     this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
     this.renderer.init();
@@ -186,14 +186,33 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   destroy() {
+    if (this.featureFlags.enableObjectSelection) {
+      this.pan.off(MapPanEvents.click, this.onMapClick);
+    }
     this.pan.destroy();
-    this.tilesGrid.destroy();
     this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.tilesGrid.destroy();
     this.renderer.destroy();
   }
 
   private onTileLoaded = () => {
-    this.rerender();
+    this.rerender(true);
+  };
+
+  private onMapClick = (event: MapPanEvents, clickEvent: MouseEvent, clippedWebGlSpaceCoords: [number, number]) => {
+    const tiles = this.tilesGrid.getCurrentViewTiles();
+    const zoom = this.getZoom();
+    const viewMatrix = this.camera.getProjectionMatrix();
+    const objectId = this.renderer.getObjectId(
+      tiles,
+      viewMatrix,
+      zoom,
+      this.mapOptions.tileStyles.tileSize,
+      clippedWebGlSpaceCoords[0],
+      clippedWebGlSpaceCoords[1]
+    );
+
+    console.log('objectId', objectId);
   };
 
   private resizeEventListener = () => {
@@ -305,18 +324,19 @@ export class GlideMap extends Evented<MapEventType> {
     return this.camera.getProjectionMatrix();
   }
 
-  rerender(): Promise<void> {
+  rerender(pruneCache = false): Promise<void> {
     const zoom = this.getZoom();
     this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
 
     this.renderQueue.clear();
     return this.renderQueue.render(() => {
-      this.render();
+      this.render(pruneCache);
+      pruneCache = false;
       this.fire(MapEventType.RENDER);
     });
   }
 
-  private render() {
+  private render(pruneCache = false) {
     let start = performance.now();
     if (this.mapOptions.controls.debug) {
       this.stats.begin();
@@ -326,7 +346,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize);
+    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize, { pruneCache });
 
     this.statsWidget.style.display = 'none';
 
@@ -337,6 +357,15 @@ export class GlideMap extends Evented<MapEventType> {
         elapsed: performance.now() - start,
       };
       this.stats.end();
+    }
+  }
+
+  private getRenderer(rendererType: MapTileRendererType): Renderer {
+    switch (rendererType) {
+      case MapTileRendererType.webgl:
+        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+      default:
+        throw new Error(`Rendrer "rendererType" is not supported.`);
     }
   }
 

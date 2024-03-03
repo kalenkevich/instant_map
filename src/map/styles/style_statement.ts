@@ -143,3 +143,7 @@ export type RandomStatement = ['$random', Statement<number>?, Statement<number>?
 export type MinStatement = ['$min', Statement<number>, Statement<number>];
 
 export type MaxStatement = ['$max', Statement<number>, Statement<number>];
+
+export type StringStatement = ConcatStatement;
+
+export type ConcatStatement = ['$concat', ...Array<Statement<string | number>>];

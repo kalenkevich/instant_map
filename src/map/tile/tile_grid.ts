@@ -1,36 +1,46 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Evented } from '../evented';
 import { MapCamera } from '../camera/map_camera';
-import { TileRef, MapTile } from './tile';
+import { TileRef, MapTile, getTileId, getTileRef } from './tile';
 import { Projection } from '../geo/projection/projection';
-import { MapTileFormatType, MapTileLayer } from './tile';
-import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
+import { MapTileLayer } from './tile';
+import { MapTileRendererType } from '../renderer/renderer';
 import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
-import { TileGridWorkerEventType } from './tile_grid_worker';
 import { MapFeatureFlags } from '../flags';
+import { FontManager } from '../font/font_manager';
+import {
+  WorkerTaskRequestType,
+  WorkerTaskResponseType,
+  TileFullCompleteResponse,
+  TileLayerCompleteResponse,
+} from '../worker/worker_actions';
+import { WorkerPool, WorkerTask, CANCEL_WORKER_ERROR_MESSAGE } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
-  TILE_LOADED = 'tileLoaded',
+  TILE_LOADED = 0,
+  TILE_LAYER_COMPLETE = 1,
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
   private tiles: LRUCache<string, MapTile> = new LRUCache(128);
   private tilesInView: TileRef[];
-  private tileWorker: Worker;
+  private workerPool: WorkerPool;
   private bufferedTiles: TileRef[];
-  private currentLoadingTiles: Set<string> = new Set();
+  private currentLoadingTiles: Map<string, WorkerTask<any>> = new Map();
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
-    private readonly tileFormatType: MapTileFormatType,
-    private readonly tileServerURL: string,
+    private readonly rendererType: MapTileRendererType,
     private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
+    private readonly maxWorkerPool: number,
     private readonly tileSize: number,
+    private readonly pixelRatio: number,
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
+    private readonly fontManager: FontManager,
     private readonly atlasManager: AtlasTextureManager
   ) {
     super();
@@ -38,22 +48,34 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
   init() {
     this.tilesInView = [];
-    this.tileWorker = new Worker(new URL('./tile_grid_worker.ts', import.meta.url));
-    this.tileWorker.onmessage = this.handleTileWorker;
-    this.tileWorker.onerror = this.handleTileWorkerError;
+    this.workerPool = new WorkerPool(this.maxWorkerPool);
+
+    this.workerPool.on(
+      WorkerTaskResponseType.TILE_LAYER_COMPLETE,
+      (event: WorkerTaskResponseType, response: TileLayerCompleteResponse) => {
+        this.onTileLayerReady(response);
+      }
+    );
   }
 
   destroy() {}
 
-  // update tiles with data from worker
-  private handleTileWorker = (workerEvent: any) => {
-    const { tileId, tileLayers } = workerEvent.data;
+  private onTileFullReady(response: TileFullCompleteResponse) {
+    if (!response.data) {
+      return;
+    }
+
+    const { tileId, layers: tileLayers } = response.data;
+
+    if (!tileLayers || tileLayers.length === 0) {
+      return;
+    }
 
     let tile: MapTile;
     if (this.tiles.has(tileId)) {
       tile = this.tiles.get(tileId);
 
-      tile.setLayers(tileLayers);
+      tile.layers = tileLayers;
     } else {
       tile = this.createMapTile(tileId, tileLayers);
 
@@ -63,14 +85,44 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     setTimeout(() => {
       this.fire(TilesGridEvent.TILE_LOADED, tile);
     }, 0);
-  };
+  }
 
-  // errors from tile worker
-  private handleTileWorkerError = (error: any) => {
-    console.error('Uncaught worker error.', error);
-  };
+  private onTileLayerReady(response: TileLayerCompleteResponse) {
+    if (!response.data) {
+      return;
+    }
 
-  public updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
+    const { tileId, tileLayer } = response.data;
+
+    let tile: MapTile;
+    if (this.tiles.has(tileId)) {
+      tile = this.tiles.get(tileId);
+      const layers = tile.layers;
+      const hasLayer = layers.find(l => l.layerName === tileLayer.layerName);
+
+      if (hasLayer) {
+        tile.layers = layers.map(l => {
+          if (l.layerName === tileLayer.layerName) {
+            return tileLayer;
+          }
+
+          return l;
+        });
+      } else {
+        layers.push(tileLayer);
+      }
+    } else {
+      tile = this.createMapTile(tileId, [tileLayer]);
+
+      this.tiles.set(tileId, tile);
+    }
+
+    setTimeout(() => {
+      this.fire(TilesGridEvent.TILE_LAYER_COMPLETE, tile);
+    }, 0);
+  }
+
+  public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
     // update visible tiles based on viewport
     const bbox = camera.getCurrentBounds();
     const z = Math.min(Math.trunc(camera.getZoom()), this.maxTileZoom);
@@ -102,8 +154,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // remove duplicates
     let tilesToLoad = [
       ...new Set([
-        ...this.tilesInView.map(t => this.getTileId(t as TileRef)),
-        ...this.bufferedTiles.map(t => this.getTileId(t as TileRef)),
+        ...this.tilesInView.map(t => getTileId(t as TileRef)),
+        ...this.bufferedTiles.map(t => getTileId(t as TileRef)),
       ]),
     ];
 
@@ -117,15 +169,16 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       return validX && validY && validZ;
     });
 
-    // tile fetching options
-    const { tileServerURL: url } = this;
-
-    for (const tileId of this.currentLoadingTiles) {
+    for (const [tileId, task] of this.currentLoadingTiles) {
       if (!tilesToLoad.includes(tileId)) {
-        this.tileWorker.postMessage({
-          type: TileGridWorkerEventType.CANCEL_TILE_FETCH,
-          tileId,
-        });
+        if (task) {
+          task.worker.sendRequest({
+            type: WorkerTaskRequestType.CANCEL_TILE_FETCH,
+            data: tileId,
+          });
+          this.workerPool.cancel(task.taskId);
+        }
+
         this.currentLoadingTiles.delete(tileId);
       }
     }
@@ -136,31 +189,40 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
 
       this.tiles.set(tileId, this.createMapTile(tileId));
-      this.currentLoadingTiles.add(tileId);
 
-      this.tileWorker.postMessage({
-        type: TileGridWorkerEventType.FETCH_TILE,
+      const workerTask = await this.workerPool.execute({
+        type: WorkerTaskRequestType.FETCH_TILE,
         data: {
           tileId,
           tileStyles: this.tileStyles,
-          url,
+          rendererType: this.rendererType,
           projectionViewMat: [...camera.getProjectionMatrix()],
           canvasWidth,
           canvasHeight,
+          pixelRatio: this.pixelRatio,
           zoom,
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),
           atlasTextureMappingState: this.atlasManager.getMappingState(),
+          fontManagerState: this.featureFlags.webglRendererUsePolygonText && this.fontManager.dumpState(),
           featureFlags: this.featureFlags,
         },
       });
+      this.currentLoadingTiles.set(tileId, workerTask);
+      workerTask.task
+        .then((result: any) => this.onTileFullReady(result))
+        .catch(error => {
+          if (error !== CANCEL_WORKER_ERROR_MESSAGE) {
+            console.error(error);
+          }
+        });
     }
   }
 
   public getCurrentViewTiles(usePlaceholders: boolean = true): MapTile[] {
     const tiles = this.tilesInView
       .map(tileRef => {
-        const tileId = this.getTileId(tileRef);
+        const tileId = getTileId(tileRef);
 
         return this.tiles.get(tileId);
       })
@@ -172,44 +234,29 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     // add placeholder tile data.
     for (const tile of tiles) {
-      const tileLayers = tile.getLayers();
+      const tileLayers = tile.layers;
 
       if (!tileLayers || tileLayers.length === 0) {
-        tile.setLayers(this.getPlaceholderLayers(tile.ref));
+        tile.layers = this.getPlaceholderLayers(tile.ref);
       }
     }
 
     return tiles;
   }
 
-  private getTileId(tileOrRef: MapTile | TileRef): string {
-    if (Array.isArray(tileOrRef)) {
-      return tileOrRef.join('/');
-    }
-
-    return (tileOrRef as MapTile).tileId;
-  }
-
   private createMapTile(refOrId: TileRef | string, tileLayers: MapTileLayer[] = []): MapTile {
-    let tileRef: TileRef;
-    if (typeof refOrId === 'string') {
-      tileRef = refOrId.split('/') as unknown as TileRef;
-    } else {
-      tileRef = refOrId;
-    }
-
-    if (this.tileFormatType === MapTileFormatType.pbf) {
-      return new PbfMapTile(tileRef, tileLayers as PbfTileLayer[]);
-    }
-
-    throw new Error(`${this.tileFormatType} is not supported.`);
+    return {
+      ref: getTileRef(refOrId),
+      tileId: getTileId(refOrId),
+      layers: tileLayers,
+    };
   }
 
   private getPlaceholderLayers(tile: TileRef): MapTileLayer[] {
-    const parentId = this.getTileId(tilebelt.getParent(tile)! as TileRef);
+    const parentId = getTileId(tilebelt.getParent(tile)! as TileRef);
     const parentTile = this.tiles.get(parentId);
     if (parentTile) {
-      const parentLayers = parentTile.getLayers();
+      const parentLayers = parentTile.layers;
 
       if (parentLayers && parentLayers.length > 0) {
         return parentLayers;
@@ -217,7 +264,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     }
 
     const childFeatureSets: any = [];
-    const children = (tilebelt.getChildren(tile) || []).map(t => this.getTileId(t as TileRef));
+    const children = (tilebelt.getChildren(tile) || []).map(t => getTileId(t as TileRef));
     for (const childId of children) {
       const childTile = this.tiles.get(childId);
 
@@ -225,7 +272,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         continue;
       }
 
-      childFeatureSets.push(...(childTile.getLayers() || []));
+      childFeatureSets.push(...(childTile.layers || []));
     }
 
     return childFeatureSets;

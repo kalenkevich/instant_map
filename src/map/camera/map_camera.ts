@@ -14,7 +14,6 @@ export class MapCamera {
     private rotationInDegree: number,
     private width: number,
     private height: number,
-    private pixelRatio: number,
     private tileSize: number,
     private projection: Projection
   ) {
@@ -84,8 +83,8 @@ export class MapCamera {
     const zoomScale = Math.pow(2, zoom);
 
     // undo clip-space
-    const px = (1 + x) / this.pixelRatio;
-    const py = (1 - y) / this.pixelRatio;
+    const px = (1 + x) / 2;
+    const py = (1 - y) / 2;
 
     // get world coord in px
     const wx = px * this.tileSize;

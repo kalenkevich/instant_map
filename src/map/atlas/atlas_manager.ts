@@ -6,7 +6,7 @@ export interface AtlasTextureState {
   width: number;
   height: number;
   ready: boolean;
-  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement;
+  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
   mapping: Record<string, AtlasTextrureMapping>;
 }
 
@@ -20,7 +20,7 @@ export class AtlasTextureManager {
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
-    private readonly atlasesConfigs: Record<string, AtlasTextrureConfig>
+    private readonly atlasesConfigs: Record<string, AtlasTextrureConfig> = {}
   ) {}
 
   async init() {

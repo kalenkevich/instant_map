@@ -1,6 +1,4 @@
 import { LngLat } from './geo/lng_lat';
-// import { MapRenderer, MapRendererType } from './render/renderer';
-import { MapTileFormatType } from './tile/tile';
 import { DataTileStyles } from './styles/styles';
 
 /**
@@ -23,8 +21,6 @@ export interface MapOptions {
   tileMetaUrl?: string;
   /** Custom value of device pixel ratio. By defauled would be used `window.devicePixelRatio`. */
   devicePixelRatio?: number;
-  /** Renderer name or custom implementation. By defualt will be used webgl. */
-  // renderer?: MapRendererType | MapRendererOptions;
   /** Coordinate refference  system applied to the map data. */
   // crs?: MapCrs;
   /** When `true` then map will listen for `rootEl` width/height changes. */
@@ -41,17 +37,10 @@ export interface MapOptions {
   };
 }
 
-export { MapTileFormatType };
-
 // export type MapCrs = CoordinateReferenceSystem | MapCrsType;
 
 export enum MapCrsType {
   earth = 'earth',
-}
-
-export interface MapRendererOptions {
-  // type: MapRendererType;
-  // renderer: MapRenderer;
 }
 
 export interface MapMeta {
@@ -59,7 +48,6 @@ export interface MapMeta {
   mtime?: Date;
   bounds: [number, number, number, number]; // [minlat, minlon, maxlat, maxlon]
   center: [number, number, number];
-  format: MapTileFormatType;
   maxzoom: number;
   minzoom: number;
   version?: string;
@@ -106,4 +94,3 @@ export interface MapTilesMeta {
     fields: Record<string, string>;
   }>;
 }
-
