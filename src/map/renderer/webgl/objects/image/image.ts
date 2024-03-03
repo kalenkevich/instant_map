@@ -13,6 +13,7 @@ export interface WebGlImage extends WebGlObject {
   id: number;
   type: MapTileFeatureType.image;
   name: string;
+  bbox: Array<vec2 | [number, number]>;
   topLeft: vec2 | [number, number];
   width: number;
   height: number;

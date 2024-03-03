@@ -31,7 +31,9 @@ export async function DebugTile2WebglLayers(
     featureFlags,
     projectionViewMat: projectionViewMatSource,
     fontManagerState,
-  }: FetchTileOptions
+  }: FetchTileOptions,
+  abortController: AbortController,
+  onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
   const minZoom = tileStyles.minzoom || 0;
   const maxZoom = tileStyles.maxzoom || 0;
@@ -121,6 +123,7 @@ export async function DebugTile2WebglLayers(
     objectGroups: debugObjectGroups,
   };
   tileLayers.push(debugLayer);
+  onLayerReady(debugLayer);
 
   return tileLayers;
 }

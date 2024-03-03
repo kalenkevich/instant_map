@@ -41,6 +41,7 @@ export async function ImageTile2WebglLayers(
   const textureSource = await createImageBitmap(sourceArrayBuffer);
 
   const tilePolygon = tilebelt.tileToGeoJSON([x, y, z]);
+  const tilebbox = tilebelt.tileToBBOX([x, y, z]);
 
   for (const styleLayer of sourceLayers) {
     if (styleLayer.show === false) {
@@ -69,6 +70,10 @@ export async function ImageTile2WebglLayers(
       id: 0,
       type: MapTileFeatureType.image,
       name: tileId,
+      bbox: [
+        [tilebbox[0], tilebbox[1]],
+        [tilebbox[2], tilebbox[3]],
+      ],
       topLeft: tilePolygon.coordinates[0][0] as vec2,
       source: textureSource,
       width: imageFeatureStyle.width ? compileStatement(imageFeatureStyle.width, {}) : tileSize,
