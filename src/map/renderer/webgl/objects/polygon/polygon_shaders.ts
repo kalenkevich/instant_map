@@ -8,6 +8,7 @@ import {
 
 export default {
   vertext: `
+    precision highp float;
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${MERCATOR_PROJECTION_UTILS}

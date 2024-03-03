@@ -2,6 +2,7 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS, MERCATOR_PROJECTION_UTILS }
 
 export default {
   vertext: `
+    precision highp float;
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${MERCATOR_PROJECTION_UTILS}

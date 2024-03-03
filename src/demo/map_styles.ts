@@ -680,7 +680,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
   },
 };
 
-export const ImageTilesStyles: DataTileStyles = {
+export const SateliteTilesStyles: DataTileStyles = {
   tileSize: 256,
   minzoom: 0,
   maxzoom: 16,
@@ -744,6 +744,21 @@ export const ImageTilesStyles: DataTileStyles = {
       },
       maxzoom: 18,
       minzoom: 12,
+    },
+    admin: {
+      source: 'dataSource',
+      sourceLayer: 'admin',
+      styleLayerName: 'adminStyles',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.line,
+        show: ['$lte', ['$get', 'properties.admin_level'], 7],
+        color: ['$rgba', 0, 0, 0, 0.7],
+        width: 2,
+      },
+      maxzoom: 16,
+      minzoom: 0,
     },
   },
   atlas: {

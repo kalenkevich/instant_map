@@ -62,7 +62,7 @@ export class ImageProgram extends ObjectProgram {
       name: 'image',
       width: 0,
       height: 0,
-      unpackPremultiplyAlpha: false,
+      flipY: true,
       wrapS: gl.CLAMP_TO_EDGE,
       wrapT: gl.CLAMP_TO_EDGE,
       minFilter: gl.LINEAR,

@@ -37,23 +37,14 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
       y1 = y1 + marginTop;
       x4 = x4 + marginLeft;
       y4 = y4 + marginTop;
-      const x2 = x4 + marginLeft;
-      const y2 = y1 + marginTop;
-      const x3 = x1 + marginLeft;
-      const y3 = y4 + marginTop;
+      const p1 = [x1, y1];
+      const p2 = [x4, y1];
+      const p3 = [x1, y4];
+      const p4 = [x4, y4];
 
-      const u1 = 0;
-      const v1 = 0;
-      const u2 = 1;
-      const v2 = 1;
-
-      // first triangle
-      verteciesBuffer.push(x1, y1, x2, y2, x3, y3);
-      texcoordBuffer.push(u1, v1, u2, v1, u1, v2);
-
-      // second triangle
-      verteciesBuffer.push(x2, y2, x3, y3, x4, y4);
-      texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
+      // flip it by y basis
+      verteciesBuffer.push(...p3, ...p4, ...p1, ...p1, ...p4, ...p2);
+      texcoordBuffer.push(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0);
 
       colorBuffer.push(
         ...TRANSPARENT_COLOR,
