@@ -24,9 +24,9 @@ export class WebGlRenderer implements Renderer {
   private programs: Record<MapTileFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
-  private texture: WebGlTexture;
   private framebuffer: WebGlFrameBuffer;
   private framebufferProgram: FramebufferProgram;
+  private frameBufferTexture: WebGlTexture;
 
   constructor(
     private readonly rootEl: HTMLElement,
@@ -48,7 +48,7 @@ export class WebGlRenderer implements Renderer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    this.texture = createTexture(gl, {
+    this.frameBufferTexture = createTexture(gl, {
       name: 'framebuffer texture',
       width: this.canvas.width,
       height: this.canvas.height,
@@ -59,7 +59,7 @@ export class WebGlRenderer implements Renderer {
       wrapS: gl.CLAMP_TO_EDGE,
       wrapT: gl.CLAMP_TO_EDGE,
     });
-    this.framebuffer = createFrameBuffer(gl, { texture: this.texture });
+    this.framebuffer = createFrameBuffer(gl, { texture: this.frameBufferTexture });
     this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
     this.framebufferProgram.init();
 
@@ -194,7 +194,7 @@ export class WebGlRenderer implements Renderer {
     if (shouldRenderToCanvas) {
       this.framebufferProgram.link();
       this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize, options);
-      this.framebufferProgram.draw(this.texture);
+      this.framebufferProgram.draw(this.frameBufferTexture);
       this.framebufferProgram.unlink();
       this.debugLog(`canvas render`);
     } else {

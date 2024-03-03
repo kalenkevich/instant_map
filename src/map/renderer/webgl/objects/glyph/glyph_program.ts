@@ -84,7 +84,7 @@ export class GlyphProgram extends ObjectProgram {
     this.gl.uniform1i(this.u_textureLocation, this.atlasTextures[textureName].index);
   }
 
-  drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup, options: DrawObjectGroupOptions): void {
+  drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup, options?: DrawObjectGroupOptions): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
@@ -96,13 +96,13 @@ export class GlyphProgram extends ObjectProgram {
     this.currentAtlasTexture?.bind();
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
-    if (options.readPixelRenderMode) {
-      this.colorBuffer.bufferData(objectGroup.selectionColor.buffer);
-    }
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
-    this.currentAtlasTexture?.unbind();
 
+    this.currentAtlasTexture?.unbind();
     gl.bindVertexArray(null);
   }
 }

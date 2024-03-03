@@ -123,6 +123,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const texture = await dynamicTextCanvas.getTexture();
 
     for (const [text, textMapping] of textMappings) {
+      const colorId = integerToVector4(text.id);
       const textScaledWidth = this.scalarScale(textMapping.width / this.pixelRatio);
       const textScaledHeight = this.scalarScale(textMapping.height / this.pixelRatio);
       const marginTop = this.scalarScale((text.margin?.top || 0) / this.pixelRatio);
@@ -149,8 +150,8 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       verteciesBuffer.push(x1, y2, x2, y1, x2, y2);
       texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
 
-      colorBuffer.push(...text.color);
-      selectionColorBuffer.push(...integerToVector4(text.id));
+      colorBuffer.push(...text.color, ...text.color, ...text.color, ...text.color, ...text.color, ...text.color);
+      selectionColorBuffer.push(...colorId, ...colorId, ...colorId, ...colorId, ...colorId, ...colorId);
     }
 
     return {

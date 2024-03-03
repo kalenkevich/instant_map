@@ -24,9 +24,19 @@ export class ImageProgram extends ObjectProgram {
     this.setupTexture();
   }
 
-  onLink(): void {}
+  onLink(): void {
+    const gl = this.gl;
 
-  onUnlink(): void {}
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+  }
+
+  onUnlink(): void {
+    const gl = this.gl;
+
+    gl.disable(gl.BLEND);
+  }
 
   protected setupBuffer() {
     const gl = this.gl;
@@ -52,11 +62,11 @@ export class ImageProgram extends ObjectProgram {
       name: 'image',
       width: 0,
       height: 0,
-      unpackPremultiplyAlpha: true,
+      unpackPremultiplyAlpha: false,
       wrapS: gl.CLAMP_TO_EDGE,
       wrapT: gl.CLAMP_TO_EDGE,
-      minFilter: gl.NEAREST,
-      magFilter: gl.NEAREST,
+      minFilter: gl.LINEAR,
+      magFilter: gl.LINEAR,
     });
   }
 
@@ -67,14 +77,17 @@ export class ImageProgram extends ObjectProgram {
 
     gl.uniform1i(this.u_textureLocation, this.texture.index);
     this.texture.setSource(imageGroup.texture.source);
+    this.texture.bind();
+
     this.positionBuffer.bufferData(imageGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(imageGroup.textcoords.buffer);
-    if (options.readPixelRenderMode) {
-      this.colorBuffer.bufferData(imageGroup.selectionColor.buffer);
-    }
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? imageGroup.selectionColor.buffer : imageGroup.color.buffer
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, imageGroup.numElements);
 
+    this.texture.unbind();
     gl.bindVertexArray(null);
   }
 }

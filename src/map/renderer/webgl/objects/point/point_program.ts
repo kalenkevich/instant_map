@@ -20,14 +20,14 @@ export class PointProgram extends ObjectProgram {
 
   onUnlink(): void {}
 
-  drawObjectGroup(objectGroup: WebGlPointBufferredGroup, options: DrawObjectGroupOptions) {
+  drawObjectGroup(objectGroup: WebGlPointBufferredGroup, options?: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);

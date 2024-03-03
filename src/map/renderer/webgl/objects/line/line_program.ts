@@ -45,13 +45,15 @@ export class LineProgram extends ObjectProgram {
     gl.disable(gl.BLEND);
   }
 
-  drawObjectGroup(lineGroup: WebGlLineBufferredGroup, options: DrawObjectGroupOptions) {
+  drawObjectGroup(lineGroup: WebGlLineBufferredGroup, options?: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     this.pointABuffer.bufferData(lineGroup.vertecies.buffer);
-    this.colorBuffer.bufferData(options.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer);
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
 

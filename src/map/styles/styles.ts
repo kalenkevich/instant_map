@@ -34,18 +34,28 @@ export interface DataLayerStyle {
 }
 
 export enum DataTileSourceType {
+  debug = 'debug',
   pbf = 'pbf',
-  png = 'png',
+  image = 'image',
   // Possible data sources
   // json = 'json',
   // osm = 'osm',
   // xml = 'xml'
 }
 
-export interface DataTileSource {
+export type DataTileSource = PbfTileSource | ImageTileSource;
+
+export interface PbfTileSource {
+  type: DataTileSourceType.pbf;
   name: string;
-  type: DataTileSourceType;
   url: string;
+}
+
+export interface ImageTileSource {
+  type: DataTileSourceType.image;
+  name: string;
+  url: string;
+  pixelRatio?: number;
 }
 
 export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | GlyphStyle | ImageStyle;
@@ -104,7 +114,7 @@ export interface GlyphStyle {
   type: MapTileFeatureType.glyph;
   name: Statement<string>; // glyph name
   atlas: Statement<string>; // atlas name
-  width?: Statement<number>; // optional
+  width?: Statement<number>;
   height?: Statement<number>;
   show?: Statement<boolean>;
   minzoom?: number;
@@ -114,8 +124,8 @@ export interface GlyphStyle {
 
 export interface ImageStyle {
   type: MapTileFeatureType.image;
-  width?: Statement<number>; // optional
-  height?: Statement<number>; // optional
+  width?: Statement<number>;
+  height?: Statement<number>;
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;

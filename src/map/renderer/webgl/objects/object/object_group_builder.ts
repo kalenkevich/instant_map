@@ -13,6 +13,8 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     protected readonly canvasHeight: number,
     protected readonly pixelRatio: number,
     protected readonly zoom: number,
+    protected readonly minZoom: number,
+    protected readonly maxZoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags
@@ -24,9 +26,43 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     return this.objects.length === 0;
   }
 
-  /** Scales value for webgl canvas value according to the current zoom and tileSize */
+  protected getTileZoom(): number | undefined {
+    let tileZoom = Math.round(this.zoom);
+
+    return this.clampZoom(tileZoom);
+  }
+
+  protected clampZoom(zoom: number) {
+    const minZoom = this.minZoom;
+    const maxZoom = this.maxZoom;
+
+    if (zoom < minZoom) {
+      return minZoom;
+    }
+
+    if (maxZoom < zoom) {
+      return maxZoom;
+    }
+
+    return zoom;
+  }
+
+  /**
+   * @deprecated Use `scalarZoom` instead;
+   * Scales value for webgl canvas value according to the current zoom and tileSize.
+   * */
   scalarScale(val: number): number {
+    // return this.tileSize * Math.pow(2, zoom);
     return val / (Math.pow(2, this.zoom) * this.tileSize);
+  }
+
+  scalarScale_2(val: number): number {
+    return this.tileSize * Math.pow(2, val);
+  }
+
+  scalarZoom(val: number): number {
+    return Math.log(val / this.tileSize) / Math.LN2;
+    // return val / (Math.pow(2, this.zoom) * this.tileSize);
   }
 
   applyProjectionViewMatrix(point: [number, number] | vec2): [number, number] {

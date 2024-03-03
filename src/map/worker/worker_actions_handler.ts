@@ -38,6 +38,8 @@ export class WorkerActionHandler {
 
         this.tileFetchPromiseMap.get(tileId).cancel();
         this.tileFetchPromiseMap.delete(tileId);
+
+        return;
       }
       default:
         throw new Error(`No handler for "${request.type}" worker action.`);

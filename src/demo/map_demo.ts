@@ -1,6 +1,6 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { MapboxVectorTileStyles } from './map_styles';
+import { ImageTilesStyles, MapboxVectorTileStyles } from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
@@ -90,7 +90,8 @@ export function renderMap() {
     zoom,
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl,
-    tileStyles: MapboxVectorTileStyles,
+    tileStyles: ImageTilesStyles,
+    // tileStyles: MapboxVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
@@ -101,7 +102,8 @@ export function renderMap() {
     featureFlags: {
       debugLayer: true,
       webglRendererDebug: false,
-      webglRendererUsePolygonText: true,
+      webglRendererUsePolygonText: false,
+      enableObjectSelection: false,
     },
   });
 

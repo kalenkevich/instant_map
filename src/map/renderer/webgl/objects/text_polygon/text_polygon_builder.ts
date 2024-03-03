@@ -18,12 +18,25 @@ export class TextPolygonBuilder extends ObjectGroupBuilder<WebGlText> {
     protected readonly canvasHeight: number,
     protected readonly pixelRatio: number,
     protected readonly zoom: number,
+    protected readonly minZoom: number,
+    protected readonly maxZoom: number,
     protected readonly tileSize: number,
     protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags,
     private readonly fontManager: FontManager
   ) {
-    super(projectionViewMat, canvasWidth, canvasHeight, pixelRatio, zoom, tileSize, projection, featureFlags);
+    super(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      minZoom,
+      maxZoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
   }
 
   addObject(text: WebGlText) {

@@ -20,14 +20,14 @@ export class PolygonProgram extends ObjectProgram {
 
   onUnlink(): void {}
 
-  drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup, options: DrawObjectGroupOptions) {
+  drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup, options?: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);

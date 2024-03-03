@@ -20,13 +20,15 @@ export class TextPolygonProgram extends ObjectProgram {
 
   onUnlink(): void {}
 
-  drawObjectGroup(textGroup: WebGlTextPolygonBufferredGroup, options: DrawObjectGroupOptions): void {
+  drawObjectGroup(textGroup: WebGlTextPolygonBufferredGroup, options?: DrawObjectGroupOptions): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
-    this.colorBuffer.bufferData(options.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer);
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 

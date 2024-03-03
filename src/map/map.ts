@@ -4,7 +4,7 @@ import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
 import { MapTileRendererType, Renderer } from './renderer/renderer';
-import { RenderQueue } from './render_queue/render_queue';
+import { RenderQueue } from './renderer/render_queue/render_queue';
 import { TilesGrid, TilesGridEvent } from './tile/tile_grid';
 import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
@@ -17,8 +17,6 @@ import { DataTileStyles } from './styles/styles';
 import { MapFeatureFlags } from './flags';
 
 const defaultOptions = {
-  width: 512,
-  height: 512,
   center: [0, 0] as [number, number],
   zoom: 1,
   rotation: 0,
@@ -133,8 +131,8 @@ export class GlideMap extends Evented<MapEventType> {
 
     this.renderQueue = new RenderQueue();
 
-    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts);
-    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas);
+    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts || {});
+    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas || {});
     this.projection = getProjectionFromType(this.mapOptions.projection);
     this.camera = new MapCamera(
       this.featureFlags,
@@ -173,7 +171,9 @@ export class GlideMap extends Evented<MapEventType> {
     await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
 
     this.pan.init();
-    this.pan.on(MapPanEvents.click, this.onMapClick);
+    if (this.featureFlags.enableObjectSelection) {
+      this.pan.on(MapPanEvents.click, this.onMapClick);
+    }
     this.tilesGrid.init();
     this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
     this.renderer.init();
@@ -186,7 +186,9 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   destroy() {
-    this.pan.off(MapPanEvents.click, this.onMapClick);
+    if (this.featureFlags.enableObjectSelection) {
+      this.pan.off(MapPanEvents.click, this.onMapClick);
+    }
     this.pan.destroy();
     this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
     this.tilesGrid.destroy();

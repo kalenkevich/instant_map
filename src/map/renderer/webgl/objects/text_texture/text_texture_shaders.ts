@@ -12,7 +12,6 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_tile_size;
-    uniform bool u_is_read_pixel_render_mode;
 
     attribute vec2 a_position;
     attribute vec2 a_texCoord;
@@ -32,6 +31,7 @@ export default {
     precision mediump float;
 
     uniform sampler2D u_texture;
+    uniform bool u_is_read_pixel_render_mode;
 
     varying vec2 v_texCoord;
     varying vec4 v_color;

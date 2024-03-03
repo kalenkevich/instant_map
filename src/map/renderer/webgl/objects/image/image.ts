@@ -12,11 +12,12 @@ import { TextureAtlas } from '../../../../atlas/atlas_config';
 export interface WebGlImage extends WebGlObject {
   id: number;
   type: MapTileFeatureType.image;
-  atlas: string;
   name: string;
   topLeft: vec2 | [number, number];
   width: number;
   height: number;
+  pixelRatio: number;
+  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
   margin?: PointMargin;
 }
 
@@ -27,5 +28,6 @@ export interface WebGlImageBufferredGroup extends WebGlObjectBufferredGroup {
   texture: TextureAtlas;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   textcoords: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
+  color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
   selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
 }

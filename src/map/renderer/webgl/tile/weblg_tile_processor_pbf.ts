@@ -1,15 +1,27 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 import { mat3, vec4 } from 'gl-matrix';
-import tilebelt from '@mapbox/tilebelt';
 import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
+// Common
+import { FontManager } from '../../../font/font_manager';
+import { MercatorProjection } from '../../../geo/projection/mercator_projection';
+// Tile
 import { MapTileFeatureType } from '../../../tile/tile';
+import { FetchTileOptions } from '../../../tile/tile_source_processor';
 import { WebGlMapLayer } from './webgl_tile';
 // Styles
-import { GlyphStyle, LineStyle, PointStyle, PolygonStyle, TextStyle } from '../../../styles/styles';
+import {
+  DataLayerStyle,
+  PbfTileSource,
+  GlyphStyle,
+  LineStyle,
+  PointStyle,
+  PolygonStyle,
+  TextStyle,
+} from '../../../styles/styles';
 import { compileStatement } from '../../../styles/style_statement_utils';
-// WEBGL specific
+// WebGl objects
 import { WebGlObjectBufferredGroup } from '../objects/object/object';
 import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../objects/line/line';
 import { PointGroupBuilder } from '../objects/point/point_builder';
@@ -18,10 +30,7 @@ import { LineGroupBuilder } from '../objects/line/line_builder';
 import { GlyphGroupBuilder } from '../objects/glyph/glyph_group_builder';
 import { TextPolygonBuilder } from '../objects/text_polygon/text_polygon_builder';
 import { TextTextureGroupBuilder } from '../objects/text_texture/text_texture_builder';
-import { MercatorProjection } from '../../../geo/projection/mercator_projection';
 import { WebGlText } from '../objects/text_texture/text';
-import { FetchTileOptions } from '../../../tile/tile_source_processor';
-import { FontManager } from '../../../font/font_manager';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
@@ -47,6 +56,8 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
 
 export async function PbfTile2WebglLayers(
   tileURL: string,
+  source: PbfTileSource,
+  sourceLayers: DataLayerStyle[],
   {
     tileId,
     tileStyles,
@@ -63,17 +74,19 @@ export async function PbfTile2WebglLayers(
   abortController: AbortController,
   onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
+  const minZoom = tileStyles.minzoom || 0;
+  const maxZoom = tileStyles.maxzoom || 0;
+  const [x, y, z] = tileId.split('/').map(Number);
+  const projection = new MercatorProjection();
+  const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
+  const fontManager = featureFlags.webglRendererUsePolygonText && FontManager.fromState(featureFlags, fontManagerState);
+  const tileLayers: WebGlMapLayer[] = [];
+
   const resData = await fetch(tileURL, { signal: abortController.signal }).then(data => data.arrayBuffer());
   const pbf = new Protobuf(resData);
   const vectorTile = new VectorTile(pbf);
-  const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
-  const [x, y, z] = tileId.split('/').map(Number);
 
-  const fontManager = featureFlags.webglRendererUsePolygonText && FontManager.fromState(featureFlags, fontManagerState);
-  const projection = new MercatorProjection();
-  const tileLayers: WebGlMapLayer[] = [];
-
-  for (const styleLayer of Object.values(tileStyles.layers)) {
+  for (const styleLayer of sourceLayers) {
     if (styleLayer.show === false || !vectorTile?.layers?.[styleLayer.sourceLayer]) {
       continue;
     }
@@ -88,6 +101,8 @@ export async function PbfTile2WebglLayers(
       canvasHeight,
       pixelRatio,
       zoom,
+      minZoom,
+      maxZoom,
       tileSize,
       projection,
       featureFlags
@@ -98,6 +113,8 @@ export async function PbfTile2WebglLayers(
       canvasHeight,
       pixelRatio,
       zoom,
+      minZoom,
+      maxZoom,
       tileSize,
       projection,
       featureFlags
@@ -108,6 +125,8 @@ export async function PbfTile2WebglLayers(
       canvasHeight,
       pixelRatio,
       zoom,
+      minZoom,
+      maxZoom,
       tileSize,
       projection,
       featureFlags
@@ -118,6 +137,8 @@ export async function PbfTile2WebglLayers(
       canvasHeight,
       pixelRatio,
       zoom,
+      minZoom,
+      maxZoom,
       tileSize,
       projection,
       featureFlags,
@@ -130,6 +151,8 @@ export async function PbfTile2WebglLayers(
           canvasHeight,
           pixelRatio,
           zoom,
+          minZoom,
+          maxZoom,
           tileSize,
           projection,
           featureFlags,
@@ -141,6 +164,8 @@ export async function PbfTile2WebglLayers(
           canvasHeight,
           pixelRatio,
           zoom,
+          minZoom,
+          maxZoom,
           tileSize,
           projection,
           featureFlags
@@ -402,97 +427,18 @@ export async function PbfTile2WebglLayers(
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
-      // objectGroups.push(glyphGroupBuilder.build());
+      objectGroups.push(glyphGroupBuilder.build());
     }
 
     const layer: WebGlMapLayer = {
       tileId,
-      source: '',
+      source: source.name,
       layerName: styleLayer.styleLayerName,
       zIndex: styleLayer.zIndex,
       objectGroups,
     };
     onLayerReady(layer);
-
     tileLayers.push(layer);
-  }
-
-  if (featureFlags.debugLayer) {
-    const tilePiolygon = tilebelt.tileToGeoJSON([x, y, z]);
-    const tileCenter = geometryCenter(tilePiolygon).geometry.coordinates as [number, number];
-    const tileBbox = tilePiolygon.coordinates[0] as Array<[number, number]>;
-    const lineGroupBuilder = new LineGroupBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
-    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText
-      ? new TextPolygonBuilder(
-          projectionViewMat,
-          canvasWidth,
-          canvasHeight,
-          pixelRatio,
-          zoom,
-          tileSize,
-          projection,
-          featureFlags,
-          fontManager
-        )
-      : new TextTextureGroupBuilder(
-          projectionViewMat,
-          canvasWidth,
-          canvasHeight,
-          pixelRatio,
-          zoom,
-          tileSize,
-          projection,
-          featureFlags
-        );
-
-    textTextureGroupBuilder.addObject({
-      id: 1,
-      type: MapTileFeatureType.text,
-      text: tileId,
-      center: tileCenter,
-      font: 'opensans',
-      fontSize: 24,
-      borderWidth: 1,
-      color: [1, 1, 1, 1],
-      borderColor: [0, 0, 0, 1],
-      margin: {
-        top: 0,
-        left: 0,
-      },
-    });
-
-    lineGroupBuilder.addObject({
-      id: 2,
-      type: MapTileFeatureType.line,
-      color: [1, 0, 0, 1],
-      borderColor: [0, 0, 0, 1],
-      vertecies: tileBbox,
-      width: 3,
-      borderWidth: 0,
-      fill: LineFillStyle.solid,
-      join: LineJoinStyle.miter,
-      cap: LineCapStyle.square,
-    });
-
-    const debugObjectGroups = [await textTextureGroupBuilder.build(), lineGroupBuilder.build()];
-    const debugLayer: WebGlMapLayer = {
-      source: 'debug',
-      layerName: 'debugLayer',
-      tileId,
-      zIndex: 99,
-      objectGroups: debugObjectGroups,
-    };
-    tileLayers.push(debugLayer);
-    onLayerReady(debugLayer);
   }
 
   return tileLayers;

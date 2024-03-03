@@ -6,4 +6,6 @@ export interface MapFeatureFlags {
   webglRendererDebug?: boolean;
 
   webglRendererUsePolygonText?: boolean;
+
+  enableObjectSelection?: boolean;
 }

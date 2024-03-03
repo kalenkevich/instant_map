@@ -72,19 +72,24 @@ export class TextTextureProgram extends ObjectProgram {
     });
   }
 
-  drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options: DrawObjectGroupOptions) {
+  drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options?: DrawObjectGroupOptions) {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
 
     gl.uniform1i(this.u_textureLocation, this.texture.index);
     this.texture.setSource(textGroup.texture.source);
+    this.texture.bind();
+
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
-    this.colorBuffer.bufferData(options.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer);
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
+    this.texture.unbind();
     gl.bindVertexArray(null);
   }
 }

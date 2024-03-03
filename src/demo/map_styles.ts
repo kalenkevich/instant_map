@@ -686,9 +686,15 @@ export const ImageTilesStyles: DataTileStyles = {
   maxzoom: 16,
   sources: {
     imageSource: {
-      type: DataTileSourceType.png,
+      type: DataTileSourceType.image,
       name: 'imageSource',
       url: 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+      pixelRatio: 2,
+    },
+    dataSource: {
+      type: DataTileSourceType.pbf,
+      name: 'dataSource',
+      url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
     },
   },
   layers: {
@@ -703,6 +709,50 @@ export const ImageTilesStyles: DataTileStyles = {
       },
       maxzoom: 16,
       minzoom: 0,
+    },
+    road: {
+      source: 'dataSource',
+      sourceLayer: 'road',
+      styleLayerName: 'roadStyles',
+      zIndex: 2,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.line,
+        color: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['primary', ['$rgba', 233, 201, 43, 0.3]],
+          ['secondary', ['$rgba', 233, 201, 43, 0.3]],
+          ['motorway', ['$rgba', 233, 201, 43, 0.3]],
+          ['$default', ['$rgba', 215, 218, 226, 0.3]],
+        ],
+        width: ['$switch', ['$get', 'properties.class'], ['primary', 4], ['$default', 2]],
+        joinStyle: LineJoinStyle.round,
+      },
+      minzoom: 6,
+    },
+    poiIcon: {
+      source: 'dataSource',
+      sourceLayer: 'poi_label',
+      styleLayerName: 'poiIcon',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.glyph,
+        name: ['$get', 'properties.maki'],
+        atlas: 'iconsAtlas',
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
+  },
+  atlas: {
+    iconsAtlas: {
+      name: 'iconsAtlas',
+      width: 1024,
+      height: 936,
+      source: './icons/sprite@2x.png',
+      mapping: './icons/sprite@2x.json',
     },
   },
 };
