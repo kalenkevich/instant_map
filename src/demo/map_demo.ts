@@ -1,6 +1,7 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { MapTilerVectorTileStyles, MapboxVectorTileStyles } from './map_styles';
+import { MapboxVectorTileStyles } from './map_styles';
+import { MapTileRendererType } from '../map/renderer/renderer';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
 
@@ -86,13 +87,10 @@ export function renderMap() {
 
   currentMap = new GlideMap({
     rootEl: rootDiv,
-    tilesUrl:
-      'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
-    tileStyles: MapboxVectorTileStyles,
-    // tilesUrl: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
-    // tileStyles: MapTilerVectorTileStyles,
     zoom,
     center: [lat, lng],
+    rendrer: MapTileRendererType.webgl,
+    tileStyles: MapboxVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,

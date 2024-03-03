@@ -1,4 +1,4 @@
-import { MapTileLayer } from '../tile/tile';
+import { MapTile, MapTileLayer } from '../tile/tile';
 
 /** Supported worker requests. */
 export enum WorkerTaskRequestType {
@@ -29,10 +29,7 @@ export type WorkerTaskResponse = TileFullCompleteResponse | TileLayerCompleteRes
 
 export interface TileFullCompleteResponse {
   type: WorkerTaskResponseType.TILE_FULL_COMPLETE;
-  data: {
-    tileId: string;
-    tileLayers: MapTileLayer[];
-  };
+  data: MapTile;
 }
 
 export interface TileLayerCompleteResponse {

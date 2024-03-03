@@ -1,6 +1,15 @@
 import { mat3 } from 'gl-matrix';
 import { MapTile } from '../tile/tile';
 
+export enum MapTileRendererType {
+  webgl = 'webgl',
+
+  // Possible renderes
+  // html = 'html',
+  // canvas2d = 'canvas2d',
+  // webgpu = 'webgpu',
+}
+
 export interface MapStyles {
   disabledLayers?: string[];
   layers: Record<string, [number, number, number, number]>;

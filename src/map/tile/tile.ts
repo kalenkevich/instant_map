@@ -1,27 +1,14 @@
-import { Polygon } from 'geojson';
-
 export type TileRef = [number, number, number];
-
-export enum MapTileFormatType {
-  xml = 'xml', // tile data stored as xml
-  json = 'json', // tile data stored as json
-  pbf = 'pbf', // tile data stored as pbf (most efficiet type)
-  png = 'png', // tile data stored as image
-}
 
 export interface MapTile {
   ref: TileRef;
   tileId: string;
-  formatType: MapTileFormatType;
-
-  getLayers(): MapTileLayer[];
-  setLayers(layers: MapTileLayer[]): void;
-
-  toGeoJson(): Polygon;
+  layers: MapTileLayer[];
 }
 
 export interface MapTileLayer {
   tileId: string;
+  source: string;
   layerName: string;
   zIndex: number;
 }
@@ -37,4 +24,20 @@ export enum MapTileFeatureType {
   text = 'text',
   glyph = 'glyph',
   image = 'image',
+}
+
+export function getTileId(refOrId: TileRef | string): string {
+  if (Array.isArray(refOrId)) {
+    return refOrId.join('/');
+  }
+
+  return refOrId;
+}
+
+export function getTileRef(refOrId: TileRef | string): TileRef {
+  if (Array.isArray(refOrId)) {
+    return refOrId;
+  }
+
+  return refOrId.split('/') as unknown as TileRef;
 }

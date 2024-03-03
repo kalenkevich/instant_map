@@ -3,7 +3,7 @@ import { Evented } from './evented';
 import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
-import { Renderer } from './renderer/renderer';
+import { MapTileRendererType, Renderer } from './renderer/renderer';
 import { RenderQueue } from './render_queue/render_queue';
 import { TilesGrid, TilesGridEvent } from './tile/tile_grid';
 import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
@@ -11,7 +11,6 @@ import { MapParentControl, MapControlPosition } from './controls/parent_control'
 import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
 import { EasyAnimation } from './animation/easy_animation';
-import { MapTileFormatType } from './tile/tile';
 import { FontManager } from './font/font_manager';
 import { AtlasTextureManager } from './atlas/atlas_manager';
 import { DataTileStyles } from './styles/styles';
@@ -25,7 +24,6 @@ const defaultOptions = {
   rotation: 0,
   tileBuffer: 1,
   projection: 'mercator',
-  tileFormatType: MapTileFormatType.pbf,
   resizable: true,
   controls: {
     zoom: true,
@@ -41,7 +39,7 @@ export interface MapOptions {
   id?: string;
   width?: number;
   height?: number;
-
+  rendrer: MapTileRendererType;
   /** Initial map camera position. */
   center?: [number, number];
   /** Initial zoom value of the map. */
@@ -70,8 +68,6 @@ export interface MapOptions {
   // TODO: tile meta url
   /** Meta info url to fetch data about tiles and styles. */
   tileMetaUrl?: string;
-  tilesUrl: string;
-  tileFormatType?: string | MapTileFormatType;
   projection?: string | ProjectionType;
   featureFlags?: MapFeatureFlags;
 }
@@ -152,8 +148,7 @@ export class GlideMap extends Evented<MapEventType> {
     );
     this.tilesGrid = new TilesGrid(
       this.featureFlags,
-      this.mapOptions.tileFormatType as MapTileFormatType,
-      this.mapOptions.tilesUrl,
+      this.mapOptions.rendrer,
       this.mapOptions.tileStyles,
       this.mapOptions.tileBuffer || 1,
       this.mapOptions.workerPool || 8,
@@ -165,7 +160,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.atlasTextureManager
     );
     this.pan = new MapPan(this, this.rootEl);
-    this.renderer = new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+    this.renderer = this.getRenderer(this.mapOptions.rendrer);
 
     this.init().then(() => {
       this.rerender();
@@ -360,6 +355,15 @@ export class GlideMap extends Evented<MapEventType> {
         elapsed: performance.now() - start,
       };
       this.stats.end();
+    }
+  }
+
+  private getRenderer(rendererType: MapTileRendererType): Renderer {
+    switch (rendererType) {
+      case MapTileRendererType.webgl:
+        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+      default:
+        throw new Error(`Rendrer "rendererType" is not supported.`);
     }
   }
 

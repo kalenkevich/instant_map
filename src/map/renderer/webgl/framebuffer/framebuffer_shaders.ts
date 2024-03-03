@@ -1,4 +1,4 @@
-import { FEATURE_FLAGS_UTILS } from '../object/object_shaders';
+import { FEATURE_FLAGS_UTILS } from '../objects/object/object_shaders';
 
 export default {
   vertext: `

@@ -1,17 +1,17 @@
 import { mat3 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
 import { Renderer, RenderOptions } from '../renderer';
-import { MapTile, MapTileFeatureType } from '../../tile/tile';
-import { MapTileLayer } from '../../tile/tile';
-import { PbfTileLayer } from '../../tile/pbf/pbf_tile';
+import { MapTileFeatureType } from '../../tile/tile';
+import { WebGlMapTile, WebGlMapLayer } from './tile/webgl_tile';
 import { ExtendedWebGLRenderingContext } from './webgl_context';
-import { ObjectProgram } from './object/object_program';
-import { PointProgram } from './point/point_program';
-import { PolygonProgram } from './polygon/polygon_program';
-import { LineProgram } from './line/line_program';
-import { TextTextureProgram } from './text_texture/text_texture_program';
-import { TextPolygonProgram } from './text_polygon/text_polygon_program';
-import { GlyphProgram } from './glyph/glyph_program';
+import { ObjectProgram } from './objects/object/object_program';
+import { PointProgram } from './objects/point/point_program';
+import { PolygonProgram } from './objects/polygon/polygon_program';
+import { LineProgram } from './objects/line/line_program';
+import { TextTextureProgram } from './objects/text_texture/text_texture_program';
+import { TextPolygonProgram } from './objects/text_polygon/text_polygon_program';
+import { GlyphProgram } from './objects/glyph/glyph_program';
+import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { AtlasTextureManager } from '../../atlas/atlas_manager';
 import { MapFeatureFlags } from '../../flags';
@@ -80,14 +80,16 @@ export class WebGlRenderer implements Renderer {
       : new TextTextureProgram(gl, this.featureFlags);
     textProgram.init();
 
+    const imageProgram = new ImageProgram(gl, this.featureFlags);
+    imageProgram.init();
+
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
       [MapTileFeatureType.line]: lineProgram,
       [MapTileFeatureType.polygon]: polygonProgram,
       [MapTileFeatureType.text]: textProgram,
       [MapTileFeatureType.glyph]: glyphProgram,
-      // TODO: implement
-      [MapTileFeatureType.image]: polygonProgram,
+      [MapTileFeatureType.image]: imageProgram,
     };
   }
 
@@ -126,7 +128,7 @@ export class WebGlRenderer implements Renderer {
     return [...viewMatrix, zoom, tileSize, this.canvas.width, this.canvas.height].join('-');
   }
 
-  getObjectId(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, x: number, y: number): number {
+  getObjectId(tiles: WebGlMapTile[], viewMatrix: mat3, zoom: number, tileSize: number, x: number, y: number): number {
     const gl = this.gl;
     const pixels = new Uint8Array(4);
 
@@ -143,7 +145,7 @@ export class WebGlRenderer implements Renderer {
     return vector4ToInteger([pixels[0], pixels[1], pixels[2], pixels[3]]);
   }
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, options: RenderOptions) {
+  render(tiles: WebGlMapTile[], viewMatrix: mat3, zoom: number, tileSize: number, options: RenderOptions) {
     let program: ObjectProgram;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
@@ -159,7 +161,7 @@ export class WebGlRenderer implements Renderer {
     const sortedLayers = this.getSortedLayers(tiles);
 
     for (const layer of sortedLayers) {
-      const { objectGroups, layerName, tileId } = layer as PbfTileLayer;
+      const { objectGroups, layerName, tileId } = layer as WebGlMapLayer;
       const renderLayerId = `${tileId}-${layerName}`;
 
       if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
@@ -207,11 +209,11 @@ export class WebGlRenderer implements Renderer {
     }
   }
 
-  private getSortedLayers(tiles: MapTile[]): MapTileLayer[] {
-    const layers: MapTileLayer[] = [];
+  private getSortedLayers(tiles: WebGlMapTile[]): WebGlMapLayer[] {
+    const layers: WebGlMapLayer[] = [];
 
     for (const tile of tiles) {
-      layers.push(...tile.getLayers());
+      layers.push(...tile.layers);
     }
 
     return layers.sort((l1, l2) => l1.zIndex - l2.zIndex);

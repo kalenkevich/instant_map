@@ -2,12 +2,15 @@ import { Statement, ColorValue } from './style_statement';
 import { MapTileFeatureType } from '../tile/tile';
 import { FontConfig } from '../font/font_config';
 import { AtlasTextrureConfig } from '../atlas/atlas_config';
-import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../renderer/webgl/line/line';
+import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../renderer/webgl/objects/line/line';
 
 export interface DataTileStyles {
   tileSize?: number;
   minzoom?: number;
   maxzoom?: number;
+  sources: {
+    [sourceLayer: string]: DataTileSource;
+  };
   layers: {
     [styleLayer: string]: DataLayerStyle;
   };
@@ -21,7 +24,8 @@ export interface DataTileStyles {
 
 export interface DataLayerStyle {
   zIndex: number; // order number (like z-index in css);
-  sourceLayer: SourceLayer; // tile feature layer;
+  source: string; // tile data source
+  sourceLayer: string; // tile feature layer;
   styleLayerName: string; // style layer name;
   show?: boolean;
   minzoom?: number;
@@ -29,15 +33,22 @@ export interface DataLayerStyle {
   feature?: FeatureStyle;
 }
 
-export type SourceLayer = string;
+export enum DataTileSourceType {
+  pbf = 'pbf',
+  png = 'png',
+  // Possible data sources
+  // json = 'json',
+  // osm = 'osm',
+  // xml = 'xml'
+}
 
-export interface ImageSourceLayer {
+export interface DataTileSource {
   name: string;
-  type: 'image';
+  type: DataTileSourceType;
   url: string;
 }
 
-export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | GlyphStyle;
+export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | GlyphStyle | ImageStyle;
 
 export interface PointStyle {
   type: MapTileFeatureType.point;
@@ -95,6 +106,16 @@ export interface GlyphStyle {
   atlas: Statement<string>; // atlas name
   width?: Statement<number>; // optional
   height?: Statement<number>;
+  show?: Statement<boolean>;
+  minzoom?: number;
+  maxzoom?: number;
+  margin?: PointMargin;
+}
+
+export interface ImageStyle {
+  type: MapTileFeatureType.image;
+  width?: Statement<number>; // optional
+  height?: Statement<number>; // optional
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;

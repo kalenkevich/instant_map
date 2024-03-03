@@ -1,10 +1,10 @@
 import tilebelt from '@mapbox/tilebelt';
 import { Evented } from '../evented';
 import { MapCamera } from '../camera/map_camera';
-import { TileRef, MapTile } from './tile';
+import { TileRef, MapTile, getTileId, getTileRef } from './tile';
 import { Projection } from '../geo/projection/projection';
-import { MapTileFormatType, MapTileLayer } from './tile';
-import { PbfMapTile, PbfTileLayer } from './pbf/pbf_tile';
+import { MapTileLayer } from './tile';
+import { MapTileRendererType } from '../renderer/renderer';
 import { LRUCache } from '../utils/lru_cache';
 import { AtlasTextureManager } from '../atlas/atlas_manager';
 import { DataTileStyles } from '../styles/styles';
@@ -32,8 +32,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
-    private readonly tileFormatType: MapTileFormatType,
-    private readonly tileServerURL: string,
+    private readonly rendererType: MapTileRendererType,
     private readonly tileStyles: DataTileStyles,
     private readonly tileBuffer: number,
     private readonly maxWorkerPool: number,
@@ -66,7 +65,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       return;
     }
 
-    const { tileId, tileLayers } = response.data;
+    const { tileId, layers: tileLayers } = response.data;
 
     if (!tileLayers || tileLayers.length === 0) {
       return;
@@ -76,7 +75,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     if (this.tiles.has(tileId)) {
       tile = this.tiles.get(tileId);
 
-      tile.setLayers(tileLayers);
+      tile.layers = tileLayers;
     } else {
       tile = this.createMapTile(tileId, tileLayers);
 
@@ -98,19 +97,17 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     let tile: MapTile;
     if (this.tiles.has(tileId)) {
       tile = this.tiles.get(tileId);
-      const layers = tile.getLayers();
+      const layers = tile.layers;
       const hasLayer = layers.find(l => l.layerName === tileLayer.layerName);
 
       if (hasLayer) {
-        tile.setLayers(
-          layers.map(l => {
-            if (l.layerName === tileLayer.layerName) {
-              return tileLayer;
-            }
+        tile.layers = layers.map(l => {
+          if (l.layerName === tileLayer.layerName) {
+            return tileLayer;
+          }
 
-            return l;
-          })
-        );
+          return l;
+        });
       } else {
         layers.push(tileLayer);
       }
@@ -157,8 +154,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     // remove duplicates
     let tilesToLoad = [
       ...new Set([
-        ...this.tilesInView.map(t => this.getTileId(t as TileRef)),
-        ...this.bufferedTiles.map(t => this.getTileId(t as TileRef)),
+        ...this.tilesInView.map(t => getTileId(t as TileRef)),
+        ...this.bufferedTiles.map(t => getTileId(t as TileRef)),
       ]),
     ];
 
@@ -171,9 +168,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       const validZ = z >= 0 && z <= this.maxTileZoom;
       return validX && validY && validZ;
     });
-
-    // tile fetching options
-    const { tileServerURL: url } = this;
 
     for (const [tileId, task] of this.currentLoadingTiles) {
       if (!tilesToLoad.includes(tileId)) {
@@ -201,7 +195,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         data: {
           tileId,
           tileStyles: this.tileStyles,
-          url,
+          rendererType: this.rendererType,
           projectionViewMat: [...camera.getProjectionMatrix()],
           canvasWidth,
           canvasHeight,
@@ -228,7 +222,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   public getCurrentViewTiles(usePlaceholders: boolean = true): MapTile[] {
     const tiles = this.tilesInView
       .map(tileRef => {
-        const tileId = this.getTileId(tileRef);
+        const tileId = getTileId(tileRef);
 
         return this.tiles.get(tileId);
       })
@@ -240,44 +234,29 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     // add placeholder tile data.
     for (const tile of tiles) {
-      const tileLayers = tile.getLayers();
+      const tileLayers = tile.layers;
 
       if (!tileLayers || tileLayers.length === 0) {
-        tile.setLayers(this.getPlaceholderLayers(tile.ref));
+        tile.layers = this.getPlaceholderLayers(tile.ref);
       }
     }
 
     return tiles;
   }
 
-  private getTileId(tileOrRef: MapTile | TileRef): string {
-    if (Array.isArray(tileOrRef)) {
-      return tileOrRef.join('/');
-    }
-
-    return (tileOrRef as MapTile).tileId;
-  }
-
   private createMapTile(refOrId: TileRef | string, tileLayers: MapTileLayer[] = []): MapTile {
-    let tileRef: TileRef;
-    if (typeof refOrId === 'string') {
-      tileRef = refOrId.split('/') as unknown as TileRef;
-    } else {
-      tileRef = refOrId;
-    }
-
-    if (this.tileFormatType === MapTileFormatType.pbf) {
-      return new PbfMapTile(tileRef, tileLayers as PbfTileLayer[]);
-    }
-
-    throw new Error(`${this.tileFormatType} is not supported.`);
+    return {
+      ref: getTileRef(refOrId),
+      tileId: getTileId(refOrId),
+      layers: tileLayers,
+    };
   }
 
   private getPlaceholderLayers(tile: TileRef): MapTileLayer[] {
-    const parentId = this.getTileId(tilebelt.getParent(tile)! as TileRef);
+    const parentId = getTileId(tilebelt.getParent(tile)! as TileRef);
     const parentTile = this.tiles.get(parentId);
     if (parentTile) {
-      const parentLayers = parentTile.getLayers();
+      const parentLayers = parentTile.layers;
 
       if (parentLayers && parentLayers.length > 0) {
         return parentLayers;
@@ -285,7 +264,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     }
 
     const childFeatureSets: any = [];
-    const children = (tilebelt.getChildren(tile) || []).map(t => this.getTileId(t as TileRef));
+    const children = (tilebelt.getChildren(tile) || []).map(t => getTileId(t as TileRef));
     for (const childId of children) {
       const childTile = this.tiles.get(childId);
 
@@ -293,7 +272,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         continue;
       }
 
-      childFeatureSets.push(...(childTile.getLayers() || []));
+      childFeatureSets.push(...(childTile.layers || []));
     }
 
     return childFeatureSets;

@@ -1,13 +1,21 @@
-import { LineJoinStyle } from '../map/renderer/webgl/line/line';
-import { DataTileStyles } from '../map/styles/styles';
+import { LineJoinStyle } from '../map/renderer/webgl/objects/line/line';
+import { DataTileSourceType, DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
   tileSize: 512,
   minzoom: 1,
   maxzoom: 15,
+  sources: {
+    dataSource: {
+      type: DataTileSourceType.pbf,
+      name: 'dataSource',
+      url: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
+    },
+  },
   layers: {
     water: {
+      source: 'dataSource',
       sourceLayer: 'water',
       styleLayerName: 'waterStyles',
       zIndex: 0,
@@ -20,6 +28,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     globallandcover: {
+      source: 'dataSource',
       sourceLayer: 'globallandcover',
       styleLayerName: 'globallandcoverStyles',
       zIndex: 0,
@@ -64,6 +73,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     landcover: {
+      source: 'dataSource',
       sourceLayer: 'landcover',
       styleLayerName: 'landcoverStyles',
       zIndex: 0,
@@ -108,6 +118,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     boundary: {
+      source: 'dataSource',
       sourceLayer: 'boundary',
       styleLayerName: 'boundaryStyles',
       show: true,
@@ -122,6 +133,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     building: {
+      source: 'dataSource',
       sourceLayer: 'building',
       styleLayerName: 'buildingStyles',
       zIndex: 2,
@@ -132,6 +144,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     transportation: {
+      source: 'dataSource',
       sourceLayer: 'transportation',
       styleLayerName: 'transportationStyles',
       zIndex: 2,
@@ -152,6 +165,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 6,
     },
     transportation_name: {
+      source: 'dataSource',
       sourceLayer: 'transportation_name',
       styleLayerName: 'transportation_nameStyles',
       zIndex: 4,
@@ -167,6 +181,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     poi: {
+      source: 'dataSource',
       sourceLayer: 'poi',
       styleLayerName: 'poiPoint',
       show: false,
@@ -186,6 +201,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     poiIcon: {
+      source: 'dataSource',
       sourceLayer: 'poi',
       styleLayerName: 'poiIcon',
       show: true,
@@ -200,6 +216,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     poiLabel: {
+      source: 'dataSource',
       sourceLayer: 'poi',
       styleLayerName: 'poiText',
       zIndex: 4,
@@ -217,6 +234,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     place: {
+      source: 'dataSource',
       sourceLayer: 'place',
       styleLayerName: 'placeStyles',
       zIndex: 4,
@@ -248,6 +266,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     park: {
+      source: 'dataSource',
       sourceLayer: 'park',
       styleLayerName: 'parkStyles',
       zIndex: 1,
@@ -260,6 +279,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 4,
     },
     housenumber: {
+      source: 'dataSource',
       sourceLayer: 'housenumber',
       styleLayerName: 'housenumberStyles',
       zIndex: 4,
@@ -275,6 +295,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 16,
     },
     aerodrome_label: {
+      source: 'dataSource',
       sourceLayer: 'aerodrome_label',
       styleLayerName: 'aerodromeLabelStyles',
       zIndex: 4,
@@ -283,6 +304,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 8,
     },
     aeroway: {
+      source: 'dataSource',
       sourceLayer: 'aeroway',
       styleLayerName: 'aerowayStyles',
       zIndex: 2,
@@ -291,6 +313,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 10,
     },
     landuse: {
+      source: 'dataSource',
       sourceLayer: 'landuse',
       styleLayerName: 'landuseStyles',
       zIndex: 2,
@@ -299,6 +322,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 4,
     },
     mountain_peak: {
+      source: 'dataSource',
       sourceLayer: 'mountain_peak',
       styleLayerName: 'mountain_peakStyles',
       zIndex: 2,
@@ -307,6 +331,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 7,
     },
     water_name: {
+      source: 'dataSource',
       sourceLayer: 'water_name',
       styleLayerName: 'water_nameStyles',
       zIndex: 4,
@@ -315,6 +340,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     waterway: {
+      source: 'dataSource',
       sourceLayer: 'waterway',
       styleLayerName: 'waterwayStyles',
       zIndex: 2,
@@ -363,8 +389,16 @@ export const MapboxVectorTileStyles: DataTileStyles = {
   tileSize: 512,
   minzoom: 0,
   maxzoom: 16,
+  sources: {
+    dataSource: {
+      type: DataTileSourceType.pbf,
+      name: 'dataSource',
+      url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    },
+  },
   layers: {
     water: {
+      source: 'dataSource',
       sourceLayer: 'water',
       styleLayerName: 'waterStyles',
       zIndex: 0,
@@ -377,6 +411,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     landcover: {
+      source: 'dataSource',
       sourceLayer: 'landcover',
       styleLayerName: 'landcoverStyles',
       zIndex: 0,
@@ -403,6 +438,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       },
     },
     landuse: {
+      source: 'dataSource',
       sourceLayer: 'landuse',
       styleLayerName: 'landuseStyles',
       zIndex: 1,
@@ -431,6 +467,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     natural_label: {
+      source: 'dataSource',
       sourceLayer: 'natural_label',
       styleLayerName: 'natural_labelStyles',
       zIndex: 4,
@@ -445,6 +482,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       },
     },
     admin: {
+      source: 'dataSource',
       sourceLayer: 'admin',
       styleLayerName: 'adminStyles',
       show: true,
@@ -459,6 +497,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     road: {
+      source: 'dataSource',
       sourceLayer: 'road',
       styleLayerName: 'roadStyles',
       zIndex: 2,
@@ -479,6 +518,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 6,
     },
     // roadShield: {
+    //   source: 'dataSource',
     //   sourceLayer: 'road',
     //   styleLayerName: 'roadShieldStyles',
     //   zIndex: 2,
@@ -490,6 +530,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     //   },
     // },
     poiLabel: {
+      source: 'dataSource',
       sourceLayer: 'poi_label',
       styleLayerName: 'poiLabel',
       show: true,
@@ -506,6 +547,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     poiIcon: {
+      source: 'dataSource',
       sourceLayer: 'poi_label',
       styleLayerName: 'poiIcon',
       show: true,
@@ -519,6 +561,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     place: {
+      source: 'dataSource',
       sourceLayer: 'place_label',
       styleLayerName: 'place_labelStyles',
       zIndex: 4,
@@ -528,14 +571,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
-        show: [
-          "$lte",
-          [
-              "$get",
-              "properties.filterrank"
-          ],
-          3
-      ],
+        show: ['$lte', ['$get', 'properties.filterrank'], 3],
         font: 'opensansBold',
         fontSize: [
           '$switch',
@@ -552,6 +588,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     settelmentIcon: {
+      source: 'dataSource',
       sourceLayer: 'place_label',
       styleLayerName: 'settelmentIconStyle',
       zIndex: 5,
@@ -566,6 +603,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 0,
     },
     building: {
+      source: 'dataSource',
       sourceLayer: 'building',
       styleLayerName: 'buildingStyles',
       zIndex: 2,
@@ -577,6 +615,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
     housenum_label: {
+      source: 'dataSource',
       sourceLayer: 'housenum_label',
       styleLayerName: 'housenum_labelStyles',
       zIndex: 4,
@@ -591,6 +630,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       },
     },
     structureIcon: {
+      source: 'dataSource',
       sourceLayer: 'structure',
       styleLayerName: 'structureIcon',
       show: true,
@@ -636,6 +676,33 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     opensansBold: {
       name: 'opensansBold',
       source: './fonts/opensans_bold.ttf',
+    },
+  },
+};
+
+export const ImageTilesStyles: DataTileStyles = {
+  tileSize: 256,
+  minzoom: 0,
+  maxzoom: 16,
+  sources: {
+    imageSource: {
+      type: DataTileSourceType.png,
+      name: 'imageSource',
+      url: 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+    },
+  },
+  layers: {
+    image: {
+      source: 'imageSource',
+      sourceLayer: 'image',
+      styleLayerName: 'imageStyles',
+      zIndex: 0,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.image,
+      },
+      maxzoom: 16,
+      minzoom: 0,
     },
   },
 };

@@ -14,6 +14,7 @@ import { compileLayerStyle, compileFeatureStyle, isFeatureStyle } from '../../..
 describe('compileLayerStyle', () => {
   it('should return compile data layer styles', () => {
     const style: DataLayerStyle = {
+      source: 'source',
       sourceLayer: 'land',
       styleLayerName: 'landStyle',
       zIndex: 1,

@@ -1,4 +1,4 @@
-import { ObjectProgram } from '../object/object_program';
+import { ObjectProgram } from '../objects/object/object_program';
 import FramebufferShareds from './framebuffer_shaders';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
