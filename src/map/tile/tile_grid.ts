@@ -16,7 +16,7 @@ import {
   TileFullCompleteResponse,
   TileLayerCompleteResponse,
 } from '../worker/worker_actions';
-import { WorkerPool, WorkerTask, CANCEL_WORKER_ERROR_MESSAGE } from '../worker/worker_pool';
+import { WorkerPool, WorkerTask } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
   TILE_LOADED = 0,
@@ -24,16 +24,17 @@ export enum TilesGridEvent {
 }
 
 export class TilesGrid extends Evented<TilesGridEvent> {
-  private tiles: LRUCache<string, MapTile> = new LRUCache(128);
+  private tiles: LRUCache<string, MapTile>;
   private tilesInView: TileRef[];
   private workerPool: WorkerPool;
   private bufferedTiles: TileRef[];
-  private currentLoadingTiles: Map<string, WorkerTask<any>> = new Map();
+  private currentLoadingTiles: Map<string, WorkerTask> = new Map();
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
     private readonly rendererType: MapTileRendererType,
     private readonly tileStyles: DataTileStyles,
+    private readonly tileCacheSize: number,
     private readonly tileBuffer: number,
     private readonly maxWorkerPool: number,
     private readonly tileSize: number,
@@ -44,18 +45,12 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly glyphsManager: GlyphsManager
   ) {
     super();
+    this.tiles = new LRUCache(tileCacheSize);
   }
 
   init() {
     this.tilesInView = [];
     this.workerPool = new WorkerPool(this.maxWorkerPool);
-
-    this.workerPool.on(
-      WorkerTaskResponseType.TILE_LAYER_COMPLETE,
-      (event: WorkerTaskResponseType, response: TileLayerCompleteResponse) => {
-        this.onTileLayerReady(response);
-      }
-    );
   }
 
   destroy() {}
@@ -190,32 +185,31 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
       this.tiles.set(tileId, this.createMapTile(tileId));
 
-      const workerTask = await this.workerPool.execute({
-        type: WorkerTaskRequestType.FETCH_TILE,
-        data: {
-          tileId,
-          tileStyles: this.tileStyles,
-          rendererType: this.rendererType,
-          projectionViewMat: [...camera.getProjectionMatrix()],
-          canvasWidth,
-          canvasHeight,
-          pixelRatio: this.pixelRatio,
-          zoom,
-          tileSize: this.tileSize,
-          projectionType: this.projection.getType(),
-          atlasTextureMappingState: this.glyphsManager.getMappingState(),
-          fontManagerState: this.fontManager.getState(),
-          featureFlags: this.featureFlags,
+      const workerTask = await this.workerPool.execute(
+        {
+          type: WorkerTaskRequestType.FETCH_TILE,
+          data: {
+            tileId,
+            tileStyles: this.tileStyles,
+            rendererType: this.rendererType,
+            projectionViewMat: [...camera.getProjectionMatrix()],
+            canvasWidth,
+            canvasHeight,
+            pixelRatio: this.pixelRatio,
+            zoom,
+            tileSize: this.tileSize,
+            projectionType: this.projection.getType(),
+            atlasTextureMappingState: this.glyphsManager.getMappingState(),
+            fontManagerState: this.fontManager.getState(),
+            featureFlags: this.featureFlags,
+          },
         },
-      });
+        WorkerTaskResponseType.TILE_FULL_COMPLETE,
+        (result: TileFullCompleteResponse) => {
+          this.onTileFullReady(result);
+        }
+      );
       this.currentLoadingTiles.set(tileId, workerTask);
-      workerTask.task
-        .then((result: any) => this.onTileFullReady(result))
-        .catch(error => {
-          if (error !== CANCEL_WORKER_ERROR_MESSAGE) {
-            console.error(error);
-          }
-        });
     }
   }
 

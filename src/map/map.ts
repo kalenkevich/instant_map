@@ -44,6 +44,8 @@ export interface MapOptions {
   zoom?: number;
   /** Initial rotation value of the map. */
   rotation?: number;
+  /** Number of tiles to store in cache */
+  tileCacheSize?: number;
   /** Number of tiles to fetch around. */
   tileBuffer?: number;
   /** Number of workers to run in background. */
@@ -148,6 +150,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions.rendrer,
       this.mapOptions.tileStyles,
+      this.mapOptions.tileCacheSize || 256,
       this.mapOptions.tileBuffer || 1,
       this.mapOptions.workerPool || 8,
       this.mapOptions.tileStyles.tileSize,
@@ -175,7 +178,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.pan.on(MapPanEvents.click, this.onMapClick);
     }
     this.tilesGrid.init();
-    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileChanged);
     this.renderer.init();
 
     if (this.mapOptions.resizable) {
@@ -190,12 +193,12 @@ export class GlideMap extends Evented<MapEventType> {
       this.pan.off(MapPanEvents.click, this.onMapClick);
     }
     this.pan.destroy();
-    this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileChanged);
     this.tilesGrid.destroy();
     this.renderer.destroy();
   }
 
-  private onTileLoaded = () => {
+  private onTileChanged = () => {
     this.rerender(true);
   };
 

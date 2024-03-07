@@ -1,5 +1,11 @@
 import { TextureSource } from '../glyphs/glyphs_config';
 
+export enum FontSourceType {
+  font = 'font',
+  pbf = 'pbf',
+  image = 'image',
+}
+
 export enum FontFormatType {
   vector = 'vector',
   sdf = 'sdf',
@@ -18,6 +24,7 @@ export const DEFAULT_SUPPORTED_CHARCODE_RANGES: Array<[number, number]> = [
 
 export interface VectorFontConfig {
   type: FontFormatType.vector;
+  sourceType: FontSourceType.font;
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
@@ -25,6 +32,7 @@ export interface VectorFontConfig {
 
 export interface SdfFontConfig {
   type: FontFormatType.sdf;
+  sourceType: FontSourceType.font | FontSourceType.pbf;
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
@@ -32,6 +40,7 @@ export interface SdfFontConfig {
 
 export interface TextureFontConfig {
   type: FontFormatType.texture;
+  sourceType: FontSourceType.font | FontSourceType.image;
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges

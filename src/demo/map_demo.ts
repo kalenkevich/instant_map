@@ -99,11 +99,11 @@ export function renderMap() {
       zoom: true,
       debug: true,
     },
-    workerPool: 16,
+    workerPool: 8,
     featureFlags: {
       debugLayer: true,
       webglRendererDebug: false,
-      webglRendererFontFormatType: FontFormatType.vector,
+      webglRendererFontFormatType: FontFormatType.texture,
       enableObjectSelection: false,
     },
   });

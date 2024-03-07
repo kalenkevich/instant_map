@@ -1,5 +1,7 @@
 export type EventListener<EventType> = (eventType: EventType, ...eventArgs: any[]) => void;
 
+let globalId = 0;
+
 export class Evented<EventType> {
   private eventListeners: Array<{ eventType: EventType; handler: EventListener<EventType>; enabled: boolean }> = [];
 
@@ -12,7 +14,7 @@ export class Evented<EventType> {
   }
 
   public once(eventType: EventType, handler: EventListener<EventType>): void {
-    const onceHandler: EventListener<EventType> = (...eventArgs: any[]) => {
+    const onceHandler: EventListener<EventType> = (_: EventType, ...eventArgs: any[]) => {
       this.off(eventType, onceHandler);
 
       handler(eventType, ...eventArgs);
@@ -26,21 +28,13 @@ export class Evented<EventType> {
   }
 
   public off(eventType: EventType, handler: EventListener<EventType>) {
-    const index = this.eventListeners.findIndex(l => {
-      return l.eventType === eventType && l.handler === handler;
-    });
-
-    if (index > -1) {
-      this.eventListeners[index].enabled = false;
-    }
+    this.eventListeners = this.eventListeners.filter(l => !(l.eventType === eventType && l.handler === handler));
   }
 
   protected fire(eventType: EventType, ...eventArgs: any[]) {
-    for (const listener of this.eventListeners) {
-      if (!listener.enabled) {
-        continue;
-      }
+    const listeners = [...this.eventListeners];
 
+    for (const listener of listeners) {
       if (listener.eventType === eventType || listener.eventType === '*') {
         listener.handler(eventType, ...eventArgs);
       }

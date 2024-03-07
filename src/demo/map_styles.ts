@@ -1,7 +1,7 @@
 import { LineJoinStyle } from '../map/renderer/webgl/objects/line/line';
 import { DataTileSourceType, DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
-import { FontFormatType } from '../map/font/font_config';
+import { FontFormatType, FontSourceType } from '../map/font/font_config';
 import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
@@ -355,21 +355,25 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
     arial: {
       type: FontFormatType.vector,
       name: 'arial',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
       type: FontFormatType.vector,
       name: 'roboto',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/roboto_regular.ttf',
     },
     opensans: {
       type: FontFormatType.vector,
       name: 'opensans',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
     },
     opensansBold: {
       type: FontFormatType.vector,
       name: 'opensansBold',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_bold.ttf',
     },
   },
@@ -674,21 +678,25 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     arial: {
       type: FontFormatType.vector,
       name: 'arial',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
       type: FontFormatType.vector,
       name: 'roboto',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/roboto_regular.ttf',
     },
     opensans: {
       type: FontFormatType.vector,
       name: 'opensans',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
     },
     opensansBold: {
       type: FontFormatType.vector,
       name: 'opensansBold',
+      sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_bold.ttf',
     },
   },
@@ -717,7 +725,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       sourceLayer: 'image',
       styleLayerName: 'imageStyles',
       zIndex: 0,
-      show: false,
+      show: true,
       feature: {
         type: MapTileFeatureType.image,
       },
@@ -836,10 +844,11 @@ export const SateliteTilesStyles: DataTileStyles = {
     // },
   },
   fonts: {
-    opensansBold: {
-      type: FontFormatType.vector,
-      name: 'opensansBold',
-      sourceUrl: './fonts/opensans_bold.ttf',
-    },
+    // opensansBold: {
+    //   type: FontFormatType.vector,
+    //   name: 'opensansBold',
+    //   sourceType: FontSourceType.font,
+    //   sourceUrl: './fonts/opensans_bold.ttf',
+    // },
   },
 };

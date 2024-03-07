@@ -1007,29 +1007,21 @@ export function hasPropertyValue(source: any, property?: string | number): boole
 }
 
 export function getPropertyValue<V>(source: any, property?: string | number): ConstantValue<V> {
-  if (property === undefined || property === null) {
-    return source;
-  }
-
   if (!['number', 'string'].includes(typeof property)) {
-    throw new Error('Cannot get value from: ' + JSON.stringify(property));
+    return source;
   }
 
   let currentSource = source;
   const propertyPath = typeof property === 'string' ? property.split('.') : [`${property}`];
 
-  for (const pathItem of propertyPath) {
+  for (let i = 0; i < propertyPath.length; i++) {
     if (currentSource === null || currentSource == undefined) {
       return currentSource;
     }
 
-    try {
-      if (pathItem in currentSource) {
-        currentSource = currentSource[pathItem];
-      } else {
-        return undefined;
-      }
-    } catch (e) {
+    if (propertyPath[i] in currentSource) {
+      currentSource = currentSource[propertyPath[i]];
+    } else {
       return undefined;
     }
   }
