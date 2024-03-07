@@ -1,12 +1,15 @@
-import { vec4 } from 'gl-matrix';
-import { WebGlText } from './text';
-import { WebGlTextTextureBufferredGroup, TextMapping } from './text';
+import { vec4, mat3 } from 'gl-matrix';
+import { WebGlText } from '../text/text';
+import { WebGlTextTextureBufferredGroup, TextMapping } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { MapTileFeatureType } from '../../../../tile/tile';
-import { TextureAtlas } from '../../../../atlas/atlas_config';
+import { TextureAtlas } from '../../../../glyphs/glyphs_config';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { Projection } from '../../../../geo/projection/projection';
+import { MapFeatureFlags } from '../../../../flags';
+import { FontManager } from '../../../../font/font_manager';
 
 function webglColorToHex(color: vec4 | [number, number, number, number]) {
   const [r, g, b, a] = color;
@@ -99,6 +102,33 @@ export class DynamicTextCanvas {
 }
 
 export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
+  constructor(
+    protected readonly projectionViewMat: mat3,
+    protected readonly canvasWidth: number,
+    protected readonly canvasHeight: number,
+    protected readonly pixelRatio: number,
+    protected readonly zoom: number,
+    protected readonly minZoom: number,
+    protected readonly maxZoom: number,
+    protected readonly tileSize: number,
+    protected readonly projection: Projection,
+    protected readonly featureFlags: MapFeatureFlags,
+    private readonly fontManager: FontManager
+  ) {
+    super(
+      projectionViewMat,
+      canvasWidth,
+      canvasHeight,
+      pixelRatio,
+      zoom,
+      minZoom,
+      maxZoom,
+      tileSize,
+      projection,
+      featureFlags
+    );
+  }
+
   addObject(text: WebGlText): void {
     if (!text.text || text.text === ' ') {
       return;

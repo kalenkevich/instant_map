@@ -2,6 +2,7 @@ import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
 import { SateliteTilesStyles, MapboxVectorTileStyles } from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
+import { FontFormatType } from '../map/font/font_config';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
 
@@ -98,11 +99,11 @@ export function renderMap() {
       zoom: true,
       debug: true,
     },
-    workerPool: 8,
+    workerPool: 16,
     featureFlags: {
       debugLayer: true,
       webglRendererDebug: false,
-      webglRendererUsePolygonText: false,
+      webglRendererFontFormatType: FontFormatType.vector,
       enableObjectSelection: false,
     },
   });

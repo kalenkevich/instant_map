@@ -2,7 +2,7 @@ import { WebGlGlyphBufferredGroup } from './glyph';
 import GlyphShaders from './glyph_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
-import { AtlasTextureManager } from '../../../../atlas/atlas_manager';
+import { GlyphsManager } from '../../../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
@@ -18,7 +18,7 @@ export class GlyphProgram extends ObjectProgram {
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
-    protected readonly atlasTextureManager: AtlasTextureManager,
+    protected readonly atlasTextureManager: GlyphsManager,
     protected readonly vertexShaderSource: string = GlyphShaders.vertext,
     protected readonly fragmentShaderSource: string = GlyphShaders.fragment
   ) {

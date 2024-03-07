@@ -4,8 +4,8 @@ import { MapFeatureFlags } from '../flags';
 import { DataTileSource, DataTileStyles, DataLayerStyle, DataTileSourceType } from '../styles/styles';
 import { MapTileRendererType } from '../renderer/renderer';
 // TODO: remove
-import { FontManagerState } from '../font/font_manager';
-import { AtlasTextureMappingState } from '../atlas/atlas_manager';
+import { FontAtlas } from '../font/font_config';
+import { GlyphsManagerMappingState } from '../glyphs/glyphs_manager';
 
 export interface FetchTileOptions {
   tileId: string;
@@ -20,8 +20,8 @@ export interface FetchTileOptions {
   minZoom: number;
   maxZoom: number;
   projectionType: ProjectionType;
-  fontManagerState: FontManagerState;
-  atlasTextureMappingState: AtlasTextureMappingState;
+  fontManagerState: Record<string, FontAtlas>;
+  atlasTextureMappingState: GlyphsManagerMappingState;
   featureFlags: MapFeatureFlags;
 }
 

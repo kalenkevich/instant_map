@@ -21,9 +21,9 @@ export enum MapTileFeatureType {
   point = 'point',
   line = 'line',
   polygon = 'polygon',
-  text = 'text',
   glyph = 'glyph',
   image = 'image',
+  text = 'text',
 }
 
 export function getTileId(refOrId: TileRef | string): string {

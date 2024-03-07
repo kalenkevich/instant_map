@@ -6,7 +6,7 @@ import { Projection } from '../geo/projection/projection';
 import { MapTileLayer } from './tile';
 import { MapTileRendererType } from '../renderer/renderer';
 import { LRUCache } from '../utils/lru_cache';
-import { AtlasTextureManager } from '../atlas/atlas_manager';
+import { GlyphsManager } from '../glyphs/glyphs_manager';
 import { DataTileStyles } from '../styles/styles';
 import { MapFeatureFlags } from '../flags';
 import { FontManager } from '../font/font_manager';
@@ -41,7 +41,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
     private readonly fontManager: FontManager,
-    private readonly atlasManager: AtlasTextureManager
+    private readonly glyphsManager: GlyphsManager
   ) {
     super();
   }
@@ -203,8 +203,8 @@ export class TilesGrid extends Evented<TilesGridEvent> {
           zoom,
           tileSize: this.tileSize,
           projectionType: this.projection.getType(),
-          atlasTextureMappingState: this.atlasManager.getMappingState(),
-          fontManagerState: this.featureFlags.webglRendererUsePolygonText && this.fontManager.dumpState(),
+          atlasTextureMappingState: this.glyphsManager.getMappingState(),
+          fontManagerState: this.fontManager.getState(),
           featureFlags: this.featureFlags,
         },
       });

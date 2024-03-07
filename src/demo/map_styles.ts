@@ -1,6 +1,8 @@
 import { LineJoinStyle } from '../map/renderer/webgl/objects/line/line';
 import { DataTileSourceType, DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
+import { FontFormatType } from '../map/font/font_config';
+import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
   tileSize: 512,
@@ -351,36 +353,42 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
   },
   fonts: {
     arial: {
+      type: FontFormatType.vector,
       name: 'arial',
-      source: './fonts/arial_regular.ttf',
+      sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
+      type: FontFormatType.vector,
       name: 'roboto',
-      source: './fonts/roboto_regular.ttf',
+      sourceUrl: './fonts/roboto_regular.ttf',
     },
     opensans: {
+      type: FontFormatType.vector,
       name: 'opensans',
-      source: './fonts/opensans_regular.ttf',
+      sourceUrl: './fonts/opensans_regular.ttf',
     },
     opensansBold: {
+      type: FontFormatType.vector,
       name: 'opensansBold',
-      source: './fonts/opensans_bold.ttf',
+      sourceUrl: './fonts/opensans_bold.ttf',
     },
   },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
     },
     fontAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'fontAtlas',
       width: 512,
       height: 512,
-      source: './icons/font_sprite.png',
-      mapping: 'font_default_mapping_32_32_256_2',
+      sourceUrl: './icons/font_sprite.png',
+      mappingUrl: 'font_default_mapping_32_32_256_2',
     },
   },
 };
@@ -644,38 +652,44 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
   },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
     },
     fontAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'fontAtlas',
       width: 512,
       height: 512,
-      source: './icons/font_sprite.png',
-      mapping: 'font_default_mapping_32_32_256_2',
+      sourceUrl: './icons/font_sprite.png',
+      mappingUrl: 'font_default_mapping_32_32_256_2',
     },
   },
   fonts: {
     arial: {
+      type: FontFormatType.vector,
       name: 'arial',
-      source: './fonts/arial_regular.ttf',
+      sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
+      type: FontFormatType.vector,
       name: 'roboto',
-      source: './fonts/roboto_regular.ttf',
+      sourceUrl: './fonts/roboto_regular.ttf',
     },
     opensans: {
+      type: FontFormatType.vector,
       name: 'opensans',
-      source: './fonts/opensans_regular.ttf',
+      sourceUrl: './fonts/opensans_regular.ttf',
     },
     opensansBold: {
+      type: FontFormatType.vector,
       name: 'opensansBold',
-      source: './fonts/opensans_bold.ttf',
+      sourceUrl: './fonts/opensans_bold.ttf',
     },
   },
 };
@@ -703,7 +717,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       sourceLayer: 'image',
       styleLayerName: 'imageStyles',
       zIndex: 0,
-      show: true,
+      show: false,
       feature: {
         type: MapTileFeatureType.image,
       },
@@ -760,14 +774,72 @@ export const SateliteTilesStyles: DataTileStyles = {
       maxzoom: 16,
       minzoom: 0,
     },
+    poiLabel: {
+      source: 'dataSource',
+      sourceLayer: 'poi_label',
+      styleLayerName: 'poiLabel',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 255, 255, 255, 1],
+        borderColor: ['$rgba', 0, 0, 0, 1],
+        text: ['$get', 'properties.name'],
+        font: 'opensansBold',
+        fontSize: 28,
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
+    place: {
+      source: 'dataSource',
+      sourceLayer: 'place_label',
+      styleLayerName: 'place_labelStyles',
+      zIndex: 4,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 255, 255, 255, 1],
+        borderColor: ['$rgba', 0, 0, 0, 1],
+        text: ['$get', 'properties.name'],
+        show: ['$lte', ['$get', 'properties.filterrank'], 3],
+        font: 'opensansBold',
+        fontSize: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['country', 32],
+          ['settlement', 28],
+          ['settlement_subdivision', 24],
+        ],
+        margin: {
+          top: -25,
+        },
+      },
+      maxzoom: 16,
+      minzoom: 0,
+    },
   },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
+    },
+    // fontAtlas: {
+    //   type: GlyphsTextrureAtlasType.pbf,
+    //   name: 'fontAtlas',
+    //   sourceUrl:
+    //     'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    // },
+  },
+  fonts: {
+    opensansBold: {
+      type: FontFormatType.vector,
+      name: 'opensansBold',
+      sourceUrl: './fonts/opensans_bold.ttf',
     },
   },
 };

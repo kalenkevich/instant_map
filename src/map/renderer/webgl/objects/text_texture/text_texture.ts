@@ -1,29 +1,24 @@
-import { vec2 } from 'gl-matrix';
-import {
-  WebGlObject,
-  WebGlObjectBufferredGroup,
-  WebGlObjectAttributeDescriptor,
-  WebGlObjectAttributeType,
-} from '../object/object';
+import { vec4 } from 'gl-matrix';
 import { MapTileFeatureType } from '../../../../tile/tile';
-import { PointMargin } from '../point/point';
 import { TextureAtlas } from '../../../../glyphs/glyphs_config';
+import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
 
-export interface WebGlImage extends WebGlObject {
-  id: number;
-  type: MapTileFeatureType.image;
-  name: string;
-  bbox: Array<vec2 | [number, number]>;
-  topLeft: vec2 | [number, number];
+export interface TextMapping {
+  x: number;
+  y: number;
   width: number;
   height: number;
-  pixelRatio: number;
-  source: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
-  margin?: PointMargin;
+  text: string;
+  font: string;
+  fontSize: number;
+  color: vec4 | [number, number, number, number];
+  borderColor: vec4 | [number, number, number, number];
+  widthPadding: number;
+  heightPadding: number;
 }
 
-export interface WebGlImageBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.image;
+export interface WebGlTextTextureBufferredGroup extends WebGlObjectBufferredGroup {
+  type: MapTileFeatureType.text;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   texture: TextureAtlas;

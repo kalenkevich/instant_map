@@ -12,7 +12,7 @@ import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
 import { EasyAnimation } from './animation/easy_animation';
 import { FontManager } from './font/font_manager';
-import { AtlasTextureManager } from './atlas/atlas_manager';
+import { GlyphsManager } from './glyphs/glyphs_manager';
 import { DataTileStyles } from './styles/styles';
 import { MapFeatureFlags } from './flags';
 
@@ -96,7 +96,7 @@ export class GlideMap extends Evented<MapEventType> {
   private tilesGrid: TilesGrid;
   private renderQueue: RenderQueue;
   private fontManager: FontManager;
-  private atlasTextureManager: AtlasTextureManager;
+  private glyphsManager: GlyphsManager;
   private renderer: Renderer;
   private projection: Projection;
   private mapOptions: MapOptions;
@@ -132,7 +132,7 @@ export class GlideMap extends Evented<MapEventType> {
     this.renderQueue = new RenderQueue();
 
     this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts || {});
-    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas || {});
+    this.glyphsManager = new GlyphsManager(this.featureFlags, this.mapOptions.tileStyles.glyphs || {});
     this.projection = getProjectionFromType(this.mapOptions.projection);
     this.camera = new MapCamera(
       this.featureFlags,
@@ -155,7 +155,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.maxZoom,
       this.projection,
       this.fontManager,
-      this.atlasTextureManager
+      this.glyphsManager
     );
     this.pan = new MapPan(this, this.rootEl);
     this.renderer = this.getRenderer(this.mapOptions.rendrer);
@@ -168,7 +168,7 @@ export class GlideMap extends Evented<MapEventType> {
   async init() {
     this.setupMapControls();
 
-    await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
+    await Promise.all([this.fontManager.init(), this.glyphsManager.init()]);
 
     this.pan.init();
     if (this.featureFlags.enableObjectSelection) {
@@ -363,7 +363,7 @@ export class GlideMap extends Evented<MapEventType> {
   private getRenderer(rendererType: MapTileRendererType): Renderer {
     switch (rendererType) {
       case MapTileRendererType.webgl:
-        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.glyphsManager);
       default:
         throw new Error(`Rendrer "rendererType" is not supported.`);
     }

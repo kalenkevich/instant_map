@@ -1,4 +1,4 @@
-import { WebGlTextTextureBufferredGroup } from './text';
+import { WebGlTextTextureBufferredGroup } from './text_texture';
 import TextShaders from './text_texture_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';

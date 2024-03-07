@@ -1,7 +1,7 @@
 import { Statement, ColorValue } from './style_statement';
 import { MapTileFeatureType } from '../tile/tile';
 import { FontConfig } from '../font/font_config';
-import { AtlasTextrureConfig } from '../atlas/atlas_config';
+import { GlyphsTextrureAtlasConfig } from '../glyphs/glyphs_config';
 import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../renderer/webgl/objects/line/line';
 
 export interface DataTileStyles {
@@ -14,8 +14,8 @@ export interface DataTileStyles {
   layers: {
     [styleLayer: string]: DataLayerStyle;
   };
-  atlas?: {
-    [atlasName: string]: AtlasTextrureConfig;
+  glyphs?: {
+    [glyphsName: string]: GlyphsTextrureAtlasConfig;
   };
   fonts?: {
     [fontName: string]: FontConfig;

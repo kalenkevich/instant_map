@@ -9,15 +9,17 @@ import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
 import { LineProgram } from './objects/line/line_program';
 import { TextTextureProgram } from './objects/text_texture/text_texture_program';
-import { TextPolygonProgram } from './objects/text_polygon/text_polygon_program';
+import { TextVectorProgram } from './objects/text_vector/text_vector_program';
+import { TextSdfProgram } from './objects/text_sdf/text_sdf_program';
 import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
-import { AtlasTextureManager } from '../../atlas/atlas_manager';
+import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../flags';
 import { WebGlTexture, createTexture } from './utils/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
+import { FontFormatType } from '../../font/font_config';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -32,7 +34,7 @@ export class WebGlRenderer implements Renderer {
     private readonly rootEl: HTMLElement,
     private readonly featureFlags: MapFeatureFlags,
     private devicePixelRatio: number,
-    private textureManager: AtlasTextureManager
+    private textureManager: GlyphsManager
   ) {
     this.canvas = this.createCanvasEl();
   }
@@ -75,9 +77,12 @@ export class WebGlRenderer implements Renderer {
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
     glyphProgram.init();
 
-    const textProgram = this.featureFlags.webglRendererUsePolygonText
-      ? new TextPolygonProgram(gl, this.featureFlags)
-      : new TextTextureProgram(gl, this.featureFlags);
+    const textProgram =
+      this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
+        ? new TextVectorProgram(gl, this.featureFlags)
+        : this.featureFlags.webglRendererFontFormatType === FontFormatType.texture
+        ? new TextTextureProgram(gl, this.featureFlags)
+        : new TextSdfProgram(gl, this.featureFlags);
     textProgram.init();
 
     const imageProgram = new ImageProgram(gl, this.featureFlags);
