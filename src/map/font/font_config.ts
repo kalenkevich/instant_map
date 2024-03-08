@@ -44,11 +44,11 @@ export interface TextureFontConfig {
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
-  width: number; // texture width
-  height: number; // texture height
-  glyphWidth: number; // glyph width
-  glyphHeight: number; // glyph width
-  pixelRatio: number;
+  width?: number; // texture width
+  height?: number; // texture height
+  glyphWidth?: number; // glyph width
+  glyphHeight?: number; // glyph width
+  pixelRatio?: number;
 }
 
 export type FontAtlas = VectorFontAtlas | SdfFontAtlas | TextureFontAtlas;
@@ -72,7 +72,7 @@ export interface SdfFontAtlas {
 }
 
 export interface TextureFontAtlas {
-  type: FontFormatType.sdf;
+  type: FontFormatType.texture;
   name: string;
   glyphs: Record<number, TextureFontGlyph>;
   sources: Record<string, TextureSource>; // <range, Image>
@@ -113,6 +113,8 @@ export interface TextureFontGlyph {
   height: number;
   x: number; // x position according to the source
   y: number; // y position according to the source
+  actualBoundingBoxAscent: number;
+  actualBoundingBoxDescent: number;
   pixelRatio: number;
 }
 

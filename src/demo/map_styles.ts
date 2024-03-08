@@ -793,7 +793,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: 28,
       },
       maxzoom: 18,
@@ -811,7 +811,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
         show: ['$lte', ['$get', 'properties.filterrank'], 3],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
@@ -844,11 +844,13 @@ export const SateliteTilesStyles: DataTileStyles = {
     // },
   },
   fonts: {
-    // opensansBold: {
-    //   type: FontFormatType.vector,
-    //   name: 'opensansBold',
-    //   sourceType: FontSourceType.font,
-    //   sourceUrl: './fonts/opensans_bold.ttf',
-    // },
+    defaultFont: {
+      type: FontFormatType.texture,
+      name: 'defaultFont',
+      sourceType: FontSourceType.font,
+      sourceUrl: './fonts/opensans_regular.ttf',
+      // sourceType: FontSourceType.font,
+      // sourceUrl: './fonts/opensans_bold.ttf',
+    },
   },
 };

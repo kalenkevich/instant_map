@@ -32,9 +32,9 @@ export const downloadImage = (filename: string, url: string): Promise<void> => {
   });
 };
 
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('bitmaprenderer');
 export const downloadBitmapImage = async (bmp: ImageBitmap) => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('bitmaprenderer');
   ctx.transferFromImageBitmap(bmp);
   const blob2: Blob = await new Promise(res => canvas.toBlob(res));
   const img = document.body.appendChild(new Image());
