@@ -737,7 +737,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       sourceLayer: 'road',
       styleLayerName: 'roadStyles',
       zIndex: 2,
-      show: true,
+      show: false,
       feature: {
         type: MapTileFeatureType.line,
         color: [
@@ -757,7 +757,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       source: 'dataSource',
       sourceLayer: 'poi_label',
       styleLayerName: 'poiIcon',
-      show: true,
+      show: false,
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.glyph,
@@ -771,7 +771,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       source: 'dataSource',
       sourceLayer: 'admin',
       styleLayerName: 'adminStyles',
-      show: true,
+      show: false,
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.line,
@@ -836,12 +836,6 @@ export const SateliteTilesStyles: DataTileStyles = {
       sourceUrl: './icons/sprite@2x.png',
       mappingUrl: './icons/sprite@2x.json',
     },
-    // fontAtlas: {
-    //   type: GlyphsTextrureAtlasType.pbf,
-    //   name: 'fontAtlas',
-    //   sourceUrl:
-    //     'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
-    // },
   },
   fonts: {
     defaultFont: {
@@ -849,8 +843,16 @@ export const SateliteTilesStyles: DataTileStyles = {
       name: 'defaultFont',
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
+      ranges: [[0, 8447]],
       // sourceType: FontSourceType.font,
       // sourceUrl: './fonts/opensans_bold.ttf',
     },
+    // defaultFont: {
+    //   type: FontFormatType.sdf,
+    //   name: 'fontAtlas',
+    //   sourceType: FontSourceType.pbf,
+    //   sourceUrl:
+    //     'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    // },
   },
 };

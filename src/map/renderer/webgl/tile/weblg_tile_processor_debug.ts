@@ -108,7 +108,7 @@ export async function DebugTile2WebglLayers(
     type: MapTileFeatureType.text,
     text: tileId,
     center: tileCenter,
-    font: 'opensansBold',
+    font: 'defaultFont',
     fontSize: 24,
     borderWidth: 1,
     color: [1, 1, 1, 1],
@@ -132,7 +132,7 @@ export async function DebugTile2WebglLayers(
     cap: LineCapStyle.square,
   });
 
-  const debugObjectGroups = [await textTextureGroupBuilder.build(), lineGroupBuilder.build()];
+  const debugObjectGroups = [textTextureGroupBuilder.build(), lineGroupBuilder.build()];
   const debugLayer: WebGlMapLayer = {
     source: 'debug',
     layerName: 'debugLayer',

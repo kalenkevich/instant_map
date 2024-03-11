@@ -5,17 +5,20 @@ import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
+import { FontManager } from '../../../../font/font_manager';
+import { TextureFontAtlas } from '../../../../font/font_config';
 
 export class TextTextureProgram extends ObjectProgram {
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
 
-  protected texture: WebGlTexture;
+  protected fontTextures: WebGlTexture[] = [];
   protected u_textureLocation: WebGLUniformLocation;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
+    protected readonly fontManager: FontManager,
     protected readonly vertexShaderSource: string = TextShaders.vertext,
     protected readonly fragmentShaderSource: string = TextShaders.fragment
   ) {
@@ -59,17 +62,23 @@ export class TextTextureProgram extends ObjectProgram {
 
   protected setupTexture() {
     const gl = this.gl;
+    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
 
-    this.texture = createTexture(gl, {
-      name: 'text',
-      width: 0,
-      height: 0,
-      unpackPremultiplyAlpha: true,
-      wrapS: gl.CLAMP_TO_EDGE,
-      wrapT: gl.CLAMP_TO_EDGE,
-      minFilter: gl.NEAREST,
-      magFilter: gl.NEAREST,
-    });
+    for (const [key, source] of Object.entries(fontAtlas.sources)) {
+      this.fontTextures.push(
+        createTexture(gl, {
+          name: 'text_atlas_' + key,
+          width: source.source.width,
+          height: source.source.height,
+          unpackPremultiplyAlpha: true,
+          wrapS: gl.CLAMP_TO_EDGE,
+          wrapT: gl.CLAMP_TO_EDGE,
+          minFilter: gl.NEAREST,
+          magFilter: gl.NEAREST,
+          source: source.source,
+        })
+      );
+    }
   }
 
   drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options?: DrawObjectGroupOptions) {
@@ -77,10 +86,8 @@ export class TextTextureProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.uniform1i(this.u_textureLocation, this.texture.index);
-    this.texture.setSource(textGroup.texture.source);
-    this.texture.bind();
-
+    const texture = this.fontTextures[textGroup.textureIndex];
+    gl.uniform1i(this.u_textureLocation, texture.index);
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
     this.colorBuffer.bufferData(
@@ -89,7 +96,6 @@ export class TextTextureProgram extends ObjectProgram {
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
-    this.texture.unbind();
     gl.bindVertexArray(null);
   }
 }

@@ -437,7 +437,7 @@ export async function PbfTile2WebglLayers(
     }
 
     if (!textTextureGroupBuilder.isEmpty()) {
-      objectGroups.push(await textTextureGroupBuilder.build());
+      objectGroups.push(textTextureGroupBuilder.build());
     }
 
     if (!glyphGroupBuilder.isEmpty()) {

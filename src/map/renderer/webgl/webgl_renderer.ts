@@ -20,6 +20,7 @@ import { WebGlTexture, createTexture } from './utils/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
 import { FontFormatType } from '../../font/font_config';
+import { FontManager } from '../../font/font_manager';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -34,6 +35,7 @@ export class WebGlRenderer implements Renderer {
     private readonly rootEl: HTMLElement,
     private readonly featureFlags: MapFeatureFlags,
     private devicePixelRatio: number,
+    private fontManager: FontManager,
     private textureManager: GlyphsManager
   ) {
     this.canvas = this.createCanvasEl();
@@ -81,7 +83,7 @@ export class WebGlRenderer implements Renderer {
       this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
         ? new TextVectorProgram(gl, this.featureFlags)
         : this.featureFlags.webglRendererFontFormatType === FontFormatType.texture
-        ? new TextTextureProgram(gl, this.featureFlags)
+        ? new TextTextureProgram(gl, this.featureFlags, this.fontManager)
         : new TextSdfProgram(gl, this.featureFlags);
     textProgram.init();
 

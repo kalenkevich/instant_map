@@ -27,6 +27,7 @@ export interface WebGlTexture {
   height: number;
   level: number;
   setSource(source: TexImageSource): void;
+  activate(): void;
   bind(): void;
   unbind(): void;
 }
@@ -105,6 +106,9 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       );
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);
+    },
+    activate() {
+      gl.activeTexture(gl.TEXTURE0 + textureIndex);
     },
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);

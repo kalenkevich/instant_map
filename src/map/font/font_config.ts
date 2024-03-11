@@ -22,6 +22,8 @@ export const DEFAULT_SUPPORTED_CHARCODE_RANGES: Array<[number, number]> = [
   [8192, 8447],
 ];
 
+export const UNDEFINED_CHAR_CODE = -1;
+
 export interface VectorFontConfig {
   type: FontFormatType.vector;
   sourceType: FontSourceType.font;
@@ -44,6 +46,7 @@ export interface TextureFontConfig {
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
+  fontSize?: number;
   width?: number; // texture width
   height?: number; // texture height
   glyphWidth?: number; // glyph width
@@ -75,7 +78,7 @@ export interface TextureFontAtlas {
   type: FontFormatType.texture;
   name: string;
   glyphs: Record<number, TextureFontGlyph>;
-  sources: Record<string, TextureSource>; // <range, Image>
+  sources: Array<{ index: number; source: TextureSource; range: [number, number] }>; // key = ${range[0]}-${range[1]}`;
   ascender: number;
   descender: number;
   pixelRatio: number;
@@ -115,6 +118,7 @@ export interface TextureFontGlyph {
   y: number; // y position according to the source
   actualBoundingBoxAscent: number;
   actualBoundingBoxDescent: number;
+  fontSize: number;
   pixelRatio: number;
 }
 
