@@ -42,7 +42,7 @@ export default {
         gl_FragColor = v_color;
       } else {
         vec4 textureColor = texture2D(u_texture, v_texCoord);
-        vec4 resultColor = textureColor * v_color;
+        vec4 resultColor = textureColor * vec4(1.0, 0.0, 0.0, 1.0);
 
         gl_FragColor = vec4(resultColor.xyz, textureColor.w);
       }

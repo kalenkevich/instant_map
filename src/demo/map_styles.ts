@@ -710,7 +710,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       sourceLayer: 'road',
       styleLayerName: 'roadStyles',
       zIndex: 2,
-      show: false,
+      show: true,
       feature: {
         type: MapTileFeatureType.line,
         color: [
@@ -730,7 +730,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       source: 'dataSource',
       sourceLayer: 'poi_label',
       styleLayerName: 'poiIcon',
-      show: false,
+      show: true,
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.glyph,
@@ -744,7 +744,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       source: 'dataSource',
       sourceLayer: 'admin',
       styleLayerName: 'adminStyles',
-      show: false,
+      show: true,
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.line,
@@ -783,7 +783,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         color: ['$rgba', 255, 255, 255, 1],
         borderColor: ['$rgba', 0, 0, 0, 1],
         text: ['$get', 'properties.name'],
-        // show: ['$lte', ['$get', 'properties.filterrank'], 3],
+        show: ['$lte', ['$get', 'properties.filterrank'], 3],
         font: 'defaultFont',
         fontSize: [
           '$switch',

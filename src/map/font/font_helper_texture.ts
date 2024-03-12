@@ -58,6 +58,7 @@ export async function populateFontAtlasFromImage(
     };
   });
   fontAtlas.sources[index] = {
+    name: `${config.name}_[${range[0]}-${range[1]}]`,
     source: await imageToImageBitmapTextureSource(sourceImage, 0, 0, config.width, config.height),
     range,
     index,
@@ -134,7 +135,7 @@ export async function populateFontAtlasFromFont(
         return;
       }
 
-      fontAtlas.sources.push({ source, range, index });
+      fontAtlas.sources.push({ name: `${config.name}_[${range[0]}-${range[1]}]`, source, range, index });
 
       // downloadBitmapImage(source);
 

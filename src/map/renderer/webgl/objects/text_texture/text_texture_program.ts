@@ -65,10 +65,10 @@ export class TextTextureProgram extends ObjectProgram {
     const gl = this.gl;
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
 
-    for (const [key, source] of Object.entries(fontAtlas.sources)) {
+    for (const source of Object.values(fontAtlas.sources)) {
       this.fontTextures.push(
         createTexture(gl, {
-          name: 'text_atlas_' + key,
+          name: 'text_atlas_' + source.name,
           width: source.source.width,
           height: source.source.height,
           unpackPremultiplyAlpha: true,
@@ -88,15 +88,18 @@ export class TextTextureProgram extends ObjectProgram {
     gl.bindVertexArray(this.vao);
 
     const texture = this.fontTextures[textGroup.textureIndex];
+    texture.bind();
     gl.uniform1i(this.u_textureLocation, texture.index);
-    this.positionBuffer.bufferData(textGroup.vertecies.buffer);
-    this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
+
+    this.positionBuffer.bufferData(new Float32Array(textGroup.vertecies.buffer));
+    this.textcoordBuffer.bufferData(new Float32Array(textGroup.textcoords.buffer));
     this.colorBuffer.bufferData(
       options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
+    texture.unbind();
     gl.bindVertexArray(null);
   }
 }

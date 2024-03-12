@@ -78,7 +78,7 @@ export interface TextureFontAtlas {
   type: FontFormatType.texture;
   name: string;
   glyphs: Record<number, TextureFontGlyph>;
-  sources: Array<{ index: number; source: TextureSource; range: [number, number] }>; // key = ${range[0]}-${range[1]}`;
+  sources: Array<{ index: number; name: string; source: TextureSource; range: [number, number] }>; // key = ${range[0]}-${range[1]}`;
   ascender: number;
   descender: number;
   pixelRatio: number;

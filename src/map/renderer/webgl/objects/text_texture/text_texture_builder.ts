@@ -55,7 +55,6 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     this.objects.push([text, 0]);
   }
 
-  // async build(): Promise<WebGlTextTextureBufferredGroup> {
   build(): WebGlTextTextureBufferredGroup {
     const size = this.objects.length;
     const verteciesBuffer: number[] = [];
@@ -64,6 +63,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const selectionColorBuffer: number[] = [];
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
     const texture = fontAtlas.sources[0];
+    let numElements = 0;
 
     for (const [text] of this.objects) {
       let offset = 0;
@@ -108,13 +108,14 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
           ...selectionColorId,
           ...selectionColorId
         );
+        numElements += 6;
       }
     }
 
     return {
       type: MapTileFeatureType.text,
       size,
-      numElements: size,
+      numElements,
       textureIndex: 0,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
