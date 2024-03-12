@@ -20,7 +20,7 @@ export class ImageProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  onInit(): void {
+  async onInit(): Promise<void> {
     this.setupTexture();
   }
 
@@ -76,7 +76,7 @@ export class ImageProgram extends ObjectProgram {
     gl.bindVertexArray(this.vao);
 
     gl.uniform1i(this.u_textureLocation, this.texture.index);
-    this.texture.setSource(imageGroup.texture.source);
+    this.texture.setSource(imageGroup.texture);
     this.texture.bind();
 
     this.positionBuffer.bufferData(imageGroup.vertecies.buffer);

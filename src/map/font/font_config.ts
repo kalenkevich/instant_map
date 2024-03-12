@@ -1,4 +1,4 @@
-import { TextureSource } from '../glyphs/glyphs_config';
+import { TextureSource } from '../texture/texture';
 
 export enum FontSourceType {
   font = 'font',

@@ -7,6 +7,7 @@ import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
 import { FontManager } from '../../../../font/font_manager';
 import { TextureFontAtlas } from '../../../../font/font_config';
+import { toImageBitmapTexture } from '../../../../texture/texture_utils';
 
 export class TextTextureProgram extends ObjectProgram {
   protected textcoordBuffer: WebGlBuffer;
@@ -25,8 +26,8 @@ export class TextTextureProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public onInit(): void {
-    this.setupTexture();
+  public async onInit(): Promise<void> {
+    await this.setupTexture();
   }
 
   onLink(): void {
@@ -60,7 +61,7 @@ export class TextTextureProgram extends ObjectProgram {
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
   }
 
-  protected setupTexture() {
+  protected async setupTexture() {
     const gl = this.gl;
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
 
@@ -75,7 +76,7 @@ export class TextTextureProgram extends ObjectProgram {
           wrapT: gl.CLAMP_TO_EDGE,
           minFilter: gl.NEAREST,
           magFilter: gl.NEAREST,
-          source: source.source,
+          source: await toImageBitmapTexture(source.source),
         })
       );
     }

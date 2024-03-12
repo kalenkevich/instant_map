@@ -41,7 +41,7 @@ export class WebGlRenderer implements Renderer {
     this.canvas = this.createCanvasEl();
   }
 
-  init() {
+  async init() {
     this.rootEl.appendChild(this.canvas);
 
     const gl = (this.gl = this.canvas.getContext('webgl', {
@@ -65,30 +65,28 @@ export class WebGlRenderer implements Renderer {
     });
     this.framebuffer = createFrameBuffer(gl, { texture: this.frameBufferTexture });
     this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
-    this.framebufferProgram.init();
 
     const pointProgram = new PointProgram(gl, this.featureFlags);
-    pointProgram.init();
-
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
-    polygonProgram.init();
-
     const lineProgram = new LineProgram(gl, this.featureFlags);
-    lineProgram.init();
-
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
-    glyphProgram.init();
-
     const textProgram =
       this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
         ? new TextVectorProgram(gl, this.featureFlags)
         : this.featureFlags.webglRendererFontFormatType === FontFormatType.texture
         ? new TextTextureProgram(gl, this.featureFlags, this.fontManager)
         : new TextSdfProgram(gl, this.featureFlags);
-    textProgram.init();
-
     const imageProgram = new ImageProgram(gl, this.featureFlags);
-    imageProgram.init();
+
+    await Promise.all([
+      this.framebufferProgram.init(),
+      pointProgram.init(),
+      polygonProgram.init(),
+      lineProgram.init(),
+      glyphProgram.init(),
+      textProgram.init(),
+      imageProgram.init(),
+    ]);
 
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,

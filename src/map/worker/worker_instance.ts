@@ -6,17 +6,24 @@ export enum WorkerStatus {
   BUZY = 1,
 }
 
+export enum WorkerType {
+  COMMON = 0,
+  DEDICATED = 1,
+}
+
 /**
  * Wrapper for native Worker API.
  * */
 export class WorkerInstance extends Evented<WorkerTaskResponseType> {
   private worker: Worker;
+  private type: WorkerType;
   private status: WorkerStatus = WorkerStatus.FREE;
   private subscribedOnResponce: boolean = false;
 
-  constructor(workerIndex: number) {
+  constructor(name: string, type: WorkerType) {
     super();
-    this.worker = new Worker(new URL('./worker.ts', import.meta.url), { name: `tile worker ${workerIndex}` });
+    this.type = type;
+    this.worker = new Worker(new URL('./worker.ts', import.meta.url), { name });
   }
 
   sendRequest(
@@ -43,6 +50,10 @@ export class WorkerInstance extends Evented<WorkerTaskResponseType> {
     };
 
     this.subscribedOnResponce = true;
+  }
+
+  getType(): WorkerType {
+    return this.type;
   }
 
   setStatus(status: WorkerStatus) {

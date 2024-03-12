@@ -21,7 +21,7 @@ export interface RenderOptions {
 }
 
 export interface Renderer {
-  init(): void;
+  init(): Promise<void>;
 
   destroy(): void;
 

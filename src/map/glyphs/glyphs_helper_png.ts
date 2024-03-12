@@ -1,7 +1,8 @@
+import { ImageBitmapTextureSource } from '../texture/texture';
+import { imageToImageBitmapTextureSource, toImageBitmapTexture } from '../texture/texture_utils';
 import {
   GlyphsTextrureAtlasType,
   PngGlyphsTextrureAtlasConfig,
-  TextureSource,
   TextureAtlasState,
   GlyphTextureAtlasMapping,
 } from './glyphs_config';
@@ -26,9 +27,9 @@ export async function getGlyphTextureAtlasFromPngConfig(
 
 export async function getGlyphTextureAtlasSourceFromPngConfig(
   config: PngGlyphsTextrureAtlasConfig
-): Promise<TextureSource> {
+): Promise<ImageBitmapTextureSource> {
   if (config.source) {
-    return config.source;
+    return toImageBitmapTexture(config.source);
   }
 
   if (!config.sourceUrl) {
@@ -39,9 +40,9 @@ export async function getGlyphTextureAtlasSourceFromPngConfig(
   image.src = config.sourceUrl;
   image.crossOrigin = 'anonymous';
 
-  return new Promise<HTMLImageElement>(resolve => {
-    image.onload = () => {
-      resolve(image);
+  return new Promise<ImageBitmapTextureSource>(resolve => {
+    image.onload = async () => {
+      resolve(await imageToImageBitmapTextureSource(image, 0, 0, image.width, image.height));
     };
   });
 }

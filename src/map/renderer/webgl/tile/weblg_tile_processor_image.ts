@@ -11,6 +11,8 @@ import { DataLayerStyle, ImageStyle, ImageTileSource } from '../../../styles/sty
 import { compileStatement } from '../../../styles/style_statement_utils';
 // WebGl objects
 import { ImageGroupBuilder } from '../objects/image/image_group_builder';
+import { ImageBitmapTextureSource } from '../../../texture/texture';
+import { blobToBitmapImageTextureSource } from '../../../texture/texture_utils';
 
 export async function ImageTile2WebglLayers(
   tileURL: string,
@@ -38,7 +40,7 @@ export async function ImageTile2WebglLayers(
   const tileLayers: WebGlMapLayer[] = [];
 
   const sourceArrayBuffer = await fetch(tileURL, { signal: abortController.signal }).then(res => res.blob());
-  const textureSource = await createImageBitmap(sourceArrayBuffer);
+  const textureSource: ImageBitmapTextureSource = await blobToBitmapImageTextureSource(sourceArrayBuffer);
 
   const tilePolygon = tilebelt.tileToGeoJSON([x, y, z]);
   const tilebbox = tilebelt.tileToBBOX([x, y, z]);

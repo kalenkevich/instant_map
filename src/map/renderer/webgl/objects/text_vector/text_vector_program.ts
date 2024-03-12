@@ -14,7 +14,7 @@ export class TextVectorProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  onInit(): void {}
+  public async onInit(): Promise<void> {}
 
   onLink(): void {}
 

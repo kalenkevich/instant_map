@@ -1,3 +1,5 @@
+import { TextureSource } from '../texture/texture';
+
 export enum GlyphsTextrureAtlasType {
   png = 'png',
   svg = 'svg',
@@ -59,5 +61,3 @@ export interface TextureAtlas {
   height: number;
   source?: TextureSource; // in case width or height === 0 then source is not defined;
 }
-
-export type TextureSource = ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;

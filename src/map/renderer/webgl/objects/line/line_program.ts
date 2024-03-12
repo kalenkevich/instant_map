@@ -30,7 +30,7 @@ export class LineProgram extends ObjectProgram {
     this.gl.bindVertexArray(null);
   }
 
-  onInit(): void {}
+  public async onInit(): Promise<void> {}
 
   public onLink(): void {
     const gl = this.gl;

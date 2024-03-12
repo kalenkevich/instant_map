@@ -6,6 +6,7 @@ import { GlyphsManager } from '../../../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
+import { toImageBitmapTexture } from '../../../../texture/texture_utils';
 
 export class GlyphProgram extends ObjectProgram {
   protected u_textureLocation: WebGLUniformLocation;
@@ -25,8 +26,8 @@ export class GlyphProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public onInit(): void {
-    this.setupTextures();
+  public async onInit(): Promise<void> {
+    await this.setupTextures();
   }
 
   public onLink(): void {
@@ -43,7 +44,7 @@ export class GlyphProgram extends ObjectProgram {
     gl.disable(gl.BLEND);
   }
 
-  protected setupTextures() {
+  protected async setupTextures() {
     const gl = this.gl;
 
     const textures = this.atlasTextureManager.getAll();
@@ -53,11 +54,11 @@ export class GlyphProgram extends ObjectProgram {
         width: textureInfo.width,
         height: textureInfo.height,
         unpackPremultiplyAlpha: true,
-        source: textureInfo.source,
         wrapS: gl.CLAMP_TO_EDGE,
         wrapT: gl.CLAMP_TO_EDGE,
         minFilter: gl.NEAREST,
         magFilter: gl.NEAREST,
+        source: await toImageBitmapTexture(textureInfo.source),
       });
     }
   }

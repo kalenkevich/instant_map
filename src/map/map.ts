@@ -179,7 +179,7 @@ export class GlideMap extends Evented<MapEventType> {
     }
     this.tilesGrid.init();
     this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileChanged);
-    this.renderer.init();
+    await this.renderer.init();
 
     if (this.mapOptions.resizable) {
       window.addEventListener('resize', this.resizeEventListener);

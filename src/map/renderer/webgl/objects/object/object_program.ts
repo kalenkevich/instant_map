@@ -32,7 +32,7 @@ export abstract class ObjectProgram {
     protected readonly fragmentShaderSource: string
   ) {}
 
-  public init() {
+  public async init() {
     const gl = this.gl;
 
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -40,7 +40,7 @@ export abstract class ObjectProgram {
     this.setupProgram();
     this.setupBuffer();
     this.setupUniforms();
-    this.onInit();
+    return this.onInit();
   }
 
   protected setupProgram() {
@@ -117,7 +117,7 @@ export abstract class ObjectProgram {
     this.onUnlink();
   }
 
-  abstract onInit(): void;
+  abstract onInit(): Promise<void>;
 
   abstract onLink(): void;
 
