@@ -1,22 +1,4 @@
-import {
-  ArrayBufferTextureSource,
-  SharedMemoryArrayBufferTextureSource,
-  ImageHtmlElementTextureSource,
-  TextureSource,
-  TextureSourceType,
-  ImageBitmapTextureSource,
-} from './texture';
-
-export function imageElToTextureSource(
-  htmlEl: HTMLCanvasElement | HTMLImageElement | typeof Image
-): ImageHtmlElementTextureSource {
-  return {
-    type: TextureSourceType.HTML_IMAGE_ELEMENT,
-    width: (htmlEl as HTMLImageElement).width,
-    height: (htmlEl as HTMLImageElement).height,
-    data: htmlEl as HTMLImageElement,
-  };
-}
+import { ArrayBufferTextureSource, TextureSource, TextureSourceType, ImageBitmapTextureSource } from './texture';
 
 export function canvasToArrayBufferTextureSource(
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -41,7 +23,7 @@ export function canvasToSharebleArrayBufferTextureSource(
   y: number,
   width: number,
   height: number
-): TextureSource {
+): ArrayBufferTextureSource {
   const res = canvasToArrayBufferTextureSource(canvas, x, y, width, height);
 
   return arrayBufferToSharebleTextureSource(res.data, width, height);
@@ -51,13 +33,13 @@ export function arrayBufferToSharebleTextureSource(
   originalBuffer: Uint8ClampedArray,
   width: number,
   height: number
-): SharedMemoryArrayBufferTextureSource {
+): ArrayBufferTextureSource {
   const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
   const resultBuffer = new Uint8ClampedArray(sharedMemoryBuffer);
   resultBuffer.set(originalBuffer);
 
   return {
-    type: TextureSourceType.SHARED_MEMORY_ARRAY_BUFFER,
+    type: TextureSourceType.ARRAY_BUFFER,
     width,
     height,
     data: resultBuffer,
@@ -73,23 +55,22 @@ export async function toImageBitmapTexture(
       return texture;
     case TextureSourceType.ARRAY_BUFFER:
       return arrayBufferToImageBitmapTextureSource(texture.data, 0, 0, texture.width, texture.height, options);
-    case TextureSourceType.SHARED_MEMORY_ARRAY_BUFFER:
-      return sharedArrayBufferToImageBitmapTextureSource(texture.data, 0, 0, texture.width, texture.height, options);
-    case TextureSourceType.HTML_IMAGE_ELEMENT:
-      return imageToImageBitmapTextureSource(texture.data, 0, 0, texture.width, texture.height, options);
     default:
       throw new Error(`Cannot convert ${texture} to ImageBitmapTextureSource`);
   }
 }
 
 export async function arrayBufferToImageBitmapTextureSource(
-  sourceBuffer: Uint8ClampedArray,
+  originalBuffer: Uint8ClampedArray,
   sx: number,
   sy: number,
   sw: number,
   sh: number,
   options?: ImageBitmapOptions
 ): Promise<ImageBitmapTextureSource> {
+  const sourceBuffer = new Uint8ClampedArray(originalBuffer.length);
+  sourceBuffer.set(originalBuffer);
+
   const sourceData = new ImageData(sourceBuffer, sw, sh);
   const resultOptions: ImageBitmapOptions = {
     premultiplyAlpha: 'premultiply',
@@ -102,20 +83,6 @@ export async function arrayBufferToImageBitmapTextureSource(
     height: sh,
     data: await createImageBitmap(sourceData, sx, sy, sw, sh, resultOptions),
   };
-}
-
-export async function sharedArrayBufferToImageBitmapTextureSource(
-  originalBuffer: Uint8ClampedArray,
-  sx: number,
-  sy: number,
-  sw: number,
-  sh: number,
-  options?: ImageBitmapOptions
-): Promise<ImageBitmapTextureSource> {
-  const resultBuffer = new Uint8ClampedArray(originalBuffer.length);
-  resultBuffer.set(originalBuffer);
-
-  return arrayBufferToImageBitmapTextureSource(resultBuffer, sx, sy, sw, sh, options);
 }
 
 export async function imageToImageBitmapTextureSource(

@@ -69,10 +69,10 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       let offset = 0;
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
-
-        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width / this.pixelRatio);
-        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height / this.pixelRatio);
-        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent / this.pixelRatio);
+        const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize;
+        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width) * scaleFactor;
+        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height) * scaleFactor;
+        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent) * scaleFactor;
 
         // vertex coordinates
         let [x1, y1] = this.projection.fromLngLat([text.center[0], text.center[1]]);
@@ -115,7 +115,6 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       type: MapTileFeatureType.text,
       size,
       numElements: size,
-      texture: texture.source,
       textureIndex: 0,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,

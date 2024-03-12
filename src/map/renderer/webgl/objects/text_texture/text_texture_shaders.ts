@@ -41,7 +41,10 @@ export default {
       if (u_is_read_pixel_render_mode) {
         gl_FragColor = v_color;
       } else {
-        gl_FragColor = texture2D(u_texture, v_texCoord);
+        vec4 textureColor = texture2D(u_texture, v_texCoord);
+        vec4 resultColor = textureColor * v_color;
+
+        gl_FragColor = vec4(resultColor.xyz, textureColor.w);
       }
     }
   `,

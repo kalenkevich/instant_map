@@ -1,5 +1,5 @@
 import { Font, Glyph, parse as parseFont } from 'opentype.js';
-import { canvasToSharebleArrayBufferTextureSource, imageElToTextureSource } from '../texture/texture_utils';
+import { canvasToSharebleArrayBufferTextureSource, imageToImageBitmapTextureSource } from '../texture/texture_utils';
 import {
   FontSourceType,
   FontFormatType,
@@ -57,7 +57,11 @@ export async function populateFontAtlasFromImage(
       resolve(sourceImage);
     };
   });
-  fontAtlas.sources[index] = { source: imageElToTextureSource(sourceImage), range, index };
+  fontAtlas.sources[index] = {
+    source: await imageToImageBitmapTextureSource(sourceImage, 0, 0, config.width, config.height),
+    range,
+    index,
+  };
 
   let currentX = 0;
   let currentY = 0;
@@ -183,8 +187,6 @@ export async function generateTextureAtlas(
     const glyphX = currentX;
     const glyphY = currentY - charMesurement.height - charMesurement.actualBoundingBoxDescent - margin;
 
-    // ctx.fillRect(glyphX, glyphY, charMesurement.width, charMesurement.height);
-    // ctx.stroke();
     font.draw(ctx as unknown as CanvasRenderingContext2D, char, currentX, currentY, fontSize);
 
     glyphs.push(

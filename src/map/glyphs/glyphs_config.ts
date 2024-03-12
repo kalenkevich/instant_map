@@ -54,10 +54,3 @@ export interface GlyphTextureAtlasMapping {
   visible: boolean;
   pixelRatio: number;
 }
-
-// TODO: move to Webgl source
-export interface TextureAtlas {
-  width: number;
-  height: number;
-  source?: TextureSource; // in case width or height === 0 then source is not defined;
-}

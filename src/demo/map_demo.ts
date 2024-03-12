@@ -1,6 +1,6 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { SateliteTilesStyles, MapboxVectorTileStyles } from './map_styles';
+import { SateliteTilesStyles, MapboxVectorTileStyles, MapTilerVectorTileStyles } from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
 import { FontFormatType } from '../map/font/font_config';
 
@@ -91,8 +91,9 @@ export function renderMap() {
     zoom,
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl,
-    tileStyles: SateliteTilesStyles,
-    // tileStyles: MapboxVectorTileStyles,
+    // tileStyles: SateliteTilesStyles,
+    tileStyles: MapboxVectorTileStyles,
+    // tileStyles: MapTilerVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
