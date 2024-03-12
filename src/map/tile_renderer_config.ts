@@ -12,4 +12,9 @@ export const TILE_RENDERER_SOURCE_PROCESSOR_CONFIG_MAP: Record<MapTileRendererTy
     [DataTileSourceType.pbf]: PbfTile2WebglLayers,
     [DataTileSourceType.image]: ImageTile2WebglLayers,
   }),
+  [MapTileRendererType.webgl2]: new TileSourceProcessor({
+    [DataTileSourceType.debug]: DebugTile2WebglLayers,
+    [DataTileSourceType.pbf]: PbfTile2WebglLayers,
+    [DataTileSourceType.image]: ImageTile2WebglLayers,
+  }),
 };

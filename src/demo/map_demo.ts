@@ -90,9 +90,9 @@ export function renderMap() {
     rootEl: rootDiv,
     zoom,
     center: [lat, lng],
-    rendrer: MapTileRendererType.webgl,
-    // tileStyles: SateliteTilesStyles,
-    tileStyles: MapboxVectorTileStyles,
+    rendrer: MapTileRendererType.webgl2,
+    tileStyles: SateliteTilesStyles,
+    // tileStyles: MapboxVectorTileStyles,
     // tileStyles: MapTilerVectorTileStyles,
     projection: 'mercator',
     controls: {

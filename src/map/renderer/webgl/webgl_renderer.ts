@@ -21,6 +21,7 @@ import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
 import { FontFormatType } from '../../font/font_config';
 import { FontManager } from '../../font/font_manager';
+import { MapTileRendererType } from '../renderer';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -34,20 +35,28 @@ export class WebGlRenderer implements Renderer {
   constructor(
     private readonly rootEl: HTMLElement,
     private readonly featureFlags: MapFeatureFlags,
-    private devicePixelRatio: number,
-    private fontManager: FontManager,
-    private textureManager: GlyphsManager
+    private readonly type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
+    private readonly devicePixelRatio: number,
+    private readonly fontManager: FontManager,
+    private readonly textureManager: GlyphsManager
   ) {
     this.canvas = this.createCanvasEl();
   }
 
   async init() {
     this.rootEl.appendChild(this.canvas);
+    let gl: ExtendedWebGLRenderingContext;
 
-    const gl = (this.gl = this.canvas.getContext('webgl', {
-      alpha: true,
-    }) as ExtendedWebGLRenderingContext);
-    addExtensionsToContext(gl);
+    if (this.type === MapTileRendererType.webgl) {
+      gl = this.gl = this.canvas.getContext('webgl', {
+        alpha: true,
+      }) as ExtendedWebGLRenderingContext;
+      addExtensionsToContext(gl);
+    } else {
+      gl = this.gl = this.canvas.getContext('webgl2', {
+        alpha: true,
+      }) as ExtendedWebGLRenderingContext;
+    }
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);

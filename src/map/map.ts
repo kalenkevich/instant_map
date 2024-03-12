@@ -366,7 +366,23 @@ export class GlideMap extends Evented<MapEventType> {
   private getRenderer(rendererType: MapTileRendererType): Renderer {
     switch (rendererType) {
       case MapTileRendererType.webgl:
-        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.fontManager, this.glyphsManager);
+        return new WebGlRenderer(
+          this.rootEl,
+          this.featureFlags,
+          MapTileRendererType.webgl,
+          this.pixelRatio,
+          this.fontManager,
+          this.glyphsManager
+        );
+      case MapTileRendererType.webgl2:
+        return new WebGlRenderer(
+          this.rootEl,
+          this.featureFlags,
+          MapTileRendererType.webgl2,
+          this.pixelRatio,
+          this.fontManager,
+          this.glyphsManager
+        );
       default:
         throw new Error(`Rendrer "rendererType" is not supported.`);
     }
