@@ -1,5 +1,5 @@
 import { Font, Glyph, parse as parseFont } from 'opentype.js';
-import { canvasToArrayBufferTextureSource, imageElToTextureSource } from '../texture/texture_utils';
+import { canvasToSharebleArrayBufferTextureSource, imageElToTextureSource } from '../texture/texture_utils';
 import {
   FontSourceType,
   FontFormatType,
@@ -221,7 +221,8 @@ export async function generateTextureAtlas(
   }
 
   return {
-    source: canvasToArrayBufferTextureSource(
+    // Make it as sharable memory texture to speed up main thread <-> worker communication.
+    source: canvasToSharebleArrayBufferTextureSource(
       canvas,
       0,
       margin,

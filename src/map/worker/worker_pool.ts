@@ -1,5 +1,5 @@
 import { WorkerTaskRequest, WorkerTaskResponse, WorkerTaskResponseType } from './worker_actions';
-import { WorkerInstance, WorkerStatus, WorkerType } from './worker_instance';
+import { WorkerInstance, WorkerStatus } from './worker_instance';
 
 export interface WorkerTask {
   taskId: number;
@@ -20,10 +20,6 @@ export class WorkerPool {
   private currentTaskId = 0;
 
   constructor(private readonly maxPool: number = 8) {}
-
-  getDedicatedWorker(name: string) {
-    return this.createNewDedicatedWorker(name);
-  }
 
   async execute<DataType>(
     inputMessage: WorkerTaskRequest<DataType>,
@@ -61,7 +57,7 @@ export class WorkerPool {
     }
 
     if (this.workerInstances.length < this.maxPool) {
-      return this.createNewCommonWorker();
+      return this.createNewWorker();
     }
 
     return await Promise.race(
@@ -78,16 +74,8 @@ export class WorkerPool {
     );
   }
 
-  private createNewCommonWorker(): WorkerInstance {
-    const workerInstance = new WorkerInstance(`tile worker ${this.workerInstances.length}`, WorkerType.COMMON);
-
-    this.workerInstances.push(workerInstance);
-
-    return workerInstance;
-  }
-
-  private createNewDedicatedWorker(name: string): WorkerInstance {
-    const workerInstance = new WorkerInstance(name, WorkerType.DEDICATED);
+  private createNewWorker(): WorkerInstance {
+    const workerInstance = new WorkerInstance(`tile worker ${this.workerInstances.length}`);
 
     this.workerInstances.push(workerInstance);
 

@@ -25,7 +25,7 @@ export function canvasToArrayBufferTextureSource(
   width: number,
   height: number
 ): ArrayBufferTextureSource {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
   return {
     type: TextureSourceType.ARRAY_BUFFER,
@@ -33,6 +33,18 @@ export function canvasToArrayBufferTextureSource(
     height,
     data: new Uint8ClampedArray(ctx.getImageData(x, y, width, height).data.buffer),
   };
+}
+
+export function canvasToSharebleArrayBufferTextureSource(
+  canvas: HTMLCanvasElement | OffscreenCanvas,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): TextureSource {
+  const res = canvasToArrayBufferTextureSource(canvas, x, y, width, height);
+
+  return arrayBufferToSharebleTextureSource(res.data, width, height);
 }
 
 export function arrayBufferToSharebleTextureSource(
@@ -50,18 +62,6 @@ export function arrayBufferToSharebleTextureSource(
     height,
     data: resultBuffer,
   };
-}
-
-export function canvasToSharebleArrayBufferTextureSource(
-  canvas: HTMLCanvasElement | OffscreenCanvas,
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): TextureSource {
-  const res = canvasToArrayBufferTextureSource(canvas, x, y, width, height);
-
-  return arrayBufferToSharebleTextureSource(res.data, width, height);
 }
 
 export async function toImageBitmapTexture(
