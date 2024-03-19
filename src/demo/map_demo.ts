@@ -92,13 +92,28 @@ export function renderMap() {
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl2,
     tileStyles: SateliteTilesStyles,
-    // tileStyles: MapboxVectorTileStyles,
-    // tileStyles: MapTilerVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
       zoom: true,
       debug: true,
+      stylesSelect: [
+        {
+          id: 'SateliteTilesStyles',
+          name: 'Satelite',
+          styles: SateliteTilesStyles,
+        },
+        {
+          id: 'MapboxVectorTileStyles',
+          name: 'Mapbox Vector',
+          styles: MapboxVectorTileStyles,
+        },
+        {
+          id: 'MapTilerVectorTileStyles',
+          name: 'MapTiler Vector',
+          styles: MapTilerVectorTileStyles,
+        },
+      ],
     },
     workerPool: 8,
     featureFlags: {

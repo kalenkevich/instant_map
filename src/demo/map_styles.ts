@@ -174,8 +174,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.class'],
         font: 'defaultFont',
         fontSize: 10,
@@ -225,8 +225,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
@@ -243,8 +243,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$lte', ['$get', 'properties.rank'], 15],
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
@@ -288,8 +288,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.housenumber'],
         font: 'defaultFont',
         fontSize: 8,
@@ -362,27 +362,42 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
     },
   },
   fonts: {
-    defaultFont: {
+    defaultFont2: {
       type: FontFormatType.texture,
-      name: 'defaultFont',
+      name: 'defaultFont2',
       fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/arial_regular.ttf',
     },
-    roboto: {
-      type: FontFormatType.texture,
-      name: 'roboto',
-      fontSize: 42,
-      sourceType: FontSourceType.font,
-      sourceUrl: './fonts/roboto_regular.ttf',
+    defaultFont: {
+      type: FontFormatType.sdf,
+      name: 'defaultFont',
+      pixelRatio: 1,
+      fontSize: 24,
+      sourceType: FontSourceType.pbf,
+      sourceUrl:
+        'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+      ranges: [
+        [0, 255],
+        [256, 511],
+        [1024, 1279],
+        [8192, 8447],
+      ],
     },
-    opensans: {
-      type: FontFormatType.texture,
-      name: 'opensans',
-      fontSize: 42,
-      sourceType: FontSourceType.font,
-      sourceUrl: './fonts/opensans_regular.ttf',
-    },
+    // roboto: {
+    //   type: FontFormatType.texture,
+    //   name: 'roboto',
+    //   fontSize: 42,
+    //   sourceType: FontSourceType.font,
+    //   sourceUrl: './fonts/roboto_regular.ttf',
+    // },
+    // opensans: {
+    //   type: FontFormatType.texture,
+    //   name: 'opensans',
+    //   fontSize: 42,
+    //   sourceType: FontSourceType.font,
+    //   sourceUrl: './fonts/opensans_regular.ttf',
+    // },
   },
 };
 
@@ -475,8 +490,8 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name_en'],
         font: 'defaultFont',
         fontSize: 32,
@@ -538,8 +553,8 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
         fontSize: 14,
@@ -569,8 +584,8 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
         show: ['$lte', ['$get', 'properties.filterrank'], 3],
         font: 'defaultFont',
@@ -623,8 +638,8 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
         font: 'defaultFont',
         fontSize: 14,
@@ -656,28 +671,43 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     },
   },
   fonts: {
-    defaultFont: {
+    defaultFont2: {
       type: FontFormatType.texture,
-      name: 'defaultFont',
+      name: 'defaultFont2',
       fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
       ranges: [[0, 8447]],
     },
-    arial: {
-      type: FontFormatType.texture,
-      name: 'arial',
-      fontSize: 42,
-      sourceType: FontSourceType.font,
-      sourceUrl: './fonts/arial_regular.ttf',
+    defaultFont: {
+      type: FontFormatType.sdf,
+      name: 'defaultFont',
+      pixelRatio: 1,
+      fontSize: 24,
+      sourceType: FontSourceType.pbf,
+      sourceUrl:
+        'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+      ranges: [
+        [0, 255],
+        [256, 511],
+        [1024, 1279],
+        [8192, 8447],
+      ],
     },
-    roboto: {
-      type: FontFormatType.texture,
-      name: 'roboto',
-      fontSize: 42,
-      sourceType: FontSourceType.font,
-      sourceUrl: './fonts/roboto_regular.ttf',
-    },
+    // arial: {
+    //   type: FontFormatType.texture,
+    //   name: 'arial',
+    //   fontSize: 42,
+    //   sourceType: FontSourceType.font,
+    //   sourceUrl: './fonts/arial_regular.ttf',
+    // },
+    // roboto: {
+    //   type: FontFormatType.texture,
+    //   name: 'roboto',
+    //   fontSize: 42,
+    //   sourceType: FontSourceType.font,
+    //   sourceUrl: './fonts/roboto_regular.ttf',
+    // },
   },
 };
 

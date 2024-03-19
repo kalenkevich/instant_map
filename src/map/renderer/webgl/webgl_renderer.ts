@@ -106,7 +106,9 @@ export class WebGlRenderer implements Renderer {
     };
   }
 
-  destroy() {}
+  destroy() {
+    this.rootEl.removeChild(this.canvas);
+  }
 
   protected createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
