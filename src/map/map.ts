@@ -10,9 +10,10 @@ import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
 import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
+import { StyleSelectControl, DataTileStylesSelectConfig } from './controls/style_select_control';
 import { EasyAnimation } from './animation/easy_animation';
 import { FontManager } from './font/font_manager';
-import { AtlasTextureManager } from './atlas/atlas_manager';
+import { GlyphsManager } from './glyphs/glyphs_manager';
 import { DataTileStyles } from './styles/styles';
 import { MapFeatureFlags } from './flags';
 
@@ -44,6 +45,8 @@ export interface MapOptions {
   zoom?: number;
   /** Initial rotation value of the map. */
   rotation?: number;
+  /** Number of tiles to store in cache */
+  tileCacheSize?: number;
   /** Number of tiles to fetch around. */
   tileBuffer?: number;
   /** Number of workers to run in background. */
@@ -61,6 +64,7 @@ export interface MapOptions {
     move?: boolean;
     compas?: boolean;
     debug?: boolean;
+    stylesSelect?: DataTileStylesSelectConfig[];
   };
   tileStyles: DataTileStyles;
   // TODO: tile meta url
@@ -96,7 +100,7 @@ export class GlideMap extends Evented<MapEventType> {
   private tilesGrid: TilesGrid;
   private renderQueue: RenderQueue;
   private fontManager: FontManager;
-  private atlasTextureManager: AtlasTextureManager;
+  private glyphsManager: GlyphsManager;
   private renderer: Renderer;
   private projection: Projection;
   private mapOptions: MapOptions;
@@ -106,6 +110,7 @@ export class GlideMap extends Evented<MapEventType> {
   private height: number;
   private minZoom: number;
   private maxZoom: number;
+  private styles: DataTileStyles;
 
   private statsWidget: HTMLElement;
   private frameStats: {
@@ -119,47 +124,12 @@ export class GlideMap extends Evented<MapEventType> {
       ...options,
     };
     this.featureFlags = this.mapOptions.featureFlags;
-
     this.rootEl = this.mapOptions.rootEl;
     this.width = this.rootEl.offsetWidth;
     this.height = this.rootEl.offsetHeight;
-    this.minZoom = this.mapOptions.tileStyles.minzoom || 1;
-    this.maxZoom = this.mapOptions.tileStyles.maxzoom || 15;
-
     this.stats = new Stats();
-    this.pixelRatio = this.mapOptions.devicePixelRatio || window.devicePixelRatio;
 
-    this.renderQueue = new RenderQueue();
-
-    this.fontManager = new FontManager(this.featureFlags, this.mapOptions.tileStyles.fonts || {});
-    this.atlasTextureManager = new AtlasTextureManager(this.featureFlags, this.mapOptions.tileStyles.atlas || {});
-    this.projection = getProjectionFromType(this.mapOptions.projection);
-    this.camera = new MapCamera(
-      this.featureFlags,
-      this.projection.fromLngLat(this.mapOptions.center),
-      this.mapOptions.zoom,
-      this.mapOptions.rotation,
-      this.width,
-      this.height,
-      this.mapOptions.tileStyles.tileSize,
-      this.projection
-    );
-    this.tilesGrid = new TilesGrid(
-      this.featureFlags,
-      this.mapOptions.rendrer,
-      this.mapOptions.tileStyles,
-      this.mapOptions.tileBuffer || 1,
-      this.mapOptions.workerPool || 8,
-      this.mapOptions.tileStyles.tileSize,
-      this.pixelRatio,
-      this.maxZoom,
-      this.projection,
-      this.fontManager,
-      this.atlasTextureManager
-    );
-    this.pan = new MapPan(this, this.rootEl);
-    this.renderer = this.getRenderer(this.mapOptions.rendrer);
-
+    this.setup(this.featureFlags, this.mapOptions, this.mapOptions.tileStyles);
     this.init().then(() => {
       this.rerender();
     });
@@ -168,15 +138,15 @@ export class GlideMap extends Evented<MapEventType> {
   async init() {
     this.setupMapControls();
 
-    await Promise.all([this.fontManager.init(), this.atlasTextureManager.init()]);
+    await Promise.all([this.fontManager.init(), this.glyphsManager.init()]);
 
     this.pan.init();
     if (this.featureFlags.enableObjectSelection) {
       this.pan.on(MapPanEvents.click, this.onMapClick);
     }
     this.tilesGrid.init();
-    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
-    this.renderer.init();
+    this.tilesGrid.on(TilesGridEvent.TILE_LOADED, this.onTileChanged);
+    await this.renderer.init();
 
     if (this.mapOptions.resizable) {
       window.addEventListener('resize', this.resizeEventListener);
@@ -190,12 +160,61 @@ export class GlideMap extends Evented<MapEventType> {
       this.pan.off(MapPanEvents.click, this.onMapClick);
     }
     this.pan.destroy();
-    this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileLoaded);
+    this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileChanged);
     this.tilesGrid.destroy();
     this.renderer.destroy();
   }
 
-  private onTileLoaded = () => {
+  setStyles(mapStyle: DataTileStyles) {
+    this.destroy();
+    this.setup(this.featureFlags, this.mapOptions, mapStyle);
+    this.init().then(() => {
+      this.rerender();
+    });
+  }
+
+  getStyles(): DataTileStyles {
+    return this.styles;
+  }
+
+  private setup(featureFlags: MapFeatureFlags, mapOptions: MapOptions, styles: DataTileStyles) {
+    this.minZoom = mapOptions.tileStyles.minzoom || 1;
+    this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
+    this.pixelRatio = mapOptions.devicePixelRatio || window.devicePixelRatio;
+    this.styles = styles;
+    this.renderQueue = new RenderQueue();
+    this.fontManager = new FontManager(featureFlags, styles.fonts || {});
+    this.glyphsManager = new GlyphsManager(featureFlags, styles.glyphs || {});
+    this.projection = getProjectionFromType(mapOptions.projection);
+    this.camera = new MapCamera(
+      featureFlags,
+      this.projection.fromLngLat(mapOptions.center),
+      mapOptions.zoom,
+      mapOptions.rotation,
+      this.width,
+      this.height,
+      styles.tileSize,
+      this.projection
+    );
+    this.tilesGrid = new TilesGrid(
+      featureFlags,
+      mapOptions.rendrer,
+      styles,
+      mapOptions.tileCacheSize || 256,
+      mapOptions.tileBuffer || 1,
+      mapOptions.workerPool || 8,
+      styles.tileSize,
+      this.pixelRatio,
+      this.maxZoom,
+      this.projection,
+      this.fontManager,
+      this.glyphsManager
+    );
+    this.pan = new MapPan(this, this.rootEl);
+    this.renderer = this.getRenderer(mapOptions.rendrer);
+  }
+
+  private onTileChanged = () => {
     this.rerender(true);
   };
 
@@ -207,7 +226,7 @@ export class GlideMap extends Evented<MapEventType> {
       tiles,
       viewMatrix,
       zoom,
-      this.mapOptions.tileStyles.tileSize,
+      this.styles.tileSize,
       clippedWebGlSpaceCoords[0],
       clippedWebGlSpaceCoords[1]
     );
@@ -346,7 +365,7 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.mapOptions.tileStyles.tileSize, { pruneCache });
+    this.renderer.render(tiles, viewMatrix, zoom, this.styles.tileSize, { pruneCache });
 
     this.statsWidget.style.display = 'none';
 
@@ -363,7 +382,23 @@ export class GlideMap extends Evented<MapEventType> {
   private getRenderer(rendererType: MapTileRendererType): Renderer {
     switch (rendererType) {
       case MapTileRendererType.webgl:
-        return new WebGlRenderer(this.rootEl, this.featureFlags, this.pixelRatio, this.atlasTextureManager);
+        return new WebGlRenderer(
+          this.rootEl,
+          this.featureFlags,
+          MapTileRendererType.webgl,
+          this.pixelRatio,
+          this.fontManager,
+          this.glyphsManager
+        );
+      case MapTileRendererType.webgl2:
+        return new WebGlRenderer(
+          this.rootEl,
+          this.featureFlags,
+          MapTileRendererType.webgl2,
+          this.pixelRatio,
+          this.fontManager,
+          this.glyphsManager
+        );
       default:
         throw new Error(`Rendrer "rendererType" is not supported.`);
     }
@@ -380,6 +415,11 @@ export class GlideMap extends Evented<MapEventType> {
     if (this.mapOptions.controls.zoom) {
       const zoomControl = new ZoomControl(this);
       parentControl.addControl(zoomControl);
+    }
+
+    if (this.mapOptions.controls.stylesSelect) {
+      const selectStylesConfig = new StyleSelectControl(this, window.document, this.mapOptions.controls.stylesSelect);
+      parentControl.addControl(selectStylesConfig);
     }
 
     parentControl.init();

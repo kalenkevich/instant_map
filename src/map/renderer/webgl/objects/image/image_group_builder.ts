@@ -4,6 +4,7 @@ import { integerToVector4 } from '../../utils/number2vec';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { WebGlImage, WebGlImageBufferredGroup } from './image';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
+import { TextureSourceType } from '../../../../texture/texture';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
@@ -61,11 +62,7 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
       type: MapTileFeatureType.image,
       size,
       numElements: verteciesBuffer.length / 2,
-      texture: {
-        source: textureSource,
-        width: textureWidth,
-        height: textureHeight,
-      },
+      texture: textureSource,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,

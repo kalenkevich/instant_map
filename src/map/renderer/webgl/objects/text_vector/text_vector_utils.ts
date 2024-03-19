@@ -1,5 +1,5 @@
 import earcut from 'earcut';
-import { Font } from 'opentype.js';
+import { VectorFontAtlas, VectorGlyphCommand } from '../../../../font/font_config';
 
 interface Point {
   x: number;
@@ -92,38 +92,30 @@ class Polygon {
   }
 }
 
-export const getTextRectangleSize = (
-  font: Font,
-  text: string,
-  p: [number, number],
-  fontSize: number
-): { width: number; height: number } => {
-  const path = font.getPath(text, p[0], p[1], fontSize);
-  const bbox = path.getBoundingBox();
+function getPathCommands(
+  fontAtlas: VectorFontAtlas,
+  char: string
+): { commands: VectorGlyphCommand[]; width: number; height: number } {
+  const charCode = char.charCodeAt(0);
+  const glyph = fontAtlas.glyphs[charCode];
 
-  return {
-    width: bbox.x2 - bbox.x1,
-    height: bbox.y2 - bbox.y1,
-  };
-};
+  if (!glyph) {
+    console.log(`Glyph "${String.fromCharCode(charCode)}" not found`);
 
-export const getVerticiesFromText = (
-  font: Font,
-  text: string,
-  p: [number, number],
-  fontSize: number,
-  flipHorisontaly = false
-) => {
+    return { commands: [], width: 0, height: 0 };
+  }
+
+  return { commands: glyph.source, width: glyph.width, height: glyph.height };
+}
+
+export const getVerticiesFromChar = (fontAtlas: VectorFontAtlas, char: string, flipHorisontaly = false) => {
   const polys: Polygon[] = [];
   const root = [];
   const indices: number[] = [];
-  const path = font.getPath(text, p[0], p[1], fontSize, {
-    kerning: false,
-  });
   const hKoef = flipHorisontaly ? -1 : 1;
-  const bbox = path.getBoundingBox();
+  const { commands, width, height } = getPathCommands(fontAtlas, char);
 
-  path.commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
+  commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
     switch (type) {
       case 'M':
         polys.push(new Polygon());
@@ -190,8 +182,8 @@ export const getVerticiesFromText = (
 
   return {
     indices,
-    width: bbox.x2 - bbox.x1,
-    height: bbox.y2 - bbox.y1,
+    width,
+    height,
     vertices: vertexData,
     count: indices.length,
   };

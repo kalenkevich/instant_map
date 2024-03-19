@@ -1,17 +1,70 @@
 import { LineJoinStyle } from '../map/renderer/webgl/objects/line/line';
-import { DataTileSourceType, DataTileStyles } from '../map/styles/styles';
+import { DataTileSourceType, DataTileSource, DataTileStyles } from '../map/styles/styles';
 import { MapTileFeatureType } from '../map/tile/tile';
+import { FontConfig } from '../map/font/font_config';
+import { FontFormatType, FontSourceType } from '../map/font/font_config';
+import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
+
+const MapboxVectorDataSource: DataTileSource = {
+  type: DataTileSourceType.pbf,
+  name: 'dataSource',
+  url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+};
+
+const MaptilerVectorDataSource: DataTileSource = {
+  type: DataTileSourceType.pbf,
+  name: 'dataSource',
+  url: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
+};
+
+const StyleFonts: {
+  [fontName: string]: FontConfig;
+} = {
+  defaultFont2: {
+    type: FontFormatType.texture,
+    name: 'defaultFont',
+    fontSize: 42,
+    sourceType: FontSourceType.font,
+    sourceUrl: './fonts/opensans_regular.ttf',
+    ranges: [[0, 8447]],
+  },
+  defaultFont: {
+    type: FontFormatType.sdf,
+    name: 'defaultFont',
+    pixelRatio: 2,
+    fontSize: 24,
+    sourceType: FontSourceType.pbf,
+    sourceUrl:
+      'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Regular,Arial%20Unicode%20MS%20Regular/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    ranges: [
+      [0, 255],
+      [256, 511],
+      [1024, 1279],
+      [8192, 8447],
+    ],
+  },
+  // roboto: {
+  //   type: FontFormatType.texture,
+  //   name: 'roboto',
+  //   fontSize: 42,
+  //   sourceType: FontSourceType.font,
+  //   sourceUrl: './fonts/roboto_regular.ttf',
+  // },
+  // opensans: {
+  //   type: FontFormatType.texture,
+  //   name: 'opensans',
+  //   fontSize: 42,
+  //   sourceType: FontSourceType.font,
+  //   sourceUrl: './fonts/opensans_regular.ttf',
+  // },
+};
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
   tileSize: 512,
   minzoom: 1,
   maxzoom: 15,
   sources: {
-    dataSource: {
-      type: DataTileSourceType.pbf,
-      name: 'dataSource',
-      url: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
-    },
+    dataSource: MaptilerVectorDataSource,
   },
   layers: {
     water: {
@@ -172,10 +225,10 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.class'],
-        font: 'opensans',
+        font: 'defaultFont',
         fontSize: 10,
       },
       minzoom: 12,
@@ -223,11 +276,11 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         text: ['$get', 'properties.name'],
-        font: 'fontAtlas',
+        font: 'defaultFont',
         fontSize: 24,
       },
       maxzoom: 18,
@@ -241,11 +294,11 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$lte', ['$get', 'properties.rank'], 15],
         text: ['$get', 'properties.name'],
-        font: 'opensans',
+        font: 'defaultFont',
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
@@ -286,10 +339,10 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.housenumber'],
-        font: 'opensans',
+        font: 'defaultFont',
         fontSize: 8,
       },
       minzoom: 16,
@@ -349,40 +402,17 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 3,
     },
   },
-  fonts: {
-    arial: {
-      name: 'arial',
-      source: './fonts/arial_regular.ttf',
-    },
-    roboto: {
-      name: 'roboto',
-      source: './fonts/roboto_regular.ttf',
-    },
-    opensans: {
-      name: 'opensans',
-      source: './fonts/opensans_regular.ttf',
-    },
-    opensansBold: {
-      name: 'opensansBold',
-      source: './fonts/opensans_bold.ttf',
-    },
-  },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
-    },
-    fontAtlas: {
-      name: 'fontAtlas',
-      width: 512,
-      height: 512,
-      source: './icons/font_sprite.png',
-      mapping: 'font_default_mapping_32_32_256_2',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
     },
   },
+  fonts: StyleFonts,
 };
 
 export const MapboxVectorTileStyles: DataTileStyles = {
@@ -390,11 +420,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
   minzoom: 0,
   maxzoom: 16,
   sources: {
-    dataSource: {
-      type: DataTileSourceType.pbf,
-      name: 'dataSource',
-      url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
-    },
+    dataSource: MapboxVectorDataSource,
   },
   layers: {
     water: {
@@ -474,10 +500,10 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name_en'],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: 32,
       },
     },
@@ -537,10 +563,10 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: 14,
       },
       maxzoom: 18,
@@ -568,11 +594,11 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
         show: ['$lte', ['$get', 'properties.filterrank'], 3],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: [
           '$switch',
           ['$get', 'properties.class'],
@@ -622,10 +648,10 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
-        font: 'opensansBold',
+        font: 'defaultFont',
         fontSize: 14,
       },
     },
@@ -644,40 +670,17 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
   },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
-    },
-    fontAtlas: {
-      name: 'fontAtlas',
-      width: 512,
-      height: 512,
-      source: './icons/font_sprite.png',
-      mapping: 'font_default_mapping_32_32_256_2',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
     },
   },
-  fonts: {
-    arial: {
-      name: 'arial',
-      source: './fonts/arial_regular.ttf',
-    },
-    roboto: {
-      name: 'roboto',
-      source: './fonts/roboto_regular.ttf',
-    },
-    opensans: {
-      name: 'opensans',
-      source: './fonts/opensans_regular.ttf',
-    },
-    opensansBold: {
-      name: 'opensansBold',
-      source: './fonts/opensans_bold.ttf',
-    },
-  },
+  fonts: StyleFonts,
 };
 
 export const SateliteTilesStyles: DataTileStyles = {
@@ -685,16 +688,12 @@ export const SateliteTilesStyles: DataTileStyles = {
   minzoom: 0,
   maxzoom: 16,
   sources: {
+    dataSource: MapboxVectorDataSource,
     imageSource: {
       type: DataTileSourceType.image,
       name: 'imageSource',
-      url: 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+      url: 'https://c.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
       pixelRatio: 2,
-    },
-    dataSource: {
-      type: DataTileSourceType.pbf,
-      name: 'dataSource',
-      url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
     },
   },
   layers: {
@@ -760,14 +759,99 @@ export const SateliteTilesStyles: DataTileStyles = {
       maxzoom: 16,
       minzoom: 0,
     },
+    poiLabel: {
+      source: 'dataSource',
+      sourceLayer: 'poi_label',
+      styleLayerName: 'poiLabel',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
+        text: ['$get', 'properties.name'],
+        font: 'defaultFont',
+        fontSize: 28,
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
+    place: {
+      source: 'dataSource',
+      sourceLayer: 'place_label',
+      styleLayerName: 'place_labelStyles',
+      zIndex: 4,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
+        text: ['$get', 'properties.name'],
+        show: ['$lte', ['$get', 'properties.filterrank'], 3],
+        font: 'defaultFont',
+        fontSize: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['country', 32],
+          ['settlement', 28],
+          ['settlement_subdivision', 24],
+        ],
+        margin: {
+          top: -25,
+        },
+      },
+      maxzoom: 16,
+      minzoom: 0,
+    },
   },
-  atlas: {
+  glyphs: {
     iconsAtlas: {
+      type: GlyphsTextrureAtlasType.png,
       name: 'iconsAtlas',
       width: 1024,
       height: 936,
-      source: './icons/sprite@2x.png',
-      mapping: './icons/sprite@2x.json',
+      sourceUrl: './icons/sprite@2x.png',
+      mappingUrl: './icons/sprite@2x.json',
+    },
+  },
+  fonts: StyleFonts,
+};
+
+export const MaptilerSateliteTilesStyles: DataTileStyles = {
+  ...SateliteTilesStyles,
+  sources: {
+    dataSource: MapboxVectorDataSource,
+    imageSource: {
+      type: DataTileSourceType.image,
+      name: 'imageSource',
+      url: 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
+      pixelRatio: 1,
+    },
+  },
+};
+
+export const OsmImageTileStyles: DataTileStyles = {
+  ...SateliteTilesStyles,
+  sources: {
+    dataSource: MapboxVectorDataSource,
+    imageSource: {
+      type: DataTileSourceType.image,
+      name: 'imageSource',
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      pixelRatio: 1,
+    },
+  },
+};
+
+export const BingImageTyleStyles: DataTileStyles = {
+  ...SateliteTilesStyles,
+  sources: {
+    dataSource: MapboxVectorDataSource,
+    imageSource: {
+      type: DataTileSourceType.image,
+      name: 'imageSource',
+      url: 'https://ecn.t0.tiles.virtualearth.net/tiles/a{u}.jpeg?g=14364&pr=odbl&n=z',
+      pixelRatio: 1,
     },
   },
 };

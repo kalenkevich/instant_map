@@ -1,3 +1,4 @@
+import { ImageBitmapTextureSource } from '../../../texture/texture';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 
 export interface CreateTextureOptions {
@@ -13,7 +14,7 @@ export interface CreateTextureOptions {
   level?: number;
   type?: number;
   pixels?: ArrayBufferView;
-  source?: TexImageSource;
+  source?: ImageBitmapTextureSource;
   internalFormat?: number;
   format?: number;
   border?: number;
@@ -26,7 +27,8 @@ export interface WebGlTexture {
   width: number;
   height: number;
   level: number;
-  setSource(source: TexImageSource): void;
+  setSource(source: ImageBitmapTextureSource): void;
+  activate(): void;
   bind(): void;
   unbind(): void;
 }
@@ -48,7 +50,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       options.internalFormat || gl.RGBA,
       options.format || gl.RGBA,
       options.type || gl.UNSIGNED_BYTE,
-      options.source
+      options.source.data
     );
   } else if (options.pixels !== undefined) {
     gl.texImage2D(
@@ -92,7 +94,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
     width: options.width,
     height: options.height,
     level,
-    setSource(source: TexImageSource) {
+    setSource(source: ImageBitmapTextureSource) {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
@@ -101,10 +103,13 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
         options.internalFormat || gl.RGBA,
         options.format || gl.RGBA,
         options.type || gl.UNSIGNED_BYTE,
-        source
+        source.data
       );
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);
+    },
+    activate() {
+      gl.activeTexture(gl.TEXTURE0 + textureIndex);
     },
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);

@@ -1,29 +1,35 @@
-import { WebGlTextTextureBufferredGroup } from './text';
+import { WebGlTextTextureBufferredGroup } from './text_texture';
 import TextShaders from './text_texture_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
 import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
+import { FontManager } from '../../../../font/font_manager';
+import { TextureFontAtlas } from '../../../../font/font_config';
+import { toImageBitmapTexture } from '../../../../texture/texture_utils';
 
 export class TextTextureProgram extends ObjectProgram {
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
 
-  protected texture: WebGlTexture;
+  protected fontTextures: WebGlTexture[] = [];
   protected u_textureLocation: WebGLUniformLocation;
+  protected u_sfdLocation: WebGLUniformLocation;
+  protected u_border_widthLocation: WebGLUniformLocation;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
+    protected readonly fontManager: FontManager,
     protected readonly vertexShaderSource: string = TextShaders.vertext,
     protected readonly fragmentShaderSource: string = TextShaders.fragment
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public onInit(): void {
-    this.setupTexture();
+  public async onInit(): Promise<void> {
+    await this.setupTexture();
   }
 
   onLink(): void {
@@ -55,21 +61,29 @@ export class TextTextureProgram extends ObjectProgram {
   protected setupUniforms() {
     super.setupUniforms();
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
+    this.u_sfdLocation = this.gl.getUniformLocation(this.program, 'u_is_sfd_mode');
+    this.u_border_widthLocation = this.gl.getUniformLocation(this.program, 'u_border_width');
   }
 
-  protected setupTexture() {
+  protected async setupTexture() {
     const gl = this.gl;
+    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
 
-    this.texture = createTexture(gl, {
-      name: 'text',
-      width: 0,
-      height: 0,
-      unpackPremultiplyAlpha: true,
-      wrapS: gl.CLAMP_TO_EDGE,
-      wrapT: gl.CLAMP_TO_EDGE,
-      minFilter: gl.NEAREST,
-      magFilter: gl.NEAREST,
-    });
+    for (const source of Object.values(fontAtlas.sources)) {
+      this.fontTextures.push(
+        createTexture(gl, {
+          name: 'text_atlas_' + source.name,
+          width: source.source.width,
+          height: source.source.height,
+          unpackPremultiplyAlpha: true,
+          wrapS: gl.CLAMP_TO_EDGE,
+          wrapT: gl.CLAMP_TO_EDGE,
+          minFilter: gl.NEAREST,
+          magFilter: gl.NEAREST,
+          source: await toImageBitmapTexture(source.source),
+        })
+      );
+    }
   }
 
   drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options?: DrawObjectGroupOptions) {
@@ -77,19 +91,30 @@ export class TextTextureProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.uniform1i(this.u_textureLocation, this.texture.index);
-    this.texture.setSource(textGroup.texture.source);
-    this.texture.bind();
+    const texture = this.fontTextures[textGroup.textureIndex];
+    texture.bind();
+    gl.uniform1i(this.u_textureLocation, texture.index);
+    gl.uniform1i(this.u_sfdLocation, textGroup.sfdTexture ? 1 : 0);
 
-    this.positionBuffer.bufferData(textGroup.vertecies.buffer);
-    this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
-    this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
-    );
+    this.positionBuffer.bufferData(new Float32Array(textGroup.vertecies.buffer));
+    this.textcoordBuffer.bufferData(new Float32Array(textGroup.textcoords.buffer));
 
-    gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    if (options?.readPixelRenderMode) {
+      this.colorBuffer.bufferData(textGroup.selectionColor.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    } else {
+      // draw text border
+      gl.uniform1f(this.u_border_widthLocation, 0.65);
+      this.colorBuffer.bufferData(textGroup.borderColor.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
-    this.texture.unbind();
+      // draw text
+      gl.uniform1f(this.u_border_widthLocation, 0.75);
+      this.colorBuffer.bufferData(textGroup.color.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    }
+
+    texture.unbind();
     gl.bindVertexArray(null);
   }
 }

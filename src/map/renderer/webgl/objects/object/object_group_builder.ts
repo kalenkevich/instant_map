@@ -56,13 +56,13 @@ export abstract class ObjectGroupBuilder<ObjectType extends WebGlObject> {
     return val / (Math.pow(2, this.zoom) * this.tileSize);
   }
 
-  scalarScale_2(val: number): number {
-    return this.tileSize * Math.pow(2, val);
-  }
-
   scalarZoom(val: number): number {
     return Math.log(val / this.tileSize) / Math.LN2;
     // return val / (Math.pow(2, this.zoom) * this.tileSize);
+  }
+
+  scalarScale_2(val: number): number {
+    return this.tileSize * Math.pow(2, val);
   }
 
   applyProjectionViewMatrix(point: [number, number] | vec2): [number, number] {

@@ -39,7 +39,7 @@ export class FramebufferProgram extends ObjectProgram {
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
   }
 
-  onInit(): void {}
+  public async onInit(): Promise<void> {}
 
   onLink(): void {
     const gl = this.gl;

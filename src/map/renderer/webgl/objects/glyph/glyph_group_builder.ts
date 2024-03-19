@@ -2,7 +2,7 @@ import { mat3 } from 'gl-matrix';
 import { WebGlGlyph, WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { AtlasTextureMappingState } from '../../../../atlas/atlas_manager';
+import { GlyphsManagerMappingState } from '../../../../glyphs/glyphs_manager';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { Projection } from '../../../../geo/projection/projection';
 import { MapFeatureFlags } from '../../../../flags';
@@ -23,7 +23,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
     protected readonly tileSize: number,
     protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags,
-    private readonly atlasesMappingState: AtlasTextureMappingState
+    private readonly glyphTextureMapping: GlyphsManagerMappingState
   ) {
     super(
       projectionViewMat,
@@ -48,7 +48,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
     const filteredGlyphs: WebGlGlyph[] = [];
     for (const [glyph] of this.objects) {
       textureAtlasName = glyph.atlas;
-      const textureAtlas = this.atlasesMappingState[glyph.atlas];
+      const textureAtlas = this.glyphTextureMapping[glyph.atlas];
       const glyphMapping = textureAtlas.mapping[glyph.name];
 
       if (!glyphMapping) {
@@ -67,7 +67,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
 
     for (const glyph of filteredGlyphs) {
       const colorId = integerToVector4(glyph.id);
-      const textureAtlas = this.atlasesMappingState[glyph.atlas];
+      const textureAtlas = this.glyphTextureMapping[glyph.atlas];
       const glyphMapping = textureAtlas.mapping[glyph.name];
 
       const textureWidth = textureAtlas.width;

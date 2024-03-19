@@ -5,6 +5,7 @@ import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 // Common
 import { FontManager } from '../../../font/font_manager';
+import { FontFormatType } from '../../../font/font_config';
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
 // Tile
 import { MapTileFeatureType } from '../../../tile/tile';
@@ -28,9 +29,8 @@ import { PointGroupBuilder } from '../objects/point/point_builder';
 import { PolygonGroupBuilder } from '../objects/polygon/polygon_builder';
 import { LineGroupBuilder } from '../objects/line/line_builder';
 import { GlyphGroupBuilder } from '../objects/glyph/glyph_group_builder';
-import { TextPolygonBuilder } from '../objects/text_polygon/text_polygon_builder';
+import { TextVectorBuilder } from '../objects/text_vector/text_vector_builder';
 import { TextTextureGroupBuilder } from '../objects/text_texture/text_texture_builder';
-import { WebGlText } from '../objects/text_texture/text';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
@@ -79,7 +79,7 @@ export async function PbfTile2WebglLayers(
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
   const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
-  const fontManager = featureFlags.webglRendererUsePolygonText && FontManager.fromState(featureFlags, fontManagerState);
+  const fontManager = new FontManager(featureFlags, {}, fontManagerState);
   const tileLayers: WebGlMapLayer[] = [];
 
   const resData = await fetch(tileURL, { signal: abortController.signal }).then(data => data.arrayBuffer());
@@ -144,32 +144,35 @@ export async function PbfTile2WebglLayers(
       featureFlags,
       atlasTextureMappingState
     );
-    const textTextureGroupBuilder = featureFlags.webglRendererUsePolygonText
-      ? new TextPolygonBuilder(
-          projectionViewMat,
-          canvasWidth,
-          canvasHeight,
-          pixelRatio,
-          zoom,
-          minZoom,
-          maxZoom,
-          tileSize,
-          projection,
-          featureFlags,
-          fontManager
-        )
-      : new TextTextureGroupBuilder(
-          projectionViewMat,
-          canvasWidth,
-          canvasHeight,
-          pixelRatio,
-          zoom,
-          minZoom,
-          maxZoom,
-          tileSize,
-          projection,
-          featureFlags
-        );
+
+    const textTextureGroupBuilder =
+      featureFlags.webglRendererFontFormatType === FontFormatType.vector
+        ? new TextVectorBuilder(
+            projectionViewMat,
+            canvasWidth,
+            canvasHeight,
+            pixelRatio,
+            zoom,
+            minZoom,
+            maxZoom,
+            tileSize,
+            projection,
+            featureFlags,
+            fontManager
+          )
+        : new TextTextureGroupBuilder(
+            projectionViewMat,
+            canvasWidth,
+            canvasHeight,
+            pixelRatio,
+            zoom,
+            minZoom,
+            maxZoom,
+            tileSize,
+            projection,
+            featureFlags,
+            fontManager
+          );
 
     for (let i = 0; i < numFeatures; i++) {
       const geojson: Feature<SupportedGeometry> = vectorTile.layers[styleLayer.sourceLayer]
@@ -246,7 +249,7 @@ export async function PbfTile2WebglLayers(
         if (geojson.geometry.type === 'Point') {
           const pointFeature = geojson as Feature<Point>;
 
-          const textObject: WebGlText = {
+          textTextureGroupBuilder.addObject({
             id: pointFeature.id! as number,
             type: MapTileFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
@@ -260,9 +263,7 @@ export async function PbfTile2WebglLayers(
               top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
               left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
             },
-          };
-
-          textTextureGroupBuilder.addObject(textObject);
+          });
 
           continue;
         }
@@ -271,7 +272,7 @@ export async function PbfTile2WebglLayers(
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
-            const textObject: WebGlText = {
+            textTextureGroupBuilder.addObject({
               id: pointFeature.id! as number,
               type: MapTileFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
@@ -285,9 +286,7 @@ export async function PbfTile2WebglLayers(
                 top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
                 left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
               },
-            };
-
-            textTextureGroupBuilder.addObject(textObject);
+            });
           }
         }
 
@@ -423,7 +422,7 @@ export async function PbfTile2WebglLayers(
     }
 
     if (!textTextureGroupBuilder.isEmpty()) {
-      objectGroups.push(await textTextureGroupBuilder.build());
+      objectGroups.push(textTextureGroupBuilder.build());
     }
 
     if (!glyphGroupBuilder.isEmpty()) {

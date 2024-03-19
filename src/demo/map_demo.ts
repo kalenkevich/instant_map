@@ -1,7 +1,15 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { SateliteTilesStyles, MapboxVectorTileStyles } from './map_styles';
+import {
+  SateliteTilesStyles,
+  MaptilerSateliteTilesStyles,
+  MapboxVectorTileStyles,
+  MapTilerVectorTileStyles,
+  OsmImageTileStyles,
+  BingImageTyleStyles,
+} from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
+import { FontFormatType } from '../map/font/font_config';
 
 const MAP_LOCATION_PARAM_NAME = 'l';
 
@@ -89,20 +97,51 @@ export function renderMap() {
     rootEl: rootDiv,
     zoom,
     center: [lat, lng],
-    rendrer: MapTileRendererType.webgl,
+    rendrer: MapTileRendererType.webgl2,
     tileStyles: SateliteTilesStyles,
-    // tileStyles: MapboxVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
       zoom: true,
       debug: true,
+      stylesSelect: [
+        {
+          id: 'SateliteTilesStyles',
+          name: 'Mapbox Image + Mapbox data',
+          styles: SateliteTilesStyles,
+        },
+        {
+          id: 'MaptilerSateliteTilesStyles',
+          name: 'Maptiler Image + Mapbox data',
+          styles: MaptilerSateliteTilesStyles,
+        },
+        {
+          id: 'OsmImageTileStyles',
+          name: 'Osm Image + Mapbox data',
+          styles: OsmImageTileStyles,
+        },
+        {
+          id: 'BingImageTyleStyles',
+          name: 'Bing Image + Mapbox data',
+          styles: BingImageTyleStyles,
+        },
+        {
+          id: 'MapboxVectorTileStyles',
+          name: 'Mapbox Vector',
+          styles: MapboxVectorTileStyles,
+        },
+        {
+          id: 'MapTilerVectorTileStyles',
+          name: 'MapTiler Vector',
+          styles: MapTilerVectorTileStyles,
+        },
+      ],
     },
     workerPool: 8,
     featureFlags: {
       debugLayer: true,
       webglRendererDebug: false,
-      webglRendererUsePolygonText: false,
+      webglRendererFontFormatType: FontFormatType.texture,
       enableObjectSelection: false,
     },
   });

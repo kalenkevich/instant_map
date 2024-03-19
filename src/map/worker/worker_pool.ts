@@ -1,21 +1,9 @@
-import { WorkerTaskResponse, WorkerTaskResponseType } from './worker_actions';
-import { WorkerInstance, WorkerStatus, CANCEL_WORKER_ERROR_MESSAGE } from './worker_instance';
-import { Evented } from '../evented';
+import { WorkerTaskRequest, WorkerTaskResponse, WorkerTaskResponseType } from './worker_actions';
+import { WorkerInstance, WorkerStatus } from './worker_instance';
 
-export { CANCEL_WORKER_ERROR_MESSAGE };
-
-export enum TaskStatus {
-  IN_PROGRESS = 0,
-  FULLFILLED = 1,
-  CANCELED = 2,
-  FAILED = 3,
-}
-
-export interface WorkerTask<TaskResult extends any> {
+export interface WorkerTask {
   taskId: number;
   worker: WorkerInstance;
-  task: Promise<TaskResult>;
-  status: TaskStatus;
 }
 
 /**
@@ -26,44 +14,26 @@ export interface WorkerTask<TaskResult extends any> {
  */
 export type WorkerEventListener = (response: WorkerTaskResponse) => void;
 
-export class WorkerPool extends Evented<WorkerTaskResponseType> {
+export class WorkerPool {
   private workerInstances: WorkerInstance[] = [];
-  private currentTasks: Record<number, WorkerTask<any>> = {};
+  private currentTasks: Record<number, WorkerTask> = {};
   private currentTaskId = 0;
 
-  constructor(private readonly maxPool: number = 8) {
-    super();
-  }
+  constructor(private readonly maxPool: number = 8) {}
 
-  async execute<InputMessage, OutputMessage>(inputMessage: InputMessage): Promise<WorkerTask<OutputMessage>> {
+  async execute<DataType>(
+    inputMessage: WorkerTaskRequest<DataType>,
+    responseEvent?: WorkerTaskResponseType,
+    responseHandler?: (...args: any[]) => any
+  ): Promise<WorkerTask> {
     const worker = await this.getAvailableWorkerInstance();
-    if (!worker.execute) {
-      debugger;
-    }
+
+    worker.sendRequest(inputMessage, responseEvent, responseHandler);
+    worker.setStatus(WorkerStatus.BUZY);
 
     const newTask = {
       taskId: this.currentTaskId++,
       worker,
-      task: worker
-        .execute(inputMessage)
-        .then((result: OutputMessage) => {
-          newTask.status = TaskStatus.FULLFILLED;
-
-          return result;
-        })
-        .catch((error: any) => {
-          if (error === CANCEL_WORKER_ERROR_MESSAGE) {
-            newTask.status = TaskStatus.CANCELED;
-          } else {
-            newTask.status = TaskStatus.FAILED;
-          }
-
-          throw error;
-        })
-        .finally(() => {
-          delete this.currentTasks[newTask.taskId];
-        }),
-      status: TaskStatus.IN_PROGRESS,
     };
     this.currentTasks[newTask.taskId] = newTask;
 
@@ -74,8 +44,8 @@ export class WorkerPool extends Evented<WorkerTaskResponseType> {
     const task = this.currentTasks[taskId];
 
     if (task) {
-      task.worker.cancel();
-      task.status = TaskStatus.CANCELED;
+      task.worker.setStatus(WorkerStatus.FREE);
+      delete this.currentTasks[task.taskId];
     }
   }
 
@@ -90,28 +60,22 @@ export class WorkerPool extends Evented<WorkerTaskResponseType> {
       return this.createNewWorker();
     }
 
-    return Promise.race(
+    return await Promise.race(
       Object.values(this.currentTasks).map(
         task =>
           new Promise<WorkerInstance>(resolve => {
-            task.task
-              .catch(error => {
-                if (error !== CANCEL_WORKER_ERROR_MESSAGE) {
-                  console.log(error);
-                }
-              })
-              .finally(() => {
-                resolve(task.worker);
-              });
+            task.worker.once(WorkerTaskResponseType.TILE_FULL_COMPLETE, () => {
+              resolve(task.worker);
+              task.worker.setStatus(WorkerStatus.FREE);
+              delete this.currentTasks[task.taskId];
+            });
           })
       )
     );
   }
 
   private createNewWorker(): WorkerInstance {
-    const workerInstance = new WorkerInstance(this.workerInstances.length, (response: WorkerTaskResponse) => {
-      this.fire(response.type, response);
-    });
+    const workerInstance = new WorkerInstance(`tile worker ${this.workerInstances.length}`);
 
     this.workerInstances.push(workerInstance);
 

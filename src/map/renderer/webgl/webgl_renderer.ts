@@ -9,15 +9,18 @@ import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
 import { LineProgram } from './objects/line/line_program';
 import { TextTextureProgram } from './objects/text_texture/text_texture_program';
-import { TextPolygonProgram } from './objects/text_polygon/text_polygon_program';
+import { TextVectorProgram } from './objects/text_vector/text_vector_program';
 import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
-import { AtlasTextureManager } from '../../atlas/atlas_manager';
+import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../flags';
 import { WebGlTexture, createTexture } from './utils/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
+import { FontFormatType } from '../../font/font_config';
+import { FontManager } from '../../font/font_manager';
+import { MapTileRendererType } from '../renderer';
 
 export class WebGlRenderer implements Renderer {
   private canvas: HTMLCanvasElement;
@@ -31,19 +34,30 @@ export class WebGlRenderer implements Renderer {
   constructor(
     private readonly rootEl: HTMLElement,
     private readonly featureFlags: MapFeatureFlags,
-    private devicePixelRatio: number,
-    private textureManager: AtlasTextureManager
+    private readonly type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
+    private readonly devicePixelRatio: number,
+    private readonly fontManager: FontManager,
+    private readonly textureManager: GlyphsManager
   ) {
     this.canvas = this.createCanvasEl();
   }
 
-  init() {
+  async init() {
     this.rootEl.appendChild(this.canvas);
+    let gl: ExtendedWebGLRenderingContext;
 
-    const gl = (this.gl = this.canvas.getContext('webgl', {
-      alpha: true,
-    }) as ExtendedWebGLRenderingContext);
-    addExtensionsToContext(gl);
+    if (this.type === MapTileRendererType.webgl) {
+      gl = this.gl = this.canvas.getContext('webgl', {
+        alpha: true,
+        antialias: true,
+      }) as ExtendedWebGLRenderingContext;
+      addExtensionsToContext(gl);
+    } else {
+      gl = this.gl = this.canvas.getContext('webgl2', {
+        alpha: true,
+        antialias: true,
+      }) as ExtendedWebGLRenderingContext;
+    }
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -61,27 +75,26 @@ export class WebGlRenderer implements Renderer {
     });
     this.framebuffer = createFrameBuffer(gl, { texture: this.frameBufferTexture });
     this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
-    this.framebufferProgram.init();
 
     const pointProgram = new PointProgram(gl, this.featureFlags);
-    pointProgram.init();
-
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
-    polygonProgram.init();
-
     const lineProgram = new LineProgram(gl, this.featureFlags);
-    lineProgram.init();
-
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
-    glyphProgram.init();
-
-    const textProgram = this.featureFlags.webglRendererUsePolygonText
-      ? new TextPolygonProgram(gl, this.featureFlags)
-      : new TextTextureProgram(gl, this.featureFlags);
-    textProgram.init();
-
+    const textProgram =
+      this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
+        ? new TextVectorProgram(gl, this.featureFlags)
+        : new TextTextureProgram(gl, this.featureFlags, this.fontManager);
     const imageProgram = new ImageProgram(gl, this.featureFlags);
-    imageProgram.init();
+
+    await Promise.all([
+      this.framebufferProgram.init(),
+      pointProgram.init(),
+      polygonProgram.init(),
+      lineProgram.init(),
+      glyphProgram.init(),
+      textProgram.init(),
+      imageProgram.init(),
+    ]);
 
     this.programs = {
       [MapTileFeatureType.point]: pointProgram,
@@ -93,7 +106,9 @@ export class WebGlRenderer implements Renderer {
     };
   }
 
-  destroy() {}
+  destroy() {
+    this.rootEl.removeChild(this.canvas);
+  }
 
   protected createCanvasEl(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');

@@ -3,8 +3,7 @@ import { MapTile } from '../tile/tile';
 
 export enum MapTileRendererType {
   webgl = 'webgl',
-
-  // Possible renderes
+  webgl2 = 'webgl2',
   // html = 'html',
   // canvas2d = 'canvas2d',
   // webgpu = 'webgpu',
@@ -21,7 +20,7 @@ export interface RenderOptions {
 }
 
 export interface Renderer {
-  init(): void;
+  init(): Promise<void>;
 
   destroy(): void;
 
