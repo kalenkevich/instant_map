@@ -4,7 +4,10 @@ import { getFontAtlasFromVectorConfig } from './font_helper_vector';
 import { getFontAtlasFromSdfConfig } from './font_helper_sdf';
 import { getFontAtlasFromTextureConfig } from './font_helper_texture';
 
-const FONT_FORMAT_TYPE_ATLAS_MAP: Record<FontFormatType, (config: FontConfig) => Promise<FontAtlas>> = {
+const FONT_FORMAT_TYPE_ATLAS_MAP: Record<
+  FontFormatType,
+  (config: FontConfig, debugMode: boolean) => Promise<FontAtlas>
+> = {
   [FontFormatType.vector]: getFontAtlasFromVectorConfig,
   [FontFormatType.sdf]: getFontAtlasFromSdfConfig,
   [FontFormatType.texture]: getFontAtlasFromTextureConfig,
@@ -23,7 +26,7 @@ export class FontManager {
     for (const fontConfig of Object.values(this.fontsConfig)) {
       const helper = FONT_FORMAT_TYPE_ATLAS_MAP[fontConfig.type];
 
-      promises.push(helper(fontConfig));
+      promises.push(helper(fontConfig, this.featureFlags.fontManagerDebugModeEnabled));
     }
 
     return Promise.all(promises).then(fontAtlases => {

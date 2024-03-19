@@ -37,7 +37,9 @@ export interface SdfFontConfig {
   sourceType: FontSourceType.font | FontSourceType.pbf;
   name: string; // font name
   sourceUrl: string;
+  fontSize: number;
   ranges?: Array<[number, number]>; // supported charcode ranges
+  pixelRatio?: number;
 }
 
 export interface TextureFontConfig {
@@ -46,7 +48,7 @@ export interface TextureFontConfig {
   name: string; // font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
-  fontSize?: number;
+  fontSize: number;
   width?: number; // texture width
   height?: number; // texture height
   glyphWidth?: number; // glyph width
@@ -68,7 +70,9 @@ export interface VectorFontAtlas {
 export interface SdfFontAtlas {
   type: FontFormatType.sdf;
   name: string;
+  fontName: string;
   glyphs: Record<number, SdfFontGlyph>;
+  sources: Array<{ index: number; name: string; source: TextureSource }>;
   ascender: number;
   descender: number;
   ranges: Array<[number, number]>; // supported charcode ranges
@@ -77,8 +81,9 @@ export interface SdfFontAtlas {
 export interface TextureFontAtlas {
   type: FontFormatType.texture;
   name: string;
+  fontName: string;
   glyphs: Record<number, TextureFontGlyph>;
-  sources: Array<{ index: number; name: string; source: TextureSource; range: [number, number] }>; // key = ${range[0]}-${range[1]}`;
+  sources: Array<{ index: number; name: string; source: TextureSource }>;
   ascender: number;
   descender: number;
   pixelRatio: number;
@@ -105,7 +110,10 @@ export interface SdfFontGlyph {
   height: number;
   x: number; // ???
   y: number; // ???
-  advance: number; //
+  actualBoundingBoxAscent: number;
+  actualBoundingBoxDescent: number;
+  fontSize: number;
+  pixelRatio: number;
 }
 
 export interface TextureFontGlyph {

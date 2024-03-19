@@ -9,5 +9,9 @@ export interface MapFeatureFlags {
 
   webglRendererFontFormatType?: FontFormatType;
 
+  // Enables maps object selection behaviour.
   enableObjectSelection?: boolean;
+
+  // Renders textures and attaches it to the html dom.
+  fontManagerDebugModeEnabled?: boolean;
 }

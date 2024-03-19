@@ -12,8 +12,6 @@ export interface WebGlText extends WebGlObject {
   text: string;
   center: vec2 | [number, number];
   margin?: PointMargin;
-
-  // TODO: support this
   borderWidth: number;
   borderColor: vec4;
 }

@@ -30,7 +30,6 @@ import { PolygonGroupBuilder } from '../objects/polygon/polygon_builder';
 import { LineGroupBuilder } from '../objects/line/line_builder';
 import { GlyphGroupBuilder } from '../objects/glyph/glyph_group_builder';
 import { TextVectorBuilder } from '../objects/text_vector/text_vector_builder';
-import { TextSdfGroupBuilder } from '../objects/text_sdf/text_sdf_builder';
 import { TextTextureGroupBuilder } from '../objects/text_texture/text_texture_builder';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
@@ -161,21 +160,7 @@ export async function PbfTile2WebglLayers(
             featureFlags,
             fontManager
           )
-        : featureFlags.webglRendererFontFormatType === FontFormatType.texture
-        ? new TextTextureGroupBuilder(
-            projectionViewMat,
-            canvasWidth,
-            canvasHeight,
-            pixelRatio,
-            zoom,
-            minZoom,
-            maxZoom,
-            tileSize,
-            projection,
-            featureFlags,
-            fontManager
-          )
-        : new TextSdfGroupBuilder(
+        : new TextTextureGroupBuilder(
             projectionViewMat,
             canvasWidth,
             canvasHeight,

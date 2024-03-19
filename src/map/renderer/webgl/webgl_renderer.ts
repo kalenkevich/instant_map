@@ -10,7 +10,6 @@ import { PolygonProgram } from './objects/polygon/polygon_program';
 import { LineProgram } from './objects/line/line_program';
 import { TextTextureProgram } from './objects/text_texture/text_texture_program';
 import { TextVectorProgram } from './objects/text_vector/text_vector_program';
-import { TextSdfProgram } from './objects/text_sdf/text_sdf_program';
 import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
@@ -50,11 +49,13 @@ export class WebGlRenderer implements Renderer {
     if (this.type === MapTileRendererType.webgl) {
       gl = this.gl = this.canvas.getContext('webgl', {
         alpha: true,
+        antialias: true,
       }) as ExtendedWebGLRenderingContext;
       addExtensionsToContext(gl);
     } else {
       gl = this.gl = this.canvas.getContext('webgl2', {
         alpha: true,
+        antialias: true,
       }) as ExtendedWebGLRenderingContext;
     }
 
@@ -82,9 +83,7 @@ export class WebGlRenderer implements Renderer {
     const textProgram =
       this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
         ? new TextVectorProgram(gl, this.featureFlags)
-        : this.featureFlags.webglRendererFontFormatType === FontFormatType.texture
-        ? new TextTextureProgram(gl, this.featureFlags, this.fontManager)
-        : new TextSdfProgram(gl, this.featureFlags);
+        : new TextTextureProgram(gl, this.featureFlags, this.fontManager);
     const imageProgram = new ImageProgram(gl, this.featureFlags);
 
     await Promise.all([

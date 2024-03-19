@@ -9,10 +9,17 @@ import { integerToVector4 } from '../../utils/number2vec';
 import { Projection } from '../../../../geo/projection/projection';
 import { MapFeatureFlags } from '../../../../flags';
 import { FontManager } from '../../../../font/font_manager';
-import { TextureFontAtlas, TextureFontGlyph, UNDEFINED_CHAR_CODE } from '../../../../font/font_config';
+import {
+  FontFormatType,
+  SdfFontAtlas,
+  SdfFontGlyph,
+  TextureFontAtlas,
+  TextureFontGlyph,
+  UNDEFINED_CHAR_CODE,
+} from '../../../../font/font_config';
 
 export interface GlyphMapping {
-  glyph: TextureFontGlyph;
+  glyph: TextureFontGlyph | SdfFontGlyph;
   font: string;
   fontSize: number;
   color: vec4 | [number, number, number, number];
@@ -60,8 +67,9 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];
+    const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
-    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
+    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | SdfFontAtlas;
     const texture = fontAtlas.sources[0];
     let numElements = 0;
 
@@ -69,7 +77,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       let offset = 0;
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
-        const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize;
+        const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
         const textScaledWidth = this.scalarScale(glyphMapping.glyph.width) * scaleFactor;
         const textScaledHeight = this.scalarScale(glyphMapping.glyph.height) * scaleFactor;
         const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent) * scaleFactor;
@@ -98,6 +106,14 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
         texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
 
         colorBuffer.push(...text.color, ...text.color, ...text.color, ...text.color, ...text.color, ...text.color);
+        borderColorBuffer.push(
+          ...text.borderColor,
+          ...text.borderColor,
+          ...text.borderColor,
+          ...text.borderColor,
+          ...text.borderColor,
+          ...text.borderColor
+        );
 
         const selectionColorId = integerToVector4(text.id);
         selectionColorBuffer.push(
@@ -117,6 +133,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
       size,
       numElements,
       textureIndex: 0,
+      sfdTexture: fontAtlas.type === FontFormatType.sdf,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
@@ -132,6 +149,11 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
       },
+      borderColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(borderColorBuffer),
+      },
       selectionColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
@@ -140,7 +162,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     };
   }
 
-  getGlyphMapping(text: WebGlText, char: string, fontAtlas: TextureFontAtlas): GlyphMapping {
+  getGlyphMapping(text: WebGlText, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
     const charCode = char.charCodeAt(0);
     const glyph = fontAtlas.glyphs[charCode] || fontAtlas.glyphs[UNDEFINED_CHAR_CODE];
 

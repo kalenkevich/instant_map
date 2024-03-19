@@ -15,6 +15,8 @@ export class TextTextureProgram extends ObjectProgram {
 
   protected fontTextures: WebGlTexture[] = [];
   protected u_textureLocation: WebGLUniformLocation;
+  protected u_sfdLocation: WebGLUniformLocation;
+  protected u_border_widthLocation: WebGLUniformLocation;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -59,6 +61,8 @@ export class TextTextureProgram extends ObjectProgram {
   protected setupUniforms() {
     super.setupUniforms();
     this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
+    this.u_sfdLocation = this.gl.getUniformLocation(this.program, 'u_is_sfd_mode');
+    this.u_border_widthLocation = this.gl.getUniformLocation(this.program, 'u_border_width');
   }
 
   protected async setupTexture() {
@@ -90,14 +94,25 @@ export class TextTextureProgram extends ObjectProgram {
     const texture = this.fontTextures[textGroup.textureIndex];
     texture.bind();
     gl.uniform1i(this.u_textureLocation, texture.index);
+    gl.uniform1i(this.u_sfdLocation, textGroup.sfdTexture ? 1 : 0);
 
     this.positionBuffer.bufferData(new Float32Array(textGroup.vertecies.buffer));
     this.textcoordBuffer.bufferData(new Float32Array(textGroup.textcoords.buffer));
-    this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
-    );
 
-    gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    if (options?.readPixelRenderMode) {
+      this.colorBuffer.bufferData(textGroup.selectionColor.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    } else {
+      // draw text border
+      gl.uniform1f(this.u_border_widthLocation, 0.65);
+      this.colorBuffer.bufferData(textGroup.borderColor.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+
+      // draw text
+      gl.uniform1f(this.u_border_widthLocation, 0.75);
+      this.colorBuffer.bufferData(textGroup.color.buffer);
+      gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
+    }
 
     texture.unbind();
     gl.bindVertexArray(null);

@@ -365,18 +365,21 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
     defaultFont: {
       type: FontFormatType.texture,
       name: 'defaultFont',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
       type: FontFormatType.texture,
       name: 'roboto',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/roboto_regular.ttf',
     },
     opensans: {
       type: FontFormatType.texture,
       name: 'opensans',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
     },
@@ -656,6 +659,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     defaultFont: {
       type: FontFormatType.texture,
       name: 'defaultFont',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
       ranges: [[0, 8447]],
@@ -663,12 +667,14 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     arial: {
       type: FontFormatType.texture,
       name: 'arial',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/arial_regular.ttf',
     },
     roboto: {
       type: FontFormatType.texture,
       name: 'roboto',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/roboto_regular.ttf',
     },
@@ -763,8 +769,8 @@ export const SateliteTilesStyles: DataTileStyles = {
       zIndex: 3,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
         fontSize: 28,
@@ -780,8 +786,8 @@ export const SateliteTilesStyles: DataTileStyles = {
       show: true,
       feature: {
         type: MapTileFeatureType.text,
-        color: ['$rgba', 255, 255, 255, 1],
-        borderColor: ['$rgba', 0, 0, 0, 1],
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
         show: ['$lte', ['$get', 'properties.filterrank'], 3],
         font: 'defaultFont',
@@ -811,19 +817,28 @@ export const SateliteTilesStyles: DataTileStyles = {
     },
   },
   fonts: {
-    defaultFont: {
+    defaultFont2: {
       type: FontFormatType.texture,
       name: 'defaultFont',
+      fontSize: 42,
       sourceType: FontSourceType.font,
       sourceUrl: './fonts/opensans_regular.ttf',
       ranges: [[0, 8447]],
     },
-    // defaultFont: {
-    //   type: FontFormatType.sdf,
-    //   name: 'fontAtlas',
-    //   sourceType: FontSourceType.pbf,
-    //   sourceUrl:
-    //     'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
-    // },
+    defaultFont: {
+      type: FontFormatType.sdf,
+      name: 'defaultFont',
+      pixelRatio: 1,
+      fontSize: 24,
+      sourceType: FontSourceType.pbf,
+      sourceUrl:
+        'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+      ranges: [
+        [0, 255],
+        [256, 511],
+        [1024, 1279],
+        [8192, 8447],
+      ],
+    },
   },
 };

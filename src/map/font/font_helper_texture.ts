@@ -1,5 +1,9 @@
 import { Font, Glyph, parse as parseFont } from 'opentype.js';
-import { canvasToSharebleArrayBufferTextureSource, imageToImageBitmapTextureSource } from '../texture/texture_utils';
+import {
+  canvasToSharebleArrayBufferTextureSource,
+  imageToImageBitmapTextureSource,
+  arrayBufferToImageBitmapTextureSource,
+} from '../texture/texture_utils';
 import {
   FontSourceType,
   FontFormatType,
@@ -23,6 +27,7 @@ export async function getFontAtlasFromImage(config: TextureFontConfig): Promise<
   const fontAtlas: TextureFontAtlas = {
     type: FontFormatType.texture,
     name: config.name,
+    fontName: '',
     glyphs: {},
     sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,
@@ -60,7 +65,6 @@ export async function populateFontAtlasFromImage(
   fontAtlas.sources[index] = {
     name: `${config.name}_[${range[0]}-${range[1]}]`,
     source: await imageToImageBitmapTextureSource(sourceImage, 0, 0, config.width, config.height),
-    range,
     index,
   };
 
@@ -90,10 +94,14 @@ export async function populateFontAtlasFromImage(
   }
 }
 
-export async function getFontAtlasFromFont(config: TextureFontConfig): Promise<TextureFontAtlas> {
+export async function getFontAtlasFromFont(
+  config: TextureFontConfig,
+  debugMode: boolean = false
+): Promise<TextureFontAtlas> {
   const fontAtlas: TextureFontAtlas = {
     type: FontFormatType.texture,
     name: config.name,
+    fontName: '',
     glyphs: {},
     sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,
@@ -108,14 +116,14 @@ export async function getFontAtlasFromFont(config: TextureFontConfig): Promise<T
         const url = config.sourceUrl.replace('{range}', `${range[0]}-${range[1]}`);
         const fontSource = await fetch(url).then(res => res.arrayBuffer());
 
-        populateFontAtlasFromFont(fontSource, config, fontAtlas);
+        populateFontAtlasFromFont(fontSource, config, fontAtlas, debugMode);
       })
     );
   } else {
     const url = config.sourceUrl;
     const fontSource = await fetch(url).then(res => res.arrayBuffer());
 
-    populateFontAtlasFromFont(fontSource, config, fontAtlas);
+    populateFontAtlasFromFont(fontSource, config, fontAtlas, debugMode);
   }
 
   return fontAtlas;
@@ -124,20 +132,31 @@ export async function getFontAtlasFromFont(config: TextureFontConfig): Promise<T
 export async function populateFontAtlasFromFont(
   fontSource: ArrayBuffer,
   config: TextureFontConfig,
-  fontAtlas: TextureFontAtlas
+  fontAtlas: TextureFontAtlas,
+  debugMode: boolean = false
 ) {
   const font = parseFont(fontSource);
 
   await Promise.all(
     fontAtlas.ranges.map(async (range, index) => {
-      const { source, glyphs } = await generateTextureAtlas(config, range, font, 42);
+      const { source, glyphs } = await generateTextureAtlas(config, range, font, config.fontSize);
       if (source === null) {
         return;
       }
 
-      fontAtlas.sources.push({ name: `${config.name}_[${range[0]}-${range[1]}]`, source, range, index });
+      fontAtlas.sources.push({ name: `${config.name}_[${range[0]}-${range[1]}]`, source, index });
 
-      // downloadBitmapImage(source);
+      if (debugMode) {
+        const bitmapTexture = await arrayBufferToImageBitmapTextureSource(
+          source.data,
+          0,
+          0,
+          source.width,
+          source.height
+        );
+
+        await downloadBitmapImage(bitmapTexture.data);
+      }
 
       for (const g of glyphs) {
         fontAtlas.glyphs[g.charCode] = g;

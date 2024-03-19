@@ -15,7 +15,6 @@ import { DataTileSource, DataLayerStyle } from '../../../styles/styles';
 import { LineGroupBuilder } from '../objects/line/line_builder';
 import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../objects/line/line';
 import { TextVectorBuilder } from '../objects/text_vector/text_vector_builder';
-import { TextSdfGroupBuilder } from '../objects/text_sdf/text_sdf_builder';
 import { TextTextureGroupBuilder } from '../objects/text_texture/text_texture_builder';
 
 export async function DebugTile2WebglLayers(
@@ -75,21 +74,7 @@ export async function DebugTile2WebglLayers(
           featureFlags,
           fontManager
         )
-      : featureFlags.webglRendererFontFormatType === FontFormatType.texture
-      ? new TextTextureGroupBuilder(
-          projectionViewMat,
-          canvasWidth,
-          canvasHeight,
-          pixelRatio,
-          zoom,
-          minZoom,
-          maxZoom,
-          tileSize,
-          projection,
-          featureFlags,
-          fontManager
-        )
-      : new TextSdfGroupBuilder(
+      : new TextTextureGroupBuilder(
           projectionViewMat,
           canvasWidth,
           canvasHeight,
@@ -111,8 +96,8 @@ export async function DebugTile2WebglLayers(
     font: 'defaultFont',
     fontSize: 24,
     borderWidth: 1,
-    color: [1, 1, 1, 1],
-    borderColor: [0, 0, 0, 1],
+    color: [0, 0, 0, 1],
+    borderColor: [1, 1, 1, 1],
     margin: {
       top: 0,
       left: 0,

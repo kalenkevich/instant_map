@@ -4,10 +4,15 @@ import {
   SdfFontConfig,
   SdfFontAtlas,
   SdfFontGlyph,
+  UNDEFINED_CHAR_CODE,
   DEFAULT_SUPPORTED_CHARCODE_RANGES,
 } from './font_config';
+import { downloadBitmapImage } from '../utils/download_utils';
+import { ArrayBufferTextureSource, TextureSourceType } from '../texture/texture';
+import { arrayBufferToImageBitmapTextureSource, arrayBufferToSharebleTextureSource } from '../texture/texture_utils';
 
 export const DEFAULT_GLYPH_BORDER = 3;
+export const SDF_SCALE = 2;
 
 // https://github.com/mapbox/node-fontnik/blob/master/proto/glyphs.proto
 export enum SdfAtlasSourceProtobuf {
@@ -32,15 +37,23 @@ export enum SdfGlyphProtobuf {
   advance = 7,
 }
 
-export async function getFontAtlasFromSdfConfig(config: SdfFontConfig): Promise<SdfFontAtlas> {
+export async function getFontAtlasFromSdfConfig(
+  config: SdfFontConfig,
+  debugMode: boolean = false
+): Promise<SdfFontAtlas> {
   const fontAtlas: SdfFontAtlas = {
     type: FontFormatType.sdf,
     name: config.name,
+    fontName: 'Arial',
     glyphs: {},
+    sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,
     ascender: 0,
     descender: 0,
   };
+
+  const canvas = new OffscreenCanvas(config.fontSize, config.fontSize);
+  const ctx = canvas.getContext('2d');
 
   if (config.sourceUrl.includes('{range}')) {
     await Promise.all(
@@ -49,31 +62,81 @@ export async function getFontAtlasFromSdfConfig(config: SdfFontConfig): Promise<
 
         return fetch(url)
           .then(res => res.arrayBuffer())
-          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas));
+          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx));
       })
     );
   } else {
     await fetch(config.sourceUrl)
       .then(res => res.arrayBuffer())
-      .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas));
+      .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx));
   }
+
+  const textureSource = await createTextureFromSdfGlyphs(fontAtlas, debugMode);
+  fontAtlas.sources.push({ index: 0, source: textureSource, name: 'text' });
+
+  if (debugMode) {
+    // renders texture image and attach it to html
+    const bitmapTexture = await arrayBufferToImageBitmapTextureSource(
+      textureSource.data,
+      0,
+      0,
+      textureSource.width,
+      textureSource.height
+    );
+    await downloadBitmapImage(bitmapTexture.data);
+  }
+
+  fontAtlas.glyphs[UNDEFINED_CHAR_CODE] = getUndefinedCharGlyph(0, 0, 0, 0);
 
   return fontAtlas;
 }
 
-export function populateSdfAtlasFromPbf(source: ArrayBuffer, fontAtlas: SdfFontAtlas) {
-  return new Protobuf(source).readFields((tag: number, fontAtlas: SdfFontAtlas, pbf: Protobuf) => {
+export async function populateSdfAtlasFromPbf(
+  source: ArrayBuffer,
+  fontAtlas: SdfFontAtlas,
+  config: SdfFontConfig,
+  ctx: OffscreenCanvasRenderingContext2D
+) {
+  const pbf = new Protobuf(source);
+
+  // extract values from pbf;
+  pbf.readFields((tag: number, fontAtlas: SdfFontAtlas, pbf: Protobuf) => {
     if (tag === SdfAtlasSourceProtobuf.atlas) {
-      pbf.readMessage(parseSdfTextureAtlas, fontAtlas);
+      pbf.readMessage(parseSdfTextureAtlas, { fontAtlas, config, ctx });
     }
   }, fontAtlas);
 }
 
-export function parseSdfTextureAtlas(tag: number, fontAtlas: SdfFontAtlas, pbf: Protobuf) {
+export function parseSdfTextureAtlas(
+  tag: number,
+  {
+    fontAtlas,
+    config,
+    ctx,
+  }: { fontAtlas: SdfFontAtlas; config: SdfFontConfig; ctx: OffscreenCanvasRenderingContext2D },
+  pbf: Protobuf
+) {
   switch (tag) {
+    case SdfAtlasProtobuf.name: {
+      fontAtlas.fontName = pbf.readString();
+
+      return;
+    }
     case SdfAtlasProtobuf.glyph: {
       const glyph = pbf.readMessage(parseSdfGlyph, {} as SdfFontGlyph);
       if (glyph.source && glyph.width > 0 && glyph.height > 0) {
+        const { actualBoundingBoxAscent, actualBoundingBoxDescent } = mesureChar(
+          ctx,
+          glyph.char,
+          fontAtlas.fontName,
+          config.fontSize
+        );
+
+        glyph.fontSize = config.fontSize;
+        glyph.pixelRatio = config.pixelRatio || 1;
+        glyph.actualBoundingBoxAscent = actualBoundingBoxAscent;
+        glyph.actualBoundingBoxDescent = actualBoundingBoxDescent;
+
         fontAtlas.glyphs[glyph.charCode] = glyph;
       }
 
@@ -117,9 +180,148 @@ export function parseSdfGlyph(tag: number, glyph: SdfFontGlyph, pbf: Protobuf) {
       glyph.y = pbf.readSVarint();
       return;
     }
-    case SdfGlyphProtobuf.advance: {
-      glyph.advance = pbf.readVarint();
-      return;
+  }
+}
+
+// Creates texture atlas array buffer from glyphs
+export async function createTextureFromSdfGlyphs(
+  fontAtlas: SdfFontAtlas,
+  debugMode: boolean = false
+): Promise<ArrayBufferTextureSource> {
+  const glyphs = Object.values(fontAtlas.glyphs);
+  const { columns: textureColumns, cellWidth, cellHeight } = getTextureDimentions(glyphs);
+  const EMPTY_PIXEL = [0, 0, 0, 0];
+
+  const rows: Array<Array<Array<number[]>>> = [];
+  let cells: Array<Array<number[]>> = [];
+  for (const glyph of glyphs) {
+    let currentPixelColumn = 0;
+    let sourcePointer = 0;
+
+    const cellBufferBucket: Array<number[]> = [];
+    while (sourcePointer < glyph.source.length) {
+      if (currentPixelColumn < glyph.width) {
+        // make RBGA image from AlphaImage (image where alpha channel defined only)
+        cellBufferBucket.push([0, 0, 0, glyph.source[sourcePointer]]);
+        sourcePointer++;
+        currentPixelColumn++;
+      } else if (glyph.width === cellWidth) {
+        currentPixelColumn = 0;
+      } else {
+        while (currentPixelColumn < cellWidth) {
+          cellBufferBucket.push(EMPTY_PIXEL);
+          currentPixelColumn++;
+        }
+
+        currentPixelColumn = 0;
+      }
+    }
+
+    // Set new glyph position in texture
+    glyph.x = cells.length * cellWidth;
+    glyph.y = rows.length * cellHeight;
+
+    // add empty pixels to meet cellWidth
+    while (currentPixelColumn < cellWidth) {
+      cellBufferBucket.push(EMPTY_PIXEL);
+      currentPixelColumn++;
+    }
+
+    // add empty rows of pixels to meet cellHeight
+    for (let r = glyph.height; r < cellHeight; r++) {
+      for (let c = 0; c < cellWidth; c++) {
+        cellBufferBucket.push(EMPTY_PIXEL);
+      }
+    }
+
+    cells.push(cellBufferBucket);
+    if (cells.length === textureColumns) {
+      rows.push(cells);
+      cells = [];
     }
   }
+
+  const sourceBufferBucket: number[] = [];
+
+  for (let currentRow = 0; currentRow < rows.length; currentRow++) {
+    const row = rows[currentRow]; // list of glyphs
+
+    for (let r = 0; r < cellHeight; r++) {
+      for (let currentColumn = 0; currentColumn < row.length; currentColumn++) {
+        const column = row[currentColumn]; // glyph
+
+        for (let c = 0; c < cellWidth; c++) {
+          const pixel = column[r * cellWidth + c];
+
+          sourceBufferBucket.push(pixel[0]);
+          sourceBufferBucket.push(pixel[1]);
+          sourceBufferBucket.push(pixel[2]);
+          sourceBufferBucket.push(pixel[3]);
+        }
+      }
+    }
+  }
+
+  const textureSource = new Uint8ClampedArray(sourceBufferBucket);
+  const texture: ArrayBufferTextureSource = {
+    type: TextureSourceType.ARRAY_BUFFER,
+    data: textureSource,
+    width: cellWidth * textureColumns,
+    height: cellHeight * rows.length,
+  };
+
+  return arrayBufferToSharebleTextureSource(texture.data, texture.width, texture.height);
+}
+
+export function getTextureDimentions(glyphs: SdfFontGlyph[]): {
+  width: number;
+  height: number;
+  rows: number;
+  columns: number;
+  cellWidth: number;
+  cellHeight: number;
+} {
+  let cellWidth = 0;
+  let cellHeight = 0;
+
+  for (let i = 0; i < glyphs.length; i++) {
+    cellWidth = Math.max(cellWidth, glyphs[i].width);
+    cellHeight = Math.max(cellHeight, glyphs[i].height);
+  }
+
+  const squareRoot = Math.round(Math.sqrt(glyphs.length));
+  const columns = squareRoot;
+  const rows = squareRoot;
+
+  return {
+    width: cellWidth * columns,
+    height: cellHeight * rows,
+    rows,
+    columns,
+    cellWidth,
+    cellHeight,
+  };
+}
+
+export function getUndefinedCharGlyph(x: number, y: number, width: number, height: number): SdfFontGlyph {
+  return {
+    type: FontFormatType.sdf,
+    char: '',
+    charCode: UNDEFINED_CHAR_CODE,
+    x,
+    y,
+    width: width,
+    height: height,
+    source: new Uint8ClampedArray([]),
+    fontSize: 0,
+    actualBoundingBoxAscent: 0,
+    actualBoundingBoxDescent: 0,
+    pixelRatio: 0,
+  };
+}
+
+export function mesureChar(ctx: OffscreenCanvasRenderingContext2D, char: string, fontName: string, fontSize: number) {
+  ctx.font = `${fontSize}px ${fontName}`;
+
+  return ctx.measureText(char);
 }
