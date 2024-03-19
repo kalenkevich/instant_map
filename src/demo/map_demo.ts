@@ -1,6 +1,13 @@
 import { throttle } from '../map/utils/trottle';
 import { GlideMap, MapEventType } from '../map/map';
-import { SateliteTilesStyles, MapboxVectorTileStyles, MapTilerVectorTileStyles } from './map_styles';
+import {
+  SateliteTilesStyles,
+  MaptilerSateliteTilesStyles,
+  MapboxVectorTileStyles,
+  MapTilerVectorTileStyles,
+  OsmImageTileStyles,
+  BingImageTyleStyles,
+} from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
 import { FontFormatType } from '../map/font/font_config';
 
@@ -100,8 +107,23 @@ export function renderMap() {
       stylesSelect: [
         {
           id: 'SateliteTilesStyles',
-          name: 'Satelite',
+          name: 'Mapbox Image + Mapbox data',
           styles: SateliteTilesStyles,
+        },
+        {
+          id: 'MaptilerSateliteTilesStyles',
+          name: 'Maptiler Image + Mapbox data',
+          styles: MaptilerSateliteTilesStyles,
+        },
+        {
+          id: 'OsmImageTileStyles',
+          name: 'Osm Image + Mapbox data',
+          styles: OsmImageTileStyles,
+        },
+        {
+          id: 'BingImageTyleStyles',
+          name: 'Bing Image + Mapbox data',
+          styles: BingImageTyleStyles,
         },
         {
           id: 'MapboxVectorTileStyles',

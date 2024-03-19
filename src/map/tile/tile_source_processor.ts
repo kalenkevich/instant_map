@@ -37,8 +37,23 @@ export type SourceTileProcessor = (
 /** Format tile source url with current z, x, y values. */
 export function formatTileURL(tileId: string, source: DataTileSource) {
   const [x, y, z] = tileId.split('/');
+  const u = getU([parseInt(x), parseInt(y), parseInt(z)]);
 
-  return source.url.replace('{x}', x).replace('{y}', y).replace('{z}', z);
+  return source.url.replace('{x}', x).replace('{y}', y).replace('{z}', z).replace('{u}', u);
+}
+
+export function getU(coord: [number, number, number]): string {
+  let u = '';
+
+  for (var zoom = coord[2]; zoom > 0; zoom--) {
+    var b = 0;
+    var mask = 1 << (zoom - 1);
+    if ((coord[0] & mask) !== 0) b++;
+    if ((coord[1] & mask) !== 0) b += 2;
+    u += b.toString();
+  }
+
+  return u;
 }
 
 /** Return list of actually used sources based on layers definition. */
