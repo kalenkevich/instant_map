@@ -10,7 +10,6 @@ export interface DataTileStylesSelectConfig {
 
 export class StyleSelectControl extends MapControl {
   private parentEl: HTMLElement;
-  private styleElements: HTMLElement[];
   private selectedStyleConfig: DataTileStylesSelectConfig;
 
   constructor(
@@ -50,6 +49,7 @@ export class StyleSelectControl extends MapControl {
 export function createParentEl(doc: Document): HTMLElement {
   const div = doc.createElement('div');
   div.style.display = 'flex';
+  div.style.padding = '5px 5px 0 0';
   div.style.flexDirection = 'column';
   div.style.background = 'white';
   div.style.border = '1px solid';
@@ -65,8 +65,7 @@ export function createMapStyleOption(
   onSelect: (id: string) => void
 ): HTMLElement {
   const div = doc.createElement('div');
-  div.style.padding = '0 0 0 0';
-  div.style.margin = '5px';
+  div.style.margin = '0 0 5px 0';
   div.innerHTML = `
     <label>
       <input type="radio" ${checked ? 'checked="checked"' : ''} name="${styleConfig.id}" value="${styleConfig.id}" />
