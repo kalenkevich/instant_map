@@ -37,9 +37,15 @@ export type SourceTileProcessor = (
 /** Format tile source url with current z, x, y values. */
 export function formatTileURL(tileId: string, source: DataTileSource) {
   const [x, y, z] = tileId.split('/');
-  const u = getU([parseInt(x), parseInt(y), parseInt(z)]);
 
-  return source.url.replace('{x}', x).replace('{y}', y).replace('{z}', z).replace('{u}', u);
+  let url = source.url;
+  if (source.url.includes('{u}')) {
+    const u = getU([parseInt(x), parseInt(y), parseInt(z)]);
+
+    url = url.replace('{u}', u);
+  }
+
+  return url.replace('{x}', x).replace('{y}', y).replace('{z}', z);
 }
 
 export function getU(coord: [number, number, number]): string {

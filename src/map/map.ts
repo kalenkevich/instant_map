@@ -178,8 +178,8 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   private setup(featureFlags: MapFeatureFlags, mapOptions: MapOptions, styles: DataTileStyles) {
-    this.minZoom = mapOptions.tileStyles.minzoom || 1;
-    this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
+    this.minZoom = styles.minzoom || 1;
+    this.maxZoom = styles.maxzoom || 15;
     this.pixelRatio = mapOptions.devicePixelRatio || window.devicePixelRatio;
     this.styles = styles;
     this.renderQueue = new RenderQueue();

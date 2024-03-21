@@ -832,6 +832,7 @@ export const MaptilerSateliteTilesStyles: DataTileStyles = {
 
 export const OsmImageTileStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  maxzoom: 22,
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
@@ -845,6 +846,7 @@ export const OsmImageTileStyles: DataTileStyles = {
 
 export const BingImageTyleStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  maxzoom: 22,
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
