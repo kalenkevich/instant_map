@@ -36,7 +36,8 @@ export class TextTextureProgram extends ObjectProgram {
     const gl = this.gl;
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
     gl.depthMask(false);
   }
 
@@ -78,8 +79,8 @@ export class TextTextureProgram extends ObjectProgram {
           unpackPremultiplyAlpha: true,
           wrapS: gl.CLAMP_TO_EDGE,
           wrapT: gl.CLAMP_TO_EDGE,
-          minFilter: gl.NEAREST,
-          magFilter: gl.NEAREST,
+          minFilter: gl.LINEAR,
+          magFilter: gl.LINEAR,
           source: await toImageBitmapTexture(source.source),
         })
       );

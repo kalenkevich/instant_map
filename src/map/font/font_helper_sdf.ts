@@ -61,8 +61,15 @@ export async function getFontAtlasFromSdfConfig(
         const url = config.sourceUrl.replace('{range}', `${range[0]}-${range[1]}`);
 
         return fetch(url)
-          .then(res => res.arrayBuffer())
-          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx));
+          .then(res => {
+            if (res.status === 200) {
+              return res.arrayBuffer();
+            }
+
+            throw new Error(res.statusText);
+          })
+          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx))
+          .catch(() => {});
       })
     );
   } else {

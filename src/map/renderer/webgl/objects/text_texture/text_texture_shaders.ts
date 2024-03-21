@@ -29,6 +29,7 @@ export default {
     }
   `,
   fragment: `
+    #define GAMMA 0.01
     precision highp float;
 
     uniform sampler2D u_texture;
@@ -40,20 +41,14 @@ export default {
     varying vec4 v_color;
     
     void main() {
-      float font_size = 10.0;
-      float gamma = 1.4142 / font_size;
 
       if (u_is_read_pixel_render_mode) {
         gl_FragColor = v_color;
       } else if (u_is_sfd_mode) {
         float dist = texture2D(u_texture, v_texCoord).a;
-        float alpha = v_color.a * smoothstep(u_border_width - gamma, u_border_width + gamma, dist);
+        float alpha = v_color.a * smoothstep(u_border_width - GAMMA, u_border_width + GAMMA, dist);
 
-        if (alpha == 0.0) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
-        } else {
-          gl_FragColor = vec4(v_color.r, v_color.g, v_color.b, alpha);
-        }
+        gl_FragColor = vec4(v_color.r, v_color.g, v_color.b, alpha);
       } else {
         gl_FragColor = texture2D(u_texture, v_texCoord);
       }

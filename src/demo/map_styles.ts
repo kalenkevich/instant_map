@@ -31,7 +31,7 @@ const StyleFonts: {
   defaultFont: {
     type: FontFormatType.sdf,
     name: 'defaultFont',
-    pixelRatio: 2,
+    pixelRatio: 1,
     fontSize: 24,
     sourceType: FontSourceType.pbf,
     sourceUrl:
@@ -41,6 +41,7 @@ const StyleFonts: {
       [256, 511],
       [1024, 1279],
       [8192, 8447],
+      // [19968, 20479], // chinese
     ],
   },
   // roboto: {
