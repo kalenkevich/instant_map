@@ -129,7 +129,14 @@ export class GlideMap extends Evented<MapEventType> {
     this.height = this.rootEl.offsetHeight;
     this.stats = new Stats();
 
-    this.setup(this.featureFlags, this.mapOptions, this.mapOptions.tileStyles);
+    this.setup(
+      this.featureFlags,
+      this.mapOptions,
+      this.mapOptions.tileStyles,
+      this.mapOptions.center,
+      this.mapOptions.zoom,
+      this.mapOptions.rotation
+    );
     this.init().then(() => {
       this.rerender();
     });
@@ -167,7 +174,14 @@ export class GlideMap extends Evented<MapEventType> {
 
   setStyles(mapStyle: DataTileStyles) {
     this.destroy();
-    this.setup(this.featureFlags, this.mapOptions, mapStyle);
+    this.setup(
+      this.featureFlags,
+      this.mapOptions,
+      mapStyle,
+      this.projection.fromXY(this.camera.getPosition()),
+      this.camera.getZoom(),
+      this.camera.getRotation()
+    );
     this.init().then(() => {
       this.rerender();
     });
@@ -177,7 +191,14 @@ export class GlideMap extends Evented<MapEventType> {
     return this.styles;
   }
 
-  private setup(featureFlags: MapFeatureFlags, mapOptions: MapOptions, styles: DataTileStyles) {
+  private setup(
+    featureFlags: MapFeatureFlags,
+    mapOptions: MapOptions,
+    styles: DataTileStyles,
+    center: [number, number],
+    zoom: number,
+    rotation: number
+  ) {
     this.minZoom = mapOptions.tileStyles.minzoom || 1;
     this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
     this.pixelRatio = mapOptions.devicePixelRatio || window.devicePixelRatio;
@@ -188,9 +209,9 @@ export class GlideMap extends Evented<MapEventType> {
     this.projection = getProjectionFromType(mapOptions.projection);
     this.camera = new MapCamera(
       featureFlags,
-      this.projection.fromLngLat(mapOptions.center),
-      mapOptions.zoom,
-      mapOptions.rotation,
+      this.projection.fromLngLat(center),
+      zoom,
+      rotation,
       this.width,
       this.height,
       styles.tileSize,

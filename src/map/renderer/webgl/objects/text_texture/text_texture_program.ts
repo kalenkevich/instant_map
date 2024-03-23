@@ -105,7 +105,7 @@ export class TextTextureProgram extends ObjectProgram {
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
     } else {
       // draw text border
-      gl.uniform1f(this.u_border_widthLocation, 0.65);
+      gl.uniform1f(this.u_border_widthLocation, 0.6);
       this.colorBuffer.bufferData(textGroup.borderColor.buffer);
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 

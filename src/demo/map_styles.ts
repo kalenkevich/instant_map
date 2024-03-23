@@ -653,7 +653,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
         font: 'defaultFont',
-        fontSize: 14,
+        fontSize: 12,
       },
     },
     structureIcon: {
@@ -788,7 +788,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
-        show: ['$lte', ['$get', 'properties.filterrank'], 3],
+        show: ['$lte', ['$get', 'properties.filterrank'], 0],
         font: 'defaultFont',
         fontSize: [
           '$switch',
@@ -803,6 +803,21 @@ export const SateliteTilesStyles: DataTileStyles = {
       },
       maxzoom: 16,
       minzoom: 0,
+    },
+    housenum_label: {
+      source: 'dataSource',
+      sourceLayer: 'housenum_label',
+      styleLayerName: 'housenum_labelStyles',
+      zIndex: 4,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
+        text: ['$get', 'properties.house_num'],
+        font: 'defaultFont',
+        fontSize: 12,
+      },
     },
   },
   glyphs: {

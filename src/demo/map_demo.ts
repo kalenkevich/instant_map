@@ -98,7 +98,7 @@ export function renderMap() {
     zoom,
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl2,
-    tileStyles: SateliteTilesStyles,
+    tileStyles: MapboxVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
@@ -139,7 +139,7 @@ export function renderMap() {
     },
     workerPool: 8,
     featureFlags: {
-      debugLayer: true,
+      debugLayer: false,
       webglRendererDebug: false,
       webglRendererFontFormatType: FontFormatType.texture,
       enableObjectSelection: false,
