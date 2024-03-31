@@ -68,9 +68,9 @@ export class TextTextureProgram extends ObjectProgram {
 
   protected async setupTexture() {
     const gl = this.gl;
-    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
+    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | undefined;
 
-    for (const source of Object.values(fontAtlas.sources)) {
+    for (const source of Object.values(fontAtlas?.sources || {})) {
       this.fontTextures.push(
         createTexture(gl, {
           name: 'text_atlas_' + source.name,

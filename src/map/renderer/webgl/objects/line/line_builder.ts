@@ -1,10 +1,12 @@
 import { vec2 } from 'gl-matrix';
 import { WebGlObjectAttributeType } from '../object/object';
+import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { LineJoinStyle, WebGlLine, WebGlLineBufferredGroup } from './line';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { addXTimes } from '../../utils/array_utils';
 
 const LINE_POSITION: Array<[number, number]> = [
   [0, -0.5],
@@ -67,42 +69,36 @@ const ROUND_JOIN_POSITION: Array<[number, number]> = [
 ];
 
 export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
-  addObject(line: WebGlLine) {
-    const objectSize = this.verticesFromLine(this.vertecies, line.vertecies, line.width, line.join);
-
-    this.objects.push([line, objectSize]);
-  }
-
-  build(): WebGlLineBufferredGroup {
-    const numElements = this.vertecies.length / 2;
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlLineBufferredGroup {
+    const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const widthBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
-    let currentObjectIndex = 0;
-    let currentObject: WebGlLine = this.objects[currentObjectIndex][0];
-    let currentOffset = this.objects[currentObjectIndex][1];
+    for (const line of this.objects) {
+      const numberOfAddedVertecies = this.verticesFromLine(camera, vertecies, line.vertecies, line.width, line.join);
+      const xTimes = numberOfAddedVertecies / 2;
 
-    for (let i = 0; i < numElements; i++) {
-      if (i > currentOffset) {
-        currentObjectIndex++;
-        currentObject = this.objects[currentObjectIndex][0];
-        currentOffset += this.objects[currentObjectIndex][1];
-      }
-
-      colorBuffer.push(...(currentObject.color || [0, 0, 0, 1]));
-      widthBuffer.push(currentObject.width);
-      borderWidthBuffer.push(currentObject.borderWidth);
-      borderColorBuffer.push(...currentObject.borderColor);
-      selectionColorBuffer.push(...integerToVector4(currentObject.id));
+      addXTimes(colorBuffer, [...line.color], xTimes);
+      addXTimes(widthBuffer, line.width, xTimes);
+      addXTimes(borderWidthBuffer, line.borderWidth, xTimes);
+      addXTimes(borderColorBuffer, [...line.borderColor], xTimes);
+      addXTimes(selectionColorBuffer, integerToVector4(line.id), xTimes);
     }
 
     return {
       type: MapTileFeatureType.line,
+      name,
+      zIndex,
       size: this.objects.length,
-      numElements,
+      numElements: vertecies.length / 2,
+      vertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 3,
+        buffer: createdSharedArrayBuffer(vertecies),
+      },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
@@ -112,11 +108,6 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 1,
         buffer: createdSharedArrayBuffer(widthBuffer),
-      },
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 3,
-        buffer: createdSharedArrayBuffer(this.vertecies),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,
@@ -137,6 +128,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
   }
 
   verticesFromLine(
+    camera: SceneCamera,
     result: number[],
     coordinates: Array<[number, number] | vec2>,
     lineWidth: number,
@@ -144,22 +136,28 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
   ): number {
     const start = result.length;
 
-    this.lineToTriangles(result, coordinates[0], coordinates[1], lineWidth);
+    this.lineToTriangles(camera, result, coordinates[0], coordinates[1], lineWidth);
     for (let i = 2; i < coordinates.length; i++) {
       if (joinStyle === LineJoinStyle.round) {
-        this.roundJoinToTriangles(result, coordinates[i - 1], lineWidth);
+        this.roundJoinToTriangles(camera, result, coordinates[i - 1], lineWidth);
       }
 
-      this.lineToTriangles(result, coordinates[i - 1], coordinates[i], lineWidth);
+      this.lineToTriangles(camera, result, coordinates[i - 1], coordinates[i], lineWidth);
     }
 
     return result.length - start;
   }
 
-  lineToTriangles(result: number[], p1: [number, number] | vec2, p2: [number, number] | vec2, lineWidth: number) {
-    const scaledLineWidth = this.scalarScale(lineWidth);
-    const p1Projected = vec2.fromValues(...this.projection.fromLngLat(p1));
-    const p2Projected = vec2.fromValues(...this.projection.fromLngLat(p2));
+  lineToTriangles(
+    camera: SceneCamera,
+    result: number[],
+    p1: [number, number] | vec2,
+    p2: [number, number] | vec2,
+    lineWidth: number
+  ) {
+    const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
+    const p1Projected = vec2.fromValues(p1[0], p1[1]);
+    const p2Projected = vec2.fromValues(p2[0], p2[1]);
 
     const xBasis = vec2.create();
     vec2.subtract(xBasis, p2Projected, p1Projected);
@@ -181,9 +179,15 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     }
   }
 
-  roundJoinToTriangles(result: number[], center: [number, number] | vec2, lineWidth: number, componets = 16) {
-    const scaledLineWidth = this.scalarScale(lineWidth);
-    const centerVec = vec2.fromValues(...this.projection.fromLngLat(center));
+  roundJoinToTriangles(
+    camera: SceneCamera,
+    result: number[],
+    center: [number, number] | vec2,
+    lineWidth: number,
+    componets = 16
+  ) {
+    const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
+    const centerVec = vec2.fromValues(center[0], center[1]);
 
     for (const pos of ROUND_JOIN_POSITION) {
       const res = vec2.create();

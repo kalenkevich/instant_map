@@ -1,4 +1,4 @@
-import { mat3, vec2 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 import tilebelt from '@mapbox/tilebelt';
 // Common
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
@@ -10,6 +10,7 @@ import { WebGlMapLayer } from './webgl_tile';
 import { DataLayerStyle, ImageStyle, ImageTileSource } from '../../../styles/styles';
 import { compileStatement } from '../../../styles/style_statement_utils';
 // WebGl objects
+import { SceneCamera } from '../../renderer';
 import { ImageGroupBuilder } from '../objects/image/image_group_builder';
 import { ImageBitmapTextureSource } from '../../../texture/texture';
 import { blobToBitmapImageTextureSource } from '../../../texture/texture_utils';
@@ -26,17 +27,18 @@ export async function ImageTile2WebglLayers(
     pixelRatio,
     zoom,
     tileSize,
-    projectionViewMat: projectionViewMatSource,
+    projectionViewMat,
     featureFlags,
   }: FetchTileOptions,
   abortController: AbortController,
   onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
-  const minZoom = tileStyles.minzoom || 0;
-  const maxZoom = tileStyles.maxzoom || 0;
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
-  const projectionViewMat = mat3.fromValues(...projectionViewMatSource);
+  const camera: SceneCamera = {
+    distance: Math.pow(2, zoom) * tileSize,
+    viewMatrix: projectionViewMat,
+  };
   const tileLayers: WebGlMapLayer[] = [];
 
   const sourceArrayBuffer = await fetch(tileURL, { signal: abortController.signal }).then(res => res.blob());
@@ -56,25 +58,14 @@ export async function ImageTile2WebglLayers(
       continue;
     }
 
-    const imageGroupBuilder = new ImageGroupBuilder(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      minZoom,
-      maxZoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
+    const imageGroupBuilder = new ImageGroupBuilder(featureFlags, pixelRatio);
     imageGroupBuilder.addObject({
       id: 0,
       type: MapTileFeatureType.image,
       name: tileId,
       bbox: [
-        [tilebbox[0], tilebbox[1]],
-        [tilebbox[2], tilebbox[3]],
+        [...projection.fromLngLat([tilebbox[0], tilebbox[1]])],
+        [...projection.fromLngLat([tilebbox[2], tilebbox[3]])],
       ],
       topLeft: tilePolygon.coordinates[0][0] as vec2,
       source: textureSource,
@@ -89,7 +80,9 @@ export async function ImageTile2WebglLayers(
       source: source.name,
       layerName: styleLayer.styleLayerName,
       zIndex: styleLayer.zIndex,
-      objectGroups: [imageGroupBuilder.build()],
+      objectGroups: [
+        imageGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_images`, styleLayer.zIndex),
+      ],
     };
     onLayerReady(layers);
     tileLayers.push(layers);

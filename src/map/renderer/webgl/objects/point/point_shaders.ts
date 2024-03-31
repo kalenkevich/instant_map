@@ -1,24 +1,15 @@
-import {
-  FEATURE_FLAGS_UTILS,
-  DEFAULT_FRAGMENT_SHADER_SOURCE,
-  CLIP_UTILS,
-  MAT_UTILS,
-  MERCATOR_PROJECTION_UTILS,
-} from '../object/object_shaders';
+import { FEATURE_FLAGS_UTILS, DEFAULT_FRAGMENT_SHADER_SOURCE, CLIP_UTILS, MAT_UTILS } from '../object/object_shaders';
 
 export default {
   vertext: `
     precision highp float;
     ${CLIP_UTILS}
     ${MAT_UTILS}
-    ${MERCATOR_PROJECTION_UTILS}
     ${FEATURE_FLAGS_UTILS}
 
     uniform mat3 u_matrix;
-    uniform float u_zoom;
     uniform float u_width;
     uniform float u_height;
-    uniform float u_tile_size;
     uniform bool u_is_read_pixel_render_mode;
 
     attribute vec2 a_position;

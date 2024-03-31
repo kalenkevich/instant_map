@@ -1,5 +1,5 @@
-import { mat3 } from 'gl-matrix';
 import { MapFeatureFlags } from '../../../../flags';
+import { SceneCamera } from '../../../renderer';
 import { getVerticiesFromChar } from './text_vector_utils';
 import { WebGlText } from '../text/text';
 import { WebGlTextVectorBufferredGroup } from './text_vector';
@@ -11,6 +11,7 @@ import { MapTileFeatureType } from '../../../../tile/tile';
 import { Projection } from '../../../../geo/projection/projection';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { addXTimes } from '../../utils/array_utils';
 
 interface CharVerticesData {
   vertices: number[];
@@ -28,71 +29,41 @@ const FONT_CHAR_CACHE: Record<string, Record<string, CharVerticesData>> = {};
 
 export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
   constructor(
-    protected readonly projectionViewMat: mat3,
-    protected readonly canvasWidth: number,
-    protected readonly canvasHeight: number,
-    protected readonly pixelRatio: number,
-    protected readonly zoom: number,
-    protected readonly minZoom: number,
-    protected readonly maxZoom: number,
-    protected readonly tileSize: number,
-    protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags,
+    protected readonly pixelRatio: number,
     private readonly fontManager: FontManager
   ) {
-    super(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      minZoom,
-      maxZoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
+    super(featureFlags, pixelRatio);
   }
 
-  addObject(text: WebGlText) {
-    const objectSize = this.verticesFromText(this.vertecies, this.fontManager, text);
-
-    this.objects.push([text, objectSize]);
-  }
-
-  build(): WebGlTextVectorBufferredGroup {
-    const numElements = this.vertecies.length / 2;
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlTextVectorBufferredGroup {
+    const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
-    let currentObjectIndex = 0;
-    let currentObject: WebGlText = this.objects[currentObjectIndex][0];
-    let currentOffset = this.objects[currentObjectIndex][1];
+    for (const text of this.objects) {
+      const numberOfAddedVertecies = this.verticesFromText(vertecies, camera, this.fontManager, text);
+      const xTimes = numberOfAddedVertecies / 2;
 
-    for (let i = 0; i < numElements; i++) {
-      if (i > currentOffset) {
-        currentObjectIndex++;
-        currentObject = this.objects[currentObjectIndex][0];
-        currentOffset += this.objects[currentObjectIndex][1];
-      }
-
-      colorBuffer.push(...currentObject.color);
-      selectionColorBuffer.push(...integerToVector4(currentObject.id));
+      addXTimes(colorBuffer, [...text.color], xTimes);
+      addXTimes(selectionColorBuffer, integerToVector4(text.id), xTimes);
     }
 
     return {
       type: MapTileFeatureType.text,
+      name,
+      zIndex,
       size: this.objects.length,
-      numElements,
+      numElements: vertecies.length / 2,
+      vertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(vertecies),
+      },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(this.vertecies),
       },
       selectionColor: {
         type: WebGlObjectAttributeType.FLOAT,
@@ -102,7 +73,7 @@ export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
     };
   }
 
-  verticesFromText(result: number[], fontManager: FontManager, text: WebGlText): number {
+  verticesFromText(result: number[], camera: SceneCamera, fontManager: FontManager, text: WebGlText): number {
     const start = result.length;
 
     if (!text.text) {
@@ -133,11 +104,11 @@ export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
       textData.height = Math.max(textData.height, charVerticiesData.height);
     }
 
-    const scaledHeight = this.scalarScale(textData.height / this.tileSize) * text.fontSize;
+    const scaledHeight = this.scalarScale(textData.height, camera.distance) * text.fontSize;
 
     let scaledTextWidth = 0;
     for (const { vertices: charVertices, width } of textData.chars) {
-      const scaledWidth = this.scalarScale(width / this.tileSize) * text.fontSize;
+      const scaledWidth = this.scalarScale(width, camera.distance) * text.fontSize;
       let minX = Infinity;
       let maxX = -Infinity;
 

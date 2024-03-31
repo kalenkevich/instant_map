@@ -7,6 +7,9 @@ export interface MapFeatureFlags {
   /** Log all debug events of webgl rendrer. */
   webglRendererDebug?: boolean;
 
+  /** Use new approach with shader lines. */
+  webglRendererUseShaderLines?: boolean;
+
   webglRendererFontFormatType?: FontFormatType;
 
   // Enables maps object selection behaviour.

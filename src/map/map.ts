@@ -3,10 +3,10 @@ import { Evented } from './evented';
 import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
-import { MapTileRendererType, Renderer } from './renderer/renderer';
+import { MapTileRendererType, MapTileRenderer } from './renderer/renderer';
 import { RenderQueue } from './renderer/render_queue/render_queue';
 import { TilesGrid, TilesGridEvent } from './tile/tile_grid';
-import { WebGlRenderer } from './renderer/webgl/webgl_renderer';
+import { WebGlMapTileRenderer } from './renderer/webgl/webgl_map_tile_renderer';
 import { MapParentControl, MapControlPosition } from './controls/parent_control';
 import { CompassControl } from './controls/compass_control';
 import { ZoomControl } from './controls/zoom_control';
@@ -101,7 +101,7 @@ export class GlideMap extends Evented<MapEventType> {
   private renderQueue: RenderQueue;
   private fontManager: FontManager;
   private glyphsManager: GlyphsManager;
-  private renderer: Renderer;
+  private renderer: MapTileRenderer;
   private projection: Projection;
   private mapOptions: MapOptions;
   private stats: Stats;
@@ -245,9 +245,10 @@ export class GlideMap extends Evented<MapEventType> {
     const viewMatrix = this.camera.getProjectionMatrix();
     const objectId = this.renderer.getObjectId(
       tiles,
-      viewMatrix,
-      zoom,
-      this.styles.tileSize,
+      {
+        viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
+        distance: Math.pow(2, zoom) * this.styles.tileSize,
+      },
       clippedWebGlSpaceCoords[0],
       clippedWebGlSpaceCoords[1]
     );
@@ -364,6 +365,15 @@ export class GlideMap extends Evented<MapEventType> {
     return this.camera.getProjectionMatrix();
   }
 
+  resize(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+
+    this.camera.resize(this.width, this.height);
+    this.renderer.resize(this.width, this.height);
+    this.render();
+  }
+
   rerender(pruneCache = false): Promise<void> {
     const zoom = this.getZoom();
     this.tilesGrid.updateTiles(this.camera, zoom, this.width, this.height);
@@ -386,7 +396,14 @@ export class GlideMap extends Evented<MapEventType> {
     const zoom = this.getZoom();
     const viewMatrix = this.camera.getProjectionMatrix();
 
-    this.renderer.render(tiles, viewMatrix, zoom, this.styles.tileSize, { pruneCache });
+    this.renderer.render(
+      tiles,
+      {
+        viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
+        distance: Math.pow(2, zoom) * this.styles.tileSize,
+      },
+      { pruneCache }
+    );
 
     this.statsWidget.style.display = 'none';
 
@@ -400,10 +417,10 @@ export class GlideMap extends Evented<MapEventType> {
     }
   }
 
-  private getRenderer(rendererType: MapTileRendererType): Renderer {
+  private getRenderer(rendererType: MapTileRendererType): MapTileRenderer {
     switch (rendererType) {
       case MapTileRendererType.webgl:
-        return new WebGlRenderer(
+        return new WebGlMapTileRenderer(
           this.rootEl,
           this.featureFlags,
           MapTileRendererType.webgl,
@@ -412,7 +429,7 @@ export class GlideMap extends Evented<MapEventType> {
           this.glyphsManager
         );
       case MapTileRendererType.webgl2:
-        return new WebGlRenderer(
+        return new WebGlMapTileRenderer(
           this.rootEl,
           this.featureFlags,
           MapTileRendererType.webgl2,

@@ -9,23 +9,23 @@ import {
 
 // checkout https://wwwtyro.net/2019/11/18/instanced-lines.html
 export enum LineJoinStyle {
-  miter = 'miter',
-  round = 'round',
-  bevel = 'bevel',
+  miter = 0,
+  round = 1,
+  bevel = 2,
 }
 
 // checkout https://wwwtyro.net/2019/11/18/instanced-lines.html
 export enum LineCapStyle {
-  butt = 'butt',
-  round = 'round',
-  square = 'square',
+  butt = 0,
+  round = 1,
+  square = 2,
 }
 
 export enum LineFillStyle {
-  solid = 'solid',
-  dashed = 'dashed',
-  dotted = 'dotted',
-  dotdashed = 'dotdashed',
+  solid = 0,
+  dashed = 1,
+  dotted = 2,
+  dotdashed = 3,
 }
 
 export interface WebGlLine extends WebGlObject {
@@ -34,8 +34,6 @@ export interface WebGlLine extends WebGlObject {
   color: vec4;
   width: number;
   vertecies: Array<vec2 | [number, number]>;
-  // vertecies: Array<Array<vec2 | [number, number]>>;
-
   // TODO: support this
   fill: LineFillStyle;
   join: LineJoinStyle;

@@ -1,60 +1,51 @@
 import { vec2 } from 'gl-matrix';
 import { WebGlObjectAttributeType } from '../object/object';
+import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { WebGlPoint, WebGlPointBufferredGroup } from './point';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { addXTimes } from '../../utils/array_utils';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
-  addObject(point: WebGlPoint) {
-    const objectSize = verticesFromPoint(
-      this.vertecies,
-      this.projection.fromLngLat([point.center[0], point.center[1]]),
-      this.scalarScale(point.radius),
-      point.components
-    );
-
-    this.objects.push([point, objectSize]);
-  }
-
-  build(): WebGlPointBufferredGroup {
-    const numElements = this.vertecies.length / 2;
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlPointBufferredGroup {
+    const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
-    let currentObjectIndex = 0;
-    let currentObject: WebGlPoint = this.objects[currentObjectIndex][0];
-    let currentOffset = this.objects[currentObjectIndex][1];
+    for (const point of this.objects) {
+      const numberOfAddedVertecies = verticesFromPoint(
+        vertecies,
+        point.center,
+        this.scalarScale(point.radius, camera.distance),
+        point.components
+      );
+      const xTimes = numberOfAddedVertecies / 2;
 
-    for (let i = 0; i < numElements; i++) {
-      if (i > currentOffset) {
-        currentObjectIndex++;
-        currentObject = this.objects[currentObjectIndex][0];
-        currentOffset += this.objects[currentObjectIndex][1];
-      }
-
-      colorBuffer.push(...currentObject.color);
-      borderWidthBuffer.push(currentObject.borderWidth);
-      borderColorBuffer.push(...currentObject.borderColor);
-      selectionColorBuffer.push(...integerToVector4(currentObject.id));
+      addXTimes(colorBuffer, [...point.color], xTimes);
+      addXTimes(borderWidthBuffer, point.borderWidth, xTimes);
+      addXTimes(borderColorBuffer, [...point.borderColor], xTimes);
+      addXTimes(selectionColorBuffer, integerToVector4(point.id), xTimes);
     }
 
     return {
       type: MapTileFeatureType.point,
+      name,
+      zIndex,
       size: this.objects.length,
-      numElements,
+      numElements: vertecies.length / 2,
+      vertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(vertecies),
+      },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(this.vertecies),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,

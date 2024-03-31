@@ -83,6 +83,8 @@ export interface LineStyle {
   joinStyle?: Statement<LineJoinStyle.round | LineJoinStyle.bevel | LineJoinStyle.miter>; // default: none
   capStyle?: Statement<LineCapStyle.butt | LineCapStyle.round | LineCapStyle.square>;
   width?: Statement<number>; // default 1
+  borderWidth?: Statement<number>; // default 1
+  borderColor?: Statement<ColorValue>; // default <0, 0, 0, 0>
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
