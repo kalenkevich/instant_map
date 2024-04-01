@@ -11,20 +11,19 @@ import { addXTimes } from '../../utils/array_utils';
 export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlPointBufferredGroup {
     const vertecies: number[] = [];
+    const borderVertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
     for (const point of this.objects) {
-      const numberOfAddedVertecies = verticesFromPoint(
-        vertecies,
-        point.center,
-        this.scalarScale(point.radius, camera.distance),
-        point.components
-      );
+      const scaledRadius = this.scalarScale(point.radius, camera.distance);
+      const scaledBorderWidth = this.scalarScale(point.borderWidth, camera.distance);
+      const numberOfAddedVertecies = verticesFromPoint(vertecies, point.center, scaledRadius, point.components);
       const xTimes = numberOfAddedVertecies / 2;
 
+      verticesFromPoint(borderVertecies, point.center, scaledRadius + scaledBorderWidth, point.components);
       addXTimes(colorBuffer, [...point.color], xTimes);
       addXTimes(borderWidthBuffer, point.borderWidth, xTimes);
       addXTimes(borderColorBuffer, [...point.borderColor], xTimes);
@@ -41,6 +40,11 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
         buffer: createdSharedArrayBuffer(vertecies),
+      },
+      borderVertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(borderVertecies),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,

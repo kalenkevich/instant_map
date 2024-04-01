@@ -9,6 +9,8 @@ export enum MapTileRendererType {
 }
 
 export interface SceneCamera {
+  readonly width: number;
+  readonly height: number;
   readonly distance: number;
   readonly viewMatrix: [number, number, number, number, number, number, number, number, number];
 }

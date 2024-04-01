@@ -39,6 +39,8 @@ export async function DebugTile2WebglLayers(
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
   const camera: SceneCamera = {
+    width: canvasWidth,
+    height: canvasHeight,
     distance: Math.pow(2, zoom) * tileSize,
     viewMatrix: projectionViewMat,
   };

@@ -23,14 +23,12 @@ import { GlyphGroupBuilder } from '../../map/renderer/webgl/objects/glyph/glyph_
 import { TextVectorBuilder } from '../../map/renderer/webgl/objects/text_vector/text_vector_builder';
 import { TextTextureGroupBuilder } from '../../map/renderer/webgl/objects/text_texture/text_texture_builder';
 import { LineShaiderBuilder } from '../../map/renderer/webgl/objects/line_shader/line_shader_builder';
-import { MercatorProjection } from '../../map/geo/projection/mercator_projection';
 
 export class WebGlScene {
   private readonly renderer: WebGlRenderer;
   private readonly fontManager: FontManager;
   private readonly textureManager: GlyphsManager;
   private readonly objects: WebGlObject[] = [];
-  private readonly projection = new MercatorProjection();
   private width: number;
   private height: number;
 

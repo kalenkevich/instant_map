@@ -25,11 +25,18 @@ export class PointProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
+    // draw background
+    this.positionBuffer.bufferData(objectGroup.borderVertecies.buffer);
+    this.colorBuffer.bufferData(
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.borderColor.buffer
+    );
+    gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
+
+    // draw circle
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
       options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
     );
-
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 
     gl.bindVertexArray(null);

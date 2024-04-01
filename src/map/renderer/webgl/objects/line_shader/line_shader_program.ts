@@ -9,7 +9,7 @@ export class LineShaderProgram extends ObjectProgram {
   protected vertecies: WebGlBuffer;
   protected prevPoint: WebGlBuffer;
   protected currPoint: WebGlBuffer;
-  // protected nextPoint: WebGlBuffer;
+  protected nextPoint: WebGlBuffer;
   protected lineProps: WebGlBuffer;
   protected renderStyles: WebGlBuffer;
   protected color: WebGlBuffer;
@@ -36,11 +36,11 @@ export class LineShaderProgram extends ObjectProgram {
     this.vertecies = createWebGlBuffer(gl, { location: 0, size: 2 });
     this.prevPoint = createWebGlBuffer(gl, { location: 1, size: 2 });
     this.currPoint = createWebGlBuffer(gl, { location: 2, size: 2 });
-    // this.nextPoint = createWebGlBuffer(gl, { location: 3, size: 2 });
-    this.lineProps = createWebGlBuffer(gl, { location: 3, size: 3 });
-    this.renderStyles = createWebGlBuffer(gl, { location: 4, size: 3 });
-    this.color = createWebGlBuffer(gl, { location: 5, size: 4 });
-    this.borderColor = createWebGlBuffer(gl, { location: 6, size: 4 });
+    this.nextPoint = createWebGlBuffer(gl, { location: 3, size: 2 });
+    this.lineProps = createWebGlBuffer(gl, { location: 4, size: 3 });
+    this.renderStyles = createWebGlBuffer(gl, { location: 5, size: 3 });
+    this.color = createWebGlBuffer(gl, { location: 6, size: 4 });
+    this.borderColor = createWebGlBuffer(gl, { location: 7, size: 4 });
 
     this.gl.bindVertexArray(null);
   }
@@ -73,7 +73,7 @@ export class LineShaderProgram extends ObjectProgram {
     this.vertecies.bufferData(lineGroup.vertecies.buffer);
     this.prevPoint.bufferData(lineGroup.prevPoint.buffer);
     this.currPoint.bufferData(lineGroup.currPoint.buffer);
-    // this.nextPoint.bufferData(lineGroup.nextPoint.buffer);
+    this.nextPoint.bufferData(lineGroup.nextPoint.buffer);
     this.lineProps.bufferData(lineGroup.lineProps.buffer);
     this.renderStyles.bufferData(lineGroup.renderStyles.buffer);
     this.color.bufferData(options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer);

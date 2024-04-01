@@ -248,6 +248,8 @@ export class GlideMap extends Evented<MapEventType> {
       {
         viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
         distance: Math.pow(2, zoom) * this.styles.tileSize,
+        width: this.width,
+        height: this.height,
       },
       clippedWebGlSpaceCoords[0],
       clippedWebGlSpaceCoords[1]
@@ -401,6 +403,8 @@ export class GlideMap extends Evented<MapEventType> {
       {
         viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
         distance: Math.pow(2, zoom) * this.styles.tileSize,
+        width: this.width,
+        height: this.height,
       },
       { pruneCache }
     );

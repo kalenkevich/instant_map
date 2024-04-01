@@ -15,8 +15,6 @@ export interface WebGlPoint extends WebGlObject {
   radius: number;
   components?: number;
   margin?: PointMargin;
-
-  // TODO: support this
   borderWidth: number;
   borderColor: vec4 | [number, number, number, number];
 }
@@ -32,6 +30,7 @@ export interface WebGlPointBufferredGroup extends WebGlObjectBufferredGroup {
   numElements: number; // number of elements
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
+  borderVertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
   borderWidth: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 1, Float32Array>; // Array<number>;
   borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
   selectionColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;

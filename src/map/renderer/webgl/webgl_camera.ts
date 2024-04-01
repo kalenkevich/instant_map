@@ -7,12 +7,19 @@ export class WebGlSceneCamera implements SceneCamera {
   constructor(
     private sceneWidth: number,
     private sceneHeight: number,
-    private _distance: number,
     private eyeX: number,
     private eyeY: number,
+    private _distance: number,
     private rotationInDegree: number
   ) {
     this.recalculateViewMatrix();
+  }
+  get width(): number {
+    return this.sceneWidth;
+  }
+
+  get height(): number {
+    return this.sceneHeight;
   }
 
   get distance(): number {
@@ -40,7 +47,7 @@ export class WebGlSceneCamera implements SceneCamera {
     this._viewMatrix = getProjectionMatrix(
       this.sceneWidth,
       this.sceneHeight,
-      this.distance,
+      this._distance,
       this.eyeX,
       this.eyeY,
       this.rotationInDegree

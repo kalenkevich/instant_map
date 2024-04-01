@@ -9,7 +9,7 @@ export interface WebGlShaderLineBufferredGroup extends WebGlObjectBufferredGroup
 
   prevPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
   currPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
-  // nextPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
+  nextPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
   // angle, width, borderWidth,
   lineProps: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>; // Array<vec3>;
   // [fillType, capType, joinType]

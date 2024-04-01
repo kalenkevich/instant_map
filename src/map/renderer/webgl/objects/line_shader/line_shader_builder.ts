@@ -1,3 +1,4 @@
+import { vec2 } from 'gl-matrix';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
@@ -7,6 +8,15 @@ import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
+
+const getBbox = (p1: [number, number] | vec2, p2: [number, number] | vec2): [number, number, number, number] => {
+  const minX = Math.min(p1[0], p2[0]);
+  const minY = Math.min(p1[1], p2[1]);
+  const maxX = Math.max(p1[0], p2[0]);
+  const maxY = Math.max(p1[1], p2[1]);
+
+  return [minX, minY, maxX, maxY];
+};
 
 export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
@@ -28,26 +38,22 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
       const idAsVector4 = integerToVector4(line.id);
 
       for (let i = 1; i < line.vertecies.length; i++) {
-        const aPoint = line.vertecies[i - 1]; // should be projected
-        const bPoint = line.vertecies[i]; // should be projected
-        // const cPoint = this.projection.fromLngLat(line.vertecies[i + 1]); // should be projected
+        const aPoint = line.vertecies[i - 1];
+        const bPoint = line.vertecies[i];
+        const cPoint = i + 1 === line.vertecies.length ? line.vertecies[i] : line.vertecies[i + 1];
+        const [minx, miny, maxx, maxy] = getBbox(aPoint, bPoint);
 
-        const a = aPoint[1] - bPoint[1];
-        const b = bPoint[0] - aPoint[0];
-        const angleDegree = Math.PI / 2;
-        // 1 / Math.tan(-a / b)
+        const x1 = minx - halfWidth;
+        const y1 = maxy + halfWidth;
 
-        const x1 = aPoint[0] - halfWidth * Math.cos(angleDegree) + 1 - 1;
-        const y1 = aPoint[1] + halfWidth * Math.sin(angleDegree) + 1 - 1;
+        const x2 = maxx + halfWidth;
+        const y2 = maxy + halfWidth;
 
-        const x2 = bPoint[0] + halfWidth * Math.cos(angleDegree) + 1 - 1;
-        const y2 = bPoint[1] + halfWidth * Math.sin(angleDegree) + 1 - 1;
+        const x3 = minx - halfWidth;
+        const y3 = miny - halfWidth;
 
-        const x3 = aPoint[0] - halfWidth * Math.cos(angleDegree) + 1 - 1;
-        const y3 = aPoint[1] - halfWidth * Math.sin(angleDegree) + 1 - 1;
-
-        const x4 = bPoint[0] + halfWidth * Math.cos(angleDegree) + 1 - 1;
-        const y4 = bPoint[1] - halfWidth * Math.sin(angleDegree) + 1 - 1;
+        const x4 = maxx + halfWidth;
+        const y4 = miny - halfWidth;
 
         vertecies.push(
           // first triangle
@@ -68,8 +74,8 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
 
         addXTimes(prevPoint, [aPoint[0], aPoint[1]], 6);
         addXTimes(currPoint, [bPoint[0], bPoint[1]], 6);
-        // addXTimes(nextPoint, [cPoint[0], cPoint[1]], 6);
-        addXTimes(lineProps, [angleDegree, line.width, line.borderWidth], 6);
+        addXTimes(nextPoint, [cPoint[0], cPoint[1]], 6);
+        addXTimes(lineProps, [0, line.width, line.borderWidth], 6);
         addXTimes(renderStyles, [line.fill, line.cap, line.join], 6);
         addXTimes(color, [line.color[0], line.color[1], line.color[2], line.color[3]], 6);
         addXTimes(borderColor, [line.borderColor[0], line.borderColor[1], line.borderColor[2], line.borderColor[3]], 6);
@@ -98,11 +104,11 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
         size: 2,
         buffer: createdSharedArrayBuffer(currPoint),
       },
-      // nextPoint: {
-      //   type: WebGlObjectAttributeType.FLOAT,
-      //   size: 2,
-      //   buffer: createdSharedArrayBuffer(nextPoint),
-      // },
+      nextPoint: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(nextPoint),
+      },
       lineProps: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 3,

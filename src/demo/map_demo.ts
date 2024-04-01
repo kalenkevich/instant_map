@@ -9,8 +9,8 @@ import {
   BingImageTyleStyles,
 } from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
-import { FontFormatType } from '../map/font/font_config';
 import { createRootEl } from './demo_utils';
+import { ENABLED_FEATURE_FLAGS } from './enabled_features';
 
 const MAP_ROOT_EL_MARGIN = 10;
 
@@ -115,13 +115,7 @@ export function renderMap() {
       ],
     },
     workerPool: 8,
-    featureFlags: {
-      debugLayer: false,
-      webglRendererDebug: false,
-      webglRendererUseShaderLines: false,
-      webglRendererFontFormatType: FontFormatType.texture,
-      enableObjectSelection: false,
-    },
+    featureFlags: ENABLED_FEATURE_FLAGS,
   });
 
   window.addEventListener('resize', () => {

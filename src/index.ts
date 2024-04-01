@@ -1,5 +1,6 @@
 import { renderMap } from './demo/map_demo';
-import { renderWebglLinesExamples } from './demo/weblg/webgl_lines';
+import { renderWebglPointExample } from './demo/webgl/webgl_point';
+import { renderWebglLineExample } from './demo/webgl/webgl_line';
 
 const ROUTE_MAP: Record<string, () => void> = {
   '/': () => {
@@ -8,8 +9,11 @@ const ROUTE_MAP: Record<string, () => void> = {
   '': () => {
     renderMap();
   },
-  '/webgl/lines': () => {
-    renderWebglLinesExamples();
+  '/webgl/point': () => {
+    renderWebglPointExample();
+  },
+  '/webgl/line': () => {
+    renderWebglLineExample();
   },
 };
 
