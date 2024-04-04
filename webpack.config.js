@@ -17,6 +17,10 @@ module.exports = {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
+    allowedHosts: [
+      '.ondigitalocean.app',
+      '.kalenkevich.com',
+    ],
   },
   module: {
     rules: [
