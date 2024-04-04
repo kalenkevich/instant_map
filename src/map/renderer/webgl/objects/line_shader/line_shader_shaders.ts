@@ -134,7 +134,9 @@ export default {
 
         if (distanceToCurrentLine <= lineWidth || distanceToNextLine <= lineWidth) {
           gl_FragColor = v_color;
-        } else if (distanceToCurrentLine <= lineWidth + borderWidth || distanceToNextLine <= lineWidth + borderWidth) {
+        } else if (distanceToCurrentLine > lineWidth && distanceToCurrentLine <= lineWidth + borderWidth) {
+          gl_FragColor = v_borderColor;
+        } else if (distanceToNextLine > lineWidth && distanceToNextLine <= lineWidth + borderWidth) {
           gl_FragColor = v_borderColor;
         }
       } else if (isLeftCap || isRightCap) {
