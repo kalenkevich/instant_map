@@ -1,5 +1,6 @@
-import { vec4, mat3 } from 'gl-matrix';
+import { vec4 } from 'gl-matrix';
 import { WebGlText } from '../text/text';
+import { SceneCamera } from '../../../renderer';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
@@ -28,41 +29,22 @@ export interface GlyphMapping {
 
 export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
   constructor(
-    protected readonly projectionViewMat: mat3,
-    protected readonly canvasWidth: number,
-    protected readonly canvasHeight: number,
-    protected readonly pixelRatio: number,
-    protected readonly zoom: number,
-    protected readonly minZoom: number,
-    protected readonly maxZoom: number,
-    protected readonly tileSize: number,
-    protected readonly projection: Projection,
     protected readonly featureFlags: MapFeatureFlags,
+    protected readonly pixelRatio: number,
     private readonly fontManager: FontManager
   ) {
-    super(
-      projectionViewMat,
-      canvasWidth,
-      canvasHeight,
-      pixelRatio,
-      zoom,
-      minZoom,
-      maxZoom,
-      tileSize,
-      projection,
-      featureFlags
-    );
+    super(featureFlags, pixelRatio);
   }
 
   addObject(text: WebGlText): void {
-    if (!text.text || text.text === ' ') {
+    if (!text.text) {
       return;
     }
 
-    this.objects.push([text, 0]);
+    this.objects.push(text);
   }
 
-  build(): WebGlTextTextureBufferredGroup {
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
     const size = this.objects.length;
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -73,17 +55,17 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     const texture = fontAtlas.sources[0];
     let numElements = 0;
 
-    for (const [text] of this.objects) {
+    for (const text of this.objects) {
       let offset = 0;
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
         const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
-        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width) * scaleFactor;
-        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height) * scaleFactor;
-        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent) * scaleFactor;
+        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width, camera.distance) * scaleFactor;
+        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height, camera.distance) * scaleFactor;
+        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent, camera.distance) * scaleFactor;
 
         // vertex coordinates
-        let [x1, y1] = this.projection.fromLngLat([text.center[0], text.center[1]]);
+        let [x1, y1] = text.center;
         x1 = offset + x1;
         y1 = y1 - ascend;
         const x2 = x1 + textScaledWidth;
@@ -130,6 +112,8 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
 
     return {
       type: MapTileFeatureType.text,
+      name,
+      zIndex,
       size,
       numElements,
       textureIndex: 0,

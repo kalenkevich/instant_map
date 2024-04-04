@@ -1,18 +1,14 @@
 import { WebGlObjectAttributeType } from '../object/object';
+import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { integerToVector4 } from '../../utils/number2vec';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { WebGlImage, WebGlImageBufferredGroup } from './image';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
-import { TextureSourceType } from '../../../../texture/texture';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
-  addObject(image: WebGlImage): void {
-    this.objects.push([image, 0]);
-  }
-
-  build(): WebGlImageBufferredGroup {
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];
@@ -23,17 +19,17 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
     let textureWidth: number;
     let textureHeight: number;
 
-    for (const [image] of this.objects) {
+    for (const image of this.objects) {
       const colorId = integerToVector4(image.id);
       textureSource = image.source;
       textureWidth = image.width * image.pixelRatio;
       textureHeight = image.height * image.pixelRatio;
 
-      const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio);
-      const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio);
+      const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, camera.distance);
+      const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, camera.distance);
 
-      let [x1, y1] = this.projection.fromLngLat([image.bbox[0][0], image.bbox[0][1]]);
-      let [x4, y4] = this.projection.fromLngLat([image.bbox[1][0], image.bbox[1][1]]);
+      let [x1, y1] = [image.bbox[0][0], image.bbox[0][1]];
+      let [x4, y4] = [image.bbox[1][0], image.bbox[1][1]];
       x1 = x1 + marginLeft;
       y1 = y1 + marginTop;
       x4 = x4 + marginLeft;
@@ -60,6 +56,8 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
 
     return {
       type: MapTileFeatureType.image,
+      name,
+      zIndex,
       size,
       numElements: verteciesBuffer.length / 2,
       texture: textureSource,

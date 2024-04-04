@@ -31,7 +31,7 @@ const StyleFonts: {
   defaultFont: {
     type: FontFormatType.sdf,
     name: 'defaultFont',
-    pixelRatio: 2,
+    pixelRatio: 1,
     fontSize: 24,
     sourceType: FontSourceType.pbf,
     sourceUrl:
@@ -41,6 +41,7 @@ const StyleFonts: {
       [256, 511],
       [1024, 1279],
       [8192, 8447],
+      // [19968, 20479], // chinese
     ],
   },
   // roboto: {
@@ -517,7 +518,9 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         type: MapTileFeatureType.line,
         show: ['$lte', ['$get', 'properties.admin_level'], 7],
         color: ['$rgba', 120, 123, 140, 1],
-        width: 2,
+        width: 4,
+        borderWidth: 2,
+        borderColor: ['$rgba', 0, 0, 0, 1],
       },
       maxzoom: 16,
       minzoom: 0,
@@ -538,7 +541,9 @@ export const MapboxVectorTileStyles: DataTileStyles = {
           ['motorway', ['$rgba', 233, 201, 43, 1]],
           ['$default', ['$rgba', 215, 218, 226, 1]],
         ],
-        width: ['$switch', ['$get', 'properties.class'], ['primary', 4], ['$default', 2]],
+        width: ['$switch', ['$get', 'properties.class'], ['primary', 12], ['$default', 6]],
+        borderWidth: 2,
+        borderColor: ['$rgba', 0, 0, 0, 1],
         joinStyle: LineJoinStyle.round,
       },
       minzoom: 6,
@@ -652,7 +657,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
         font: 'defaultFont',
-        fontSize: 14,
+        fontSize: 12,
       },
     },
     structureIcon: {
@@ -787,7 +792,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
-        show: ['$lte', ['$get', 'properties.filterrank'], 3],
+        show: ['$lte', ['$get', 'properties.filterrank'], 0],
         font: 'defaultFont',
         fontSize: [
           '$switch',
@@ -802,6 +807,21 @@ export const SateliteTilesStyles: DataTileStyles = {
       },
       maxzoom: 16,
       minzoom: 0,
+    },
+    housenum_label: {
+      source: 'dataSource',
+      sourceLayer: 'housenum_label',
+      styleLayerName: 'housenum_labelStyles',
+      zIndex: 4,
+      show: true,
+      feature: {
+        type: MapTileFeatureType.text,
+        color: ['$rgba', 0, 0, 0, 1],
+        borderColor: ['$rgba', 255, 255, 255, 1],
+        text: ['$get', 'properties.house_num'],
+        font: 'defaultFont',
+        fontSize: 12,
+      },
     },
   },
   glyphs: {

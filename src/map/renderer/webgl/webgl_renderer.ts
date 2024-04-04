@@ -1,13 +1,12 @@
-import { mat3 } from 'gl-matrix';
 import { addExtensionsToContext } from 'twgl.js';
-import { Renderer, RenderOptions } from '../renderer';
+import { MapTileRendererType, RenderOptions, SceneCamera } from '../renderer';
 import { MapTileFeatureType } from '../../tile/tile';
-import { WebGlMapTile, WebGlMapLayer } from './tile/webgl_tile';
 import { ExtendedWebGLRenderingContext } from './webgl_context';
 import { ObjectProgram } from './objects/object/object_program';
 import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
 import { LineProgram } from './objects/line/line_program';
+import { LineShaderProgram } from './objects/line_shader/line_shader_program';
 import { TextTextureProgram } from './objects/text_texture/text_texture_program';
 import { TextVectorProgram } from './objects/text_vector/text_vector_program';
 import { GlyphProgram } from './objects/glyph/glyph_program';
@@ -20,9 +19,18 @@ import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
 import { FontFormatType } from '../../font/font_config';
 import { FontManager } from '../../font/font_manager';
-import { MapTileRendererType } from '../renderer';
+import { WebGlObjectBufferredGroup } from './objects/object/object';
 
-export class WebGlRenderer implements Renderer {
+export interface WebGlRendererOptions extends RenderOptions {
+  pruneCache?: boolean;
+  readPixelRenderMode?: boolean;
+}
+
+/**
+ * Render object using WebGl API.
+ * Knows how to render objects, manage cache, animation and the order of object render.
+ */
+export class WebGlRenderer {
   private canvas: HTMLCanvasElement;
   private programs: Record<MapTileFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
@@ -78,7 +86,9 @@ export class WebGlRenderer implements Renderer {
 
     const pointProgram = new PointProgram(gl, this.featureFlags);
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
-    const lineProgram = new LineProgram(gl, this.featureFlags);
+    const lineProgram = this.featureFlags.webglRendererUseShaderLines
+      ? new LineShaderProgram(gl, this.featureFlags)
+      : new LineProgram(gl, this.featureFlags);
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
     const textProgram =
       this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
@@ -139,20 +149,20 @@ export class WebGlRenderer implements Renderer {
 
   private currentStateId?: string;
   private alreadyRenderedTileLayer = new Set<string>();
-  private getCurrentStateId(viewMatrix: mat3, zoom: number, tileSize: number) {
-    return [...viewMatrix, zoom, tileSize, this.canvas.width, this.canvas.height].join('-');
+  private getCurrentStateId(camera: SceneCamera) {
+    return [...camera.viewMatrix, camera.distance, this.canvas.width, this.canvas.height].join('-');
   }
 
-  getObjectId(tiles: WebGlMapTile[], viewMatrix: mat3, zoom: number, tileSize: number, x: number, y: number): number {
+  getObjectId(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, x: number, y: number): number {
     const gl = this.gl;
     const pixels = new Uint8Array(4);
 
-    this.render(tiles, viewMatrix, zoom, tileSize, {
+    this.render(objects, camera, {
       pruneCache: true,
       readPixelRenderMode: true,
     });
     gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    this.render(tiles, viewMatrix, zoom, tileSize, {
+    this.render(objects, camera, {
       pruneCache: true,
       readPixelRenderMode: false,
     });
@@ -160,12 +170,12 @@ export class WebGlRenderer implements Renderer {
     return vector4ToInteger([pixels[0], pixels[1], pixels[2], pixels[3]]);
   }
 
-  render(tiles: WebGlMapTile[], viewMatrix: mat3, zoom: number, tileSize: number, options: RenderOptions) {
+  render(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, options: WebGlRendererOptions) {
     let program: ObjectProgram;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
 
-    const stateId = this.getCurrentStateId(viewMatrix, zoom, tileSize);
+    const stateId = this.getCurrentStateId(camera);
     if (options.pruneCache || this.currentStateId !== stateId) {
       this.currentStateId = stateId;
       this.alreadyRenderedTileLayer.clear();
@@ -173,42 +183,37 @@ export class WebGlRenderer implements Renderer {
       this.debugLog('clear');
     }
 
-    const sortedLayers = this.getSortedLayers(tiles);
+    const sortedObjects = this.getSortedObjects(objects);
 
-    for (const layer of sortedLayers) {
-      const { objectGroups, layerName, tileId } = layer as WebGlMapLayer;
-      const renderLayerId = `${tileId}-${layerName}`;
-
-      if (this.alreadyRenderedTileLayer.has(renderLayerId)) {
-        this.debugLog(`skip layer render "${renderLayerId}"`);
+    for (const objectGroup of sortedObjects) {
+      if (this.alreadyRenderedTileLayer.has(objectGroup.name)) {
+        this.debugLog(`skip layer render "${objectGroup.name}"`);
         continue;
       } else {
-        this.alreadyRenderedTileLayer.add(renderLayerId);
-        this.debugLog(`layer render "${renderLayerId}"`);
+        this.alreadyRenderedTileLayer.add(objectGroup.name);
+        this.debugLog(`layer render "${objectGroup.name}"`);
       }
 
       if (program && !globalUniformsSet) {
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize, options);
+        this.setProgramGlobalUniforms(program, camera, options);
         globalUniformsSet = true;
       }
 
-      for (const objectGroup of objectGroups) {
-        const prevProgram: ObjectProgram = program;
-        program = this.programs[objectGroup.type];
+      const prevProgram: ObjectProgram = program;
+      program = this.programs[objectGroup.type];
 
-        this.framebuffer.bind();
-        prevProgram?.unlink();
-        program.link();
-        this.setProgramGlobalUniforms(program, viewMatrix, zoom, tileSize, options);
-        program.drawObjectGroup(objectGroup, { readPixelRenderMode: options.readPixelRenderMode });
-        this.framebuffer.unbind();
-        shouldRenderToCanvas = true;
-      }
+      this.framebuffer.bind();
+      prevProgram?.unlink();
+      program.link();
+      this.setProgramGlobalUniforms(program, camera, options);
+      program.drawObjectGroup(objectGroup, { readPixelRenderMode: options.readPixelRenderMode });
+      this.framebuffer.unbind();
+      shouldRenderToCanvas = true;
     }
 
     if (shouldRenderToCanvas) {
       this.framebufferProgram.link();
-      this.setProgramGlobalUniforms(this.framebufferProgram, viewMatrix, zoom, tileSize, options);
+      this.setProgramGlobalUniforms(this.framebufferProgram, camera, options);
       this.framebufferProgram.draw(this.frameBufferTexture);
       this.framebufferProgram.unlink();
       this.debugLog(`canvas render`);
@@ -224,26 +229,12 @@ export class WebGlRenderer implements Renderer {
     }
   }
 
-  private getSortedLayers(tiles: WebGlMapTile[]): WebGlMapLayer[] {
-    const layers: WebGlMapLayer[] = [];
-
-    for (const tile of tiles) {
-      layers.push(...tile.layers);
-    }
-
-    return layers.sort((l1, l2) => l1.zIndex - l2.zIndex);
+  private getSortedObjects(objects: WebGlObjectBufferredGroup[]): WebGlObjectBufferredGroup[] {
+    return [...objects].sort((g1, g2) => g1.zIndex - g2.zIndex);
   }
 
-  private setProgramGlobalUniforms(
-    program: ObjectProgram,
-    viewMatrix: mat3,
-    zoom: number,
-    tileSize: number,
-    options: RenderOptions
-  ) {
-    program.setMatrix(viewMatrix);
-    program.setZoom(zoom);
-    program.setTileSize(tileSize);
+  private setProgramGlobalUniforms(program: ObjectProgram, camera: SceneCamera, options: WebGlRendererOptions) {
+    program.setMatrix(camera.viewMatrix);
     program.setWidth(this.rootEl.offsetWidth);
     program.setHeight(this.rootEl.offsetHeight);
     program.setReadPixelRenderMode(options.readPixelRenderMode || false);

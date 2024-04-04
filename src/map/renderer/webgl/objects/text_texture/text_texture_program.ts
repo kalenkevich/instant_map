@@ -36,7 +36,8 @@ export class TextTextureProgram extends ObjectProgram {
     const gl = this.gl;
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
     gl.depthMask(false);
   }
 
@@ -67,9 +68,9 @@ export class TextTextureProgram extends ObjectProgram {
 
   protected async setupTexture() {
     const gl = this.gl;
-    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas;
+    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | undefined;
 
-    for (const source of Object.values(fontAtlas.sources)) {
+    for (const source of Object.values(fontAtlas?.sources || {})) {
       this.fontTextures.push(
         createTexture(gl, {
           name: 'text_atlas_' + source.name,
@@ -78,8 +79,8 @@ export class TextTextureProgram extends ObjectProgram {
           unpackPremultiplyAlpha: true,
           wrapS: gl.CLAMP_TO_EDGE,
           wrapT: gl.CLAMP_TO_EDGE,
-          minFilter: gl.NEAREST,
-          magFilter: gl.NEAREST,
+          minFilter: gl.LINEAR,
+          magFilter: gl.LINEAR,
           source: await toImageBitmapTexture(source.source),
         })
       );
@@ -104,7 +105,7 @@ export class TextTextureProgram extends ObjectProgram {
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
     } else {
       // draw text border
-      gl.uniform1f(this.u_border_widthLocation, 0.65);
+      gl.uniform1f(this.u_border_widthLocation, 0.6);
       this.colorBuffer.bufferData(textGroup.borderColor.buffer);
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 

@@ -16,7 +16,6 @@ export abstract class ObjectProgram {
 
   // uniform locations
   protected u_matrixLocation: WebGLUniformLocation;
-  protected u_zoomLocation: WebGLUniformLocation;
   protected u_widthLocation: WebGLUniformLocation;
   protected u_heightLocation: WebGLUniformLocation;
   protected u_tile_sizeLocation: WebGLUniformLocation;
@@ -95,10 +94,8 @@ export abstract class ObjectProgram {
 
   protected setupUniforms() {
     this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
-    this.u_zoomLocation = this.gl.getUniformLocation(this.program, 'u_zoom');
     this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
     this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
-    this.u_tile_sizeLocation = this.gl.getUniformLocation(this.program, 'u_tile_size');
     this.u_is_read_pixel_render_modeLocation = this.gl.getUniformLocation(this.program, 'u_is_read_pixel_render_mode');
 
     this.u_feature_flagsLocations = {};
@@ -127,20 +124,12 @@ export abstract class ObjectProgram {
     this.gl.uniformMatrix3fv(this.u_matrixLocation, false, matrix);
   }
 
-  setZoom(zoom: number) {
-    this.gl.uniform1f(this.u_zoomLocation, zoom);
-  }
-
   setWidth(width: number) {
     this.gl.uniform1f(this.u_widthLocation, width);
   }
 
   setHeight(height: number) {
     this.gl.uniform1f(this.u_heightLocation, height);
-  }
-
-  setTileSize(tileSize: number) {
-    this.gl.uniform1f(this.u_tile_sizeLocation, tileSize);
   }
 
   setReadPixelRenderMode(isReadPixelRenderMode: boolean) {

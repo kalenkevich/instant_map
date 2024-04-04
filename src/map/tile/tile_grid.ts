@@ -25,7 +25,7 @@ export enum TilesGridEvent {
 
 export class TilesGrid extends Evented<TilesGridEvent> {
   private tiles: LRUCache<string, MapTile>;
-  private tilesInView: TileRef[];
+  private tilesInView: TileRef[] = [];
   private workerPool: WorkerPool;
   private bufferedTiles: TileRef[];
   private currentLoadingTiles: Map<string, WorkerTask> = new Map();
@@ -49,7 +49,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
   }
 
   init() {
-    this.tilesInView = [];
     this.workerPool = new WorkerPool(this.maxWorkerPool);
   }
 

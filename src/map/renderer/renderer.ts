@@ -1,4 +1,3 @@
-import { mat3 } from 'gl-matrix';
 import { MapTile } from '../tile/tile';
 
 export enum MapTileRendererType {
@@ -9,31 +8,23 @@ export enum MapTileRendererType {
   // webgpu = 'webgpu',
 }
 
-export interface MapStyles {
-  disabledLayers?: string[];
-  layers: Record<string, [number, number, number, number]>;
+export interface SceneCamera {
+  readonly width: number;
+  readonly height: number;
+  readonly distance: number;
+  readonly viewMatrix: [number, number, number, number, number, number, number, number, number];
 }
 
-export interface RenderOptions {
-  pruneCache?: boolean;
-  readPixelRenderMode?: boolean;
-}
+export interface RenderOptions {}
 
-export interface Renderer {
+export interface MapTileRenderer {
   init(): Promise<void>;
 
   destroy(): void;
 
   resize(width: number, height: number): void;
 
-  render(tiles: MapTile[], viewMatrix: mat3, zoom: number, tileSize: number, renderOptions?: RenderOptions): void;
+  render(tiles: MapTile[], camera: SceneCamera, renderOptions?: RenderOptions): void;
 
-  getObjectId(
-    tiles: MapTile[],
-    viewMatrix: mat3,
-    zoom: number,
-    tileSize: number,
-    x: number,
-    y: number
-  ): number | undefined;
+  getObjectId(tiles: MapTile[], camera: SceneCamera, x: number, y: number): number | undefined;
 }

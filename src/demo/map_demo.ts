@@ -9,35 +9,12 @@ import {
   BingImageTyleStyles,
 } from './map_styles';
 import { MapTileRendererType } from '../map/renderer/renderer';
-import { FontFormatType } from '../map/font/font_config';
+import { createRootEl } from './demo_utils';
+import { ENABLED_FEATURE_FLAGS } from './enabled_features';
+
+const MAP_ROOT_EL_MARGIN = 10;
 
 const MAP_LOCATION_PARAM_NAME = 'l';
-
-function createRootEl() {
-  const margin = 0;
-  const width = window.innerWidth - margin * 2 - 2;
-  const height = window.innerHeight - margin * 2 - 2;
-
-  const div = document.createElement('div');
-
-  div.id = 'glide-gl';
-  div.style.margin = `${margin}px`;
-  div.style.width = `${width}px`;
-  div.style.height = `${height}px`;
-  div.style.position = `relative`;
-  div.style.overflow = 'hidden';
-  document.body.appendChild(div);
-
-  window.addEventListener('resize', () => {
-    const width = window.innerWidth - margin * 2 - 2;
-    const height = window.innerHeight - margin * 2 - 2;
-
-    div.style.width = `${width}px`;
-    div.style.height = `${height}px`;
-  });
-
-  return div;
-}
 
 const getSafelocation = (zoom: number, lat: number, lng: number) => {
   return `${Number(zoom).toFixed(4)}/${Number(lat).toFixed(4)}/${Number(lng).toFixed(4)}`;
@@ -88,7 +65,7 @@ function fireMapEvent(eventType: MapEventType) {
 let currentMap: GlideMap | undefined;
 
 export function renderMap() {
-  const rootDiv = createRootEl();
+  const rootDiv = createRootEl(window.innerWidth, window.innerHeight, MAP_ROOT_EL_MARGIN);
   document.body.appendChild(rootDiv);
 
   const [zoom, lat, lng] = getStartMapLocation();
@@ -98,7 +75,7 @@ export function renderMap() {
     zoom,
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl2,
-    tileStyles: SateliteTilesStyles,
+    tileStyles: MapboxVectorTileStyles,
     projection: 'mercator',
     controls: {
       compas: true,
@@ -138,12 +115,17 @@ export function renderMap() {
       ],
     },
     workerPool: 8,
-    featureFlags: {
-      debugLayer: true,
-      webglRendererDebug: false,
-      webglRendererFontFormatType: FontFormatType.texture,
-      enableObjectSelection: false,
-    },
+    featureFlags: ENABLED_FEATURE_FLAGS,
+  });
+
+  window.addEventListener('resize', () => {
+    const width = window.innerWidth - MAP_ROOT_EL_MARGIN;
+    const height = window.innerHeight - MAP_ROOT_EL_MARGIN;
+
+    rootDiv.style.width = `${width}px`;
+    rootDiv.style.height = `${height}px`;
+
+    currentMap.resize(width, height);
   });
 
   subscribeOnEvents(currentMap);

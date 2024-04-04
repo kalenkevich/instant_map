@@ -1,56 +1,47 @@
 import { vec2 } from 'gl-matrix';
 import earcut from 'earcut';
 import { WebGlObjectAttributeType } from '../object/object';
+import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { WebGlPolygon, WebGlPolygonBufferredGroup } from './polygon';
 import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { addXTimes } from '../../utils/array_utils';
 
 export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
-  addObject(polygon: WebGlPolygon) {
-    const objectSize = verticesFromPolygon(this.vertecies, polygon.vertecies);
-
-    this.objects.push([polygon, objectSize]);
-  }
-
-  build(): WebGlPolygonBufferredGroup {
-    const numElements = this.vertecies.length / 2;
+  build(camera: SceneCamera, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
+    const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
-    let currentObjectIndex = 0;
-    let currentObject: WebGlPolygon = this.objects[currentObjectIndex][0];
-    let currentOffset = this.objects[currentObjectIndex][1];
+    for (const polygon of this.objects) {
+      const numberOfAddedVertecies = verticesFromPolygon(vertecies, polygon.vertecies);
+      const xTimes = numberOfAddedVertecies / 2;
 
-    for (let i = 0; i < numElements; i++) {
-      if (i > currentOffset) {
-        currentObjectIndex++;
-        currentObject = this.objects[currentObjectIndex][0];
-        currentOffset += this.objects[currentObjectIndex][1];
-      }
-
-      colorBuffer.push(...(currentObject.color || [0, 0, 0, 1]));
-      borderWidthBuffer.push(currentObject.borderWidth);
-      borderColorBuffer.push(...currentObject.borderColor);
-      selectionColorBuffer.push(...integerToVector4(currentObject.id));
+      addXTimes(colorBuffer, [...polygon.color], xTimes);
+      addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
+      addXTimes(borderColorBuffer, [...polygon.borderColor], xTimes);
+      addXTimes(borderColorBuffer, integerToVector4(polygon.id), xTimes);
     }
 
     return {
       type: MapTileFeatureType.polygon,
+      name,
+      zIndex,
       size: this.objects.length,
-      numElements,
+      numElements: vertecies.length / 2,
+      vertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(vertecies),
+      },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(this.vertecies),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,

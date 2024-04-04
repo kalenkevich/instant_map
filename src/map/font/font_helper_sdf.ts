@@ -13,6 +13,7 @@ import { arrayBufferToImageBitmapTextureSource, arrayBufferToSharebleTextureSour
 
 export const DEFAULT_GLYPH_BORDER = 3;
 export const SDF_SCALE = 2;
+export const SPACE_CHAR_CODE = ' '.charCodeAt(0);
 
 // https://github.com/mapbox/node-fontnik/blob/master/proto/glyphs.proto
 export enum SdfAtlasSourceProtobuf {
@@ -61,14 +62,39 @@ export async function getFontAtlasFromSdfConfig(
         const url = config.sourceUrl.replace('{range}', `${range[0]}-${range[1]}`);
 
         return fetch(url)
-          .then(res => res.arrayBuffer())
-          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx));
+          .then(res => {
+            if (res.status === 200) {
+              return res.arrayBuffer();
+            }
+
+            throw new Error(res.statusText);
+          })
+          .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx))
+          .catch(() => {});
       })
     );
   } else {
     await fetch(config.sourceUrl)
       .then(res => res.arrayBuffer())
       .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx));
+  }
+
+  if (!fontAtlas.glyphs[SPACE_CHAR_CODE]) {
+    // create SDF Glyph for space char.
+    fontAtlas.glyphs[SPACE_CHAR_CODE] = {
+      type: FontFormatType.sdf,
+      char: ' ',
+      charCode: SPACE_CHAR_CODE,
+      source: new Uint8ClampedArray(new Array(config.fontSize).map(i => 0)),
+      width: config.fontSize * 0.5,
+      height: 1,
+      x: 0,
+      y: 0,
+      actualBoundingBoxAscent: 0,
+      actualBoundingBoxDescent: 0,
+      fontSize: config.fontSize,
+      pixelRatio: config.pixelRatio || 1,
+    };
   }
 
   const textureSource = await createTextureFromSdfGlyphs(fontAtlas, debugMode);
