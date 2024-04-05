@@ -1,7 +1,6 @@
-import { addExtensionsToContext } from 'twgl.js';
 import { MapTileRendererType, RenderOptions, SceneCamera } from '../renderer';
 import { MapTileFeatureType } from '../../tile/tile';
-import { ExtendedWebGLRenderingContext } from './webgl_context';
+import { addExtensionsToContext, ExtendedWebGLRenderingContext } from './webgl_context';
 import { ObjectProgram } from './objects/object/object_program';
 import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
