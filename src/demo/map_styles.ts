@@ -6,13 +6,13 @@ import { FontFormatType, FontSourceType } from '../map/font/font_config';
 import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
 
 const MapboxVectorDataSource: DataTileSource = {
-  type: DataTileSourceType.pbf,
+  type: DataTileSourceType.mvt,
   name: 'dataSource',
   url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
 };
 
 const MaptilerVectorDataSource: DataTileSource = {
-  type: DataTileSourceType.pbf,
+  type: DataTileSourceType.mvt,
   name: 'dataSource',
   url: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
 };

@@ -14,7 +14,7 @@ import { WebGlMapLayer } from './webgl_tile';
 // Styles
 import {
   DataLayerStyle,
-  PbfTileSource,
+  MvtTileSource,
   GlyphStyle,
   LineStyle,
   PointStyle,
@@ -56,9 +56,9 @@ function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeat
   return MapTileFeatureType.polygon;
 }
 
-export async function PbfTile2WebglLayers(
+export async function MvtTile2WebglLayers(
   tileURL: string,
-  source: PbfTileSource,
+  source: MvtTileSource,
   sourceLayers: DataLayerStyle[],
   {
     tileId,

@@ -35,7 +35,7 @@ export interface DataLayerStyle {
 
 export enum DataTileSourceType {
   debug = 'debug',
-  pbf = 'pbf',
+  mvt = 'mvt',
   image = 'image',
   // Possible data sources
   // json = 'json',
@@ -43,10 +43,10 @@ export enum DataTileSourceType {
   // xml = 'xml'
 }
 
-export type DataTileSource = PbfTileSource | ImageTileSource;
+export type DataTileSource = MvtTileSource | ImageTileSource;
 
-export interface PbfTileSource {
-  type: DataTileSourceType.pbf;
+export interface MvtTileSource {
+  type: DataTileSourceType.mvt;
   name: string;
   url: string;
 }
