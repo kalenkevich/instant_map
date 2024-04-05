@@ -74,7 +74,6 @@ export async function MvtTile2WebglLayers(
     featureFlags,
   }: FetchTileOptions,
   abortController: AbortController,
-  onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
@@ -393,7 +392,6 @@ export async function MvtTile2WebglLayers(
       zIndex: styleLayer.zIndex,
       objectGroups,
     };
-    onLayerReady(layer);
     tileLayers.push(layer);
   }
 

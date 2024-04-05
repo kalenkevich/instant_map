@@ -14,7 +14,6 @@ import {
   WorkerTaskRequestType,
   WorkerTaskResponseType,
   TileFullCompleteResponse,
-  TileLayerCompleteResponse,
 } from '../worker/worker_actions';
 import { WorkerPool, WorkerTask } from '../worker/worker_pool';
 
@@ -78,41 +77,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     setTimeout(() => {
       this.fire(TilesGridEvent.TILE_LOADED, tile);
-    }, 0);
-  }
-
-  private onTileLayerReady(response: TileLayerCompleteResponse) {
-    if (!response.data) {
-      return;
-    }
-
-    const { tileId, tileLayer } = response.data;
-
-    let tile: MapTile;
-    if (this.tiles.has(tileId)) {
-      tile = this.tiles.get(tileId);
-      const layers = tile.layers;
-      const hasLayer = layers.find(l => l.layerName === tileLayer.layerName);
-
-      if (hasLayer) {
-        tile.layers = layers.map(l => {
-          if (l.layerName === tileLayer.layerName) {
-            return tileLayer;
-          }
-
-          return l;
-        });
-      } else {
-        layers.push(tileLayer);
-      }
-    } else {
-      tile = this.createMapTile(tileId, [tileLayer]);
-
-      this.tiles.set(tileId, tile);
-    }
-
-    setTimeout(() => {
-      this.fire(TilesGridEvent.TILE_LAYER_COMPLETE, tile);
     }, 0);
   }
 

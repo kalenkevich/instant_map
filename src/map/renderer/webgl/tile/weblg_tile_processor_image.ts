@@ -31,7 +31,6 @@ export async function ImageTile2WebglLayers(
     featureFlags,
   }: FetchTileOptions,
   abortController: AbortController,
-  onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
@@ -86,7 +85,6 @@ export async function ImageTile2WebglLayers(
         imageGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_images`, styleLayer.zIndex),
       ],
     };
-    onLayerReady(layers);
     tileLayers.push(layers);
   }
 

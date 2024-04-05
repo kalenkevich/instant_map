@@ -31,7 +31,6 @@ export type SourceTileProcessor = (
   sourceLayers: DataLayerStyle[],
   options: FetchTileOptions,
   abortController: AbortController,
-  onLayerReady: (tileLayer: MapTileLayer) => void
 ) => Promise<MapTileLayer[]>;
 
 /** Format tile source url with current z, x, y values. */
@@ -106,7 +105,6 @@ export class TileSourceProcessor {
   async getMapTile(
     options: FetchTileOptions,
     abortController: AbortController,
-    onLayerReady: (tileLayer: MapTileLayer) => void
   ): Promise<MapTile> {
     const { tileId } = options;
     const enabledSources = getEnabledSources(options.tileStyles);
@@ -117,13 +115,13 @@ export class TileSourceProcessor {
       const sourceLayers = getSourceLayers(options.tileStyles, source);
       const sourceProcessor = this.processorsMap[source.type];
 
-      layersPromises.push(sourceProcessor(tileURL, source, sourceLayers, options, abortController, onLayerReady));
+      layersPromises.push(sourceProcessor(tileURL, source, sourceLayers, options, abortController));
     }
 
     const tileLayers = (await Promise.all(layersPromises)).flatMap(l => l);
 
     if (options.featureFlags.debugLayer) {
-      tileLayers.push(...(await this.getDebugLayers(options, abortController, onLayerReady)));
+      tileLayers.push(...(await this.getDebugLayers(options, abortController)));
     }
 
     return {
@@ -136,10 +134,9 @@ export class TileSourceProcessor {
   async getDebugLayers(
     options: FetchTileOptions,
     abortController: AbortController,
-    onLayerReady: (tileLayer: MapTileLayer) => void
   ): Promise<MapTileLayer[]> {
     const sourceProcessor = this.processorsMap[DataTileSourceType.debug];
 
-    return sourceProcessor(null, null, [], options, abortController, onLayerReady);
+    return sourceProcessor(null, null, [], options, abortController);
   }
 }

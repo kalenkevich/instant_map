@@ -1,4 +1,4 @@
-import { MapTile, MapTileLayer } from '../tile/tile';
+import { MapTile } from '../tile/tile';
 import { MapTileRendererType } from '../renderer/renderer';
 import { FetchTileOptions, TileSourceProcessor } from '../tile/tile_source_processor';
 import { WorkerTaskRequestType, WorkerTaskResponseType, WorkerTaskRequest } from './worker_actions';
@@ -53,22 +53,12 @@ export class WorkerActionHandler {
     let abortController = new AbortController();
     let promiseResolve: () => void;
 
-    const onLayerReady = (tileLayer: MapTileLayer) => {
-      postMessage({
-        type: WorkerTaskResponseType.TILE_LAYER_COMPLETE,
-        data: {
-          tileId: data.tileId,
-          tileLayer,
-        },
-      });
-    };
-
     const promise = new Promise<void>((resolve, reject) => {
       promiseResolve = resolve;
       const tileTrasformer = this.tileRendererTypeTransformerMap[data.rendererType];
 
       tileTrasformer
-        .getMapTile(data, abortController, onLayerReady)
+        .getMapTile(data, abortController)
         .then((tile: MapTile) => {
           postMessage({
             type: WorkerTaskResponseType.TILE_FULL_COMPLETE,

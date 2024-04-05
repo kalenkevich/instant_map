@@ -33,8 +33,6 @@ export async function DebugTile2WebglLayers(
     projectionViewMat,
     fontManagerState,
   }: FetchTileOptions,
-  abortController: AbortController,
-  onLayerReady: (tileLayer: WebGlMapLayer) => void
 ): Promise<WebGlMapLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);
   const projection = new MercatorProjection();
@@ -97,7 +95,6 @@ export async function DebugTile2WebglLayers(
     objectGroups: debugObjectGroups,
   };
   tileLayers.push(debugLayer);
-  onLayerReady(debugLayer);
 
   return tileLayers;
 }

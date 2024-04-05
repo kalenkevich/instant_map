@@ -22,20 +22,11 @@ export interface CancelTileFetchWorkerTaskRequestData<DataType> extends WorkerTa
 /** Supported worker responses. */
 export enum WorkerTaskResponseType {
   TILE_FULL_COMPLETE = 'TILE_FULL_COMPLETE',
-  TILE_LAYER_COMPLETE = 'TILE_LAYER_COMPLETE',
 }
 
-export type WorkerTaskResponse = TileFullCompleteResponse | TileLayerCompleteResponse;
+export type WorkerTaskResponse = TileFullCompleteResponse;
 
 export interface TileFullCompleteResponse {
   type: WorkerTaskResponseType.TILE_FULL_COMPLETE;
   data: MapTile;
-}
-
-export interface TileLayerCompleteResponse {
-  type: WorkerTaskResponseType.TILE_LAYER_COMPLETE;
-  data: {
-    tileId: string;
-    tileLayer: MapTileLayer;
-  };
 }
