@@ -1,6 +1,4 @@
-export type EventListener<EventType> = (eventType: EventType, ...eventArgs: any[]) => void;
-
-let globalId = 0;
+export type EventListener<EventType> = (eventType: EventType, ...eventArgs: unknown[]) => void;
 
 export class Evented<EventType> {
   private eventListeners: Array<{ eventType: EventType; handler: EventListener<EventType>; enabled: boolean }> = [];
@@ -14,7 +12,7 @@ export class Evented<EventType> {
   }
 
   public once(eventType: EventType, handler: EventListener<EventType>): void {
-    const onceHandler: EventListener<EventType> = (_: EventType, ...eventArgs: any[]) => {
+    const onceHandler: EventListener<EventType> = (_: EventType, ...eventArgs: unknown[]) => {
       this.off(eventType, onceHandler);
 
       handler(eventType, ...eventArgs);
@@ -31,7 +29,7 @@ export class Evented<EventType> {
     this.eventListeners = this.eventListeners.filter(l => !(l.eventType === eventType && l.handler === handler));
   }
 
-  protected fire(eventType: EventType, ...eventArgs: any[]) {
+  protected fire(eventType: EventType, ...eventArgs: unknown[]) {
     const listeners = [...this.eventListeners];
 
     for (const listener of listeners) {

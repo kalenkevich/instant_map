@@ -1,4 +1,3 @@
-import { vec2 } from 'gl-matrix';
 import tilebelt from '@mapbox/tilebelt';
 // Common
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
@@ -19,17 +18,7 @@ export async function ImageTile2WebglLayers(
   tileURL: string,
   source: ImageTileSource,
   sourceLayers: DataLayerStyle[],
-  {
-    tileId,
-    tileStyles,
-    canvasWidth,
-    canvasHeight,
-    pixelRatio,
-    zoom,
-    tileSize,
-    projectionViewMat,
-    featureFlags,
-  }: FetchTileOptions,
+  { tileId, canvasWidth, canvasHeight, pixelRatio, zoom, tileSize, projectionViewMat, featureFlags }: FetchTileOptions,
   abortController: AbortController,
 ): Promise<WebGlMapLayer[]> {
   const [x, y, z] = tileId.split('/').map(Number);

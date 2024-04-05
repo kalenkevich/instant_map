@@ -7,7 +7,7 @@ import { FontManager } from '../../../font/font_manager';
 import { FontFormatType } from '../../../font/font_config';
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
 // Tile
-import { MapFeatureType, LineJoinStyle, LineCapStyle, LineFillStyle  } from '../../../tile/feature';
+import { MapFeatureType, LineJoinStyle, LineFillStyle } from '../../../tile/feature';
 import { FetchTileOptions } from '../../../tile/tile_source_processor';
 import { WebGlMapLayer } from './webgl_tile';
 // Styles
@@ -60,7 +60,6 @@ export async function MvtTile2WebglLayers(
   sourceLayers: DataLayerStyle[],
   {
     tileId,
-    tileStyles,
     canvasWidth,
     canvasHeight,
     pixelRatio,
@@ -93,6 +92,7 @@ export async function MvtTile2WebglLayers(
       continue;
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const numFeatures = vectorTile.layers[styleLayer.sourceLayer]?._features?.length || 0;
 
@@ -116,8 +116,7 @@ export async function MvtTile2WebglLayers(
         .toGeoJSON(x, y, z) as Feature<SupportedGeometry>;
 
       const featureType = getMapTileFeatureType(geojson);
-      const possibleText =
-        styleLayer.feature.type === MapFeatureType.text && featureType === MapFeatureType.point;
+      const possibleText = styleLayer.feature.type === MapFeatureType.text && featureType === MapFeatureType.point;
       const possibleGlyph = styleLayer.feature.type === MapFeatureType.glyph;
       const isTextOrGlyph = [MapFeatureType.glyph, MapFeatureType.text].includes(styleLayer.feature.type);
 
@@ -273,7 +272,7 @@ export async function MvtTile2WebglLayers(
             type: MapFeatureType.polygon,
             color: compileStatement(polygonStyle.color, polygonFeature),
             vertecies: (geojson.geometry.coordinates as Array<Array<[number, number]>>).map(arr =>
-              arr.map(p => projection.fromLngLat(p))
+              arr.map(p => projection.fromLngLat(p)),
             ),
             borderWidth: 1,
             borderColor: [0, 0, 0, 1],
@@ -292,7 +291,7 @@ export async function MvtTile2WebglLayers(
               type: MapFeatureType.polygon,
               color: compileStatement(polygonStyle.color, polygonFeature),
               vertecies: ([polygons[0]] as Array<Array<[number, number]>>).map(arr =>
-                arr.map(p => projection.fromLngLat(p))
+                arr.map(p => projection.fromLngLat(p)),
               ),
               borderWidth: 1,
               borderColor: [0, 0, 0, 1],
@@ -317,9 +316,7 @@ export async function MvtTile2WebglLayers(
             vertecies: (lineFeature.geometry.coordinates as Array<[number, number]>).map(p => projection.fromLngLat(p)),
             width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
             borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
-            borderColor: lineStyle.borderColor
-              ? compileStatement(lineStyle.borderColor, lineFeature)
-              : [0, 0, 0, 0],
+            borderColor: lineStyle.borderColor ? compileStatement(lineStyle.borderColor, lineFeature) : [0, 0, 0, 0],
             fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
             join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
             cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
@@ -339,9 +336,7 @@ export async function MvtTile2WebglLayers(
               vertecies: (lineGeometry as Array<[number, number]>).map(p => projection.fromLngLat(p)),
               width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
               borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
-              borderColor: lineStyle.borderColor
-                ? compileStatement(lineStyle.borderColor, lineFeature)
-                : [0, 0, 0, 0],
+              borderColor: lineStyle.borderColor ? compileStatement(lineStyle.borderColor, lineFeature) : [0, 0, 0, 0],
               fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
               join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
               cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
@@ -355,31 +350,31 @@ export async function MvtTile2WebglLayers(
 
     if (!pointsGroupBuilder.isEmpty()) {
       objectGroups.push(
-        pointsGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_points`, styleLayer.zIndex)
+        pointsGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_points`, styleLayer.zIndex),
       );
     }
 
     if (!lineGroupBuilder.isEmpty()) {
       objectGroups.push(
-        lineGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_lines`, styleLayer.zIndex)
+        lineGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_lines`, styleLayer.zIndex),
       );
     }
 
     if (!polygonGroupBuilder.isEmpty()) {
       objectGroups.push(
-        polygonGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_polygons`, styleLayer.zIndex)
+        polygonGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_polygons`, styleLayer.zIndex),
       );
     }
 
     if (!textTextureGroupBuilder.isEmpty()) {
       objectGroups.push(
-        textTextureGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_text`, styleLayer.zIndex)
+        textTextureGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_text`, styleLayer.zIndex),
       );
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
       objectGroups.push(
-        glyphGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_glyphs`, styleLayer.zIndex)
+        glyphGroupBuilder.build(camera, `${tileId}_${styleLayer.styleLayerName}_glyphs`, styleLayer.zIndex),
       );
     }
 

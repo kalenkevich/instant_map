@@ -1,4 +1,5 @@
-import { DataTileSourceType, DataTileSource, DataTileStyles } from '../map/styles/styles';
+import { DataTileSourceType } from '../map/tile/tile_source/tile_source';
+import { DataTileSource, DataTileStyles } from '../map/styles/styles';
 import { MapFeatureType, LineJoinStyle } from '../map/tile/feature';
 import { FontConfig } from '../map/font/font_config';
 import { FontFormatType, FontSourceType } from '../map/font/font_config';

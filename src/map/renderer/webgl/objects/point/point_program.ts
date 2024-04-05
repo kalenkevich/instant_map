@@ -9,7 +9,7 @@ export class PointProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = PointShaders.vertext,
-    protected readonly fragmentShaderSource: string = PointShaders.fragment
+    protected readonly fragmentShaderSource: string = PointShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -28,14 +28,14 @@ export class PointProgram extends ObjectProgram {
     // draw background
     this.positionBuffer.bufferData(objectGroup.borderVertecies.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.borderColor.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.borderColor.buffer,
     );
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 
     // draw circle
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer,
     );
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);
 

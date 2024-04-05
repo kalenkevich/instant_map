@@ -91,7 +91,6 @@ export interface PointMargin {
   left?: number;
 }
 
-
 // checkout https://wwwtyro.net/2019/11/18/instanced-lines.html
 export enum LineJoinStyle {
   miter = 0,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Feature } from 'geojson';
 import { describe, expect, it } from '@jest/globals';
 import {
@@ -113,7 +114,7 @@ describe('compileStatement', () => {
           coordinates: [],
         },
         properties: {},
-      })
+      }),
     ).toBe('value');
 
     expect(
@@ -124,7 +125,7 @@ describe('compileStatement', () => {
           coordinates: [],
         },
         properties: {},
-      })
+      }),
     ).toBe(123);
 
     expect(
@@ -135,7 +136,7 @@ describe('compileStatement', () => {
           coordinates: [],
         },
         properties: {},
-      })
+      }),
     ).toBe(true);
 
     expect(
@@ -146,7 +147,7 @@ describe('compileStatement', () => {
           coordinates: [],
         },
         properties: {},
-      })
+      }),
     ).toBe(false);
 
     expect(
@@ -159,8 +160,8 @@ describe('compileStatement', () => {
             coordinates: [],
           },
           properties: {},
-        }
-      )
+        },
+      ),
     ).toEqual({});
 
     expect(
@@ -171,7 +172,7 @@ describe('compileStatement', () => {
           coordinates: [],
         },
         properties: {},
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -186,7 +187,7 @@ describe('compileStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('water');
   });
 
@@ -201,7 +202,7 @@ describe('compileStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('then result');
 
     expect(
@@ -214,7 +215,7 @@ describe('compileStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('else result');
   });
 
@@ -323,7 +324,7 @@ describe('compileIfStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('then result');
   });
 
@@ -338,7 +339,7 @@ describe('compileIfStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('else result');
   });
 
@@ -364,7 +365,7 @@ describe('compileIfStatement', () => {
           thenValue: 'then result',
           elseValue: 'else result',
         },
-      })
+      }),
     ).toBe('then result');
 
     const andCondition1: AndCondition = [
@@ -385,7 +386,7 @@ describe('compileIfStatement', () => {
           thenValue: 'then result',
           elseValue: 'else result',
         },
-      })
+      }),
     ).toBe('else result');
   });
 
@@ -400,7 +401,7 @@ describe('compileIfStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe(2);
 
     expect(
@@ -413,7 +414,7 @@ describe('compileIfStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe(3);
   });
 
@@ -492,7 +493,7 @@ describe('compileSwitchCaseStatement', () => {
         properties: {
           class: 'water',
         },
-      })
+      }),
     ).toBe('water case');
 
     expect(
@@ -505,7 +506,7 @@ describe('compileSwitchCaseStatement', () => {
         properties: {
           class: 'land',
         },
-      })
+      }),
     ).toBe('land case');
   });
 
@@ -520,7 +521,7 @@ describe('compileSwitchCaseStatement', () => {
         properties: {
           class: 'default',
         },
-      })
+      }),
     ).toBe('default case');
 
     expect(
@@ -533,7 +534,7 @@ describe('compileSwitchCaseStatement', () => {
         properties: {
           class: 'default',
         },
-      })
+      }),
     ).toBe('default case');
   });
 
@@ -589,14 +590,14 @@ describe('compileSwitchCaseStatement', () => {
         },
       });
     }).toThrowError(
-      'Switch statement is invalid, $default should be last case: ["$switch",["$get","properties.class"],["$default","blue"],["ocean","blue"]]'
+      'Switch statement is invalid, $default should be last case: ["$switch",["$get","properties.class"],["$default","blue"],["ocean","blue"]]',
     );
   });
 });
 
 describe('compileConditionStatement', () => {
   it('should treat statement as a feature value and cast it to boolean', () => {
-    const featureValue: FeatureValue<string> = ['$get', 'properties.class'];
+    const featureValue: FeatureValue = ['$get', 'properties.class'];
 
     expect(compileConditionStatement(featureValue, SampleWaterFeature)).toBe(true);
   });
@@ -633,8 +634,8 @@ describe('compileConditionStatement', () => {
     expect(
       compileConditionStatement(
         ['$and', ['$eq', ['$get', 'properties.maxzoom'], 5], ['$eq', ['$get', 'properties.minzoom'], 0]],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -642,8 +643,8 @@ describe('compileConditionStatement', () => {
     expect(
       compileConditionStatement(
         ['$or', ['$eq', ['$get', 'properties.maxzoom'], 6], ['$eq', ['$get', 'properties.minzoom'], 0]],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -651,8 +652,8 @@ describe('compileConditionStatement', () => {
     expect(
       compileConditionStatement(
         ['$oneOf', ['$get', 'properties.class'], 'water', 'land', 'transportation'],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -662,14 +663,14 @@ describe('compileConditionStatement', () => {
 
   it('should treat statement as an "$!" condition statement', () => {
     expect(compileConditionStatement(['$!', ['$eq', ['$get', 'properties.class'], 'land']], SampleWaterFeature)).toBe(
-      true
+      true,
     );
   });
 });
 
 describe('compileConditionStatementOrValue', () => {
   it('should treat statement as a feature value', () => {
-    const featureValue: FeatureValue<string> = ['$get', 'properties.class'];
+    const featureValue: FeatureValue = ['$get', 'properties.class'];
 
     expect(compileConditionStatementOrValue(featureValue, SampleWaterFeature)).toBe('water');
   });
@@ -680,25 +681,25 @@ describe('compileConditionStatementOrValue', () => {
 
   it('should treat statement as a "$eq" condition statement', () => {
     expect(compileConditionStatementOrValue(['$eq', ['$get', 'properties.class'], 'water'], SampleWaterFeature)).toBe(
-      true
+      true,
     );
   });
 
   it('should treat statement as an "$neq" condition statement', () => {
     expect(compileConditionStatementOrValue(['$neq', ['$get', 'properties.class'], 'grass'], SampleWaterFeature)).toBe(
-      true
+      true,
     );
   });
 
   it('should treat statement as a "$lt" condition statement', () => {
     expect(compileConditionStatementOrValue(['$lt', ['$get', 'properties.minzoom'], 0], SampleWaterFeature)).toBe(
-      false
+      false,
     );
   });
 
   it('should treat statement as a "$lte" condition statement', () => {
     expect(compileConditionStatementOrValue(['$lte', ['$get', 'properties.minzoom'], 0], SampleWaterFeature)).toBe(
-      true
+      true,
     );
   });
 
@@ -708,7 +709,7 @@ describe('compileConditionStatementOrValue', () => {
 
   it('should treat statement as a "$gte" condition statement', () => {
     expect(compileConditionStatementOrValue(['$gte', ['$get', 'properties.maxzoom'], 5], SampleWaterFeature)).toBe(
-      true
+      true,
     );
   });
 
@@ -716,8 +717,8 @@ describe('compileConditionStatementOrValue', () => {
     expect(
       compileConditionStatementOrValue(
         ['$and', ['$eq', ['$get', 'properties.maxzoom'], 5], ['$eq', ['$get', 'properties.minzoom'], 0]],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -725,8 +726,8 @@ describe('compileConditionStatementOrValue', () => {
     expect(
       compileConditionStatementOrValue(
         ['$or', ['$eq', ['$get', 'properties.maxzoom'], 6], ['$eq', ['$get', 'properties.minzoom'], 0]],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 });
@@ -1013,8 +1014,8 @@ describe('compileOrCondition', () => {
     expect(
       compileOrCondition(
         ['$or', ['$eq', ['$get', 'properties.class'], 'water'], ['$eq', ['$get', 'properties.subClass'], 'ocean']],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -1022,8 +1023,8 @@ describe('compileOrCondition', () => {
     expect(
       compileOrCondition(
         ['$||', ['$eq', ['$get', 'properties.class'], 'water'], ['$eq', ['$get', 'properties.subClass'], 'ocean']],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -1073,8 +1074,8 @@ describe('compileAndCondition', () => {
     expect(
       compileAndCondition(
         ['$and', ['$eq', ['$get', 'properties.class'], 'water'], ['$eq', ['$get', 'properties.subClass'], 'ocean']],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -1082,8 +1083,8 @@ describe('compileAndCondition', () => {
     expect(
       compileAndCondition(
         ['$&&', ['$eq', ['$get', 'properties.class'], 'water'], ['$eq', ['$get', 'properties.subClass'], 'ocean']],
-        SampleWaterFeature
-      )
+        SampleWaterFeature,
+      ),
     ).toBe(true);
   });
 
@@ -1105,13 +1106,13 @@ describe('compileAndCondition', () => {
 describe('compileOneOfCondition', () => {
   it('should return true for truthy "ONE OF" condition', () => {
     expect(
-      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'water', 'land', 'buildings'], SampleWaterFeature)
+      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'water', 'land', 'buildings'], SampleWaterFeature),
     ).toBe(true);
   });
 
   it('should return false for falthy "ONE OF" condition', () => {
     expect(
-      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'test', 'land', 'buildings'], SampleWaterFeature)
+      compileOneOfCondition(['$oneOf', ['$get', 'properties.class'], 'test', 'land', 'buildings'], SampleWaterFeature),
     ).toBe(false);
   });
 
@@ -1177,7 +1178,7 @@ describe('compileIsNotEmptyCondition', () => {
 
   it('should return false for falthy "not empty" condition', () => {
     expect(compileIsNotEmptyCondition(['$notEmpty', ['$get', 'properties.undefinedProp']], SampleWaterFeature)).toBe(
-      false
+      false,
     );
   });
 
@@ -1211,7 +1212,7 @@ describe('compileValueStatement', () => {
 });
 
 describe('compileFeatureValueStatement', () => {
-  const featureValue: FeatureValue<string> = ['$get', 'properties.class'];
+  const featureValue: FeatureValue = ['$get', 'properties.class'];
 
   it('should return feature value', () => {
     expect(compileFeatureValueStatement(featureValue, SampleWaterFeature)).toBe('water');
@@ -1219,24 +1220,24 @@ describe('compileFeatureValueStatement', () => {
 
   it('should throw an error when eature statement is invalid', () => {
     expect(() => {
-      compileFeatureValueStatement([] as unknown as FeatureValue<string>, SampleWaterFeature);
+      compileFeatureValueStatement([] as unknown as FeatureValue, SampleWaterFeature);
     }).toThrowError('FeatureValue statement is invalid: []');
 
     expect(() => {
-      compileFeatureValueStatement(['$get'] as unknown as FeatureValue<string>, SampleWaterFeature);
+      compileFeatureValueStatement(['$get'] as unknown as FeatureValue, SampleWaterFeature);
     }).toThrowError('FeatureValue statement is invalid: ["$get"]');
 
     expect(() => {
       compileFeatureValueStatement(
-        ['$get', 'test.property', 'unknown param'] as unknown as FeatureValue<string>,
-        SampleWaterFeature
+        ['$get', 'test.property', 'unknown param'] as unknown as FeatureValue,
+        SampleWaterFeature,
       );
     }).toThrowError('FeatureValue statement is invalid: ["$get","test.property","unknown param"]');
 
     expect(() => {
       compileFeatureValueStatement(
-        ['$undefinedFunction', 'test.property', 'unknown param'] as unknown as FeatureValue<string>,
-        SampleWaterFeature
+        ['$undefinedFunction', 'test.property', 'unknown param'] as unknown as FeatureValue,
+        SampleWaterFeature,
       );
     }).toThrowError('FeatureValue statement is invalid: ["$undefinedFunction","test.property","unknown param"]');
   });
@@ -1352,14 +1353,17 @@ describe('getPropertyValue', () => {
 
   it('should throw error if property is not number/string', () => {
     expect(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       getPropertyValue<string>(object, true);
     }).toThrowError('Cannot get value from: true');
     expect(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       getPropertyValue<string>(object, {});
     }).toThrowError('Cannot get value from: {}');
     expect(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       getPropertyValue<string>(object, []);
     }).toThrowError('Cannot get value from: []');
@@ -1394,7 +1398,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 9,
         },
-      })
+      }),
     ).toBe(3);
   });
 
@@ -1405,7 +1409,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: -9,
         },
-      })
+      }),
     ).toBe(9);
 
     expect(
@@ -1414,7 +1418,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 9,
         },
-      })
+      }),
     ).toBe(9);
   });
 
@@ -1425,7 +1429,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1.5,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1434,7 +1438,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1.9,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1443,7 +1447,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 2.1,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1454,7 +1458,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1.5,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1465,7 +1469,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1.7,
         },
-      })
+      }),
     ).toBe(2);
 
     expect(
@@ -1474,7 +1478,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1.3,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1485,7 +1489,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 2,
         },
-      })
+      }),
     ).toBe(7.38905609893065);
   });
 
@@ -1496,7 +1500,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: Math.PI / 2,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1507,7 +1511,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 0,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1516,7 +1520,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: Math.PI,
         },
-      })
+      }),
     ).toBe(-1);
   });
 
@@ -1527,7 +1531,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: Math.PI / 4,
         },
-      })
+      }),
     ).toBe(0.9999999999999999);
   });
 
@@ -1538,7 +1542,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: Math.PI / 4,
         },
-      })
+      }),
     ).toBe(1.0000000000000002);
   });
 
@@ -1549,7 +1553,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: Math.E,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1560,7 +1564,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 4,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1571,7 +1575,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 100,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1582,7 +1586,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1593,7 +1597,7 @@ describe('compileMathStatement', () => {
         properties: {
           level: 1,
         },
-      })
+      }),
     ).toBe(3);
   });
 
@@ -1696,7 +1700,7 @@ describe('compileSqrtStatement', () => {
         properties: {
           level: 9,
         },
-      })
+      }),
     ).toBe(3);
   });
 
@@ -1719,7 +1723,7 @@ describe('compileAbsStatement', () => {
         properties: {
           level: -9,
         },
-      })
+      }),
     ).toBe(9);
 
     expect(
@@ -1728,7 +1732,7 @@ describe('compileAbsStatement', () => {
         properties: {
           level: 9,
         },
-      })
+      }),
     ).toBe(9);
   });
 
@@ -1751,7 +1755,7 @@ describe('compileFloorStatement', () => {
         properties: {
           level: 1.5,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1760,7 +1764,7 @@ describe('compileFloorStatement', () => {
         properties: {
           level: 1.9,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1769,7 +1773,7 @@ describe('compileFloorStatement', () => {
         properties: {
           level: 2.1,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1792,7 +1796,7 @@ describe('compileCeilStatement', () => {
         properties: {
           level: 1.5,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -1815,7 +1819,7 @@ describe('compileRoundStatement', () => {
         properties: {
           level: 1.7,
         },
-      })
+      }),
     ).toBe(2);
 
     expect(
@@ -1824,7 +1828,7 @@ describe('compileRoundStatement', () => {
         properties: {
           level: 1.3,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1847,7 +1851,7 @@ describe('compileExpStatement', () => {
         properties: {
           level: 2,
         },
-      })
+      }),
     ).toBe(7.38905609893065);
   });
 
@@ -1870,7 +1874,7 @@ describe('compileSinStatement', () => {
         properties: {
           level: Math.PI / 2,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1893,7 +1897,7 @@ describe('compileCosStatement', () => {
         properties: {
           level: 0,
         },
-      })
+      }),
     ).toBe(1);
 
     expect(
@@ -1902,7 +1906,7 @@ describe('compileCosStatement', () => {
         properties: {
           level: Math.PI,
         },
-      })
+      }),
     ).toBe(-1);
   });
 
@@ -1925,7 +1929,7 @@ describe('compileTanStatement', () => {
         properties: {
           level: Math.PI / 4,
         },
-      })
+      }),
     ).toBe(0.9999999999999999);
   });
 
@@ -1948,7 +1952,7 @@ describe('compileCtgStatement', () => {
         properties: {
           level: Math.PI / 4,
         },
-      })
+      }),
     ).toBe(1.0000000000000002);
   });
 
@@ -1971,7 +1975,7 @@ describe('compileLogStatement', () => {
         properties: {
           level: Math.E,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -1994,7 +1998,7 @@ describe('compileLog2Statement', () => {
         properties: {
           level: 4,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -2017,7 +2021,7 @@ describe('compileLog10Statement', () => {
         properties: {
           level: 100,
         },
-      })
+      }),
     ).toBe(2);
   });
 
@@ -2040,7 +2044,7 @@ describe('compileMinStatement', () => {
         properties: {
           level: 1,
         },
-      })
+      }),
     ).toBe(1);
   });
 
@@ -2063,7 +2067,7 @@ describe('compileMaxStatement', () => {
         properties: {
           level: 1,
         },
-      })
+      }),
     ).toBe(3);
   });
 

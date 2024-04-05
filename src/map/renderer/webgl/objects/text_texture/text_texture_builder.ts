@@ -29,7 +29,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
-    private readonly fontManager: FontManager
+    private readonly fontManager: FontManager,
   ) {
     super(featureFlags, pixelRatio);
   }
@@ -92,7 +92,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
           ...text.borderColor,
           ...text.borderColor,
           ...text.borderColor,
-          ...text.borderColor
+          ...text.borderColor,
         );
 
         const selectionColorId = integerToVector4(text.id);
@@ -102,7 +102,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
           ...selectionColorId,
           ...selectionColorId,
           ...selectionColorId,
-          ...selectionColorId
+          ...selectionColorId,
         );
         numElements += 6;
       }

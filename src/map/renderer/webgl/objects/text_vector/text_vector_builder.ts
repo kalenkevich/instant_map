@@ -29,7 +29,7 @@ export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlT
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
-    private readonly fontManager: FontManager
+    private readonly fontManager: FontManager,
   ) {
     super(featureFlags, pixelRatio);
   }

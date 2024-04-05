@@ -1,8 +1,4 @@
-import {
-  WebGlObjectBufferredGroup,
-  WebGlObjectAttributeDescriptor,
-  WebGlObjectAttributeType,
-} from '../object/object';
+import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
 import { MapFeatureType } from '../../../../tile/feature';
 import { ImageBitmapTextureSource } from '../../../../texture/texture';
 

@@ -21,7 +21,7 @@ export class GlyphProgram extends ObjectProgram {
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly atlasTextureManager: GlyphsManager,
     protected readonly vertexShaderSource: string = GlyphShaders.vertext,
-    protected readonly fragmentShaderSource: string = GlyphShaders.fragment
+    protected readonly fragmentShaderSource: string = GlyphShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -98,7 +98,7 @@ export class GlyphProgram extends ObjectProgram {
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);

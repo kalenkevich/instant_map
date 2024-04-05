@@ -1,5 +1,5 @@
-import { DataTileSourceType } from './styles/styles';
 import { TileSourceProcessor } from './tile/tile_source_processor';
+import { DataTileSourceType } from './tile/tile_source/tile_source';
 import { MapTileRendererType } from './renderer/renderer';
 // WebGl processors
 import { MvtTile2WebglLayers } from './renderer/webgl/tile/weblg_tile_processor_mvt';

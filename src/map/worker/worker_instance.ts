@@ -20,9 +20,9 @@ export class WorkerInstance extends Evented<WorkerTaskResponseType> {
   }
 
   sendRequest(
-    request: WorkerTaskRequest<any>,
+    request: WorkerTaskRequest<unknown>,
     responseEvent?: WorkerTaskResponseType,
-    responseHandler: (response: WorkerTaskResponse) => void = () => {}
+    responseHandler: (response: WorkerTaskResponse) => void = () => {},
   ) {
     this.worker.postMessage(request);
 
@@ -30,7 +30,7 @@ export class WorkerInstance extends Evented<WorkerTaskResponseType> {
       return;
     }
 
-    this.worker.onmessage = (result: any) => {
+    this.worker.onmessage = (result: { data: WorkerTaskResponse }) => {
       this.fire(result.data.type, result.data);
 
       if (responseEvent && result.data.type === responseEvent) {
@@ -38,7 +38,7 @@ export class WorkerInstance extends Evented<WorkerTaskResponseType> {
       }
     };
 
-    this.worker.onerror = (error: any) => {
+    this.worker.onerror = () => {
       this.status = WorkerStatus.FREE;
     };
 

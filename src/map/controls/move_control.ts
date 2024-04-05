@@ -1,6 +1,5 @@
 import { MapControl } from './map_control';
 import { throttle } from '../utils/trottle';
-import { Point } from '../geometry/point';
 
 export class MoveControl extends MapControl {
   private parentEl: HTMLElement;
@@ -27,16 +26,16 @@ export class MoveControl extends MapControl {
     this.leftButton = this.createButton('▲', 'move-left', 270);
 
     this.upButton.onclick = throttle(() => {
-      this.map.panBy(new Point(0, -this.stepDeltaInPx), { animate: false });
+      this.map.panBy([0, -this.stepDeltaInPx]);
     }, this.debounceTimeMs);
     this.downButton.onclick = throttle(() => {
-      this.map.panBy(new Point(0, this.stepDeltaInPx), { animate: false });
+      this.map.panBy([0, this.stepDeltaInPx]);
     }, this.debounceTimeMs);
     this.rightButton.onclick = throttle(() => {
-      this.map.panBy(new Point(this.stepDeltaInPx, 0), { animate: false });
+      this.map.panBy([this.stepDeltaInPx, 0]);
     }, this.debounceTimeMs);
     this.leftButton.onclick = throttle(() => {
-      this.map.panBy(new Point(-this.stepDeltaInPx, 0), { animate: false });
+      this.map.panBy([-this.stepDeltaInPx, 0]);
     }, this.debounceTimeMs);
 
     this.rows[0].appendChild(this.createEmptyBlock());

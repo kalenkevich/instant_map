@@ -41,7 +41,7 @@ export async function getFontAtlasFromImage(config: TextureFontConfig): Promise<
       const url = config.sourceUrl.replace('{range}', `${range[0]}-${range[1]}`);
 
       await populateFontAtlasFromImage(url, range, index, config, fontAtlas);
-    })
+    }),
   );
 
   return fontAtlas;
@@ -52,7 +52,7 @@ export async function populateFontAtlasFromImage(
   range: [number, number],
   index: number,
   config: TextureFontConfig,
-  fontAtlas: TextureFontAtlas
+  fontAtlas: TextureFontAtlas,
 ) {
   const sourceImage = new Image(config.width, config.height);
   sourceImage.src = url;
@@ -83,7 +83,7 @@ export async function populateFontAtlasFromImage(
       config.glyphHeight,
       0,
       0,
-      config.pixelRatio || 1
+      config.pixelRatio || 1,
     );
 
     currentX += config.glyphWidth;
@@ -96,7 +96,7 @@ export async function populateFontAtlasFromImage(
 
 export async function getFontAtlasFromFont(
   config: TextureFontConfig,
-  debugMode: boolean = false
+  debugMode: boolean = false,
 ): Promise<TextureFontAtlas> {
   const fontAtlas: TextureFontAtlas = {
     type: FontFormatType.texture,
@@ -117,7 +117,7 @@ export async function getFontAtlasFromFont(
         const fontSource = await fetch(url).then(res => res.arrayBuffer());
 
         populateFontAtlasFromFont(fontSource, config, fontAtlas, debugMode);
-      })
+      }),
     );
   } else {
     const url = config.sourceUrl;
@@ -133,7 +133,7 @@ export async function populateFontAtlasFromFont(
   fontSource: ArrayBuffer,
   config: TextureFontConfig,
   fontAtlas: TextureFontAtlas,
-  debugMode: boolean = false
+  debugMode: boolean = false,
 ) {
   const font = parseFont(fontSource);
 
@@ -152,7 +152,7 @@ export async function populateFontAtlasFromFont(
           0,
           0,
           source.width,
-          source.height
+          source.height,
         );
 
         await downloadBitmapImage(bitmapTexture.data);
@@ -161,7 +161,7 @@ export async function populateFontAtlasFromFont(
       for (const g of glyphs) {
         fontAtlas.glyphs[g.charCode] = g;
       }
-    })
+    }),
   );
 }
 
@@ -170,7 +170,7 @@ export async function generateTextureAtlas(
   range: [number, number],
   font: Font,
   fontSize: number,
-  margin: number = 4
+  margin: number = 4,
 ) {
   const columns = getRowCount(range);
   const rows = getRowCount(range);
@@ -183,11 +183,10 @@ export async function generateTextureAtlas(
   let currentX = margin;
   let currentY = fontSize + margin;
   let c = 0;
-  let r = 0;
 
   // draw undefined char
   glyphs.push(
-    getUndefinedCharGlyph(currentX, currentY - fontSize, fontSize, fontSize, fontSize, config.pixelRatio || 1)
+    getUndefinedCharGlyph(currentX, currentY - fontSize, fontSize, fontSize, fontSize, config.pixelRatio || 1),
   );
   ctx.rect(currentX, currentY - fontSize + margin, fontSize, fontSize);
   ctx.stroke();
@@ -220,8 +219,8 @@ export async function generateTextureAtlas(
         fontSize,
         charMesurement.actualBoundingBoxAscent,
         charMesurement.actualBoundingBoxDescent,
-        config.pixelRatio || 1
-      )
+        config.pixelRatio || 1,
+      ),
     );
     currentX += charMesurement.width + margin;
     c++;
@@ -230,7 +229,6 @@ export async function generateTextureAtlas(
       c = 0;
       currentX = margin;
       currentY += fontSize + margin;
-      r++;
     }
   }
   actualCanvasHeight = currentY;
@@ -249,7 +247,7 @@ export async function generateTextureAtlas(
       0,
       margin,
       Math.ceil(actualCanvasWidth),
-      Math.ceil(actualCanvasHeight + margin)
+      Math.ceil(actualCanvasHeight + margin),
     ),
     glyphs,
   };
@@ -275,7 +273,7 @@ export function getUndefinedCharGlyph(
   width: number,
   height: number,
   fontSize: number,
-  pixelRatio: number
+  pixelRatio: number,
 ): TextureFontGlyph {
   return {
     type: FontFormatType.texture,
@@ -302,7 +300,7 @@ export function getTextureFontGlyph(
   fontSize: number,
   actualBoundingBoxAscent: number,
   actualBoundingBoxDescent: number,
-  pixelRatio: number
+  pixelRatio: number,
 ): TextureFontGlyph {
   return {
     type: FontFormatType.texture,

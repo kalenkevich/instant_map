@@ -4,10 +4,16 @@ import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../../flags';
 import { SceneCamera } from '../../../renderer';
 
-export abstract class ObjectGroupBuilder<InputObjectType extends MapFeature, OutputObjectType extends WebGlObjectBufferredGroup> {
+export abstract class ObjectGroupBuilder<
+  InputObjectType extends MapFeature,
+  OutputObjectType extends WebGlObjectBufferredGroup,
+> {
   protected objects: Array<InputObjectType> = [];
 
-  constructor(protected readonly featureFlags: MapFeatureFlags, protected readonly pixelRatio: number) {}
+  constructor(
+    protected readonly featureFlags: MapFeatureFlags,
+    protected readonly pixelRatio: number,
+  ) {}
 
   addObject(obj: InputObjectType): void {
     this.objects.push(obj);
@@ -37,11 +43,7 @@ export abstract class ObjectGroupBuilder<InputObjectType extends MapFeature, Out
     return [-1.0 + position[0] * 2.0, +1.0 - position[1] * 2.0];
   }
 
-  abstract build(
-    camera: SceneCamera,
-    name: string,
-    zIndex: number
-  ): OutputObjectType | Promise<OutputObjectType>;
+  abstract build(camera: SceneCamera, name: string, zIndex: number): OutputObjectType | Promise<OutputObjectType>;
 
   clear(): void {
     this.objects = [];

@@ -14,7 +14,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
-    private readonly glyphTextureMapping: GlyphsManagerMappingState
+    private readonly glyphTextureMapping: GlyphsManagerMappingState,
   ) {
     super(featureFlags, pixelRatio);
   }
@@ -78,7 +78,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
         ...TRANSPARENT_COLOR,
         ...TRANSPARENT_COLOR,
         ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR
+        ...TRANSPARENT_COLOR,
       );
       selectionColorBuffer.push(...colorId, ...colorId, ...colorId, ...colorId, ...colorId, ...colorId);
     }

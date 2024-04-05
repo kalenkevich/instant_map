@@ -7,12 +7,17 @@ export enum MapPanEvents {
   click = 'click',
 }
 
+type HammerMouseEvent = (MouseEvent | WheelEvent) & HammerInput;
+
 export class MapPan extends Evented<MapPanEvents> {
-  private hammer: any;
+  private hammer: HammerManager;
   private startX: number;
   private startY: number;
 
-  constructor(private readonly map: GlideMap, private readonly el: HTMLElement) {
+  constructor(
+    private readonly map: GlideMap,
+    private readonly el: HTMLElement,
+  ) {
     super();
   }
 
@@ -52,11 +57,11 @@ export class MapPan extends Evented<MapPanEvents> {
     this.hammer.off('pinch', this.handleZoom);
   }
 
-  private handleMouseClick(clickEvent: MouseEvent) {
+  private handleMouseClick(clickEvent: HammerMouseEvent) {
     this.fire(MapPanEvents.click, clickEvent, this.getClipSpacePosition(clickEvent));
   }
 
-  private handleMove(moveEvent: MouseEvent) {
+  private handleMove(moveEvent: HammerMouseEvent) {
     const [x, y] = this.getClipSpacePosition(moveEvent);
     const viewProjectionMat = this.map.getProjectionMatrix();
 
@@ -64,7 +69,7 @@ export class MapPan extends Evented<MapPanEvents> {
     const [preX, preY] = vec3.transformMat3(
       vec3.create(),
       [this.startX, this.startY, 0],
-      mat3.invert(mat3.create(), viewProjectionMat)
+      mat3.invert(mat3.create(), viewProjectionMat),
     );
 
     // compute the new position in world space
@@ -94,11 +99,11 @@ export class MapPan extends Evented<MapPanEvents> {
 
   // handle dragging the map position (panning)
   // "mousedown" OR "panstart"
-  private handlePan(startEvent: MouseEvent) {
+  private handlePan(startEvent: HammerMouseEvent) {
     startEvent.preventDefault();
 
     // get position of initial drag
-    let [startX, startY] = this.getClipSpacePosition(startEvent);
+    const [startX, startY] = this.getClipSpacePosition(startEvent);
     this.startX = startX;
     this.startY = startY;
     this.el.style.cursor = 'grabbing';
@@ -122,7 +127,7 @@ export class MapPan extends Evented<MapPanEvents> {
   }
 
   // handle zooming
-  private handleZoom(wheelEvent: WheelEvent) {
+  private handleZoom(wheelEvent: HammerMouseEvent) {
     wheelEvent.preventDefault();
 
     const [x, y] = this.getClipSpacePosition(wheelEvent);
@@ -131,12 +136,12 @@ export class MapPan extends Evented<MapPanEvents> {
     const [preZoomX, preZoomY] = vec3.transformMat3(
       vec3.create(),
       [x, y, 0],
-      mat3.invert(mat3.create(), this.map.getProjectionMatrix())
+      mat3.invert(mat3.create(), this.map.getProjectionMatrix()),
     );
 
     // update current zoom state
     const prevZoom = this.map.getZoom();
-    const zoomDelta = -wheelEvent.deltaY * (1 / 300);
+    const zoomDelta = -(wheelEvent as WheelEvent).deltaY * (1 / 300);
     let newZoom = prevZoom + zoomDelta;
     newZoom = Math.max(this.map.getMinZoom(), Math.min(newZoom, this.map.getMaxZoom()));
 
@@ -150,7 +155,7 @@ export class MapPan extends Evented<MapPanEvents> {
     const [postZoomX, postZoomY] = vec3.transformMat3(
       vec3.create(),
       [x, y, 0],
-      mat3.invert(mat3.create(), this.map.getProjectionMatrix())
+      mat3.invert(mat3.create(), this.map.getProjectionMatrix()),
     );
 
     // camera needs to be moved the difference of before and after
@@ -166,9 +171,8 @@ export class MapPan extends Evented<MapPanEvents> {
   }
 
   // from a given mouse position on the canvas, return the xy value in clip space
-  private getClipSpacePosition(e: MouseEvent) {
+  private getClipSpacePosition(e: HammerMouseEvent): [number, number] {
     // get position from mouse or touch event
-    // @ts-ignore
     const [x, y] = [e.center?.x || e.clientX, e.center?.y || e.clientY];
 
     // get canvas relative css position

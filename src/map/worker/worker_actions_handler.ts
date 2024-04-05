@@ -18,8 +18,8 @@ export class WorkerActionHandler {
     removeEventListener('message', this.workerMessageHandler);
   }
 
-  private workerMessageHandler = (message: any) => {
-    const request = message.data as WorkerTaskRequest<FetchTileOptions | string>;
+  private workerMessageHandler = (message: { data: WorkerTaskRequest<FetchTileOptions | string> }) => {
+    const request = message.data;
 
     switch (request.type) {
       case WorkerTaskRequestType.FETCH_TILE: {
@@ -47,10 +47,10 @@ export class WorkerActionHandler {
   };
 
   private startTileFetch(data: FetchTileOptions): FetchTilePromise<void> {
+    const abortController = new AbortController();
     let cancelled = false;
     let resolved = false;
     let rejected = false;
-    let abortController = new AbortController();
     let promiseResolve: () => void;
 
     const promise = new Promise<void>((resolve, reject) => {
@@ -67,7 +67,7 @@ export class WorkerActionHandler {
           resolve();
           resolved = true;
         })
-        .catch((e: any) => {
+        .catch((e: Error) => {
           postMessage({ tileId: data.tileId });
           reject(e);
           rejected = true;

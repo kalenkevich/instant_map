@@ -25,7 +25,7 @@ export async function getFontAtlasFromVectorConfig(config: VectorFontConfig): Pr
         const fontSource = await fetch(url).then(res => res.arrayBuffer());
 
         populateFontAtlas(fontSource, fontAtlas);
-      })
+      }),
     );
   } else {
     const url = config.sourceUrl;

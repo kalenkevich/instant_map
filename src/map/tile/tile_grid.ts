@@ -10,11 +10,7 @@ import { GlyphsManager } from '../glyphs/glyphs_manager';
 import { DataTileStyles } from '../styles/styles';
 import { MapFeatureFlags } from '../flags';
 import { FontManager } from '../font/font_manager';
-import {
-  WorkerTaskRequestType,
-  WorkerTaskResponseType,
-  TileFullCompleteResponse,
-} from '../worker/worker_actions';
+import { WorkerTaskRequestType, WorkerTaskResponseType, TileFullCompleteResponse } from '../worker/worker_actions';
 import { WorkerPool, WorkerTask } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
@@ -41,7 +37,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
     private readonly fontManager: FontManager,
-    private readonly glyphsManager: GlyphsManager
+    private readonly glyphsManager: GlyphsManager,
   ) {
     super();
     this.tiles = new LRUCache(tileCacheSize);
@@ -170,7 +166,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         WorkerTaskResponseType.TILE_FULL_COMPLETE,
         (result: TileFullCompleteResponse) => {
           this.onTileFullReady(result);
-        }
+        },
       );
       this.currentLoadingTiles.set(tileId, workerTask);
     }
@@ -220,7 +216,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
     }
 
-    const childFeatureSets: any = [];
+    const childFeatureSets: MapTileLayer[] = [];
     const children = (tilebelt.getChildren(tile) || []).map(t => getTileId(t as TileRef));
     for (const childId of children) {
       const childTile = this.tiles.get(childId);

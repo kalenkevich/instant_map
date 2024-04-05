@@ -1,4 +1,3 @@
-import { LngLat } from './geo/lng_lat';
 import { DataTileStyles } from './styles/styles';
 
 /**
@@ -14,7 +13,7 @@ export interface MapOptions {
   /** Initial rotation value of the map. */
   rotation?: number;
   /** Initial center point of the map. */
-  center?: LngLat;
+  center?: [number, number];
   /** Meta info object about tiles and styles. */
   mapMeta?: MapMeta;
   /** Meta info url to fetch data about tiles and styles. */

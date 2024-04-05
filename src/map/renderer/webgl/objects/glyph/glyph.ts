@@ -1,9 +1,5 @@
 import { MapFeatureType } from '../../../../tile/feature';
-import {
-  WebGlObjectBufferredGroup,
-  WebGlObjectAttributeDescriptor,
-  WebGlObjectAttributeType,
-} from '../object/object';
+import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
 
 export interface WebGlGlyphBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.glyph;

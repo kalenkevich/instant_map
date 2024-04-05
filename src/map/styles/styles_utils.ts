@@ -4,7 +4,7 @@ import { ContextLike } from './style_statement';
 import { compileStatement, isStatement } from './style_statement_utils';
 
 export function compileLayerStyle(style: DataLayerStyle, context: ContextLike): DataLayerStyle {
-  const newStyleObject: Record<string, any> = {};
+  const newStyleObject: ContextLike = {};
 
   for (const [key, value] of Object.entries(style)) {
     if (key === 'background' && isFeatureStyle(value)) {
@@ -20,7 +20,7 @@ export function compileLayerStyle(style: DataLayerStyle, context: ContextLike): 
 }
 
 export function compileFeatureStyle(featureStyle: FeatureStyle, context: ContextLike): FeatureStyle {
-  const newStyleObject: Record<string, any> = {};
+  const newStyleObject: ContextLike = {};
 
   for (const [key, value] of Object.entries(featureStyle)) {
     if (isFeatureStyle(value)) {

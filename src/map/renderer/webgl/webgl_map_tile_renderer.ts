@@ -20,7 +20,7 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
     devicePixelRatio: number,
     fontManager: FontManager,
-    textureManager: GlyphsManager
+    textureManager: GlyphsManager,
   ) {
     this.renderer = new WebGlRenderer(rootEl, featureFlags, type, devicePixelRatio, fontManager, textureManager);
   }

@@ -39,6 +39,7 @@ export const SUPPORTED_EXTENSIONS = [
 
 export function addExtensionsToContext(gl: WebGLRenderingContext): ExtendedWebGLRenderingContext {
   const prefixRE = /^(.*?)_/;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const glContextObject: Record<string, any> = gl;
 
   for (const extensionName of SUPPORTED_EXTENSIONS) {
@@ -51,7 +52,7 @@ export function addExtensionsToContext(gl: WebGLRenderingContext): ExtendedWebGL
     const enumSuffix = '_' + fnSuffix;
     for (const key in ext) {
       const value = ext[key];
-      const isFunc = typeof (value) === 'function';
+      const isFunc = typeof value === 'function';
       const suffix = isFunc ? fnSuffix : enumSuffix;
       let name = key;
       // examples of where this is not true are WEBGL_compressed_texture_s3tc
@@ -65,11 +66,11 @@ export function addExtensionsToContext(gl: WebGLRenderingContext): ExtendedWebGL
         }
       } else {
         if (isFunc) {
-          glContextObject[name] = function(origFn) {
-            return function() {
-              return origFn.apply(ext, arguments);
+          glContextObject[name] = (function (origFn) {
+            return function (...args: unknown[]) {
+              return origFn.apply(ext, args);
             };
-          }(value);
+          })(value);
         } else {
           glContextObject[name] = value;
         }

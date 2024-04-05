@@ -23,7 +23,7 @@ export class LineShaderProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = ShaderLineShaders.vertext,
-    protected readonly fragmentShaderSource: string = ShaderLineShaders.fragment
+    protected readonly fragmentShaderSource: string = ShaderLineShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -78,7 +78,7 @@ export class LineShaderProgram extends ObjectProgram {
     this.renderStyles.bufferData(lineGroup.renderStyles.buffer);
     this.color.bufferData(options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer);
     this.borderColor.bufferData(
-      options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.borderColor.buffer
+      options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.borderColor.buffer,
     );
 
     // draw line

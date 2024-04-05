@@ -132,7 +132,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     result: number[],
     coordinates: Array<[number, number] | vec2>,
     lineWidth: number,
-    joinStyle?: LineJoinStyle
+    joinStyle?: LineJoinStyle,
   ): number {
     const start = result.length;
 
@@ -153,7 +153,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     result: number[],
     p1: [number, number] | vec2,
     p2: [number, number] | vec2,
-    lineWidth: number
+    lineWidth: number,
   ) {
     const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
     const p1Projected = vec2.fromValues(p1[0], p1[1]);
@@ -168,7 +168,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
       const scaledXBasis = vec2.fromValues(xBasis[0] * linePos[0], xBasis[1] * linePos[0]);
       const scaledYBasis = vec2.fromValues(
         yBasis[0] * scaledLineWidth * linePos[1],
-        yBasis[1] * scaledLineWidth * linePos[1]
+        yBasis[1] * scaledLineWidth * linePos[1],
       );
 
       const resultPosition = vec2.create();
@@ -179,13 +179,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     }
   }
 
-  roundJoinToTriangles(
-    camera: SceneCamera,
-    result: number[],
-    center: [number, number] | vec2,
-    lineWidth: number,
-    componets = 16
-  ) {
+  roundJoinToTriangles(camera: SceneCamera, result: number[], center: [number, number] | vec2, lineWidth: number) {
     const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
     const centerVec = vec2.fromValues(center[0], center[1]);
 

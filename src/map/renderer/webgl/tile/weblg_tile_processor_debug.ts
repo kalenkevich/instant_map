@@ -22,7 +22,6 @@ export async function DebugTile2WebglLayers(
   sourceLayers: DataLayerStyle[],
   {
     tileId,
-    tileStyles,
     canvasWidth,
     canvasHeight,
     pixelRatio,

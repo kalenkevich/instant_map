@@ -1,4 +1,4 @@
-import { MapTile, MapTileLayer } from '../tile/tile';
+import { MapTile } from '../tile/tile';
 
 /** Supported worker requests. */
 export enum WorkerTaskRequestType {

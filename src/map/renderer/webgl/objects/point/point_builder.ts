@@ -74,7 +74,7 @@ export function verticesFromPoint(
   result: number[],
   center: vec2 | [number, number],
   radius = 0.0001,
-  components = 32
+  components = 32,
 ): number {
   const start = result.length;
   const step = 360 / components;
@@ -84,11 +84,11 @@ export function verticesFromPoint(
     result.push(x);
     result.push(y);
 
-    let j1 = (i * Math.PI) / 180;
+    const j1 = (i * Math.PI) / 180;
     result.push(x + Math.sin(j1) * radius);
     result.push(y + Math.cos(j1) * radius);
 
-    let j2 = ((i + step) * Math.PI) / 180;
+    const j2 = ((i + step) * Math.PI) / 180;
     result.push(x + Math.sin(j2) * radius);
     result.push(y + Math.cos(j2) * radius);
   }

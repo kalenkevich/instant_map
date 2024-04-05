@@ -2,6 +2,7 @@ import { Statement, ColorValue } from './style_statement';
 import { MapFeatureType } from '../tile/feature';
 import { FontConfig } from '../font/font_config';
 import { GlyphsTextrureAtlasConfig } from '../glyphs/glyphs_config';
+import { DataTileSourceType } from '../tile/tile_source/tile_source';
 import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../tile/feature';
 
 export interface DataTileStyles {
@@ -31,16 +32,6 @@ export interface DataLayerStyle {
   minzoom?: number;
   maxzoom?: number;
   feature?: FeatureStyle;
-}
-
-export enum DataTileSourceType {
-  debug = 'debug',
-  mvt = 'mvt',
-  image = 'image',
-  // Possible data sources
-  // json = 'json',
-  // osm = 'osm',
-  // xml = 'xml'
 }
 
 export type DataTileSource = MvtTileSource | ImageTileSource;

@@ -44,7 +44,7 @@ export class WebGlRenderer {
     private readonly type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
     private readonly devicePixelRatio: number,
     private readonly fontManager: FontManager,
-    private readonly textureManager: GlyphsManager
+    private readonly textureManager: GlyphsManager,
   ) {
     this.canvas = this.createCanvasEl();
   }
@@ -134,10 +134,6 @@ export class WebGlRenderer {
   }
 
   public resize(width: number, height: number) {
-    if (!this.canvas) {
-      return;
-    }
-
     this.canvas.width = width * this.devicePixelRatio;
     this.canvas.height = height * this.devicePixelRatio;
     this.canvas.style.width = `${width}px`;
@@ -170,7 +166,7 @@ export class WebGlRenderer {
   }
 
   render(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, options: WebGlRendererOptions) {
-    let program: ObjectProgram;
+    let program: ObjectProgram | undefined;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
 
@@ -193,7 +189,7 @@ export class WebGlRenderer {
         this.debugLog(`layer render "${objectGroup.name}"`);
       }
 
-      if (program && !globalUniformsSet) {
+      if (!!program && !globalUniformsSet) {
         this.setProgramGlobalUniforms(program, camera, options);
         globalUniformsSet = true;
       }

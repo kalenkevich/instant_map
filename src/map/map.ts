@@ -135,7 +135,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.mapOptions.tileStyles,
       this.mapOptions.center,
       this.mapOptions.zoom,
-      this.mapOptions.rotation
+      this.mapOptions.rotation,
     );
     this.init().then(() => {
       this.rerender();
@@ -180,7 +180,7 @@ export class GlideMap extends Evented<MapEventType> {
       mapStyle,
       this.projection.fromXY(this.camera.getPosition()),
       this.camera.getZoom(),
-      this.camera.getRotation()
+      this.camera.getRotation(),
     );
     this.init().then(() => {
       this.rerender();
@@ -197,7 +197,7 @@ export class GlideMap extends Evented<MapEventType> {
     styles: DataTileStyles,
     center: [number, number],
     zoom: number,
-    rotation: number
+    rotation: number,
   ) {
     this.minZoom = mapOptions.tileStyles.minzoom || 1;
     this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
@@ -215,7 +215,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.width,
       this.height,
       styles.tileSize,
-      this.projection
+      this.projection,
     );
     this.tilesGrid = new TilesGrid(
       featureFlags,
@@ -229,7 +229,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.maxZoom,
       this.projection,
       this.fontManager,
-      this.glyphsManager
+      this.glyphsManager,
     );
     this.pan = new MapPan(this, this.rootEl);
     this.renderer = this.getRenderer(mapOptions.rendrer);
@@ -252,7 +252,7 @@ export class GlideMap extends Evented<MapEventType> {
         height: this.height,
       },
       clippedWebGlSpaceCoords[0],
-      clippedWebGlSpaceCoords[1]
+      clippedWebGlSpaceCoords[1],
     );
 
     console.log('objectId', objectId);
@@ -328,6 +328,10 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   panBy(center: [number, number], rerender = true) {
+    if (!rerender) {
+      return;
+    }
+
     return Promise.resolve();
   }
 
@@ -352,7 +356,7 @@ export class GlideMap extends Evented<MapEventType> {
       },
       {
         durationInSec: 0.25,
-      }
+      },
     );
 
     this.renderQueue.clear();
@@ -389,7 +393,7 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   private render(pruneCache = false) {
-    let start = performance.now();
+    const start = performance.now();
     if (this.mapOptions.controls.debug) {
       this.stats.begin();
     }
@@ -406,7 +410,7 @@ export class GlideMap extends Evented<MapEventType> {
         width: this.width,
         height: this.height,
       },
-      { pruneCache }
+      { pruneCache },
     );
 
     this.statsWidget.style.display = 'none';
@@ -430,7 +434,7 @@ export class GlideMap extends Evented<MapEventType> {
           MapTileRendererType.webgl,
           this.pixelRatio,
           this.fontManager,
-          this.glyphsManager
+          this.glyphsManager,
         );
       case MapTileRendererType.webgl2:
         return new WebGlMapTileRenderer(
@@ -439,7 +443,7 @@ export class GlideMap extends Evented<MapEventType> {
           MapTileRendererType.webgl2,
           this.pixelRatio,
           this.fontManager,
-          this.glyphsManager
+          this.glyphsManager,
         );
       default:
         throw new Error(`Rendrer "rendererType" is not supported.`);

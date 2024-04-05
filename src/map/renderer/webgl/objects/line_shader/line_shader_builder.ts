@@ -68,7 +68,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
           x2,
           y2,
           x4,
-          y4
+          y4,
         );
 
         addXTimes(prevPoint, [aPoint[0], aPoint[1]], 6);
@@ -183,7 +183,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
   getPointFromPerpendicular(
     lineEquation: [number, number],
     linePoint: [number, number],
-    distance: number
+    distance: number,
   ): [number, number] {
     const angle = Math.PI / 2;
     return [linePoint[0] + distance * Math.cos(angle), linePoint[1] + distance * Math.sin(angle)];
