@@ -5,7 +5,7 @@ export function canvasToArrayBufferTextureSource(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -22,7 +22,7 @@ export function canvasToSharebleArrayBufferTextureSource(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const res = canvasToArrayBufferTextureSource(canvas, x, y, width, height);
 
@@ -32,7 +32,7 @@ export function canvasToSharebleArrayBufferTextureSource(
 export function arrayBufferToSharebleTextureSource(
   originalBuffer: Uint8ClampedArray,
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
   const resultBuffer = new Uint8ClampedArray(sharedMemoryBuffer);
@@ -48,7 +48,7 @@ export function arrayBufferToSharebleTextureSource(
 
 export async function toImageBitmapTexture(
   texture: TextureSource,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   switch (texture.type) {
     case TextureSourceType.IMAGE_BITMAP:
@@ -66,7 +66,7 @@ export async function arrayBufferToImageBitmapTextureSource(
   sy: number,
   sw: number,
   sh: number,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   const sourceBuffer = new Uint8ClampedArray(originalBuffer.length);
   sourceBuffer.set(originalBuffer);
@@ -91,7 +91,7 @@ export async function imageToImageBitmapTextureSource(
   sy: number,
   sw: number,
   sh: number,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   const resultOptions: ImageBitmapOptions = {
     premultiplyAlpha: 'premultiply',
@@ -115,4 +115,13 @@ export async function blobToBitmapImageTextureSource(sourceBlob: Blob): Promise<
     height: data.height,
     data,
   };
+}
+
+export async function blobToArrayBufferSource(sourceBlob: Blob): Promise<ArrayBufferTextureSource> {
+  const sourceImage = await createImageBitmap(sourceBlob);
+  const canvas = new OffscreenCanvas(sourceImage.width, sourceImage.height);
+  const ctx = canvas.getContext('2d');
+  const resultData = new Uint8ClampedArray(ctx.getImageData(0, 0, sourceImage.width, sourceImage.height).data.buffer);
+
+  return arrayBufferToSharebleTextureSource(resultData, sourceImage.width, sourceImage.height);
 }
