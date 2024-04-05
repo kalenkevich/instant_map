@@ -2,7 +2,6 @@ import { vec2 } from 'gl-matrix';
 import { MapFeatureType, LineMapFeature, LineJoinStyle } from '../../../../tile/feature';
 import { WebGlLineBufferredGroup } from './line';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
@@ -69,7 +68,7 @@ const ROUND_JOIN_POSITION: Array<[number, number]> = [
 ];
 
 export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLineBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlLineBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlLineBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const widthBuffer: number[] = [];
@@ -78,7 +77,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     const selectionColorBuffer: number[] = [];
 
     for (const line of this.objects) {
-      const numberOfAddedVertecies = this.verticesFromLine(camera, vertecies, line.vertecies, line.width, line.join);
+      const numberOfAddedVertecies = this.verticesFromLine(distance, vertecies, line.vertecies, line.width, line.join);
       const xTimes = numberOfAddedVertecies / 2;
 
       addXTimes(colorBuffer, [...line.color], xTimes);
@@ -128,7 +127,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
   }
 
   verticesFromLine(
-    camera: SceneCamera,
+    distance: number,
     result: number[],
     coordinates: Array<[number, number] | vec2>,
     lineWidth: number,
@@ -136,26 +135,26 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
   ): number {
     const start = result.length;
 
-    this.lineToTriangles(camera, result, coordinates[0], coordinates[1], lineWidth);
+    this.lineToTriangles(distance, result, coordinates[0], coordinates[1], lineWidth);
     for (let i = 2; i < coordinates.length; i++) {
       if (joinStyle === LineJoinStyle.round) {
-        this.roundJoinToTriangles(camera, result, coordinates[i - 1], lineWidth);
+        this.roundJoinToTriangles(distance, result, coordinates[i - 1], lineWidth);
       }
 
-      this.lineToTriangles(camera, result, coordinates[i - 1], coordinates[i], lineWidth);
+      this.lineToTriangles(distance, result, coordinates[i - 1], coordinates[i], lineWidth);
     }
 
     return result.length - start;
   }
 
   lineToTriangles(
-    camera: SceneCamera,
+    distance: number,
     result: number[],
     p1: [number, number] | vec2,
     p2: [number, number] | vec2,
     lineWidth: number,
   ) {
-    const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
+    const scaledLineWidth = this.scalarScale(lineWidth, distance);
     const p1Projected = vec2.fromValues(p1[0], p1[1]);
     const p2Projected = vec2.fromValues(p2[0], p2[1]);
 
@@ -179,8 +178,8 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     }
   }
 
-  roundJoinToTriangles(camera: SceneCamera, result: number[], center: [number, number] | vec2, lineWidth: number) {
-    const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
+  roundJoinToTriangles(distance: number, result: number[], center: [number, number] | vec2, lineWidth: number) {
+    const scaledLineWidth = this.scalarScale(lineWidth, distance);
     const centerVec = vec2.fromValues(center[0], center[1]);
 
     for (const pos of ROUND_JOIN_POSITION) {

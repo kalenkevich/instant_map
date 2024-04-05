@@ -1,7 +1,6 @@
 import { GlyphMapFeature, MapFeatureType } from '../../../../tile/feature';
 import { WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { GlyphsManager } from '../../../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../../../flags';
@@ -19,7 +18,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
     super(featureFlags, pixelRatio);
   }
 
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlGlyphBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlGlyphBufferredGroup {
     let textureAtlasName: string;
     const filteredGlyphs: GlyphMapFeature[] = [];
     const glyphTextureMapping = this.glyphsManager.getMappingState();
@@ -50,10 +49,10 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
 
       const textureWidth = textureAtlas.width;
       const textureHeight = textureAtlas.height;
-      const glyphScaledWidth = this.scalarScale(glyphMapping.width / glyphMapping.pixelRatio, camera.distance);
-      const glyphScaledHeight = this.scalarScale(glyphMapping.height / glyphMapping.pixelRatio, camera.distance);
-      const marginTop = this.scalarScale((glyph.margin?.top || 0) / this.pixelRatio, camera.distance);
-      const marginLeft = this.scalarScale((glyph.margin?.left || 0) / this.pixelRatio, camera.distance);
+      const glyphScaledWidth = this.scalarScale(glyphMapping.width / glyphMapping.pixelRatio, distance);
+      const glyphScaledHeight = this.scalarScale(glyphMapping.height / glyphMapping.pixelRatio, distance);
+      const marginTop = this.scalarScale((glyph.margin?.top || 0) / this.pixelRatio, distance);
+      const marginLeft = this.scalarScale((glyph.margin?.left || 0) / this.pixelRatio, distance);
 
       let [x1, y1] = [glyph.center[0], glyph.center[1]];
       x1 = x1 - glyphScaledWidth / 2 + marginTop;

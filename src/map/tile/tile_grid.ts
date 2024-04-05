@@ -62,7 +62,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     }, 0);
   }
 
-  public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
+  public async updateTiles(camera: MapCamera, zoom: number) {
     // update visible tiles based on viewport
     const bbox = camera.getCurrentBounds();
     const z = Math.min(Math.trunc(camera.getZoom()), this.maxTileZoom);
@@ -143,12 +143,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
             },
             tilePrerender: {
               rendererType: this.rendererType,
-              // Camera data
-              tileSize: this.tileSize,
-              projectionViewMat: [...camera.getProjectionMatrix()],
-              canvasWidth,
-              canvasHeight,
-              zoom,
+              distance: Math.pow(2, zoom) * this.tileSize,
               pixelRatio: this.pixelRatio,
               atlasTextureMappingState: this.glyphsManager.getMappingState(),
               fontManagerState: this.fontManager.getState(),

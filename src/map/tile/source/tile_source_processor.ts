@@ -28,14 +28,7 @@ export interface TileSourceProcessOptions {
 
 interface MapTilePrerenderOptions {
   rendererType: MapTileRendererType;
-  // Camera data
-  tileSize: number;
-  projectionViewMat: [number, number, number, number, number, number, number, number, number];
-  canvasWidth: number;
-  canvasHeight: number;
-  zoom: number;
-  minZoom: number;
-  maxZoom: number;
+  distance: number;
   pixelRatio: number;
   fontManagerState: Record<string, FontAtlas>;
   atlasTextureMappingState: GlyphsManagerMappingState;
@@ -181,13 +174,7 @@ export class TileSourceProcessor {
 
     mapTile.prerendedData = MapTile2WebglObjects(
       mapTile,
-      {
-        width: prerenderOptions.canvasWidth,
-        height: prerenderOptions.canvasHeight,
-        // TODO: explain why!
-        distance: Math.pow(2, prerenderOptions.zoom) * prerenderOptions.tileSize,
-        viewMatrix: prerenderOptions.projectionViewMat,
-      },
+      prerenderOptions.distance,
       featureFlags,
       fontManager,
       glyphsManager,

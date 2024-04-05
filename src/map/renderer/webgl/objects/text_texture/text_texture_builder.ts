@@ -2,7 +2,6 @@ import { vec4 } from 'gl-matrix';
 import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
@@ -43,7 +42,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     this.objects.push(text);
   }
 
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
     const size = this.objects.length;
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -61,9 +60,9 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
         const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
-        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width, camera.distance) * scaleFactor;
-        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height, camera.distance) * scaleFactor;
-        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent, camera.distance) * scaleFactor;
+        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width, distance) * scaleFactor;
+        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height, distance) * scaleFactor;
+        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent, distance) * scaleFactor;
 
         // vertex coordinates
         let [x1, y1] = text.center;

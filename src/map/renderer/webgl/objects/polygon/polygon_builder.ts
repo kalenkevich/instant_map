@@ -3,14 +3,13 @@ import earcut from 'earcut';
 import { MapFeatureType, PolygonMapFeature } from '../../../../tile/feature';
 import { WebGlPolygonBufferredGroup } from './polygon';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];

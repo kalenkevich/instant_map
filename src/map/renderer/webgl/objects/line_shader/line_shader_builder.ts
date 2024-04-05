@@ -1,7 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import { MapFeatureType, LineMapFeature } from '../../../../tile/feature';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { WebGlShaderLineBufferredGroup } from './line';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
@@ -18,7 +17,7 @@ const getBbox = (p1: [number, number] | vec2, p2: [number, number] | vec2): [num
 };
 
 export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlShaderLineBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
     const vertecies: number[] = [];
     const prevPoint: number[] = [];
     const currPoint: number[] = [];
@@ -32,8 +31,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
     const selectionColor: number[] = [];
 
     for (const line of this.objects) {
-      const halfWidth =
-        (this.scalarScale(line.borderWidth, camera.distance) + this.scalarScale(line.width, camera.distance)) / 2;
+      const halfWidth = (this.scalarScale(line.borderWidth, distance) + this.scalarScale(line.width, distance)) / 2;
       const idAsVector4 = integerToVector4(line.id);
 
       for (let i = 1; i < line.vertecies.length; i++) {
@@ -134,58 +132,5 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
         buffer: createdSharedArrayBuffer(selectionColor),
       },
     };
-  }
-
-  getDistanceBetweenPoints(p1: [number, number], p2: [number, number]): number {
-    return Math.sqrt(Math.pow(p2[0] - p1[0], 2.0) + Math.pow(p2[1] - p1[1], 2.0));
-  }
-
-  getPointAlignmentToLine(lineEquation: [number, number], point: [number, number]): number {
-    const k = lineEquation[0];
-    const b = lineEquation[1];
-    // creating line start (a) and end (b) points based on k and b.
-    const lA = [-1.0, -k + b];
-    const lB = [1.0, k + b];
-
-    return (lB[0] - lA[0]) * (point[1] - lA[1]) - (lB[1] - lA[1]) * (point[0] - lA[0]);
-  }
-
-  // returns k and b -> y = kx + b;
-  getLineEquation(p1: [number, number], p2: [number, number]): [number, number] {
-    const k = (p1[1] - p2[1]) / (p1[0] - p2[0]);
-    const b = p1[1] - k * p1[1];
-
-    return [k, b];
-  }
-
-  getPerpendicularLineEquation(lineEquation: [number, number], point: [number, number]): [number, number] {
-    const k1 = lineEquation[0];
-    const k2 = -1.0 / k1;
-    const b2 = point[1] - k2 * point[0];
-
-    return [k2, b2];
-  }
-
-  getDistanceFromLine(lineEquation: [number, number], point: [number, number]): number {
-    const perpendicular = this.getPerpendicularLineEquation(lineEquation, point);
-    const k1 = lineEquation[0];
-    const b1 = lineEquation[1];
-    const k2 = perpendicular[0];
-    const b2 = perpendicular[1];
-
-    // intersection point
-    const x = (b2 - b1) / (k1 - k2);
-    const y = k2 * x + b2;
-
-    return this.getDistanceBetweenPoints(point, [x, y]);
-  }
-
-  getPointFromPerpendicular(
-    lineEquation: [number, number],
-    linePoint: [number, number],
-    distance: number,
-  ): [number, number] {
-    const angle = Math.PI / 2;
-    return [linePoint[0] + distance * Math.cos(angle), linePoint[1] + distance * Math.sin(angle)];
   }
 }

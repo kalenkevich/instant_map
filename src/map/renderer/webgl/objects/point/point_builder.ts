@@ -2,14 +2,13 @@ import { vec2 } from 'gl-matrix';
 import { MapFeatureType, PointMapFeature } from '../../../../tile/feature';
 import { WebGlPointBufferredGroup } from './point';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGlPointBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlPointBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlPointBufferredGroup {
     const vertecies: number[] = [];
     const borderVertecies: number[] = [];
     const colorBuffer: number[] = [];
@@ -18,8 +17,8 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
     const selectionColorBuffer: number[] = [];
 
     for (const point of this.objects) {
-      const scaledRadius = this.scalarScale(point.radius, camera.distance);
-      const scaledBorderWidth = this.scalarScale(point.borderWidth, camera.distance);
+      const scaledRadius = this.scalarScale(point.radius, distance);
+      const scaledBorderWidth = this.scalarScale(point.borderWidth, distance);
       const numberOfAddedVertecies = verticesFromPoint(vertecies, point.center, scaledRadius, point.components);
       const xTimes = numberOfAddedVertecies / 2;
 

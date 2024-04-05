@@ -1,4 +1,3 @@
-import { SceneCamera } from '../renderer';
 import { FontFormatType } from '../../font/font_config';
 import { WebGlObjectBufferredGroup } from './objects/object/object';
 import { ImageGroupBuilder } from './objects/image/image_group_builder';
@@ -26,7 +25,7 @@ import { GlyphsManager } from '../../glyphs/glyphs_manager';
 
 export function MapFeatures2WebglObjects(
   mapFeatures: MapFeature[],
-  camera: SceneCamera,
+  distance: number,
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
   textureManager: GlyphsManager,
@@ -76,27 +75,27 @@ export function MapFeatures2WebglObjects(
   const objectGroups: WebGlObjectBufferredGroup[] = [];
 
   if (!pointBuidler.isEmpty()) {
-    objectGroups.push(pointBuidler.build(camera, 'points'));
+    objectGroups.push(pointBuidler.build(distance, 'points'));
   }
 
   if (!polygonGroupBuilder.isEmpty()) {
-    objectGroups.push(polygonGroupBuilder.build(camera, 'polygons'));
+    objectGroups.push(polygonGroupBuilder.build(distance, 'polygons'));
   }
 
   if (!lineBuilder.isEmpty()) {
-    objectGroups.push(lineBuilder.build(camera, 'lines'));
+    objectGroups.push(lineBuilder.build(distance, 'lines'));
   }
 
   if (!glyphGroupBuilder.isEmpty()) {
-    objectGroups.push(glyphGroupBuilder.build(camera, 'glyphs'));
+    objectGroups.push(glyphGroupBuilder.build(distance, 'glyphs'));
   }
 
   if (!textBuilder.isEmpty()) {
-    objectGroups.push(textBuilder.build(camera, 'texts'));
+    objectGroups.push(textBuilder.build(distance, 'texts'));
   }
 
   if (!imageGroupBuilder.isEmpty()) {
-    objectGroups.push(imageGroupBuilder.build(camera, 'images'));
+    objectGroups.push(imageGroupBuilder.build(distance, 'images'));
   }
 
   return objectGroups;
@@ -104,7 +103,7 @@ export function MapFeatures2WebglObjects(
 
 export function MapTile2WebglObjects(
   mapTile: MapTile,
-  camera: SceneCamera,
+  distance: number,
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
   textureManager: GlyphsManager,
@@ -163,32 +162,34 @@ export function MapTile2WebglObjects(
     }
 
     if (!pointBuidler.isEmpty()) {
-      objectGroups.push(pointBuidler.build(camera, `${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
+      objectGroups.push(pointBuidler.build(distance, `${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
       pointBuidler.clear();
     }
 
     if (!polygonGroupBuilder.isEmpty()) {
-      objectGroups.push(polygonGroupBuilder.build(camera, `${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex));
+      objectGroups.push(
+        polygonGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex),
+      );
       polygonGroupBuilder.clear();
     }
 
     if (!lineBuilder.isEmpty()) {
-      objectGroups.push(lineBuilder.build(camera, `${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
+      objectGroups.push(lineBuilder.build(distance, `${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
       lineBuilder.clear();
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
-      objectGroups.push(glyphGroupBuilder.build(camera, `${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
+      objectGroups.push(glyphGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
       glyphGroupBuilder.clear();
     }
 
     if (!textBuilder.isEmpty()) {
-      objectGroups.push(textBuilder.build(camera, `${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
+      objectGroups.push(textBuilder.build(distance, `${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
       textBuilder.clear();
     }
 
     if (!imageGroupBuilder.isEmpty()) {
-      objectGroups.push(imageGroupBuilder.build(camera, `${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
+      objectGroups.push(imageGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
       imageGroupBuilder.clear();
     }
   }

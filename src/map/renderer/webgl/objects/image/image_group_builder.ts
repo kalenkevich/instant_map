@@ -1,7 +1,6 @@
 import { MapFeatureType, ImageMapFeature } from '../../../../tile/feature';
 import { WebGlImageBufferredGroup } from './image';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { integerToVector4 } from '../../utils/number2vec';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
@@ -9,7 +8,7 @@ import { addXTimes } from '../../utils/array_utils';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGlImageBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlImageBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];
@@ -22,8 +21,8 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
       const colorId = integerToVector4(image.id);
       textureSource = image.source;
 
-      const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, camera.distance);
-      const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, camera.distance);
+      const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, distance);
+      const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, distance);
 
       let [x1, y1] = [image.bbox[0][0], image.bbox[0][1]];
       let [x4, y4] = [image.bbox[1][0], image.bbox[1][1]];

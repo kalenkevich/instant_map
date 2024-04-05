@@ -1,5 +1,4 @@
 import { MapFeatureFlags } from '../../../../flags';
-import { SceneCamera } from '../../../renderer';
 import { getVerticiesFromChar } from './text_vector_utils';
 import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextVectorBufferredGroup } from './text_vector';
@@ -34,13 +33,13 @@ export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlT
     super(featureFlags, pixelRatio);
   }
 
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlTextVectorBufferredGroup {
+  build(distance: number, name: string, zIndex = 0): WebGlTextVectorBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
     for (const text of this.objects) {
-      const numberOfAddedVertecies = this.verticesFromText(vertecies, camera, this.fontManager, text);
+      const numberOfAddedVertecies = this.verticesFromText(vertecies, distance, this.fontManager, text);
       const xTimes = numberOfAddedVertecies / 2;
 
       addXTimes(colorBuffer, [...text.color], xTimes);
@@ -71,7 +70,7 @@ export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlT
     };
   }
 
-  verticesFromText(result: number[], camera: SceneCamera, fontManager: FontManager, text: TextMapFeature): number {
+  verticesFromText(result: number[], distance: number, fontManager: FontManager, text: TextMapFeature): number {
     const start = result.length;
 
     if (!text.text) {
@@ -102,11 +101,11 @@ export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlT
       textData.height = Math.max(textData.height, charVerticiesData.height);
     }
 
-    const scaledHeight = this.scalarScale(textData.height, camera.distance) * text.fontSize;
+    const scaledHeight = this.scalarScale(textData.height, distance) * text.fontSize;
 
     let scaledTextWidth = 0;
     for (const { vertices: charVertices, width } of textData.chars) {
-      const scaledWidth = this.scalarScale(width, camera.distance) * text.fontSize;
+      const scaledWidth = this.scalarScale(width, distance) * text.fontSize;
       let minX = Infinity;
       let maxX = -Infinity;
 
