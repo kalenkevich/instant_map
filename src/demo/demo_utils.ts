@@ -1,7 +1,7 @@
 export function createRootEl(
   width: number = window.innerWidth,
   height: number = window.innerHeight,
-  margin: number = 0
+  margin: number = 0,
 ) {
   width -= margin;
   height -= margin;

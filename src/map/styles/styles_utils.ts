@@ -1,10 +1,10 @@
 import { DataLayerStyle, FeatureStyle } from './styles';
-import { MapTileFeatureType } from '../tile/tile';
+import { MapFeatureType } from '../tile/feature';
 import { ContextLike } from './style_statement';
 import { compileStatement, isStatement } from './style_statement_utils';
 
 export function compileLayerStyle(style: DataLayerStyle, context: ContextLike): DataLayerStyle {
-  const newStyleObject: Record<string, any> = {};
+  const newStyleObject: ContextLike = {};
 
   for (const [key, value] of Object.entries(style)) {
     if (key === 'background' && isFeatureStyle(value)) {
@@ -20,7 +20,7 @@ export function compileLayerStyle(style: DataLayerStyle, context: ContextLike): 
 }
 
 export function compileFeatureStyle(featureStyle: FeatureStyle, context: ContextLike): FeatureStyle {
-  const newStyleObject: Record<string, any> = {};
+  const newStyleObject: ContextLike = {};
 
   for (const [key, value] of Object.entries(featureStyle)) {
     if (isFeatureStyle(value)) {
@@ -41,10 +41,10 @@ export function isFeatureStyle(featureStyle: unknown): boolean {
   }
 
   return [
-    MapTileFeatureType.point,
-    MapTileFeatureType.line,
-    MapTileFeatureType.polygon,
-    MapTileFeatureType.text,
-    MapTileFeatureType.image,
+    MapFeatureType.point,
+    MapFeatureType.line,
+    MapFeatureType.polygon,
+    MapFeatureType.text,
+    MapFeatureType.image,
   ].includes((featureStyle as FeatureStyle).type);
 }

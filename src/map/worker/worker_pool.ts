@@ -24,7 +24,7 @@ export class WorkerPool {
   async execute<DataType>(
     inputMessage: WorkerTaskRequest<DataType>,
     responseEvent?: WorkerTaskResponseType,
-    responseHandler?: (...args: any[]) => any
+    responseHandler: (response: WorkerTaskResponse) => void = () => {},
   ): Promise<WorkerTask> {
     const worker = await this.getAvailableWorkerInstance();
 
@@ -69,8 +69,8 @@ export class WorkerPool {
               task.worker.setStatus(WorkerStatus.FREE);
               delete this.currentTasks[task.taskId];
             });
-          })
-      )
+          }),
+      ),
     );
   }
 

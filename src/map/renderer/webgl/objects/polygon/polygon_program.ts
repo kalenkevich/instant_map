@@ -9,7 +9,7 @@ export class PolygonProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = PolygonShaders.vertext,
-    protected readonly fragmentShaderSource: string = PolygonShaders.fragment
+    protected readonly fragmentShaderSource: string = PolygonShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -27,7 +27,7 @@ export class PolygonProgram extends ObjectProgram {
 
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer
+      options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, objectGroup.numElements);

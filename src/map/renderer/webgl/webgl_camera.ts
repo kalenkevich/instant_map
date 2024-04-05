@@ -10,7 +10,7 @@ export class WebGlSceneCamera implements SceneCamera {
     private eyeX: number,
     private eyeY: number,
     private _distance: number,
-    private rotationInDegree: number
+    private rotationInDegree: number,
   ) {
     this.recalculateViewMatrix();
   }
@@ -50,7 +50,7 @@ export class WebGlSceneCamera implements SceneCamera {
       this._distance,
       this.eyeX,
       this.eyeY,
-      this.rotationInDegree
+      this.rotationInDegree,
     );
   }
 }
@@ -61,7 +61,7 @@ function getProjectionMatrix(
   distance: number,
   eyeX: number,
   eyeY: number,
-  rotationInDegree: number
+  rotationInDegree: number,
 ): mat3 {
   // update camera matrix
   const cameraMat = mat3.create();

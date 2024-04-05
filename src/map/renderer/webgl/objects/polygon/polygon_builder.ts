@@ -1,15 +1,15 @@
 import { vec2 } from 'gl-matrix';
 import earcut from 'earcut';
+import { MapFeatureType, PolygonMapFeature } from '../../../../tile/feature';
+import { WebGlPolygonBufferredGroup } from './polygon';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { WebGlPolygon, WebGlPolygonBufferredGroup } from './polygon';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
+export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
@@ -28,7 +28,7 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<WebGlPolygon> {
     }
 
     return {
-      type: MapTileFeatureType.polygon,
+      type: MapFeatureType.polygon,
       name,
       zIndex,
       size: this.objects.length,

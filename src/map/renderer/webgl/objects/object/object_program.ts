@@ -28,7 +28,7 @@ export abstract class ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string,
-    protected readonly fragmentShaderSource: string
+    protected readonly fragmentShaderSource: string,
   ) {}
 
   public async init() {
@@ -55,10 +55,10 @@ export abstract class ObjectProgram {
   protected createShader(type: number, source: string): WebGLShader {
     const gl = this.gl;
 
-    let shader = gl.createShader(type);
+    const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
-    let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
       return shader;
     }
@@ -69,11 +69,11 @@ export abstract class ObjectProgram {
   protected createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
     const gl = this.gl;
 
-    let program = gl.createProgram();
+    const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
-    let success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) {
       return program;
     }

@@ -1,8 +1,8 @@
-import { MapTileFeatureType } from '../../../../tile/tile';
+import { MapFeatureType } from '../../../../tile/feature';
 import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
 
 export interface WebGlTextTextureBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.text;
+  type: MapFeatureType.text;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   textureIndex: number;

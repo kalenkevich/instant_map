@@ -1,9 +1,9 @@
 import { vec2 } from 'gl-matrix';
+import { MapFeatureType, LineMapFeature, LineJoinStyle } from '../../../../tile/feature';
+import { WebGlLineBufferredGroup } from './line';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { LineJoinStyle, WebGlLine, WebGlLineBufferredGroup } from './line';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
@@ -68,7 +68,7 @@ const ROUND_JOIN_POSITION: Array<[number, number]> = [
   [0.5, -1.2246468525851679e-16],
 ];
 
-export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
+export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLineBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlLineBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
@@ -89,7 +89,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     }
 
     return {
-      type: MapTileFeatureType.line,
+      type: MapFeatureType.line,
       name,
       zIndex,
       size: this.objects.length,
@@ -132,7 +132,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     result: number[],
     coordinates: Array<[number, number] | vec2>,
     lineWidth: number,
-    joinStyle?: LineJoinStyle
+    joinStyle?: LineJoinStyle,
   ): number {
     const start = result.length;
 
@@ -153,7 +153,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     result: number[],
     p1: [number, number] | vec2,
     p2: [number, number] | vec2,
-    lineWidth: number
+    lineWidth: number,
   ) {
     const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
     const p1Projected = vec2.fromValues(p1[0], p1[1]);
@@ -168,7 +168,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
       const scaledXBasis = vec2.fromValues(xBasis[0] * linePos[0], xBasis[1] * linePos[0]);
       const scaledYBasis = vec2.fromValues(
         yBasis[0] * scaledLineWidth * linePos[1],
-        yBasis[1] * scaledLineWidth * linePos[1]
+        yBasis[1] * scaledLineWidth * linePos[1],
       );
 
       const resultPosition = vec2.create();
@@ -179,13 +179,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<WebGlLine> {
     }
   }
 
-  roundJoinToTriangles(
-    camera: SceneCamera,
-    result: number[],
-    center: [number, number] | vec2,
-    lineWidth: number,
-    componets = 16
-  ) {
+  roundJoinToTriangles(camera: SceneCamera, result: number[], center: [number, number] | vec2, lineWidth: number) {
     const scaledLineWidth = this.scalarScale(lineWidth, camera.distance);
     const centerVec = vec2.fromValues(center[0], center[1]);
 

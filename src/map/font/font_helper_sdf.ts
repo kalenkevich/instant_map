@@ -40,7 +40,7 @@ export enum SdfGlyphProtobuf {
 
 export async function getFontAtlasFromSdfConfig(
   config: SdfFontConfig,
-  debugMode: boolean = false
+  debugMode: boolean = false,
 ): Promise<SdfFontAtlas> {
   const fontAtlas: SdfFontAtlas = {
     type: FontFormatType.sdf,
@@ -71,7 +71,7 @@ export async function getFontAtlasFromSdfConfig(
           })
           .then(arrayBuffer => populateSdfAtlasFromPbf(arrayBuffer, fontAtlas, config, ctx))
           .catch(() => {});
-      })
+      }),
     );
   } else {
     await fetch(config.sourceUrl)
@@ -85,7 +85,7 @@ export async function getFontAtlasFromSdfConfig(
       type: FontFormatType.sdf,
       char: ' ',
       charCode: SPACE_CHAR_CODE,
-      source: new Uint8ClampedArray(new Array(config.fontSize).map(i => 0)),
+      source: new Uint8ClampedArray(new Array(config.fontSize).map(() => 0)),
       width: config.fontSize * 0.5,
       height: 1,
       x: 0,
@@ -97,7 +97,7 @@ export async function getFontAtlasFromSdfConfig(
     };
   }
 
-  const textureSource = await createTextureFromSdfGlyphs(fontAtlas, debugMode);
+  const textureSource = await createTextureFromSdfGlyphs(fontAtlas);
   fontAtlas.sources.push({ index: 0, source: textureSource, name: 'text' });
 
   if (debugMode) {
@@ -107,7 +107,7 @@ export async function getFontAtlasFromSdfConfig(
       0,
       0,
       textureSource.width,
-      textureSource.height
+      textureSource.height,
     );
     await downloadBitmapImage(bitmapTexture.data);
   }
@@ -121,7 +121,7 @@ export async function populateSdfAtlasFromPbf(
   source: ArrayBuffer,
   fontAtlas: SdfFontAtlas,
   config: SdfFontConfig,
-  ctx: OffscreenCanvasRenderingContext2D
+  ctx: OffscreenCanvasRenderingContext2D,
 ) {
   const pbf = new Protobuf(source);
 
@@ -140,7 +140,7 @@ export function parseSdfTextureAtlas(
     config,
     ctx,
   }: { fontAtlas: SdfFontAtlas; config: SdfFontConfig; ctx: OffscreenCanvasRenderingContext2D },
-  pbf: Protobuf
+  pbf: Protobuf,
 ) {
   switch (tag) {
     case SdfAtlasProtobuf.name: {
@@ -155,7 +155,7 @@ export function parseSdfTextureAtlas(
           ctx,
           glyph.char,
           fontAtlas.fontName,
-          config.fontSize
+          config.fontSize,
         );
 
         glyph.fontSize = config.fontSize;
@@ -210,10 +210,7 @@ export function parseSdfGlyph(tag: number, glyph: SdfFontGlyph, pbf: Protobuf) {
 }
 
 // Creates texture atlas array buffer from glyphs
-export async function createTextureFromSdfGlyphs(
-  fontAtlas: SdfFontAtlas,
-  debugMode: boolean = false
-): Promise<ArrayBufferTextureSource> {
+export async function createTextureFromSdfGlyphs(fontAtlas: SdfFontAtlas): Promise<ArrayBufferTextureSource> {
   const glyphs = Object.values(fontAtlas.glyphs);
   const { columns: textureColumns, cellWidth, cellHeight } = getTextureDimentions(glyphs);
   const EMPTY_PIXEL = [0, 0, 0, 0];

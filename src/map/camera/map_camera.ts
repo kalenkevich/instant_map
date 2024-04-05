@@ -15,7 +15,7 @@ export class MapCamera {
     private width: number,
     private height: number,
     private tileSize: number,
-    private projection: Projection
+    private projection: Projection,
   ) {
     this.x = x;
     this.y = y;

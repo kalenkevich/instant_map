@@ -50,7 +50,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       options.internalFormat || gl.RGBA,
       options.format || gl.RGBA,
       options.type || gl.UNSIGNED_BYTE,
-      options.source.data
+      options.source.data,
     );
   } else if (options.pixels !== undefined) {
     gl.texImage2D(
@@ -62,7 +62,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       options.border || 0,
       options.format || gl.RGBA,
       options.type || gl.UNSIGNED_BYTE,
-      options.pixels
+      options.pixels,
     );
   }
 
@@ -103,7 +103,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
         options.internalFormat || gl.RGBA,
         options.format || gl.RGBA,
         options.type || gl.UNSIGNED_BYTE,
-        source.data
+        source.data,
       );
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);

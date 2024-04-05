@@ -1,7 +1,6 @@
-import { addExtensionsToContext } from 'twgl.js';
 import { MapTileRendererType, RenderOptions, SceneCamera } from '../renderer';
-import { MapTileFeatureType } from '../../tile/tile';
-import { ExtendedWebGLRenderingContext } from './webgl_context';
+import { MapFeatureType } from '../../tile/feature';
+import { addExtensionsToContext, ExtendedWebGLRenderingContext } from './webgl_context';
 import { ObjectProgram } from './objects/object/object_program';
 import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
@@ -32,7 +31,7 @@ export interface WebGlRendererOptions extends RenderOptions {
  */
 export class WebGlRenderer {
   private canvas: HTMLCanvasElement;
-  private programs: Record<MapTileFeatureType, ObjectProgram>;
+  private programs: Record<MapFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
   private framebuffer: WebGlFrameBuffer;
@@ -45,7 +44,7 @@ export class WebGlRenderer {
     private readonly type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
     private readonly devicePixelRatio: number,
     private readonly fontManager: FontManager,
-    private readonly textureManager: GlyphsManager
+    private readonly textureManager: GlyphsManager,
   ) {
     this.canvas = this.createCanvasEl();
   }
@@ -107,12 +106,12 @@ export class WebGlRenderer {
     ]);
 
     this.programs = {
-      [MapTileFeatureType.point]: pointProgram,
-      [MapTileFeatureType.line]: lineProgram,
-      [MapTileFeatureType.polygon]: polygonProgram,
-      [MapTileFeatureType.text]: textProgram,
-      [MapTileFeatureType.glyph]: glyphProgram,
-      [MapTileFeatureType.image]: imageProgram,
+      [MapFeatureType.point]: pointProgram,
+      [MapFeatureType.line]: lineProgram,
+      [MapFeatureType.polygon]: polygonProgram,
+      [MapFeatureType.text]: textProgram,
+      [MapFeatureType.glyph]: glyphProgram,
+      [MapFeatureType.image]: imageProgram,
     };
   }
 
@@ -135,10 +134,6 @@ export class WebGlRenderer {
   }
 
   public resize(width: number, height: number) {
-    if (!this.canvas) {
-      return;
-    }
-
     this.canvas.width = width * this.devicePixelRatio;
     this.canvas.height = height * this.devicePixelRatio;
     this.canvas.style.width = `${width}px`;
@@ -171,7 +166,7 @@ export class WebGlRenderer {
   }
 
   render(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, options: WebGlRendererOptions) {
-    let program: ObjectProgram;
+    let program: ObjectProgram | undefined;
     let globalUniformsSet = false;
     let shouldRenderToCanvas = false;
 
@@ -194,7 +189,7 @@ export class WebGlRenderer {
         this.debugLog(`layer render "${objectGroup.name}"`);
       }
 
-      if (program && !globalUniformsSet) {
+      if (!!program && !globalUniformsSet) {
         this.setProgramGlobalUniforms(program, camera, options);
         globalUniformsSet = true;
       }

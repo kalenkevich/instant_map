@@ -30,7 +30,7 @@ export function createWebGlBuffer(gl: ExtendedWebGLRenderingContext, params: Cre
     params.type || gl.FLOAT,
     params.normalized || false,
     params.stride || 0,
-    params.offset || 0
+    params.offset || 0,
   );
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
