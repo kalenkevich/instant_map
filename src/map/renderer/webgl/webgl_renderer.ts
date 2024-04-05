@@ -55,12 +55,14 @@ export class WebGlRenderer {
 
     if (this.type === MapTileRendererType.webgl) {
       gl = this.gl = this.canvas.getContext('webgl', {
+        performance: 'high-performance',
         alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;
       addExtensionsToContext(gl);
     } else {
       gl = this.gl = this.canvas.getContext('webgl2', {
+        performance: 'high-performance',
         alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;

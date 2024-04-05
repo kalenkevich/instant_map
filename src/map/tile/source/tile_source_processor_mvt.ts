@@ -59,7 +59,7 @@ export async function MvtTileSourceProcessor(
 ): Promise<MapTile> {
   const tileId = processOptions.tileId;
   const tileRef = getTileRef(tileId);
-  const [x, y, z] = tileId.split('/').map(Number);
+  const [x, y, z] = tileRef.map(Number);
   const projection = getProjectionFromType(processOptions.projectionType);
   const resData = await fetch(tileSourceUrl, { signal: abortController.signal }).then(data => data.arrayBuffer());
   const pbf = new Protobuf(resData);

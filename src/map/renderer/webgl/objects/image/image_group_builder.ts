@@ -21,15 +21,11 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
       const colorId = integerToVector4(image.id);
       textureSource = image.source;
 
-      const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, distance);
-      const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, distance);
+      // const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, distance);
+      // const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, distance);
 
-      let [x1, y1] = [image.bbox[0][0], image.bbox[0][1]];
-      let [x4, y4] = [image.bbox[1][0], image.bbox[1][1]];
-      x1 = x1 + marginLeft;
-      y1 = y1 + marginTop;
-      x4 = x4 + marginLeft;
-      y4 = y4 + marginTop;
+      const [x1, y1] = [image.bbox[0][0], image.bbox[0][1]];
+      const [x4, y4] = [image.bbox[1][0], image.bbox[1][1]];
       const p1 = [x1, y1];
       const p2 = [x4, y1];
       const p3 = [x1, y4];

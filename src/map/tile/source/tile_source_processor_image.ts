@@ -20,7 +20,7 @@ export async function ImageTileSourceProcessor(
   const tileRef = getTileRef(tileId);
   const tileSize = processOptions.tileSize;
 
-  const [x, y, z] = tileRef;
+  const [x, y, z] = tileRef.map(Number);
   const projection = getProjectionFromType(processOptions.projectionType);
   const sourceArrayBuffer = await fetch(tileSourceUrl, { signal: abortController.signal }).then(res => res.blob());
   const textureSource = await blobToBitmapImageTextureSource(sourceArrayBuffer);

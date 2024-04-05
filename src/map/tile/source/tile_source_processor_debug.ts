@@ -17,7 +17,7 @@ export async function DebugTileSourceProcessor(
 ): Promise<MapTile> {
   const tileId = processOptions.tileId;
   const tileRef = getTileRef(tileId);
-  const [x, y, z] = processOptions.tileId.split('/').map(Number);
+  const [x, y, z] = tileRef.map(Number);
   const projection = getProjectionFromType(processOptions.projectionType);
   const tilePolygon = tilebelt.tileToGeoJSON([x, y, z]);
   const tileCenter = geometryCenter(tilePolygon).geometry.coordinates as [number, number];
