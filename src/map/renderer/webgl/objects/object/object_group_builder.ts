@@ -31,13 +31,13 @@ export abstract class ObjectGroupBuilder<
     return val / distance;
   }
 
-  applyProjectionViewMatrix(camera: SceneCamera, point: [number, number] | vec2): [number, number] {
-    const result = vec3.create();
+  // applyProjectionViewMatrix(camera: SceneCamera, point: [number, number] | vec2): [number, number] {
+  //   const result = vec3.create();
 
-    vec3.transformMat3(result, vec3.fromValues(point[0], point[1], 1), camera.viewMatrix);
+  //   vec3.transformMat3(result, vec3.fromValues(point[0], point[1], 1), camera.viewMatrix);
 
-    return [result[0], result[1]];
-  }
+  //   return [result[0], result[1]];
+  // }
 
   clipSpace(position: [number, number] | vec2): [number, number] {
     return [-1.0 + position[0] * 2.0, +1.0 - position[1] * 2.0];

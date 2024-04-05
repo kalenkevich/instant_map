@@ -16,6 +16,7 @@ import {
   TextureFontGlyph,
   UNDEFINED_CHAR_CODE,
 } from '../../../../font/font_config';
+import { addXTimes } from '../../utils/array_utils';
 
 export interface GlyphMapping {
   glyph: TextureFontGlyph | SdfFontGlyph;
@@ -55,6 +56,8 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
 
     for (const text of this.objects) {
       let offset = 0;
+      const selectionColorId = integerToVector4(text.id);
+
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
         const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
@@ -85,25 +88,10 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         verteciesBuffer.push(x1, y2, x2, y1, x2, y2);
         texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
 
-        colorBuffer.push(...text.color, ...text.color, ...text.color, ...text.color, ...text.color, ...text.color);
-        borderColorBuffer.push(
-          ...text.borderColor,
-          ...text.borderColor,
-          ...text.borderColor,
-          ...text.borderColor,
-          ...text.borderColor,
-          ...text.borderColor,
-        );
+        addXTimes(colorBuffer, text.color, 6);
+        addXTimes(borderColorBuffer, text.borderColor, 6);
+        addXTimes(selectionColorBuffer, selectionColorId, 6);
 
-        const selectionColorId = integerToVector4(text.id);
-        selectionColorBuffer.push(
-          ...selectionColorId,
-          ...selectionColorId,
-          ...selectionColorId,
-          ...selectionColorId,
-          ...selectionColorId,
-          ...selectionColorId,
-        );
         numElements += 6;
       }
     }

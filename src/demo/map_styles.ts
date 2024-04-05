@@ -1,4 +1,4 @@
-import { DataTileSourceType } from '../map/tile/tile_source/tile_source';
+import { TileSourceType } from '../map/tile/source/tile_source';
 import { DataTileSource, DataTileStyles } from '../map/styles/styles';
 import { MapFeatureType, LineJoinStyle } from '../map/tile/feature';
 import { FontConfig } from '../map/font/font_config';
@@ -6,13 +6,13 @@ import { FontFormatType, FontSourceType } from '../map/font/font_config';
 import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
 
 const MapboxVectorDataSource: DataTileSource = {
-  type: DataTileSourceType.mvt,
+  type: TileSourceType.mvt,
   name: 'dataSource',
   url: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2,mapbox.mapbox-bathymetry-v2/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
 };
 
 const MaptilerVectorDataSource: DataTileSource = {
-  type: DataTileSourceType.mvt,
+  type: TileSourceType.mvt,
   name: 'dataSource',
   url: 'https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=MfT8xhKONCRR9Ut0IKkt',
 };
@@ -695,7 +695,7 @@ export const SateliteTilesStyles: DataTileStyles = {
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
-      type: DataTileSourceType.image,
+      type: TileSourceType.image,
       name: 'imageSource',
       url: 'https://c.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
       pixelRatio: 2,
@@ -842,7 +842,7 @@ export const MaptilerSateliteTilesStyles: DataTileStyles = {
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
-      type: DataTileSourceType.image,
+      type: TileSourceType.image,
       name: 'imageSource',
       url: 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}@2x.jpg?key=MfT8xhKONCRR9Ut0IKkt',
       pixelRatio: 1,
@@ -855,7 +855,7 @@ export const OsmImageTileStyles: DataTileStyles = {
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
-      type: DataTileSourceType.image,
+      type: TileSourceType.image,
       name: 'imageSource',
       url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       pixelRatio: 1,
@@ -868,7 +868,7 @@ export const BingImageTyleStyles: DataTileStyles = {
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
-      type: DataTileSourceType.image,
+      type: TileSourceType.image,
       name: 'imageSource',
       url: 'https://ecn.t0.tiles.virtualearth.net/tiles/a{u}.jpeg?g=14364&pr=odbl&n=z',
       pixelRatio: 1,

@@ -5,7 +5,7 @@ import { MapTileRendererType } from '../../map/renderer/renderer';
 import { FontManager } from '../../map/font/font_manager';
 import { GlyphsManager } from '../../map/glyphs/glyphs_manager';
 import { MapFeature } from '../../map/tile/feature';
-import { MapFeatures2WebglObjects } from '../../map/renderer/webgl/webgl_map_feature_to_webgl_object';
+import { MapFeatures2WebglObjects } from '../../map/renderer/webgl/webgl_map_tile_to_webgl_object';
 
 export class WebGlScene {
   private readonly renderer: WebGlRenderer;

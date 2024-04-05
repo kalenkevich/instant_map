@@ -76,7 +76,6 @@ export interface TextMapFeature extends MapFeature {
 export interface ImageMapFeature extends MapFeature {
   id: number;
   type: MapFeatureType.image;
-  name: string;
   bbox: Array<[number, number]>;
   topLeft: [number, number];
   width: number;
