@@ -1,13 +1,11 @@
 import { vec4 } from 'gl-matrix';
-import { WebGlText } from '../text/text';
-import { SceneCamera } from '../../../renderer';
+import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
+import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
-import { Projection } from '../../../../geo/projection/projection';
 import { MapFeatureFlags } from '../../../../flags';
 import { FontManager } from '../../../../font/font_manager';
 import {
@@ -27,16 +25,16 @@ export interface GlyphMapping {
   borderColor: vec4 | [number, number, number, number];
 }
 
-export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
+export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlTextTextureBufferredGroup> {
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
-    private readonly fontManager: FontManager
+    private readonly fontManager: FontManager,
   ) {
     super(featureFlags, pixelRatio);
   }
 
-  addObject(text: WebGlText): void {
+  addObject(text: TextMapFeature): void {
     if (!text.text) {
       return;
     }
@@ -94,7 +92,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
           ...text.borderColor,
           ...text.borderColor,
           ...text.borderColor,
-          ...text.borderColor
+          ...text.borderColor,
         );
 
         const selectionColorId = integerToVector4(text.id);
@@ -104,14 +102,14 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
           ...selectionColorId,
           ...selectionColorId,
           ...selectionColorId,
-          ...selectionColorId
+          ...selectionColorId,
         );
         numElements += 6;
       }
     }
 
     return {
-      type: MapTileFeatureType.text,
+      type: MapFeatureType.text,
       name,
       zIndex,
       size,
@@ -146,7 +144,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<WebGlText> {
     };
   }
 
-  getGlyphMapping(text: WebGlText, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
+  getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
     const charCode = char.charCodeAt(0);
     const glyph = fontAtlas.glyphs[charCode] || fontAtlas.glyphs[UNDEFINED_CHAR_CODE];
 

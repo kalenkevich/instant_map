@@ -1,4 +1,3 @@
-import { vec2 } from 'gl-matrix';
 import { Projection, ProjectionType } from './projection';
 
 export class MercatorProjection implements Projection {
@@ -14,7 +13,7 @@ export class MercatorProjection implements Projection {
     return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360;
   }
 
-  fromLngLat(lngLat: [number, number] | vec2): [number, number] {
+  fromLngLat(lngLat: [number, number]): [number, number] {
     return [this.mercatorXfromLng(lngLat[0]), this.mercatorYfromLat(lngLat[1])];
   }
 
@@ -27,8 +26,8 @@ export class MercatorProjection implements Projection {
     return (360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90;
   }
 
-  fromXY(xy: [number, number] | vec2): [number, number] {
-    let [x, y] = xy;
+  fromXY(xy: [number, number]): [number, number] {
+    const [x, y] = xy;
     const lng = this.lngFromMercatorX(x);
     const lat = this.latFromMercatorY(y);
 

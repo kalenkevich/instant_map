@@ -17,7 +17,7 @@ export class FontManager {
   constructor(
     private readonly featureFlags: MapFeatureFlags,
     private readonly fontsConfig: Record<string, FontConfig> = {},
-    private readonly state: Record<string, FontAtlas> = {}
+    private readonly state: Record<string, FontAtlas> = {},
   ) {}
 
   async init() {

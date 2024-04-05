@@ -9,7 +9,7 @@ export class TextVectorProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = TextShaders.vertext,
-    protected readonly fragmentShaderSource: string = TextShaders.fragment
+    protected readonly fragmentShaderSource: string = TextShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -27,7 +27,7 @@ export class TextVectorProgram extends ObjectProgram {
 
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer
+      options?.readPixelRenderMode ? textGroup.selectionColor.buffer : textGroup.color.buffer,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);

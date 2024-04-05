@@ -1,14 +1,14 @@
 import { vec2 } from 'gl-matrix';
+import { MapFeatureType, PointMapFeature } from '../../../../tile/feature';
+import { WebGlPointBufferredGroup } from './point';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { WebGlPoint, WebGlPointBufferredGroup } from './point';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
+export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGlPointBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlPointBufferredGroup {
     const vertecies: number[] = [];
     const borderVertecies: number[] = [];
@@ -31,7 +31,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
     }
 
     return {
-      type: MapTileFeatureType.point,
+      type: MapFeatureType.point,
       name,
       zIndex,
       size: this.objects.length,
@@ -74,7 +74,7 @@ export function verticesFromPoint(
   result: number[],
   center: vec2 | [number, number],
   radius = 0.0001,
-  components = 32
+  components = 32,
 ): number {
   const start = result.length;
   const step = 360 / components;
@@ -84,11 +84,11 @@ export function verticesFromPoint(
     result.push(x);
     result.push(y);
 
-    let j1 = (i * Math.PI) / 180;
+    const j1 = (i * Math.PI) / 180;
     result.push(x + Math.sin(j1) * radius);
     result.push(y + Math.cos(j1) * radius);
 
-    let j2 = ((i + step) * Math.PI) / 180;
+    const j2 = ((i + step) * Math.PI) / 180;
     result.push(x + Math.sin(j2) * radius);
     result.push(y + Math.cos(j2) * radius);
   }

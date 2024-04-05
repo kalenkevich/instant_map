@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type ContextLike = {
   [prop: string]: any;
 };
@@ -14,16 +15,16 @@ export type IfStatement<V> = ['$if', ConditionStatement, Statement<V>, Statement
 export type SwitchCaseStatement<V> = [
   '$switch',
   ValueStatement<V>,
-  ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>
+  ...Array<CasePaintStatement<V> | DefaultCasePaintStatement<V>>,
 ];
 
 export type CasePaintStatement<V> = [ValueStatement<any>, Statement<V>];
 
 export type DefaultCasePaintStatement<V> = ['$default', Statement<V>];
 
-export type ValueStatement<V> = FeatureValue<V> | ConstantValue<V> | ColorValue;
+export type ValueStatement<V> = FeatureValue | ConstantValue<V> | ColorValue;
 
-export type FeatureValue<V> = ['$get', string]; // object getter
+export type FeatureValue = ['$get', string]; // object getter
 
 export type ConstantValue<V> = V;
 

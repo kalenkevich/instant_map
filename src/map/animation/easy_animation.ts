@@ -20,7 +20,7 @@ export class EasyAnimation {
   constructor(
     private animationStep: AnimationStep,
     private onAnimationStop: AnimationStopCallback,
-    animationOptions: PositionAnimationOptions
+    animationOptions: PositionAnimationOptions,
   ) {
     this.durationInSec = animationOptions.durationInSec || 0.25;
     this.easeOutPower = 1 / Math.max(animationOptions.easeLinearity || 0.5, 0.2);

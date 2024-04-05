@@ -46,7 +46,6 @@ import {
   RGBColorValue,
   RGBAColorValue,
   StringStatement,
-  ConcatStatement,
 } from './style_statement';
 
 export interface CompileStatementConfig {
@@ -73,7 +72,7 @@ export function isStatement(statement: unknown): boolean {
 export function compileStatement<V>(
   statement: Statement<V>,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (isConstantValue(statement)) {
     return compileConstantValueStatement(statement, config) as V;
@@ -84,7 +83,7 @@ export function compileStatement<V>(
   }
 
   if (statement[0] === '$get') {
-    return compileFeatureValueStatement<V>(statement as FeatureValue<V>, context, config);
+    return compileFeatureValueStatement<V>(statement as FeatureValue, context, config);
   }
 
   if (statement[0] === '$if') {
@@ -96,7 +95,7 @@ export function compileStatement<V>(
   }
 
   if (isColorStatement(statement)) {
-    return compileColorStatement(statement as RGBAColorValue, config) as V;
+    return compileColorStatement(statement as RGBAColorValue) as V;
   }
 
   if (isConditionStatement(statement)) {
@@ -117,7 +116,7 @@ export function compileStatement<V>(
 export function compileIfStatement<V>(
   statement: IfStatement<V>,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V | undefined {
   if (
     config.validate &&
@@ -144,7 +143,7 @@ export function compileIfStatement<V>(
 export function compileSwitchCaseStatement<V>(
   statement: SwitchCaseStatement<V>,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$switch' || statement.length < 3)) {
     throw new Error('Switch statement is invalid: ' + JSON.stringify(statement));
@@ -183,7 +182,7 @@ export function compileSwitchCaseStatement<V>(
 export function compileConditionStatementOrValue<V>(
   statement: ConditionStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (['boolean', 'string', 'number'].includes(typeof statement)) {
     return statement as V;
@@ -194,16 +193,16 @@ export function compileConditionStatementOrValue<V>(
   }
 
   if (statement[0] === '$get') {
-    return compileFeatureValueStatement<V>(statement as FeatureValue<V>, context, config);
+    return compileFeatureValueStatement<V>(statement as FeatureValue, context, config);
   }
 
-  return compileConditionStatement<V>(statement, context, config) as V;
+  return compileConditionStatement(statement, context, config) as V;
 }
 
-export function compileConditionStatement<V>(
+export function compileConditionStatement(
   statement: ConditionStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (['boolean', 'string', 'number'].includes(typeof statement)) {
     return !!statement;
@@ -214,7 +213,7 @@ export function compileConditionStatement<V>(
   }
 
   if (statement[0] === '$get') {
-    return !!compileFeatureValueStatement<boolean>(statement as FeatureValue<V>, context, config);
+    return !!compileFeatureValueStatement<boolean>(statement as FeatureValue, context, config);
   }
 
   if (statement[0] === '$!') {
@@ -275,7 +274,7 @@ export function compileConditionStatement<V>(
 export function compileNegativeStatement(
   statement: NegativeStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$!' || statement.length < 2)) {
     throw new Error('NegativeStatement is invalid: ' + JSON.stringify(statement));
@@ -287,7 +286,7 @@ export function compileNegativeStatement(
 export function compileEqualCondition(
   statement: EqualCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     context.validate &&
@@ -305,7 +304,7 @@ export function compileEqualCondition(
 export function compileNotEqualCondition(
   statement: NotEqualCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -323,7 +322,7 @@ export function compileNotEqualCondition(
 export function compileLessCondition(
   statement: LessCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -341,7 +340,7 @@ export function compileLessCondition(
 export function compileLessOrEqualCondition(
   statement: LessOrEqualCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -359,7 +358,7 @@ export function compileLessOrEqualCondition(
 export function compileGreaterCondition(
   statement: GreaterCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -377,7 +376,7 @@ export function compileGreaterCondition(
 export function compileGreaterOrEqualCondition(
   statement: GreaterOrEqualCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -395,7 +394,7 @@ export function compileGreaterOrEqualCondition(
 export function compileOrCondition(
   statement: OrCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -414,7 +413,7 @@ export function compileOrCondition(
 export function compileAndCondition(
   statement: AndCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (
     config.validate &&
@@ -432,7 +431,7 @@ export function compileAndCondition(
 export function compileValueStatement<V>(
   statement: ValueStatement<V>,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (Array.isArray(statement) && statement[0] === '$get') {
     return compileFeatureValueStatement<V>(statement, context, config);
@@ -448,7 +447,7 @@ export function compileValueStatement<V>(
 export function compileOneOfCondition(
   statement: OneOfCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$oneOf' || statement.length < 3)) {
     throw new Error('OneOfCondition is invalid: ' + JSON.stringify(statement));
@@ -469,7 +468,7 @@ export function compileOneOfCondition(
 export function compileHasCondition(
   statement: HasCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$has' || statement.length !== 2)) {
     throw new Error('HasCondition is invalid: ' + JSON.stringify(statement));
@@ -481,7 +480,7 @@ export function compileHasCondition(
 export function compileIsEmptyCondition(
   statement: IsEmptyCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$empty' || statement.length !== 2)) {
     throw new Error('IsEmptyCondition statement is invalid: ' + JSON.stringify(statement));
@@ -501,7 +500,7 @@ export function compileIsEmptyCondition(
 export function compileIsNotEmptyCondition(
   statement: IsNotEmptyCondition,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): boolean {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$notEmpty' || statement.length !== 2)) {
     throw new Error('IsNotEmptyCondition statement is invalid: ' + JSON.stringify(statement));
@@ -519,9 +518,9 @@ export function compileIsNotEmptyCondition(
 }
 
 export function compileFeatureValueStatement<V>(
-  statement: FeatureValue<V>,
+  statement: FeatureValue,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$get' || statement.length !== 2)) {
     throw new Error('FeatureValue statement is invalid: ' + JSON.stringify(statement));
@@ -532,7 +531,7 @@ export function compileFeatureValueStatement<V>(
 
 export function compileConstantValueStatement<V>(
   statement: ConstantValue<V>,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): V {
   if (config.validate && !isConstantValue(statement)) {
     throw new Error('Constant statement in invalid: ' + JSON.stringify(statement));
@@ -544,7 +543,7 @@ export function compileConstantValueStatement<V>(
 export function compileMathStatement(
   statement: MathStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && !Array.isArray(statement)) {
     throw new Error('Math statement is invalid: ' + JSON.stringify(statement));
@@ -640,7 +639,7 @@ export function compileMathStatement(
 export function compilePlusStatement(
   statement: PlusStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$+' || statement.length !== 3)) {
     throw new Error('PlusStatement is invalid: ' + JSON.stringify(statement));
@@ -654,7 +653,7 @@ export function compilePlusStatement(
 export function compileMinusStatement(
   statement: MinusStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$-' || statement.length !== 3)) {
     throw new Error('MinusStatement is invalid: ' + JSON.stringify(statement));
@@ -668,7 +667,7 @@ export function compileMinusStatement(
 export function compileMultiplyStatement(
   statement: MultiplyStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$*' || statement.length !== 3)) {
     throw new Error('MultiplyStatement is invalid: ' + JSON.stringify(statement));
@@ -682,7 +681,7 @@ export function compileMultiplyStatement(
 export function compileDivisionStatement(
   statement: DivisionStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$/' || statement.length !== 3)) {
     throw new Error('DivisionStatement is invalid: ' + JSON.stringify(statement));
@@ -696,7 +695,7 @@ export function compileDivisionStatement(
 export function compilePowerStatement(
   statement: PowerStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$pow' || statement.length !== 3)) {
     throw new Error('PowerStatement is invalid: ' + JSON.stringify(statement));
@@ -704,14 +703,14 @@ export function compilePowerStatement(
 
   return Math.pow(
     compileStatement<number>(statement[1], context, config),
-    compileStatement<number>(statement[2], context, config)
+    compileStatement<number>(statement[2], context, config),
   );
 }
 
 export function compileSqrtStatement(
   statement: SqrtStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$sqrt' || statement.length !== 2)) {
     throw new Error('SqrtStatement is invalid: ' + JSON.stringify(statement));
@@ -723,7 +722,7 @@ export function compileSqrtStatement(
 export function compileAbsStatement(
   statement: AbsStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$abs' || statement.length !== 2)) {
     throw new Error('AbsStatement is invalid: ' + JSON.stringify(statement));
@@ -735,7 +734,7 @@ export function compileAbsStatement(
 export function compileFloorStatement(
   statement: FloorStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$floor' || statement.length !== 2)) {
     throw new Error('FloorStatement is invalid: ' + JSON.stringify(statement));
@@ -747,7 +746,7 @@ export function compileFloorStatement(
 export function compileCeilStatement(
   statement: CeilStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$ceil' || statement.length !== 2)) {
     throw new Error('CeilStatement is invalid: ' + JSON.stringify(statement));
@@ -759,7 +758,7 @@ export function compileCeilStatement(
 export function compileRoundStatement(
   statement: RoundStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$round' || statement.length !== 2)) {
     throw new Error('RoundStatement is invalid: ' + JSON.stringify(statement));
@@ -771,7 +770,7 @@ export function compileRoundStatement(
 export function compileExpStatement(
   statement: ExpStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$exp' || statement.length !== 2)) {
     throw new Error('ExpStatement is invalid: ' + JSON.stringify(statement));
@@ -783,7 +782,7 @@ export function compileExpStatement(
 export function compileSinStatement(
   statement: SinStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$sin' || statement.length !== 2)) {
     throw new Error('SinStatement is invalid: ' + JSON.stringify(statement));
@@ -795,7 +794,7 @@ export function compileSinStatement(
 export function compileCosStatement(
   statement: CosStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$cos' || statement.length !== 2)) {
     throw new Error('CosStatement is invalid: ' + JSON.stringify(statement));
@@ -807,7 +806,7 @@ export function compileCosStatement(
 export function compileTanStatement(
   statement: TanStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$tan' || statement.length !== 2)) {
     throw new Error('TanStatement is invalid: ' + JSON.stringify(statement));
@@ -819,7 +818,7 @@ export function compileTanStatement(
 export function compileCtgStatement(
   statement: CtgStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$ctg' || statement.length !== 2)) {
     throw new Error('CtgStatement is invalid: ' + JSON.stringify(statement));
@@ -831,7 +830,7 @@ export function compileCtgStatement(
 export function compileLogStatement(
   statement: LogStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$log' || statement.length !== 2)) {
     throw new Error('LogStatement is invalid: ' + JSON.stringify(statement));
@@ -843,7 +842,7 @@ export function compileLogStatement(
 export function compileLog2Statement(
   statement: Log2Statement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$log2' || statement.length !== 2)) {
     throw new Error('Log2Statement is invalid: ' + JSON.stringify(statement));
@@ -855,7 +854,7 @@ export function compileLog2Statement(
 export function compileLog10Statement(
   statement: Log10Statement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$log10' || statement.length !== 2)) {
     throw new Error('Log10Statement is invalid: ' + JSON.stringify(statement));
@@ -867,7 +866,7 @@ export function compileLog10Statement(
 export function compileRandomStatement(
   statement: RandomStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (
     config.validate &&
@@ -889,7 +888,7 @@ export function compileRandomStatement(
 export function compileMinStatement(
   statement: MinStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$min' || statement.length !== 3)) {
     throw new Error('MinStatement is invalid: ' + JSON.stringify(statement));
@@ -897,14 +896,14 @@ export function compileMinStatement(
 
   return Math.min(
     compileStatement<number>(statement[1], context, config),
-    compileStatement<number>(statement[2], context, config)
+    compileStatement<number>(statement[2], context, config),
   );
 }
 
 export function compileMaxStatement(
   statement: MaxStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): number {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$max' || statement.length !== 3)) {
     throw new Error('MaxStatement is invalid: ' + JSON.stringify(statement));
@@ -912,43 +911,34 @@ export function compileMaxStatement(
 
   return Math.max(
     compileStatement<number>(statement[1], context, config),
-    compileStatement<number>(statement[2], context, config)
+    compileStatement<number>(statement[2], context, config),
   );
 }
 
-export function compileColorStatement(
-  statement: ColorValue,
-  config = DefaultCompileStatementConfig
-): [number, number, number, number] {
+export function compileColorStatement(statement: ColorValue): [number, number, number, number] {
   if (statement[0] === '$rgb') {
-    return compileRgbColorStatement(statement, config);
+    return compileRgbColorStatement(statement);
   }
 
   if (statement[0] === '$rgba') {
-    return compileRgbaColorStatement(statement, config);
+    return compileRgbaColorStatement(statement);
   }
 
   throw new Error('Unknown color statement: ' + JSON.stringify(statement));
 }
 
-export function compileRgbColorStatement(
-  statement: RGBColorValue,
-  config = DefaultCompileStatementConfig
-): [number, number, number, number] {
+export function compileRgbColorStatement(statement: RGBColorValue): [number, number, number, number] {
   return [statement[1] / 255, statement[2] / 255, statement[3] / 255, 1];
 }
 
-export function compileRgbaColorStatement(
-  statement: RGBAColorValue,
-  config = DefaultCompileStatementConfig
-): [number, number, number, number] {
+export function compileRgbaColorStatement(statement: RGBAColorValue): [number, number, number, number] {
   return [statement[1] / 255, statement[2] / 255, statement[3] / 255, statement[4]];
 }
 
 export function compileStringStatement(
   statement: StringStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): string {
   if (config.validate && !Array.isArray(statement)) {
     throw new Error('String statement is invalid: ' + JSON.stringify(statement));
@@ -964,7 +954,7 @@ export function compileStringStatement(
 export function compileConcatStatement(
   statement: StringStatement,
   context: ContextLike,
-  config = DefaultCompileStatementConfig
+  config = DefaultCompileStatementConfig,
 ): string {
   if (config.validate && (!Array.isArray(statement) || statement[0] !== '$concat' || statement.length < 2)) {
     throw new Error('ConcatStatement is invalid: ' + JSON.stringify(statement));
@@ -975,7 +965,7 @@ export function compileConcatStatement(
   return values.map(v => compileStatement(v, context, config)).join('');
 }
 
-export function hasPropertyValue(source: any, property?: string | number): boolean {
+export function hasPropertyValue(source: unknown, property?: string | number): boolean {
   if (property === undefined || property === null) {
     return false;
   }
@@ -984,7 +974,7 @@ export function hasPropertyValue(source: any, property?: string | number): boole
     throw new Error('Cannot get value from: ' + JSON.stringify(property));
   }
 
-  let currentSource = source;
+  let currentSource = source as Record<string, unknown>;
   const propertyPath = typeof property === 'string' ? property.split('.') : [`${property}`];
 
   for (const pathItem of propertyPath) {
@@ -994,7 +984,7 @@ export function hasPropertyValue(source: any, property?: string | number): boole
 
     try {
       if (pathItem in currentSource) {
-        currentSource = currentSource[pathItem];
+        currentSource = currentSource[pathItem] as Record<string, unknown>;
       } else {
         return false;
       }
@@ -1006,27 +996,27 @@ export function hasPropertyValue(source: any, property?: string | number): boole
   return true;
 }
 
-export function getPropertyValue<V>(source: any, property?: string | number): ConstantValue<V> {
+export function getPropertyValue<V>(source: unknown, property?: string | number): ConstantValue<V> {
   if (!['number', 'string'].includes(typeof property)) {
-    return source;
+    return source as ConstantValue<V>;
   }
 
-  let currentSource = source;
+  let currentSource = source as Record<string, unknown>;
   const propertyPath = typeof property === 'string' ? property.split('.') : [`${property}`];
 
   for (let i = 0; i < propertyPath.length; i++) {
     if (currentSource === null || currentSource == undefined) {
-      return currentSource;
+      return currentSource as ConstantValue<V>;
     }
 
     if (propertyPath[i] in currentSource) {
-      currentSource = currentSource[propertyPath[i]];
+      currentSource = currentSource[propertyPath[i]] as Record<string, unknown>;
     } else {
       return undefined;
     }
   }
 
-  return currentSource;
+  return currentSource as ConstantValue<V>;
 }
 
 export function isColorStatement(statement: unknown): boolean {

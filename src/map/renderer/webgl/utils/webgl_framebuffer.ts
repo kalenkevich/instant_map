@@ -22,7 +22,7 @@ export function createFrameBuffer(gl: ExtendedWebGLRenderingContext, options: Cr
     gl.COLOR_ATTACHMENT0,
     gl.TEXTURE_2D,
     options.texture.texture,
-    options.texture.level
+    options.texture.level,
   );
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 

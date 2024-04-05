@@ -1,13 +1,14 @@
+import { MapFeatureType, ImageMapFeature } from '../../../../tile/feature';
+import { WebGlImageBufferredGroup } from './image';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { integerToVector4 } from '../../utils/number2vec';
-import { MapTileFeatureType } from '../../../../tile/tile';
-import { WebGlImage, WebGlImageBufferredGroup } from './image';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
+import { addXTimes } from '../../utils/array_utils';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
-export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
+export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGlImageBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -16,14 +17,10 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
 
     const size = this.objects.length;
     let textureSource;
-    let textureWidth: number;
-    let textureHeight: number;
 
     for (const image of this.objects) {
       const colorId = integerToVector4(image.id);
       textureSource = image.source;
-      textureWidth = image.width * image.pixelRatio;
-      textureHeight = image.height * image.pixelRatio;
 
       const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, camera.distance);
       const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, camera.distance);
@@ -43,19 +40,12 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
       verteciesBuffer.push(...p3, ...p4, ...p1, ...p1, ...p4, ...p2);
       texcoordBuffer.push(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0);
 
-      colorBuffer.push(
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR
-      );
-      selectionColorBuffer.push(...colorId, ...colorId, ...colorId, ...colorId, ...colorId, ...colorId);
+      addXTimes(colorBuffer, TRANSPARENT_COLOR, 6);
+      addXTimes(selectionColorBuffer, colorId, 6);
     }
 
     return {
-      type: MapTileFeatureType.image,
+      type: MapFeatureType.image,
       name,
       zIndex,
       size,

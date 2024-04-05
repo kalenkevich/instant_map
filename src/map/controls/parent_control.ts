@@ -16,7 +16,10 @@ export class MapParentControl extends MapControl {
   private children: MapControl[] = [];
   private el: HTMLElement;
 
-  constructor(protected readonly map: GlideMap | any, protected readonly position: MapControlPosition) {
+  constructor(
+    protected readonly map: GlideMap,
+    protected readonly position: MapControlPosition,
+  ) {
     super(map);
   }
 

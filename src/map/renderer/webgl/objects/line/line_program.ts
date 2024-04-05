@@ -14,7 +14,7 @@ export class LineProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = LineShaders.vertext,
-    protected readonly fragmentShaderSource: string = LineShaders.fragment
+    protected readonly fragmentShaderSource: string = LineShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -52,7 +52,7 @@ export class LineProgram extends ObjectProgram {
 
     this.pointABuffer.bufferData(lineGroup.vertecies.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer
+      options?.readPixelRenderMode ? lineGroup.selectionColor.buffer : lineGroup.color.buffer,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);

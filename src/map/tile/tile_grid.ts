@@ -10,12 +10,7 @@ import { GlyphsManager } from '../glyphs/glyphs_manager';
 import { DataTileStyles } from '../styles/styles';
 import { MapFeatureFlags } from '../flags';
 import { FontManager } from '../font/font_manager';
-import {
-  WorkerTaskRequestType,
-  WorkerTaskResponseType,
-  TileFullCompleteResponse,
-  TileLayerCompleteResponse,
-} from '../worker/worker_actions';
+import { WorkerTaskRequestType, WorkerTaskResponseType, TileFullCompleteResponse } from '../worker/worker_actions';
 import { WorkerPool, WorkerTask } from '../worker/worker_pool';
 
 export enum TilesGridEvent {
@@ -42,7 +37,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly maxTileZoom: number,
     private readonly projection: Projection,
     private readonly fontManager: FontManager,
-    private readonly glyphsManager: GlyphsManager
+    private readonly glyphsManager: GlyphsManager,
   ) {
     super();
     this.tiles = new LRUCache(tileCacheSize);
@@ -78,41 +73,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
 
     setTimeout(() => {
       this.fire(TilesGridEvent.TILE_LOADED, tile);
-    }, 0);
-  }
-
-  private onTileLayerReady(response: TileLayerCompleteResponse) {
-    if (!response.data) {
-      return;
-    }
-
-    const { tileId, tileLayer } = response.data;
-
-    let tile: MapTile;
-    if (this.tiles.has(tileId)) {
-      tile = this.tiles.get(tileId);
-      const layers = tile.layers;
-      const hasLayer = layers.find(l => l.layerName === tileLayer.layerName);
-
-      if (hasLayer) {
-        tile.layers = layers.map(l => {
-          if (l.layerName === tileLayer.layerName) {
-            return tileLayer;
-          }
-
-          return l;
-        });
-      } else {
-        layers.push(tileLayer);
-      }
-    } else {
-      tile = this.createMapTile(tileId, [tileLayer]);
-
-      this.tiles.set(tileId, tile);
-    }
-
-    setTimeout(() => {
-      this.fire(TilesGridEvent.TILE_LAYER_COMPLETE, tile);
     }, 0);
   }
 
@@ -206,7 +166,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         WorkerTaskResponseType.TILE_FULL_COMPLETE,
         (result: TileFullCompleteResponse) => {
           this.onTileFullReady(result);
-        }
+        },
       );
       this.currentLoadingTiles.set(tileId, workerTask);
     }
@@ -256,7 +216,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
     }
 
-    const childFeatureSets: any = [];
+    const childFeatureSets: MapTileLayer[] = [];
     const children = (tilebelt.getChildren(tile) || []).map(t => getTileId(t as TileRef));
     for (const childId of children) {
       const childTile = this.tiles.get(childId);

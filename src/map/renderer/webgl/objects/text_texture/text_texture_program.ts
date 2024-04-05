@@ -23,7 +23,7 @@ export class TextTextureProgram extends ObjectProgram {
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly fontManager: FontManager,
     protected readonly vertexShaderSource: string = TextShaders.vertext,
-    protected readonly fragmentShaderSource: string = TextShaders.fragment
+    protected readonly fragmentShaderSource: string = TextShaders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -82,7 +82,7 @@ export class TextTextureProgram extends ObjectProgram {
           minFilter: gl.LINEAR,
           magFilter: gl.LINEAR,
           source: await toImageBitmapTexture(source.source),
-        })
+        }),
       );
     }
   }

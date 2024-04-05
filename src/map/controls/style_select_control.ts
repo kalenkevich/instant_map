@@ -15,7 +15,7 @@ export class StyleSelectControl extends MapControl {
   constructor(
     protected readonly map: GlideMap,
     protected readonly document: Document,
-    private readonly styleConfigs: DataTileStylesSelectConfig[]
+    private readonly styleConfigs: DataTileStylesSelectConfig[],
   ) {
     super(map, document);
   }
@@ -62,7 +62,7 @@ export function createMapStyleOption(
   doc: Document,
   styleConfig: DataTileStylesSelectConfig,
   checked: boolean,
-  onSelect: (id: string) => void
+  onSelect: (id: string) => void,
 ): HTMLElement {
   const div = doc.createElement('div');
   div.style.margin = '0 0 5px 0';
@@ -73,7 +73,7 @@ export function createMapStyleOption(
     </label>
   `;
 
-  (div.children[0].children[0] as HTMLInputElement).onchange = function (e) {
+  (div.children[0].children[0] as HTMLInputElement).onchange = function () {
     onSelect(styleConfig.id);
   };
 

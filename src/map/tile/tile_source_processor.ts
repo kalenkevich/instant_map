@@ -1,7 +1,8 @@
 import { MapTile, MapTileLayer, getTileRef } from './tile';
 import { ProjectionType } from '../geo/projection/projection';
 import { MapFeatureFlags } from '../flags';
-import { DataTileSource, DataTileStyles, DataLayerStyle, DataTileSourceType } from '../styles/styles';
+import { DataTileSourceType } from './tile_source/tile_source';
+import { DataTileSource, DataTileStyles, DataLayerStyle } from '../styles/styles';
 import { MapTileRendererType } from '../renderer/renderer';
 // TODO: remove
 import { FontAtlas } from '../font/font_config';
@@ -31,7 +32,6 @@ export type SourceTileProcessor = (
   sourceLayers: DataLayerStyle[],
   options: FetchTileOptions,
   abortController: AbortController,
-  onLayerReady: (tileLayer: MapTileLayer) => void
 ) => Promise<MapTileLayer[]>;
 
 /** Format tile source url with current z, x, y values. */
@@ -45,9 +45,9 @@ export function formatTileURL(tileId: string, source: DataTileSource) {
 export function getU(coord: [number, number, number]): string {
   let u = '';
 
-  for (var zoom = coord[2]; zoom > 0; zoom--) {
-    var b = 0;
-    var mask = 1 << (zoom - 1);
+  for (let zoom = coord[2]; zoom > 0; zoom--) {
+    let b = 0;
+    const mask = 1 << (zoom - 1);
     if ((coord[0] & mask) !== 0) b++;
     if ((coord[1] & mask) !== 0) b += 2;
     u += b.toString();
@@ -103,11 +103,7 @@ export function getSortedLayers(tiles: MapTile[]): MapTileLayer[] {
 export class TileSourceProcessor {
   constructor(private readonly processorsMap: Record<DataTileSourceType, SourceTileProcessor>) {}
 
-  async getMapTile(
-    options: FetchTileOptions,
-    abortController: AbortController,
-    onLayerReady: (tileLayer: MapTileLayer) => void
-  ): Promise<MapTile> {
+  async getMapTile(options: FetchTileOptions, abortController: AbortController): Promise<MapTile> {
     const { tileId } = options;
     const enabledSources = getEnabledSources(options.tileStyles);
 
@@ -117,13 +113,13 @@ export class TileSourceProcessor {
       const sourceLayers = getSourceLayers(options.tileStyles, source);
       const sourceProcessor = this.processorsMap[source.type];
 
-      layersPromises.push(sourceProcessor(tileURL, source, sourceLayers, options, abortController, onLayerReady));
+      layersPromises.push(sourceProcessor(tileURL, source, sourceLayers, options, abortController));
     }
 
     const tileLayers = (await Promise.all(layersPromises)).flatMap(l => l);
 
     if (options.featureFlags.debugLayer) {
-      tileLayers.push(...(await this.getDebugLayers(options, abortController, onLayerReady)));
+      tileLayers.push(...(await this.getDebugLayers(options, abortController)));
     }
 
     return {
@@ -133,13 +129,9 @@ export class TileSourceProcessor {
     };
   }
 
-  async getDebugLayers(
-    options: FetchTileOptions,
-    abortController: AbortController,
-    onLayerReady: (tileLayer: MapTileLayer) => void
-  ): Promise<MapTileLayer[]> {
+  async getDebugLayers(options: FetchTileOptions, abortController: AbortController): Promise<MapTileLayer[]> {
     const sourceProcessor = this.processorsMap[DataTileSourceType.debug];
 
-    return sourceProcessor(null, null, [], options, abortController, onLayerReady);
+    return sourceProcessor(null, null, [], options, abortController);
   }
 }

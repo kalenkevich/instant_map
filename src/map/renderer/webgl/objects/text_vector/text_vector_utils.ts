@@ -94,7 +94,7 @@ class Polygon {
 
 function getPathCommands(
   fontAtlas: VectorFontAtlas,
-  char: string
+  char: string,
 ): { commands: VectorGlyphCommand[]; width: number; height: number } {
   const charCode = char.charCodeAt(0);
   const glyph = fontAtlas.glyphs[charCode];
@@ -115,20 +115,27 @@ export const getVerticiesFromChar = (fontAtlas: VectorFontAtlas, char: string, f
   const hKoef = flipHorisontaly ? -1 : 1;
   const { commands, width, height } = getPathCommands(fontAtlas, char);
 
-  commands.forEach(({ type, x, y, x1, y1, x2, y2 }: any) => {
-    switch (type) {
+  commands.forEach((command: VectorGlyphCommand) => {
+    switch (command.type) {
       case 'M':
         polys.push(new Polygon());
-        polys[polys.length - 1].moveTo({ x, y: hKoef * y });
+        polys[polys.length - 1].moveTo({ x: command.x, y: hKoef * command.y });
         break;
       case 'L':
-        polys[polys.length - 1].moveTo({ x, y: hKoef * y });
+        polys[polys.length - 1].moveTo({ x: command.x, y: hKoef * command.y });
         break;
       case 'C':
-        polys[polys.length - 1].cubicTo({ x, y: hKoef * y }, { x: x1, y: hKoef * y1 }, { x: x2, y: hKoef * y2 });
+        polys[polys.length - 1].cubicTo(
+          { x: command.x, y: hKoef * command.y },
+          { x: command.x1, y: hKoef * command.y1 },
+          { x: command.x2, y: hKoef * command.y2 },
+        );
         break;
       case 'Q':
-        polys[polys.length - 1].conicTo({ x, y: hKoef * y }, { x: x1, y: hKoef * y1 });
+        polys[polys.length - 1].conicTo(
+          { x: command.x, y: hKoef * command.y },
+          { x: command.x1, y: hKoef * command.y1 },
+        );
         break;
       case 'Z':
         polys[polys.length - 1].close();

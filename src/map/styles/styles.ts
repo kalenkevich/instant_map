@@ -1,8 +1,9 @@
 import { Statement, ColorValue } from './style_statement';
-import { MapTileFeatureType } from '../tile/tile';
+import { MapFeatureType } from '../tile/feature';
 import { FontConfig } from '../font/font_config';
 import { GlyphsTextrureAtlasConfig } from '../glyphs/glyphs_config';
-import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../renderer/webgl/objects/line/line';
+import { DataTileSourceType } from '../tile/tile_source/tile_source';
+import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../tile/feature';
 
 export interface DataTileStyles {
   tileSize?: number;
@@ -33,20 +34,10 @@ export interface DataLayerStyle {
   feature?: FeatureStyle;
 }
 
-export enum DataTileSourceType {
-  debug = 'debug',
-  pbf = 'pbf',
-  image = 'image',
-  // Possible data sources
-  // json = 'json',
-  // osm = 'osm',
-  // xml = 'xml'
-}
+export type DataTileSource = MvtTileSource | ImageTileSource;
 
-export type DataTileSource = PbfTileSource | ImageTileSource;
-
-export interface PbfTileSource {
-  type: DataTileSourceType.pbf;
+export interface MvtTileSource {
+  type: DataTileSourceType.mvt;
   name: string;
   url: string;
 }
@@ -61,7 +52,7 @@ export interface ImageTileSource {
 export type FeatureStyle = PointStyle | LineStyle | PolygonStyle | TextStyle | GlyphStyle | ImageStyle;
 
 export interface PointStyle {
-  type: MapTileFeatureType.point;
+  type: MapFeatureType.point;
   color: Statement<ColorValue>;
   radius?: Statement<number>; // default 5
   show?: Statement<boolean>;
@@ -77,7 +68,7 @@ export interface PointMargin {
 }
 
 export interface LineStyle {
-  type: MapTileFeatureType.line;
+  type: MapFeatureType.line;
   color: Statement<ColorValue>;
   fillStyle?: Statement<LineFillStyle.solid | LineFillStyle.dashed | LineFillStyle.dotted | LineFillStyle.dotdashed>; // default: 'solid'
   joinStyle?: Statement<LineJoinStyle.round | LineJoinStyle.bevel | LineJoinStyle.miter>; // default: none
@@ -91,7 +82,7 @@ export interface LineStyle {
 }
 
 export interface PolygonStyle {
-  type: MapTileFeatureType.polygon;
+  type: MapFeatureType.polygon;
   color: Statement<ColorValue>;
   border?: LineStyle;
   show?: Statement<boolean>;
@@ -100,7 +91,7 @@ export interface PolygonStyle {
 }
 
 export interface TextStyle {
-  type: MapTileFeatureType.text;
+  type: MapFeatureType.text;
   color: Statement<ColorValue>;
   borderColor: Statement<ColorValue>;
   text: Statement<string>;
@@ -113,7 +104,7 @@ export interface TextStyle {
 }
 
 export interface GlyphStyle {
-  type: MapTileFeatureType.glyph;
+  type: MapFeatureType.glyph;
   name: Statement<string>; // glyph name
   atlas: Statement<string>; // atlas name
   width?: Statement<number>;
@@ -125,7 +116,7 @@ export interface GlyphStyle {
 }
 
 export interface ImageStyle {
-  type: MapTileFeatureType.image;
+  type: MapFeatureType.image;
   width?: Statement<number>;
   height?: Statement<number>;
   show?: Statement<boolean>;

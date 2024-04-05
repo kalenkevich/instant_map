@@ -1,4 +1,4 @@
-export class LRUCache <K = string, V = any>{
+export class LRUCache<K, V> {
   private readonly hashmap = new Map<K, V>();
 
   constructor(private readonly capacity: number) {}

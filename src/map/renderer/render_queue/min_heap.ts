@@ -23,7 +23,7 @@ export class MinHeap<HeapValue> {
       return {
         value: null,
         index: -1,
-      }
+      };
     }
 
     return {
@@ -109,6 +109,7 @@ export class MinHeap<HeapValue> {
 
     let nodeIndex = index;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const currentNode = this.getNode(nodeIndex);
       const kids = this.getChildNodes(nodeIndex);
@@ -144,6 +145,7 @@ export class MinHeap<HeapValue> {
 
     let nodeIndex = index;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const parent = this.getParentNode(nodeIndex);
       const currentNode = this.getNode(nodeIndex);

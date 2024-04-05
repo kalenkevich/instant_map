@@ -1,12 +1,7 @@
-import { MapTileFeatureType } from '../../../../tile/tile';
-
-export interface WebGlObject {
-  id: number;
-  type: MapTileFeatureType;
-}
+import { MapFeatureType } from '../../../../tile/feature';
 
 export interface WebGlObjectBufferredGroup {
-  type: MapTileFeatureType;
+  type: MapFeatureType;
   name: string;
   zIndex: number;
 }

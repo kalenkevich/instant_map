@@ -15,7 +15,7 @@ export class ImageProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = ImageShaiders.vertext,
-    protected readonly fragmentShaderSource: string = ImageShaiders.fragment
+    protected readonly fragmentShaderSource: string = ImageShaiders.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
@@ -82,7 +82,7 @@ export class ImageProgram extends ObjectProgram {
     this.positionBuffer.bufferData(imageGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(imageGroup.textcoords.buffer);
     this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? imageGroup.selectionColor.buffer : imageGroup.color.buffer
+      options?.readPixelRenderMode ? imageGroup.selectionColor.buffer : imageGroup.color.buffer,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, imageGroup.numElements);

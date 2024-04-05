@@ -3,9 +3,9 @@ import { MapTile } from '../tile/tile';
 export enum MapTileRendererType {
   webgl = 'webgl',
   webgl2 = 'webgl2',
+  // webgpu = 'webgpu',
   // html = 'html',
   // canvas2d = 'canvas2d',
-  // webgpu = 'webgpu',
 }
 
 export interface SceneCamera {

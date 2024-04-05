@@ -8,7 +8,7 @@ import {
   GlyphStyle,
 } from '../../../../src/map/styles/styles';
 
-import { MapTileFeatureType } from '../../../../src/map/tile/tile';
+import { MapFeatureType } from '../../../../src/map/tile/feature';
 import { compileLayerStyle, compileFeatureStyle, isFeatureStyle } from '../../../../src/map/styles/styles_utils';
 
 describe('compileLayerStyle', () => {
@@ -22,7 +22,7 @@ describe('compileLayerStyle', () => {
       minzoom: 0,
       maxzoom: 5,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
         color: [
           '$switch',
@@ -32,7 +32,7 @@ describe('compileLayerStyle', () => {
           ['ice', ['$rgb', 1, 1, 3]],
         ],
         border: {
-          type: MapTileFeatureType.line,
+          type: MapFeatureType.line,
           color: ['$rgb', 1, 1, 3],
           width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
         },
@@ -55,7 +55,7 @@ describe('compileLayerStyle', () => {
       minzoom: 0,
       maxzoom: 5,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
         color: [
           '$switch',
@@ -65,7 +65,7 @@ describe('compileLayerStyle', () => {
           ['ice', ['$rgb', 1, 1, 3]],
         ],
         border: {
-          type: MapTileFeatureType.line,
+          type: MapFeatureType.line,
           color: ['$rgb', 1, 1, 3],
           width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
         },
@@ -79,7 +79,7 @@ describe('compileLayerStyle', () => {
 describe('compileFeatureStyle', () => {
   it('should return compiled feature style for Point', () => {
     const featureStyle: PointStyle = {
-      type: MapTileFeatureType.point,
+      type: MapFeatureType.point,
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       color: [
         '$switch',
@@ -90,7 +90,7 @@ describe('compileFeatureStyle', () => {
       ],
       radius: 5,
       border: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: ['$rgb', 1, 1, 3],
         width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
       },
@@ -105,12 +105,12 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.point,
+      type: MapFeatureType.point,
       show: true,
       color: ['$rgb', 1, 1, 2],
       radius: 5,
       border: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: ['$rgb', 1, 1, 3],
         width: 2,
       },
@@ -121,7 +121,7 @@ describe('compileFeatureStyle', () => {
 
   it('should return compiled feature style for Line', () => {
     const featureStyle: LineStyle = {
-      type: MapTileFeatureType.line,
+      type: MapFeatureType.line,
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       color: [
         '$switch',
@@ -142,7 +142,7 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.line,
+      type: MapFeatureType.line,
       show: true,
       color: ['$rgb', 1, 1, 2],
       width: 2,
@@ -153,7 +153,7 @@ describe('compileFeatureStyle', () => {
 
   it('should return compiled feature style for Polygon', () => {
     const featureStyle: PolygonStyle = {
-      type: MapTileFeatureType.polygon,
+      type: MapFeatureType.polygon,
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       color: [
         '$switch',
@@ -163,7 +163,7 @@ describe('compileFeatureStyle', () => {
         ['ice', ['$rgb', 1, 1, 3]],
       ],
       border: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: ['$rgb', 1, 1, 3],
         width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
       },
@@ -178,11 +178,11 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.polygon,
+      type: MapFeatureType.polygon,
       show: true,
       color: ['$rgb', 1, 1, 2],
       border: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: ['$rgb', 1, 1, 3],
         width: 2,
       },
@@ -193,7 +193,7 @@ describe('compileFeatureStyle', () => {
 
   it('should return compiled feature style for Text', () => {
     const featureStyle: TextStyle = {
-      type: MapTileFeatureType.text,
+      type: MapFeatureType.text,
       text: ['$get', 'properties.label'],
       show: ['$oneOf', ['$get', 'properties.class'], 'land', 'water', 'ice'],
       color: [
@@ -218,7 +218,7 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.text,
+      type: MapFeatureType.text,
       show: true,
       text: 'Shchara',
       color: ['$rgb', 1, 1, 2],
@@ -231,7 +231,7 @@ describe('compileFeatureStyle', () => {
 
   it('should return compiled feature style for Image', () => {
     const featureStyle: GlyphStyle = {
-      type: MapTileFeatureType.glyph,
+      type: MapFeatureType.glyph,
       name: [
         '$switch',
         ['$get', 'properties.class'],
@@ -254,7 +254,7 @@ describe('compileFeatureStyle', () => {
     });
 
     expect(compiled).toEqual({
-      type: MapTileFeatureType.glyph,
+      type: MapFeatureType.glyph,
       name: 'waterImage',
       show: true,
       width: 256,
@@ -267,11 +267,11 @@ describe('compileFeatureStyle', () => {
 
 describe('isFeatureStyle', () => {
   it('should recognise FeatureStyle by type', () => {
-    expect(isFeatureStyle({ type: MapTileFeatureType.point })).toBe(true);
-    expect(isFeatureStyle({ type: MapTileFeatureType.line })).toBe(true);
-    expect(isFeatureStyle({ type: MapTileFeatureType.polygon })).toBe(true);
-    expect(isFeatureStyle({ type: MapTileFeatureType.text })).toBe(true);
-    expect(isFeatureStyle({ type: MapTileFeatureType.image })).toBe(true);
+    expect(isFeatureStyle({ type: MapFeatureType.point })).toBe(true);
+    expect(isFeatureStyle({ type: MapFeatureType.line })).toBe(true);
+    expect(isFeatureStyle({ type: MapFeatureType.polygon })).toBe(true);
+    expect(isFeatureStyle({ type: MapFeatureType.text })).toBe(true);
+    expect(isFeatureStyle({ type: MapFeatureType.image })).toBe(true);
     // expect(isFeatureStyle({ type: MapTileFeatureType.background })).toBe(true);
 
     expect(isFeatureStyle({ type: 'unknown' })).toBe(false);

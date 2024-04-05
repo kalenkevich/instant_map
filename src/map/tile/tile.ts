@@ -13,19 +13,6 @@ export interface MapTileLayer {
   zIndex: number;
 }
 
-export interface MapTileFeature {
-  type: MapTileFeatureType;
-}
-
-export enum MapTileFeatureType {
-  point = 'point',
-  line = 'line',
-  polygon = 'polygon',
-  glyph = 'glyph',
-  image = 'image',
-  text = 'text',
-}
-
 export function getTileId(refOrId: TileRef | string): string {
   if (Array.isArray(refOrId)) {
     return refOrId.join('/');

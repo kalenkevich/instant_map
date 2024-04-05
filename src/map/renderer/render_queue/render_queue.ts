@@ -1,6 +1,6 @@
-export type RenderFunc = (...any: []) => any;
+export type RenderFunc = (...any: []) => void;
 
-export type ResolveFunc = (...any: []) => any;
+export type ResolveFunc = (...any: []) => void;
 
 export class RenderQueue {
   private queue: Array<[RenderFunc, ResolveFunc]> = [];

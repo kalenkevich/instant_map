@@ -1,4 +1,3 @@
-import { Point } from '../geometry/point';
 import { MapControl } from './map_control';
 import { throttle } from '../utils/trottle';
 
@@ -140,12 +139,12 @@ export class CompassControl extends MapControl {
     this.setRotationDegree(270);
   }
 
-  private mousePos?: Point;
+  private mousePos?: [number, number];
   private onMouseDown(e: MouseEvent) {
     e.stopPropagation();
     e.stopImmediatePropagation();
 
-    this.mousePos = new Point(e.pageX, e.pageY);
+    this.mousePos = [e.pageX, e.pageY];
     this.updateCursor(true);
 
     window.addEventListener('mousemove', throttle(this.onMouseMove, 50));
@@ -160,7 +159,7 @@ export class CompassControl extends MapControl {
       return;
     }
 
-    const nextMousePos = new Point(e.pageX, e.pageY);
+    const nextMousePos: [number, number] = [e.pageX, e.pageY];
     const degree = getDegree(this.mousePos, nextMousePos);
 
     this.setRotationDegree(degree);
@@ -174,7 +173,7 @@ export class CompassControl extends MapControl {
       return;
     }
 
-    const nextMousePos = new Point(e.offsetX, e.offsetY);
+    const nextMousePos: [number, number] = [e.offsetX, e.offsetY];
 
     const degree = getDegree(this.mousePos, nextMousePos);
     this.setRotationDegree(degree);
@@ -210,4 +209,5 @@ export class CompassControl extends MapControl {
   }
 }
 
-export const getDegree = (p1: Point, p2: Point): number => (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+export const getDegree = (p1: [number, number], p2: [number, number]): number =>
+  (Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180) / Math.PI;
