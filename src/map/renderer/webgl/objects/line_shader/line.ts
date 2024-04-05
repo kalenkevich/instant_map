@@ -1,12 +1,11 @@
-import { MapTileFeatureType } from '../../../../tile/tile';
+import { MapFeatureType } from '../../../../tile/feature';
 import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
 
 export interface WebGlShaderLineBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.line;
+  type: MapFeatureType.line;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;
-
   prevPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
   currPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;
   nextPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;

@@ -1,13 +1,13 @@
+import { MapFeatureType, ImageMapFeature } from '../../../../tile/feature';
+import { WebGlImageBufferredGroup } from './image';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { integerToVector4 } from '../../utils/number2vec';
-import { MapTileFeatureType } from '../../../../tile/tile';
-import { WebGlImage, WebGlImageBufferredGroup } from './image';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
-export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
+export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGlImageBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -55,7 +55,7 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<WebGlImage> {
     }
 
     return {
-      type: MapTileFeatureType.image,
+      type: MapFeatureType.image,
       name,
       zIndex,
       size,

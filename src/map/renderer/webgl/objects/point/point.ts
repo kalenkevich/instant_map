@@ -1,31 +1,12 @@
-import { vec4, vec2 } from 'gl-matrix';
-import { MapTileFeatureType } from '../../../../tile/tile';
+import { MapFeatureType } from '../../../../tile/feature';
 import {
-  WebGlObject,
   WebGlObjectBufferredGroup,
   WebGlObjectAttributeDescriptor,
   WebGlObjectAttributeType,
 } from '../object/object';
 
-export interface WebGlPoint extends WebGlObject {
-  id: number;
-  type: MapTileFeatureType.point;
-  color: vec4 | [number, number, number, number];
-  center: vec2 | [number, number];
-  radius: number;
-  components?: number;
-  margin?: PointMargin;
-  borderWidth: number;
-  borderColor: vec4 | [number, number, number, number];
-}
-
-export interface PointMargin {
-  top?: number;
-  left?: number;
-}
-
 export interface WebGlPointBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.point;
+  type: MapFeatureType.point;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;

@@ -1,26 +1,12 @@
-import { vec2 } from 'gl-matrix';
-import { MapTileFeatureType } from '../../../../tile/tile';
+import { MapFeatureType } from '../../../../tile/feature';
 import {
-  WebGlObject,
   WebGlObjectBufferredGroup,
   WebGlObjectAttributeDescriptor,
   WebGlObjectAttributeType,
 } from '../object/object';
-import { PointMargin } from '../point/point';
-
-export interface WebGlGlyph extends WebGlObject {
-  id: number;
-  type: MapTileFeatureType.glyph;
-  atlas: string;
-  name: string;
-  center: vec2 | [number, number];
-  width: number;
-  height: number;
-  margin?: PointMargin;
-}
 
 export interface WebGlGlyphBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.glyph;
+  type: MapFeatureType.glyph;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   atlas: string;

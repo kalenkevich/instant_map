@@ -1,19 +1,14 @@
 import { WebGlSceneCamera } from '../../map/renderer/webgl/webgl_camera';
 import { WebGlRenderer, WebGlRendererOptions } from '../../map/renderer/webgl/webgl_renderer';
-import { WebGlObject, WebGlObjectBufferredGroup } from '../../map/renderer/webgl/objects/object/object';
+import { WebGlObjectBufferredGroup } from '../../map/renderer/webgl/objects/object/object';
 import { MapFeatureFlags } from '../../map/flags';
 import { MapTileRendererType } from '../../map/renderer/renderer';
 import { FontManager } from '../../map/font/font_manager';
 import { GlyphsManager } from '../../map/glyphs/glyphs_manager';
-import { MapTileFeatureType } from '../../map/tile/tile';
+import { MapFeatureType } from '../../map/tile/feature';
 import { FontFormatType } from '../../map/font/font_config';
 
-import { WebGlPoint } from '../../map/renderer/webgl/objects/point/point';
-import { WebGlPolygon } from '../../map/renderer/webgl/objects/polygon/polygon';
-import { WebGlLine } from '../../map/renderer/webgl/objects/line/line';
-import { WebGlImage } from '../../map/renderer/webgl/objects/image/image';
-import { WebGlGlyph } from '../../map/renderer/webgl/objects/glyph/glyph';
-import { WebGlText } from '../../map/renderer/webgl/objects/text/text';
+import { MapFeature, PointMapFeature, PolygonMapFeature, LineMapFeature, ImageMapFeature, GlyphMapFeature, TextMapFeature } from '../../map/tile/feature';
 
 import { ImageGroupBuilder } from '../../map/renderer/webgl/objects/image/image_group_builder';
 import { PointGroupBuilder } from '../../map/renderer/webgl/objects/point/point_builder';
@@ -28,7 +23,7 @@ export class WebGlScene {
   private readonly renderer: WebGlRenderer;
   private readonly fontManager: FontManager;
   private readonly textureManager: GlyphsManager;
-  private readonly objects: WebGlObject[] = [];
+  private readonly objects: MapFeature[] = [];
   private width: number;
   private height: number;
 
@@ -71,7 +66,7 @@ export class WebGlScene {
     return this.height;
   }
 
-  getWebglObjectGroups(camera: WebGlSceneCamera, objects: WebGlObject[]): WebGlObjectBufferredGroup[] {
+  getWebglObjectGroups(camera: WebGlSceneCamera, objects: MapFeature[]): WebGlObjectBufferredGroup[] {
     const pointBuidler = new PointGroupBuilder(this.featureFlags, this.devicePixelRatio);
     const polygonGroupBuilder = new PolygonGroupBuilder(this.featureFlags, this.devicePixelRatio);
     const lineBuilder = this.featureFlags.webglRendererUseShaderLines
@@ -90,28 +85,28 @@ export class WebGlScene {
 
     for (const obj of objects) {
       switch (obj.type) {
-        case MapTileFeatureType.point: {
-          pointBuidler.addObject(obj as WebGlPoint);
+        case MapFeatureType.point: {
+          pointBuidler.addObject(obj as PointMapFeature);
           continue;
         }
-        case MapTileFeatureType.polygon: {
-          polygonGroupBuilder.addObject(obj as WebGlPolygon);
+        case MapFeatureType.polygon: {
+          polygonGroupBuilder.addObject(obj as PolygonMapFeature);
           continue;
         }
-        case MapTileFeatureType.line: {
-          lineBuilder.addObject(obj as WebGlLine);
+        case MapFeatureType.line: {
+          lineBuilder.addObject(obj as LineMapFeature);
           continue;
         }
-        case MapTileFeatureType.glyph: {
-          glyphGroupBuilder.addObject(obj as WebGlGlyph);
+        case MapFeatureType.glyph: {
+          glyphGroupBuilder.addObject(obj as GlyphMapFeature);
           continue;
         }
-        case MapTileFeatureType.text: {
-          textBuilder.addObject(obj as WebGlText);
+        case MapFeatureType.text: {
+          textBuilder.addObject(obj as TextMapFeature);
           continue;
         }
-        case MapTileFeatureType.image: {
-          imageGroupBuilder.addObject(obj as WebGlImage);
+        case MapFeatureType.image: {
+          imageGroupBuilder.addObject(obj as ImageMapFeature);
           continue;
         }
       }
@@ -146,7 +141,7 @@ export class WebGlScene {
     return objectGroups;
   }
 
-  addObject<T extends WebGlObject>(obj: T) {
+  addObject<T extends MapFeature>(obj: T) {
     this.objects.push(obj);
   }
 

@@ -1,6 +1,5 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
-import { vec4 } from 'gl-matrix';
 import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 // Common
@@ -8,7 +7,7 @@ import { FontManager } from '../../../font/font_manager';
 import { FontFormatType } from '../../../font/font_config';
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
 // Tile
-import { MapTileFeatureType } from '../../../tile/tile';
+import { MapFeatureType, LineJoinStyle, LineCapStyle, LineFillStyle  } from '../../../tile/feature';
 import { FetchTileOptions } from '../../../tile/tile_source_processor';
 import { WebGlMapLayer } from './webgl_tile';
 // Styles
@@ -25,7 +24,6 @@ import { compileStatement } from '../../../styles/style_statement_utils';
 // WebGl objects
 import { SceneCamera } from '../../renderer';
 import { WebGlObjectBufferredGroup } from '../objects/object/object';
-import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../objects/line/line';
 import { PointGroupBuilder } from '../objects/point/point_builder';
 import { PolygonGroupBuilder } from '../objects/polygon/polygon_builder';
 import { LineGroupBuilder } from '../objects/line/line_builder';
@@ -36,24 +34,24 @@ import { LineShaiderBuilder } from '../objects/line_shader/line_shader_builder';
 
 export type SupportedGeometry = Polygon | MultiPolygon | LineString | MultiLineString | Point | MultiPoint;
 
-function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapTileFeatureType {
+function getMapTileFeatureType(feature: Feature<SupportedGeometry>): MapFeatureType {
   const type = feature.geometry.type;
 
   if (type === 'Polygon' || type === 'MultiPolygon') {
-    return MapTileFeatureType.polygon;
+    return MapFeatureType.polygon;
   }
 
   if (type === 'Point' || type === 'MultiPoint') {
-    return MapTileFeatureType.point;
+    return MapFeatureType.point;
   }
 
   if (type === 'LineString' || type === 'MultiLineString') {
-    return MapTileFeatureType.line;
+    return MapFeatureType.line;
   }
 
   console.log('Unknown feature type', type);
 
-  return MapTileFeatureType.polygon;
+  return MapFeatureType.polygon;
 }
 
 export async function MvtTile2WebglLayers(
@@ -119,9 +117,9 @@ export async function MvtTile2WebglLayers(
 
       const featureType = getMapTileFeatureType(geojson);
       const possibleText =
-        styleLayer.feature.type === MapTileFeatureType.text && featureType === MapTileFeatureType.point;
-      const possibleGlyph = styleLayer.feature.type === MapTileFeatureType.glyph;
-      const isTextOrGlyph = [MapTileFeatureType.glyph, MapTileFeatureType.text].includes(styleLayer.feature.type);
+        styleLayer.feature.type === MapFeatureType.text && featureType === MapFeatureType.point;
+      const possibleGlyph = styleLayer.feature.type === MapFeatureType.glyph;
+      const isTextOrGlyph = [MapFeatureType.glyph, MapFeatureType.text].includes(styleLayer.feature.type);
 
       if (featureType !== styleLayer.feature.type && !possibleText && !possibleGlyph) {
         continue;
@@ -133,7 +131,7 @@ export async function MvtTile2WebglLayers(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.point && !isTextOrGlyph) {
+      if (featureType === MapFeatureType.point && !isTextOrGlyph) {
         const pointStyle = styleLayer.feature as PointStyle;
 
         if (geojson.geometry.type === 'Point') {
@@ -141,7 +139,7 @@ export async function MvtTile2WebglLayers(
 
           pointsGroupBuilder.addObject({
             id: pointFeature.id! as number,
-            type: MapTileFeatureType.point,
+            type: MapFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
             center: projection.fromLngLat(pointFeature.geometry.coordinates as [number, number]),
             radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
@@ -163,7 +161,7 @@ export async function MvtTile2WebglLayers(
           for (const point of geojson.geometry.coordinates) {
             pointsGroupBuilder.addObject({
               id: pointFeature.id! as number,
-              type: MapTileFeatureType.point,
+              type: MapFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
               center: projection.fromLngLat(point as [number, number]),
               radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
@@ -181,7 +179,7 @@ export async function MvtTile2WebglLayers(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.text) {
+      if (featureType === MapFeatureType.point && styleLayer.feature.type === MapFeatureType.text) {
         const textStyle = styleLayer.feature as TextStyle;
 
         if (geojson.geometry.type === 'Point') {
@@ -189,7 +187,7 @@ export async function MvtTile2WebglLayers(
 
           textTextureGroupBuilder.addObject({
             id: pointFeature.id! as number,
-            type: MapTileFeatureType.text,
+            type: MapFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
             borderColor: compileStatement(textStyle.borderColor, pointFeature),
             text: compileStatement(textStyle.text, pointFeature),
@@ -212,7 +210,7 @@ export async function MvtTile2WebglLayers(
           for (const point of geojson.geometry.coordinates) {
             textTextureGroupBuilder.addObject({
               id: pointFeature.id! as number,
-              type: MapTileFeatureType.text,
+              type: MapFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
               borderColor: compileStatement(textStyle.borderColor, pointFeature),
               text: compileStatement(textStyle.text, pointFeature),
@@ -231,7 +229,7 @@ export async function MvtTile2WebglLayers(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.point && styleLayer.feature.type === MapTileFeatureType.glyph) {
+      if (featureType === MapFeatureType.point && styleLayer.feature.type === MapFeatureType.glyph) {
         let center: [number, number];
 
         if (geojson.geometry.type === 'Point') {
@@ -245,7 +243,7 @@ export async function MvtTile2WebglLayers(
 
         glyphGroupBuilder.addObject({
           id: pointFeature.id! as number,
-          type: MapTileFeatureType.glyph,
+          type: MapFeatureType.glyph,
           atlas: compileStatement(glyphStyle.atlas, pointFeature),
           name: compileStatement(glyphStyle.name, pointFeature),
           center: projection.fromLngLat(center),
@@ -264,7 +262,7 @@ export async function MvtTile2WebglLayers(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.polygon) {
+      if (featureType === MapFeatureType.polygon) {
         const polygonStyle = styleLayer.feature as PolygonStyle;
 
         if (geojson.geometry.type === 'Polygon') {
@@ -272,13 +270,13 @@ export async function MvtTile2WebglLayers(
 
           polygonGroupBuilder.addObject({
             id: polygonFeature.id! as number,
-            type: MapTileFeatureType.polygon,
+            type: MapFeatureType.polygon,
             color: compileStatement(polygonStyle.color, polygonFeature),
             vertecies: (geojson.geometry.coordinates as Array<Array<[number, number]>>).map(arr =>
               arr.map(p => projection.fromLngLat(p))
             ),
             borderWidth: 1,
-            borderColor: vec4.fromValues(0, 0, 0, 1),
+            borderColor: [0, 0, 0, 1],
             borderJoin: LineJoinStyle.bevel,
           });
 
@@ -291,13 +289,13 @@ export async function MvtTile2WebglLayers(
           for (const polygons of geojson.geometry.coordinates) {
             polygonGroupBuilder.addObject({
               id: polygonFeature.id! as number,
-              type: MapTileFeatureType.polygon,
+              type: MapFeatureType.polygon,
               color: compileStatement(polygonStyle.color, polygonFeature),
               vertecies: ([polygons[0]] as Array<Array<[number, number]>>).map(arr =>
                 arr.map(p => projection.fromLngLat(p))
               ),
               borderWidth: 1,
-              borderColor: vec4.fromValues(0, 0, 0, 1),
+              borderColor: [0, 0, 0, 1],
               borderJoin: LineJoinStyle.bevel,
             });
           }
@@ -306,7 +304,7 @@ export async function MvtTile2WebglLayers(
         continue;
       }
 
-      if (featureType === MapTileFeatureType.line) {
+      if (featureType === MapFeatureType.line) {
         const lineStyle = styleLayer.feature as LineStyle;
 
         if (geojson.geometry.type === 'LineString') {
@@ -314,14 +312,14 @@ export async function MvtTile2WebglLayers(
 
           lineGroupBuilder.addObject({
             id: lineFeature.id! as number,
-            type: MapTileFeatureType.line,
+            type: MapFeatureType.line,
             color: compileStatement(lineStyle.color, lineFeature),
             vertecies: (lineFeature.geometry.coordinates as Array<[number, number]>).map(p => projection.fromLngLat(p)),
             width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
             borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
             borderColor: lineStyle.borderColor
               ? compileStatement(lineStyle.borderColor, lineFeature)
-              : vec4.fromValues(0, 0, 0, 0),
+              : [0, 0, 0, 0],
             fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
             join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
             cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
@@ -336,14 +334,14 @@ export async function MvtTile2WebglLayers(
           for (const lineGeometry of lineFeature.geometry.coordinates) {
             lineGroupBuilder.addObject({
               id: lineFeature.id! as number,
-              type: MapTileFeatureType.line,
+              type: MapFeatureType.line,
               color: compileStatement(lineStyle.color, lineFeature),
               vertecies: (lineGeometry as Array<[number, number]>).map(p => projection.fromLngLat(p)),
               width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
               borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
               borderColor: lineStyle.borderColor
                 ? compileStatement(lineStyle.borderColor, lineFeature)
-                : vec4.fromValues(0, 0, 0, 0),
+                : [0, 0, 0, 0],
               fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
               join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
               cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),

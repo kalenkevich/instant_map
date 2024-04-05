@@ -3,7 +3,7 @@ import tilebelt from '@mapbox/tilebelt';
 // Common
 import { MercatorProjection } from '../../../geo/projection/mercator_projection';
 // Tile
-import { MapTileFeatureType } from '../../../tile/tile';
+import { MapFeatureType } from '../../../tile/feature';
 import { FetchTileOptions } from '../../../tile/tile_source_processor';
 import { WebGlMapLayer } from './webgl_tile';
 // Styles
@@ -62,13 +62,13 @@ export async function ImageTile2WebglLayers(
     const imageGroupBuilder = new ImageGroupBuilder(featureFlags, pixelRatio);
     imageGroupBuilder.addObject({
       id: 0,
-      type: MapTileFeatureType.image,
+      type: MapFeatureType.image,
       name: tileId,
       bbox: [
         [...projection.fromLngLat([tilebbox[0], tilebbox[1]])],
         [...projection.fromLngLat([tilebbox[2], tilebbox[3]])],
       ],
-      topLeft: tilePolygon.coordinates[0][0] as vec2,
+      topLeft: tilePolygon.coordinates[0][0] as [number, number],
       source: textureSource,
       width: imageFeatureStyle.width ? compileStatement(imageFeatureStyle.width, {}) : tileSize,
       height: imageFeatureStyle.height ? compileStatement(imageFeatureStyle.height, {}) : tileSize,

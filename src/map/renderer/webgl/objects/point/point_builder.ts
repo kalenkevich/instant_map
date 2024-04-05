@@ -1,14 +1,14 @@
 import { vec2 } from 'gl-matrix';
+import { MapFeatureType, PointMapFeature } from '../../../../tile/feature';
+import { WebGlPointBufferredGroup } from './point';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { WebGlPoint, WebGlPointBufferredGroup } from './point';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
+export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGlPointBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlPointBufferredGroup {
     const vertecies: number[] = [];
     const borderVertecies: number[] = [];
@@ -31,7 +31,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<WebGlPoint> {
     }
 
     return {
-      type: MapTileFeatureType.point,
+      type: MapFeatureType.point,
       name,
       zIndex,
       size: this.objects.length,

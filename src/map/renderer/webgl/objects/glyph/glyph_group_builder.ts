@@ -1,16 +1,16 @@
-import { WebGlGlyph, WebGlGlyphBufferredGroup } from './glyph';
+import { GlyphMapFeature, MapFeatureType } from '../../../../tile/feature';
+import { WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { GlyphsManagerMappingState } from '../../../../glyphs/glyphs_manager';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { MapFeatureFlags } from '../../../../flags';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 
-export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
+export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGlGlyphBufferredGroup> {
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
@@ -21,7 +21,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
 
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlGlyphBufferredGroup {
     let textureAtlasName: string;
-    const filteredGlyphs: WebGlGlyph[] = [];
+    const filteredGlyphs: GlyphMapFeature[] = [];
     for (const glyph of this.objects) {
       textureAtlasName = glyph.atlas;
       const textureAtlas = this.glyphTextureMapping[glyph.atlas];
@@ -84,7 +84,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<WebGlGlyph> {
     }
 
     return {
-      type: MapTileFeatureType.glyph,
+      type: MapFeatureType.glyph,
       name,
       zIndex,
       size,

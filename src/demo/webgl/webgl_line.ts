@@ -1,8 +1,7 @@
 import { WebGlScene } from './webgl_scene';
 import { createRootEl } from '../demo_utils';
 import { ENABLED_FEATURE_FLAGS } from '../enabled_features';
-import { MapTileFeatureType } from '../../map/tile/tile';
-import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../../map/renderer/webgl/objects/line/line';
+import { MapFeatureType, LineJoinStyle, LineCapStyle, LineFillStyle } from '../../map/tile/feature';
 import { WebGlSceneCamera } from '../../map/renderer/webgl/webgl_camera';
 
 export async function renderWebglLineExample() {
@@ -35,7 +34,7 @@ export async function renderWebglLineExample() {
 
   // vertical line
   scene.addObject({
-    type: MapTileFeatureType.line,
+    type: MapFeatureType.line,
     id: 2,
     color: [1, 0, 0, 1],
     vertecies: [
@@ -54,7 +53,7 @@ export async function renderWebglLineExample() {
   });
 
   scene.addObject({
-    type: MapTileFeatureType.line,
+    type: MapFeatureType.line,
     id: 2,
     color: [1, 0, 0, 1],
     vertecies: [

@@ -1,14 +1,12 @@
 import { MapFeatureFlags } from '../../../../flags';
 import { SceneCamera } from '../../../renderer';
 import { getVerticiesFromChar } from './text_vector_utils';
-import { WebGlText } from '../text/text';
+import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextVectorBufferredGroup } from './text_vector';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { FontManager } from '../../../../font/font_manager';
 import { VectorFontAtlas } from '../../../../font/font_config';
-import { MapTileFeatureType } from '../../../../tile/tile';
-import { Projection } from '../../../../geo/projection/projection';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
@@ -27,7 +25,7 @@ interface TextVerteciesData {
 
 const FONT_CHAR_CACHE: Record<string, Record<string, CharVerticesData>> = {};
 
-export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
+export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlTextVectorBufferredGroup> {
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly pixelRatio: number,
@@ -50,7 +48,7 @@ export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
     }
 
     return {
-      type: MapTileFeatureType.text,
+      type: MapFeatureType.text,
       name,
       zIndex,
       size: this.objects.length,
@@ -73,7 +71,7 @@ export class TextVectorBuilder extends ObjectGroupBuilder<WebGlText> {
     };
   }
 
-  verticesFromText(result: number[], camera: SceneCamera, fontManager: FontManager, text: WebGlText): number {
+  verticesFromText(result: number[], camera: SceneCamera, fontManager: FontManager, text: TextMapFeature): number {
     const start = result.length;
 
     if (!text.text) {

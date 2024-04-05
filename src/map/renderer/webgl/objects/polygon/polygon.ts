@@ -1,27 +1,12 @@
-import { vec4, vec2 } from 'gl-matrix';
-import { MapTileFeatureType } from '../../../../tile/tile';
+import { MapFeatureType } from '../../../../tile/feature';
 import {
-  WebGlObject,
   WebGlObjectBufferredGroup,
   WebGlObjectAttributeDescriptor,
   WebGlObjectAttributeType,
 } from '../object/object';
-import { LineJoinStyle } from '../line/line';
-
-export interface WebGlPolygon extends WebGlObject {
-  id: number;
-  type: MapTileFeatureType.polygon;
-  color: vec4;
-  vertecies: Array<Array<vec2 | [number, number]>>;
-
-  // TODO: support this
-  borderWidth: number;
-  borderColor: vec4;
-  borderJoin: LineJoinStyle;
-}
 
 export interface WebGlPolygonBufferredGroup extends WebGlObjectBufferredGroup {
-  type: MapTileFeatureType.polygon;
+  type: MapFeatureType.polygon;
   size: number; // group size | number of instances;
   numElements: number; // number of elements
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;

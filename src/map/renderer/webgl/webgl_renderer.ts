@@ -1,5 +1,5 @@
 import { MapTileRendererType, RenderOptions, SceneCamera } from '../renderer';
-import { MapTileFeatureType } from '../../tile/tile';
+import { MapFeatureType } from '../../tile/feature';
 import { addExtensionsToContext, ExtendedWebGLRenderingContext } from './webgl_context';
 import { ObjectProgram } from './objects/object/object_program';
 import { PointProgram } from './objects/point/point_program';
@@ -31,7 +31,7 @@ export interface WebGlRendererOptions extends RenderOptions {
  */
 export class WebGlRenderer {
   private canvas: HTMLCanvasElement;
-  private programs: Record<MapTileFeatureType, ObjectProgram>;
+  private programs: Record<MapFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
   private framebuffer: WebGlFrameBuffer;
@@ -106,12 +106,12 @@ export class WebGlRenderer {
     ]);
 
     this.programs = {
-      [MapTileFeatureType.point]: pointProgram,
-      [MapTileFeatureType.line]: lineProgram,
-      [MapTileFeatureType.polygon]: polygonProgram,
-      [MapTileFeatureType.text]: textProgram,
-      [MapTileFeatureType.glyph]: glyphProgram,
-      [MapTileFeatureType.image]: imageProgram,
+      [MapFeatureType.point]: pointProgram,
+      [MapFeatureType.line]: lineProgram,
+      [MapFeatureType.polygon]: polygonProgram,
+      [MapFeatureType.text]: textProgram,
+      [MapFeatureType.glyph]: glyphProgram,
+      [MapFeatureType.image]: imageProgram,
     };
   }
 

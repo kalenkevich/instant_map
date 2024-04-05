@@ -1,10 +1,9 @@
 import { vec2 } from 'gl-matrix';
+import { MapFeatureType, LineMapFeature } from '../../../../tile/feature';
 import { WebGlObjectAttributeType } from '../object/object';
 import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { LineJoinStyle, WebGlLine } from '../line/line';
 import { WebGlShaderLineBufferredGroup } from './line';
-import { MapTileFeatureType } from '../../../../tile/tile';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
@@ -18,7 +17,7 @@ const getBbox = (p1: [number, number] | vec2, p2: [number, number] | vec2): [num
   return [minX, minY, maxX, maxY];
 };
 
-export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
+export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlShaderLineBufferredGroup> {
   build(camera: SceneCamera, name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
     const vertecies: number[] = [];
     const prevPoint: number[] = [];
@@ -84,7 +83,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<WebGlLine> {
     }
 
     return {
-      type: MapTileFeatureType.line,
+      type: MapFeatureType.line,
       name,
       zIndex,
       size: this.objects.length,

@@ -6,14 +6,13 @@ import { FontManager } from '../../../font/font_manager';
 import { FontFormatType } from '../../../font/font_config';
 // Tile
 import { WebGlMapLayer } from './webgl_tile';
-import { MapTileFeatureType } from '../../../tile/tile';
+import { MapFeatureType, LineJoinStyle, LineCapStyle, LineFillStyle } from '../../../tile/feature';
 import { FetchTileOptions } from '../../../tile/tile_source_processor';
 // Styles
 import { DataTileSource, DataLayerStyle } from '../../../styles/styles';
 // WebGl objects
 import { SceneCamera } from '../../renderer';
 import { LineGroupBuilder } from '../objects/line/line_builder';
-import { LineJoinStyle, LineCapStyle, LineFillStyle } from '../objects/line/line';
 import { TextVectorBuilder } from '../objects/text_vector/text_vector_builder';
 import { TextTextureGroupBuilder } from '../objects/text_texture/text_texture_builder';
 
@@ -56,7 +55,7 @@ export async function DebugTile2WebglLayers(
 
   textTextureGroupBuilder.addObject({
     id: 1,
-    type: MapTileFeatureType.text,
+    type: MapFeatureType.text,
     text: tileId,
     center: projection.fromLngLat(tileCenter),
     font: 'defaultFont',
@@ -72,7 +71,7 @@ export async function DebugTile2WebglLayers(
 
   lineGroupBuilder.addObject({
     id: 2,
-    type: MapTileFeatureType.line,
+    type: MapFeatureType.line,
     color: [1, 0, 0, 1],
     borderColor: [0, 0, 0, 1],
     vertecies: tileBbox.map(p => projection.fromLngLat(p)),

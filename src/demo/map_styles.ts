@@ -1,6 +1,5 @@
-import { LineJoinStyle } from '../map/renderer/webgl/objects/line/line';
 import { DataTileSourceType, DataTileSource, DataTileStyles } from '../map/styles/styles';
-import { MapTileFeatureType } from '../map/tile/tile';
+import { MapFeatureType, LineJoinStyle } from '../map/tile/feature';
 import { FontConfig } from '../map/font/font_config';
 import { FontFormatType, FontSourceType } from '../map/font/font_config';
 import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
@@ -75,7 +74,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: ['$rgba', 95, 200, 255, 1],
       },
       maxzoom: 15,
@@ -88,7 +87,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -133,7 +132,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -178,7 +177,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         show: ['$lte', ['$get', 'properties.admin_level'], 7],
         color: ['$rgba', 120, 123, 140, 1],
         width: 2,
@@ -192,7 +191,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       styleLayerName: 'buildingStyles',
       zIndex: 2,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: ['$rgba', 222, 215, 211, 1],
       },
       minzoom: 12,
@@ -204,7 +203,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 2,
       show: true,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -225,7 +224,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.class'],
@@ -241,12 +240,12 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: false,
       zIndex: 4,
       feature: {
-        type: MapTileFeatureType.point,
+        type: MapFeatureType.point,
         radius: 30,
         color: ['$rgba', 250, 185, 57, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
         border: {
-          type: MapTileFeatureType.line,
+          type: MapFeatureType.line,
           color: ['$rgba', 0, 0, 0, 1],
           width: 1,
         },
@@ -261,7 +260,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.glyph,
+        type: MapFeatureType.glyph,
         // show: ['$and', ['$lte', ['$get', 'properties.rank'], 10], ['$notEmpty', ['$get', 'properties.class']]],
         name: ['$get', 'properties.class'],
         atlas: 'iconsAtlas',
@@ -276,7 +275,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
@@ -294,7 +293,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         show: ['$lte', ['$get', 'properties.rank'], 15],
@@ -325,7 +324,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       styleLayerName: 'parkStyles',
       zIndex: 1,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: ['$rgba', 173, 226, 167, 1],
       },
       show: true,
@@ -339,7 +338,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.housenumber'],
@@ -431,7 +430,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: ['$rgba', 95, 200, 255, 1],
       },
       maxzoom: 16,
@@ -444,7 +443,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -471,7 +470,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 1,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -500,7 +499,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name_en'],
@@ -515,7 +514,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         show: ['$lte', ['$get', 'properties.admin_level'], 7],
         color: ['$rgba', 120, 123, 140, 1],
         width: 4,
@@ -532,7 +531,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 2,
       show: true,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -555,7 +554,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
     //   zIndex: 2,
     //   show: true,
     //   feature: {
-    //     type: MapTileFeatureType.glyph,
+    //     type: MapFeatureType.glyph,
     //     name: ['$concat', ['$get', 'properties.shield_beta'], '-', ['$get', 'properties.ref']],
     //     atlas: 'iconsAtlas',
     //   },
@@ -567,7 +566,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
@@ -584,7 +583,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.glyph,
+        type: MapFeatureType.glyph,
         name: ['$get', 'properties.maki'],
         atlas: 'iconsAtlas',
       },
@@ -598,7 +597,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
@@ -625,7 +624,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 5,
       show: true,
       feature: {
-        type: MapTileFeatureType.glyph,
+        type: MapFeatureType.glyph,
         name: ['$switch', ['$get', 'properties.class'], ['settlement', 'dot-11'], ['settlement_subdivision', 'dot-10']],
         show: ['$and', ['$notEmpty', ['$get', 'properties.name']], ['$eq', ['$get', 'properties.class'], 'settlement']],
         atlas: 'iconsAtlas',
@@ -640,7 +639,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 2,
       show: true,
       feature: {
-        type: MapTileFeatureType.polygon,
+        type: MapFeatureType.polygon,
         color: ['$rgba', 222, 215, 211, 1],
       },
       minzoom: 12,
@@ -652,7 +651,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
@@ -667,7 +666,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.glyph,
+        type: MapFeatureType.glyph,
         name: ['$get', 'properties.type'],
         atlas: 'iconsAtlas',
       },
@@ -709,7 +708,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       zIndex: 0,
       show: true,
       feature: {
-        type: MapTileFeatureType.image,
+        type: MapFeatureType.image,
       },
       maxzoom: 16,
       minzoom: 0,
@@ -721,7 +720,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       zIndex: 2,
       show: true,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         color: [
           '$switch',
           ['$get', 'properties.class'],
@@ -742,7 +741,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.glyph,
+        type: MapFeatureType.glyph,
         name: ['$get', 'properties.maki'],
         atlas: 'iconsAtlas',
       },
@@ -756,7 +755,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.line,
+        type: MapFeatureType.line,
         show: ['$lte', ['$get', 'properties.admin_level'], 7],
         color: ['$rgba', 0, 0, 0, 0.7],
         width: 2,
@@ -771,7 +770,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       show: true,
       zIndex: 3,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
@@ -788,7 +787,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.name'],
@@ -815,7 +814,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       zIndex: 4,
       show: true,
       feature: {
-        type: MapTileFeatureType.text,
+        type: MapFeatureType.text,
         color: ['$rgba', 0, 0, 0, 1],
         borderColor: ['$rgba', 255, 255, 255, 1],
         text: ['$get', 'properties.house_num'],
