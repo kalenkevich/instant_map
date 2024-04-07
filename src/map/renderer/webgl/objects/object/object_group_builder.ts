@@ -2,6 +2,13 @@ import { MapFeature } from '../../../../tile/feature';
 import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../../flags';
 
+export enum VERTEX_QUAD_POSITION {
+  TOP_LEFT = 0,
+  TOP_RIGHT = 1,
+  BOTTOM_LEFT = 2,
+  BOTTOM_RIGHT = 3,
+}
+
 export abstract class ObjectGroupBuilder<
   InputObjectType extends MapFeature,
   OutputObjectType extends WebGlObjectBufferredGroup,

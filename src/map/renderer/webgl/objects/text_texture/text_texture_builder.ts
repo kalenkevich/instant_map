@@ -1,7 +1,7 @@
 import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
-import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { ObjectGroupBuilder, VERTEX_QUAD_POSITION } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { MapFeatureFlags } from '../../../../flags';
@@ -15,13 +15,6 @@ import {
   UNDEFINED_CHAR_CODE,
 } from '../../../../font/font_config';
 import { addXTimes } from '../../utils/array_utils';
-
-enum VERTEX_POSITION {
-  TOP_LEFT = 0,
-  TOP_RIGHT = 1,
-  BOTTOM_LEFT = 2,
-  BOTTOM_RIGHT = 3,
-}
 
 export interface GlyphMapping {
   glyph: TextureFontGlyph | SdfFontGlyph;
@@ -84,22 +77,22 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         verteciesBuffer.push(
           x1,
           y1,
-          VERTEX_POSITION.TOP_LEFT,
+          VERTEX_QUAD_POSITION.TOP_LEFT,
           x1,
           y1,
-          VERTEX_POSITION.TOP_RIGHT,
+          VERTEX_QUAD_POSITION.TOP_RIGHT,
           x1,
           y1,
-          VERTEX_POSITION.BOTTOM_LEFT,
+          VERTEX_QUAD_POSITION.BOTTOM_LEFT,
           x1,
           y1,
-          VERTEX_POSITION.BOTTOM_LEFT,
+          VERTEX_QUAD_POSITION.BOTTOM_LEFT,
           x1,
           y1,
-          VERTEX_POSITION.TOP_RIGHT,
+          VERTEX_QUAD_POSITION.TOP_RIGHT,
           x1,
           y1,
-          VERTEX_POSITION.BOTTOM_RIGHT,
+          VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
         );
         texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 

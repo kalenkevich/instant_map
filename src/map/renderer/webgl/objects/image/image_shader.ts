@@ -3,6 +3,11 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_sha
 export default {
   vertext: `
     precision highp float;
+    #define VERTEX_ALIGNMENT_TOP_LEFT 0.0
+    #define VERTEX_ALIGNMENT_TOP_RIGHT 1.0
+    #define VERTEX_ALIGNMENT_BOTTOM_LEFT 2.0
+    #define VERTEX_ALIGNMENT_BOTTOM_RIGHT 3.0
+
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${FEATURE_FLAGS_UTILS}

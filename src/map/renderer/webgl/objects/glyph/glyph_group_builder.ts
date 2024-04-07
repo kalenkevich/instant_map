@@ -1,11 +1,12 @@
 import { GlyphMapFeature, MapFeatureType } from '../../../../tile/feature';
 import { WebGlGlyphBufferredGroup } from './glyph';
 import { WebGlObjectAttributeType } from '../object/object';
-import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { ObjectGroupBuilder, VERTEX_QUAD_POSITION } from '../object/object_group_builder';
 import { GlyphsManager } from '../../../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../../../flags';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { addXTimes } from '../../utils/array_utils';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 
@@ -37,9 +38,10 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
 
     const size = filteredGlyphs.length;
 
-    const verteciesBuffer = [];
-    const texcoordBuffer = [];
-    const colorBuffer = [];
+    const verteciesBuffer: number[] = [];
+    const texcoordBuffer: number[] = [];
+    const colorBuffer: number[] = [];
+    const glyphProperties: number[] = [];
     const selectionColorBuffer: number[] = [];
 
     for (const glyph of filteredGlyphs) {
@@ -49,37 +51,41 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
 
       const textureWidth = textureAtlas.width;
       const textureHeight = textureAtlas.height;
-      const glyphScaledWidth = glyphMapping.width / glyphMapping.pixelRatio / distance;
-      const glyphScaledHeight = glyphMapping.height / glyphMapping.pixelRatio / distance;
+      const glyphScaledWidth = glyphMapping.width / glyphMapping.pixelRatio;
+      const glyphScaledHeight = glyphMapping.height / glyphMapping.pixelRatio;
 
-      let [x1, y1] = [glyph.center[0], glyph.center[1]];
-      x1 = x1 - glyphScaledWidth / 2;
-      y1 = y1 - glyphScaledHeight / 2;
-      const x2 = x1 + glyphScaledWidth;
-      const y2 = y1 + glyphScaledHeight;
+      const [x1, y1] = [glyph.center[0], glyph.center[1]];
 
       const u1 = glyphMapping.x / textureWidth;
       const v1 = glyphMapping.y / textureHeight;
       const u2 = (glyphMapping.x + glyphMapping.width) / textureWidth;
       const v2 = (glyphMapping.y + glyphMapping.height) / textureHeight;
 
-      // first triangle
-      verteciesBuffer.push(x1, y1, x2, y1, x1, y2);
-      texcoordBuffer.push(u1, v1, u2, v1, u1, v2);
-
-      // second triangle
-      verteciesBuffer.push(x1, y2, x2, y1, x2, y2);
-      texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
-
-      colorBuffer.push(
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
-        ...TRANSPARENT_COLOR,
+      verteciesBuffer.push(
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_RIGHT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_RIGHT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
       );
-      selectionColorBuffer.push(...colorId, ...colorId, ...colorId, ...colorId, ...colorId, ...colorId);
+      texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
+
+      addXTimes(glyphProperties, [glyphScaledWidth, glyphScaledHeight], 6);
+      addXTimes(colorBuffer, TRANSPARENT_COLOR, 6);
+      addXTimes(selectionColorBuffer, colorId, 6);
     }
 
     return {
@@ -87,11 +93,11 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       name,
       zIndex,
       size,
-      numElements: verteciesBuffer.length / 2,
+      numElements: verteciesBuffer.length / 3,
       atlas: textureAtlasName,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 3,
         buffer: createdSharedArrayBuffer(verteciesBuffer),
       },
       textcoords: {
@@ -99,7 +105,11 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
         size: 2,
         buffer: createdSharedArrayBuffer(texcoordBuffer),
       },
-      
+      glyphProperties: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: createdSharedArrayBuffer(glyphProperties),
+      },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,

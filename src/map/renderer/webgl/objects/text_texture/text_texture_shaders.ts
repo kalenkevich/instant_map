@@ -3,11 +3,10 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_sha
 export default {
   vertext: `
     precision highp float;
-
-    #define VERTEX_ALIGNMENT_TOP_LEFT 0.0
-    #define VERTEX_ALIGNMENT_TOP_RIGHT 1.0
-    #define VERTEX_ALIGNMENT_BOTTOM_LEFT 2.0
-    #define VERTEX_ALIGNMENT_BOTTOM_RIGHT 3.0
+    #define VERTEX_QUAD_ALIGNMENT_TOP_LEFT 0.0
+    #define VERTEX_QUAD_ALIGNMENT_TOP_RIGHT 1.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT 2.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT 3.0
 
     ${CLIP_UTILS}
     ${MAT_UTILS}
@@ -44,11 +43,11 @@ export default {
       float y = a_position.y - ascend;
       float alignment = a_position.z;
 
-      if (alignment == VERTEX_ALIGNMENT_TOP_RIGHT) {
+      if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_RIGHT) {
         x += width;
-      } else if (alignment == VERTEX_ALIGNMENT_BOTTOM_LEFT) {
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT) {
         y += height;
-      } else if (alignment == VERTEX_ALIGNMENT_BOTTOM_RIGHT) {
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT) {
         x += width;
         y += height;
       }
