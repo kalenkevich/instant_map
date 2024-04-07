@@ -101,11 +101,11 @@ export class TextVectorBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlT
       textData.height = Math.max(textData.height, charVerticiesData.height);
     }
 
-    const scaledHeight = this.scalarScale(textData.height, distance) * text.fontSize;
+    const scaledHeight = (textData.height / distance) * text.fontSize;
 
     let scaledTextWidth = 0;
     for (const { vertices: charVertices, width } of textData.chars) {
-      const scaledWidth = this.scalarScale(width, distance) * text.fontSize;
+      const scaledWidth = (width / distance) * text.fontSize;
       let minX = Infinity;
       let maxX = -Infinity;
 

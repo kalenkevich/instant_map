@@ -10,6 +10,7 @@ export default {
     uniform mat3 u_matrix;
     uniform float u_width;
     uniform float u_height;
+    uniform float u_distance;
     uniform bool u_is_read_pixel_render_mode;
 
     attribute vec2 a_position;

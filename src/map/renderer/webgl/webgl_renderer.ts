@@ -234,6 +234,7 @@ export class WebGlRenderer {
     program.setMatrix(camera.viewMatrix);
     program.setWidth(this.rootEl.offsetWidth);
     program.setHeight(this.rootEl.offsetHeight);
+    program.setDistance(camera.distance);
     program.setReadPixelRenderMode(options.readPixelRenderMode || false);
   }
 }

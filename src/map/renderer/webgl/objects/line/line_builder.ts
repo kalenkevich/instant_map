@@ -129,7 +129,7 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
   verticesFromLine(
     distance: number,
     result: number[],
-    coordinates: Array<[number, number] | vec2>,
+    coordinates: Array<[number, number]>,
     lineWidth: number,
     joinStyle?: LineJoinStyle,
   ): number {
@@ -147,14 +147,8 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     return result.length - start;
   }
 
-  lineToTriangles(
-    distance: number,
-    result: number[],
-    p1: [number, number] | vec2,
-    p2: [number, number] | vec2,
-    lineWidth: number,
-  ) {
-    const scaledLineWidth = this.scalarScale(lineWidth, distance);
+  lineToTriangles(distance: number, result: number[], p1: [number, number], p2: [number, number], lineWidth: number) {
+    const scaledLineWidth = lineWidth / distance;
     const p1Projected = vec2.fromValues(p1[0], p1[1]);
     const p2Projected = vec2.fromValues(p2[0], p2[1]);
 
@@ -178,8 +172,8 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
     }
   }
 
-  roundJoinToTriangles(distance: number, result: number[], center: [number, number] | vec2, lineWidth: number) {
-    const scaledLineWidth = this.scalarScale(lineWidth, distance);
+  roundJoinToTriangles(distance: number, result: number[], center: [number, number], lineWidth: number) {
+    const scaledLineWidth = lineWidth / distance;
     const centerVec = vec2.fromValues(center[0], center[1]);
 
     for (const pos of ROUND_JOIN_POSITION) {
@@ -192,24 +186,4 @@ export class LineGroupBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlLi
       result.push(...res);
     }
   }
-}
-
-export function getRoundJoinPositions(componets = 16): vec2[] {
-  const positions: vec2[] = [
-    vec2.fromValues(0, 0),
-    vec2.fromValues(0.5, 0),
-    vec2.fromValues(0.5 * Math.cos((2 * Math.PI * 1) / componets), 0.5 * Math.sin((2 * Math.PI * 1) / componets)),
-  ];
-
-  for (let wedge = 2; wedge <= componets; wedge++) {
-    const theta = (2 * Math.PI * wedge) / componets;
-    const next = vec2.fromValues(0.5 * Math.cos(theta), 0.5 * Math.sin(theta));
-    const prev = positions[positions.length - 1];
-
-    positions.push(vec2.fromValues(0, 0));
-    positions.push(prev);
-    positions.push(next);
-  }
-
-  return positions.map(v => [v[0], v[1]]);
 }

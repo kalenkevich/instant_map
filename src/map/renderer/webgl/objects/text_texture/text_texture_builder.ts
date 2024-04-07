@@ -1,4 +1,3 @@
-import { vec4 } from 'gl-matrix';
 import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
@@ -17,12 +16,19 @@ import {
 } from '../../../../font/font_config';
 import { addXTimes } from '../../utils/array_utils';
 
+enum VERTEX_POSITION {
+  TOP_LEFT = 0,
+  TOP_RIGHT = 1,
+  BOTTOM_LEFT = 2,
+  BOTTOM_RIGHT = 3,
+}
+
 export interface GlyphMapping {
   glyph: TextureFontGlyph | SdfFontGlyph;
   font: string;
   fontSize: number;
-  color: vec4 | [number, number, number, number];
-  borderColor: vec4 | [number, number, number, number];
+  color: [number, number, number, number];
+  borderColor: [number, number, number, number];
 }
 
 export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlTextTextureBufferredGroup> {
@@ -46,9 +52,11 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     const size = this.objects.length;
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
+    const textProperties: number[] = [];
     const colorBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
+    // TODO: support any font
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | SdfFontAtlas;
     const texture = fontAtlas.sources[0];
     let numElements = 0;
@@ -56,22 +64,16 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     for (const text of this.objects) {
       let offset = 0;
       const selectionColorId = integerToVector4(text.id);
+      // vertex coordinates
+      const x1 = text.center[0];
+      const y1 = text.center[1];
 
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
         const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
-        const textScaledWidth = this.scalarScale(glyphMapping.glyph.width, distance) * scaleFactor;
-        const textScaledHeight = this.scalarScale(glyphMapping.glyph.height, distance) * scaleFactor;
-        const ascend = this.scalarScale(glyphMapping.glyph.actualBoundingBoxAscent, distance) * scaleFactor;
-
-        // vertex coordinates
-        let [x1, y1] = text.center;
-        x1 = offset + x1;
-        y1 = y1 - ascend;
-        const x2 = x1 + textScaledWidth;
-        const y2 = y1 + textScaledHeight;
-
-        offset += textScaledWidth;
+        const textScaledWidth = glyphMapping.glyph.width * scaleFactor;
+        const textScaledHeight = glyphMapping.glyph.height * scaleFactor;
+        const ascend = glyphMapping.glyph.actualBoundingBoxAscent * scaleFactor;
 
         // texture coordinates
         const u1 = glyphMapping.glyph.x / texture.source.width;
@@ -79,19 +81,35 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         const u2 = (glyphMapping.glyph.x + glyphMapping.glyph.width) / texture.source.width;
         const v2 = (glyphMapping.glyph.y + glyphMapping.glyph.height) / texture.source.height;
 
-        // first triangle
-        verteciesBuffer.push(x1, y1, x2, y1, x1, y2);
-        texcoordBuffer.push(u1, v1, u2, v1, u1, v2);
+        verteciesBuffer.push(
+          x1,
+          y1,
+          VERTEX_POSITION.TOP_LEFT,
+          x1,
+          y1,
+          VERTEX_POSITION.TOP_RIGHT,
+          x1,
+          y1,
+          VERTEX_POSITION.BOTTOM_LEFT,
+          x1,
+          y1,
+          VERTEX_POSITION.BOTTOM_LEFT,
+          x1,
+          y1,
+          VERTEX_POSITION.TOP_RIGHT,
+          x1,
+          y1,
+          VERTEX_POSITION.BOTTOM_RIGHT,
+        );
+        texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
-        // second triangle
-        verteciesBuffer.push(x1, y2, x2, y1, x2, y2);
-        texcoordBuffer.push(u1, v2, u2, v1, u2, v2);
-
+        addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend, offset], 6);
         addXTimes(colorBuffer, text.color, 6);
         addXTimes(borderColorBuffer, text.borderColor, 6);
         addXTimes(selectionColorBuffer, selectionColorId, 6);
 
         numElements += 6;
+        offset += textScaledWidth;
       }
     }
 
@@ -105,13 +123,18 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       sfdTexture: fontAtlas.type === FontFormatType.sdf,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 3,
         buffer: createdSharedArrayBuffer(verteciesBuffer),
       },
       textcoords: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
         buffer: createdSharedArrayBuffer(texcoordBuffer),
+      },
+      textProperties: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: createdSharedArrayBuffer(textProperties),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,

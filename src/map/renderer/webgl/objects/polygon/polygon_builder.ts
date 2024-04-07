@@ -1,4 +1,3 @@
-import { vec2 } from 'gl-matrix';
 import earcut from 'earcut';
 import { MapFeatureType, PolygonMapFeature } from '../../../../tile/feature';
 import { WebGlPolygonBufferredGroup } from './polygon';
@@ -61,7 +60,7 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, W
   }
 }
 
-export function verticesFromPolygon(result: number[], coordinates: Array<Array<vec2>>): number {
+export function verticesFromPolygon(result: number[], coordinates: Array<Array<[number, number]>>): number {
   const start = result.length;
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);

@@ -1,4 +1,3 @@
-import { vec2 } from 'gl-matrix';
 import { MapFeatureType, PointMapFeature } from '../../../../tile/feature';
 import { WebGlPointBufferredGroup } from './point';
 import { WebGlObjectAttributeType } from '../object/object';
@@ -17,8 +16,8 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
     const selectionColorBuffer: number[] = [];
 
     for (const point of this.objects) {
-      const scaledRadius = this.scalarScale(point.radius, distance);
-      const scaledBorderWidth = this.scalarScale(point.borderWidth, distance);
+      const scaledRadius = point.radius / distance;
+      const scaledBorderWidth = point.borderWidth / distance;
       const numberOfAddedVertecies = verticesFromPoint(vertecies, point.center, scaledRadius, point.components);
       const xTimes = numberOfAddedVertecies / 2;
 
@@ -71,7 +70,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
 
 export function verticesFromPoint(
   result: number[],
-  center: vec2 | [number, number],
+  center: [number, number],
   radius = 0.0001,
   components = 32,
 ): number {

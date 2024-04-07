@@ -8,7 +8,7 @@ export default {
 
     attribute vec2 a_position;
     attribute vec4 a_color;
-
+    uniform float u_distance;
     uniform mat3 u_matrix;
     uniform bool u_is_read_pixel_render_mode;
 

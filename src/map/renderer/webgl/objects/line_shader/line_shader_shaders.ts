@@ -12,6 +12,7 @@ export default {
     uniform float u_height;
     uniform float u_tile_size;
     uniform float u_renderType;
+    uniform float u_distance;
 
     attribute vec2 a_vertecies;
     attribute vec2 a_prevPoint;

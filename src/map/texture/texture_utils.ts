@@ -1,4 +1,10 @@
-import { ArrayBufferTextureSource, TextureSource, TextureSourceType, ImageBitmapTextureSource } from './texture';
+import {
+  ArrayBufferTextureSource,
+  TextureSource,
+  TextureSourceType,
+  ImageBitmapTextureSource,
+  Float32ArrayBufferTextureSource,
+} from './texture';
 
 export function canvasToArrayBufferTextureSource(
   canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -30,7 +36,7 @@ export function canvasToSharebleArrayBufferTextureSource(
 }
 
 export function arrayBufferToSharebleTextureSource(
-  originalBuffer: Uint8ClampedArray,
+  originalBuffer: Uint8ClampedArray | number[],
   width: number,
   height: number,
 ): ArrayBufferTextureSource {
@@ -40,6 +46,23 @@ export function arrayBufferToSharebleTextureSource(
 
   return {
     type: TextureSourceType.ARRAY_BUFFER,
+    width,
+    height,
+    data: resultBuffer,
+  };
+}
+
+export function floatArrayBufferToSharebleTextureSource(
+  originalBuffer: Float32Array | number[],
+  width: number,
+  height: number,
+): Float32ArrayBufferTextureSource {
+  const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
+  const resultBuffer = new Float32Array(sharedMemoryBuffer);
+  resultBuffer.set(originalBuffer);
+
+  return {
+    type: TextureSourceType.FLOAT_ARRAY_BUFFER,
     width,
     height,
     data: resultBuffer,

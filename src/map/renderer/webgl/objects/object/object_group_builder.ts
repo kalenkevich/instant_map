@@ -21,13 +21,6 @@ export abstract class ObjectGroupBuilder<
     return this.objects.length === 0;
   }
 
-  /**
-   * Scales value for webgl canvas value according to the current zoom and tileSize.
-   * */
-  scalarScale(val: number, distance: number): number {
-    return val / distance;
-  }
-
   abstract build(distance: number, name: string, zIndex: number): OutputObjectType | Promise<OutputObjectType>;
 
   clear(): void {

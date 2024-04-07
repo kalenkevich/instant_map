@@ -10,6 +10,7 @@ export default {
     uniform mat3 u_matrix;
     uniform float u_width;
     uniform float u_height;
+    uniform float u_distance;
 
     attribute vec2 point_a;
     attribute vec4 a_color;

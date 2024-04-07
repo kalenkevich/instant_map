@@ -1,4 +1,3 @@
-import { vec2 } from 'gl-matrix';
 import { MapFeatureType, LineMapFeature } from '../../../../tile/feature';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
@@ -7,7 +6,7 @@ import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-const getBbox = (p1: [number, number] | vec2, p2: [number, number] | vec2): [number, number, number, number] => {
+const getBbox = (p1: [number, number], p2: [number, number]): [number, number, number, number] => {
   const minX = Math.min(p1[0], p2[0]);
   const minY = Math.min(p1[1], p2[1]);
   const maxX = Math.max(p1[0], p2[0]);
@@ -31,7 +30,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
     const selectionColor: number[] = [];
 
     for (const line of this.objects) {
-      const halfWidth = (this.scalarScale(line.borderWidth, distance) + this.scalarScale(line.width, distance)) / 2;
+      const halfWidth = (line.borderWidth + line.width) / distance / 2;
       const idAsVector4 = integerToVector4(line.id);
 
       for (let i = 1; i < line.vertecies.length; i++) {

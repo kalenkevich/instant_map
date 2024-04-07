@@ -18,7 +18,7 @@ export abstract class ObjectProgram {
   protected u_matrixLocation: WebGLUniformLocation;
   protected u_widthLocation: WebGLUniformLocation;
   protected u_heightLocation: WebGLUniformLocation;
-  protected u_tile_sizeLocation: WebGLUniformLocation;
+  protected u_distanceLocation: WebGLUniformLocation;
   protected u_is_read_pixel_render_modeLocation: WebGLUniformLocation;
   protected u_feature_flagsLocations: Record<string, WebGLUniformLocation>;
 
@@ -96,6 +96,7 @@ export abstract class ObjectProgram {
     this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
     this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
     this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
+    this.u_distanceLocation = this.gl.getUniformLocation(this.program, 'u_distance');
     this.u_is_read_pixel_render_modeLocation = this.gl.getUniformLocation(this.program, 'u_is_read_pixel_render_mode');
 
     this.u_feature_flagsLocations = {};
@@ -130,6 +131,10 @@ export abstract class ObjectProgram {
 
   setHeight(height: number) {
     this.gl.uniform1f(this.u_heightLocation, height);
+  }
+
+  setDistance(distance: number) {
+    this.gl.uniform1f(this.u_distanceLocation, distance);
   }
 
   setReadPixelRenderMode(isReadPixelRenderMode: boolean) {
