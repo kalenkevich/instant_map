@@ -1,31 +1,49 @@
 import { MapFeatureType, PointMapFeature } from '../../../../tile/feature';
 import { WebGlPointBufferredGroup } from './point';
 import { WebGlObjectAttributeType } from '../object/object';
-import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { ObjectGroupBuilder, VERTEX_QUAD_POSITION } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGlPointBufferredGroup> {
-  build(distance: number, name: string, zIndex = 0): WebGlPointBufferredGroup {
+  build(name: string, zIndex = 0): WebGlPointBufferredGroup {
     const vertecies: number[] = [];
-    const borderVertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
+    const propertiesBuffer: number[] = [];
 
     for (const point of this.objects) {
-      const scaledRadius = point.radius / distance;
-      const scaledBorderWidth = point.borderWidth / distance;
-      const numberOfAddedVertecies = verticesFromPoint(vertecies, point.center, scaledRadius, point.components);
-      const xTimes = numberOfAddedVertecies / 2;
+      const colorId = integerToVector4(point.id);
+      const [x1, y1] = point.center;
 
-      verticesFromPoint(borderVertecies, point.center, scaledRadius + scaledBorderWidth, point.components);
-      addXTimes(colorBuffer, [...point.color], xTimes);
-      addXTimes(borderWidthBuffer, point.borderWidth, xTimes);
-      addXTimes(borderColorBuffer, [...point.borderColor], xTimes);
-      addXTimes(selectionColorBuffer, integerToVector4(point.id), xTimes);
+      vertecies.push(
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_RIGHT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_LEFT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.TOP_RIGHT,
+        x1,
+        y1,
+        VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
+      );
+      addXTimes(propertiesBuffer, [point.radius, point.borderWidth], 6);
+      addXTimes(colorBuffer, point.color, 6);
+      addXTimes(borderWidthBuffer, point.borderWidth, 6);
+      addXTimes(borderColorBuffer, point.borderColor, 6);
+      addXTimes(selectionColorBuffer, colorId, 6);
     }
 
     return {
@@ -33,26 +51,21 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
       name,
       zIndex,
       size: this.objects.length,
-      numElements: vertecies.length / 2,
+      numElements: vertecies.length / 3,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 3,
         buffer: createdSharedArrayBuffer(vertecies),
       },
-      borderVertecies: {
+      properties: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: createdSharedArrayBuffer(borderVertecies),
+        buffer: createdSharedArrayBuffer(propertiesBuffer),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
         buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      borderWidth: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 1,
-        buffer: createdSharedArrayBuffer(borderWidthBuffer),
       },
       borderColor: {
         type: WebGlObjectAttributeType.FLOAT,

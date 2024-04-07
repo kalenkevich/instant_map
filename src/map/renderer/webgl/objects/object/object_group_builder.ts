@@ -28,7 +28,7 @@ export abstract class ObjectGroupBuilder<
     return this.objects.length === 0;
   }
 
-  abstract build(distance: number, name: string, zIndex: number): OutputObjectType | Promise<OutputObjectType>;
+  abstract build(name: string, zIndex: number): OutputObjectType | Promise<OutputObjectType>;
 
   clear(): void {
     this.objects = [];

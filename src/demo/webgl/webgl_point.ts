@@ -21,7 +21,6 @@ export async function renderWebglPointExample() {
     color: [1.0, 0.0, 0.0, 1.0],
     center: [0, 0],
     radius: 10,
-    components: 128,
     borderWidth: 2,
     borderColor: [0.0, 0.0, 0.0, 1.0],
   });

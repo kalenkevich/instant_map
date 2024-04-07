@@ -20,7 +20,6 @@ export interface PointMapFeature extends MapFeature {
   color: [number, number, number, number]; // RGBA color
   center: [number, number];
   radius: number;
-  components?: number;
   margin?: PointMargin;
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
@@ -69,6 +68,7 @@ export interface TextMapFeature extends MapFeature {
   text: string;
   center: [number, number];
   margin?: PointMargin;
+  align?: TextAlign; // default left
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
 }
@@ -109,4 +109,10 @@ export enum LineFillStyle {
   dashed = 1,
   dotted = 2,
   dotdashed = 3,
+}
+
+export enum TextAlign {
+  left = 0,
+  center = 1,
+  right = 2,
 }

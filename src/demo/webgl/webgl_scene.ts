@@ -61,7 +61,6 @@ export class WebGlScene {
   render(camera: WebGlSceneCamera, renderOptions: WebGlRendererOptions = {}) {
     const objectGroups = MapFeatures2WebglObjects(
       this.objects,
-      camera.distance,
       this.featureFlags,
       this.fontManager,
       this.textureManager,

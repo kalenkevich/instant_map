@@ -49,7 +49,6 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
 
       const tileObjectGroups = MapTile2WebglObjects(
         tile,
-        camera.distance,
         this.featureFlags,
         this.fontManager,
         this.textureManager,
@@ -70,7 +69,6 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     for (const tile of tiles) {
       const tileObjectGroups = MapTile2WebglObjects(
         tile,
-        camera.distance,
         this.featureFlags,
         this.fontManager,
         this.textureManager,

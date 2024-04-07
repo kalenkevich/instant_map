@@ -1,4 +1,4 @@
-import { MapFeatureType, TextMapFeature } from '../../../../tile/feature';
+import { MapFeatureType, TextAlign, TextMapFeature } from '../../../../tile/feature';
 import { WebGlTextTextureBufferredGroup } from './text_texture';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder, VERTEX_QUAD_POSITION } from '../object/object_group_builder';
@@ -41,7 +41,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     this.objects.push(text);
   }
 
-  build(distance: number, name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
+  build(name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
     const size = this.objects.length;
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -57,12 +57,24 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     for (const text of this.objects) {
       let offset = 0;
       const selectionColorId = integerToVector4(text.id);
-      // vertex coordinates
       const x1 = text.center[0];
       const y1 = text.center[1];
+      const textAlign = text.align || TextAlign.left;
+      const totalWidth = this.getTextTotalWidth(text, fontAtlas);
+
+      if (textAlign === TextAlign.center) {
+        offset -= totalWidth / 2;
+      } else if (textAlign === TextAlign.right) {
+        offset -= totalWidth;
+      }
 
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
+
+        if (glyphMapping.glyph.charCode === UNDEFINED_CHAR_CODE) {
+          continue;
+        }
+
         const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
         const textScaledWidth = glyphMapping.glyph.width * scaleFactor;
         const textScaledHeight = glyphMapping.glyph.height * scaleFactor;
@@ -145,6 +157,24 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     };
+  }
+
+  getTextTotalWidth(text: TextMapFeature, fontAtlas: TextureFontAtlas | SdfFontAtlas): number {
+    let width = 0;
+
+    for (const char of text.text) {
+      const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
+      const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
+      const textScaledWidth = glyphMapping.glyph.width * scaleFactor;
+
+      if (glyphMapping.glyph.charCode === UNDEFINED_CHAR_CODE) {
+        continue;
+      }
+
+      width += textScaledWidth;
+    }
+
+    return width;
   }
 
   getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {

@@ -13,6 +13,7 @@ import {
   LineJoinStyle,
   LineFillStyle,
   LineMapFeature,
+  TextAlign,
 } from '../feature';
 import { MapFeatureFlags } from '../../flags';
 import {
@@ -115,9 +116,8 @@ export async function MvtTileSourceProcessor(
             color: compileStatement(pointStyle.color, pointFeature),
             center: projection.fromLngLat(pointFeature.geometry.coordinates as [number, number]),
             radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
-            components: 32,
-            borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
-            borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
+            borderWidth: pointStyle.borderWidth ? compileStatement(pointStyle.borderWidth, pointFeature) : 0,
+            borderColor: pointStyle.borderColor ? compileStatement(pointStyle.borderColor, pointFeature) : [0, 0, 0, 0],
             margin: {
               top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
               left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
@@ -137,9 +137,10 @@ export async function MvtTileSourceProcessor(
               color: compileStatement(pointStyle.color, pointFeature),
               center: projection.fromLngLat(point as [number, number]),
               radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
-              components: 32,
-              borderWidth: pointStyle.border?.width ? compileStatement(pointStyle.border.width, pointFeature) : 1,
-              borderColor: pointStyle.border?.color && compileStatement(pointStyle.border.color, pointFeature),
+              borderWidth: pointStyle.borderWidth ? compileStatement(pointStyle.borderWidth, pointFeature) : 0,
+              borderColor: pointStyle.borderColor
+                ? compileStatement(pointStyle.borderColor, pointFeature)
+                : [0, 0, 0, 0],
               margin: {
                 top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
                 left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
@@ -167,6 +168,7 @@ export async function MvtTileSourceProcessor(
             font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
             fontSize: compileStatement(textStyle.fontSize, pointFeature),
             borderWidth: 1,
+            align: textStyle.align ? compileStatement(textStyle.align, pointFeature) : TextAlign.left,
             margin: {
               top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
               left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
@@ -190,6 +192,7 @@ export async function MvtTileSourceProcessor(
               font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
               fontSize: compileStatement(textStyle.fontSize, pointFeature),
               borderWidth: 1,
+              align: textStyle.align ? compileStatement(textStyle.align, pointFeature) : TextAlign.left,
               margin: {
                 top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
                 left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,

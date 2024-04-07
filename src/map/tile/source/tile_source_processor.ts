@@ -29,7 +29,6 @@ export interface TileSourceProcessOptions {
 
 interface MapTilePrerenderOptions {
   rendererType: MapTileRendererType;
-  distance: number;
   pixelRatio: number;
   fontManagerState: Record<string, FontAtlas>;
   atlasTextureMappingState: GlyphsManagerMappingState;
@@ -175,7 +174,6 @@ export class TileSourceProcessor {
 
     mapTile.prerendedData = MapTile2WebglObjects(
       mapTile,
-      prerenderOptions.distance,
       featureFlags,
       fontManager,
       glyphsManager,

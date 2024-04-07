@@ -19,7 +19,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
     super(featureFlags, pixelRatio);
   }
 
-  build(distance: number, name: string, zIndex = 0): WebGlGlyphBufferredGroup {
+  build(name: string, zIndex = 0): WebGlGlyphBufferredGroup {
     let textureAtlasName: string;
     const filteredGlyphs: GlyphMapFeature[] = [];
     const glyphTextureMapping = this.glyphsManager.getMappingState();
@@ -105,7 +105,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
         size: 2,
         buffer: createdSharedArrayBuffer(texcoordBuffer),
       },
-      glyphProperties: {
+      properties: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
         buffer: createdSharedArrayBuffer(glyphProperties),

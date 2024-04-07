@@ -16,7 +16,7 @@ const getBbox = (p1: [number, number], p2: [number, number]): [number, number, n
 };
 
 export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlShaderLineBufferredGroup> {
-  build(distance: number, name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
+  build(name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
     const vertecies: number[] = [];
     const prevPoint: number[] = [];
     const currPoint: number[] = [];

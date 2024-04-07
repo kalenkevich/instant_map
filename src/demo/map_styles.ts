@@ -1,6 +1,6 @@
 import { TileSourceType } from '../map/tile/source/tile_source';
 import { DataTileSource, DataTileStyles } from '../map/styles/styles';
-import { MapFeatureType, LineJoinStyle } from '../map/tile/feature';
+import { MapFeatureType, LineJoinStyle, TextAlign } from '../map/tile/feature';
 import { FontConfig } from '../map/font/font_config';
 import { FontFormatType, FontSourceType } from '../map/font/font_config';
 import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
@@ -231,6 +231,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.class'],
         font: 'defaultFont',
         fontSize: 10,
+        align: TextAlign.center,
       },
       minzoom: 12,
     },
@@ -245,11 +246,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
         radius: 30,
         color: ['$rgba', 250, 185, 57, 1],
         show: ['$and', ['$lte', ['$get', 'properties.rank'], 5], ['$notEmpty', ['$get', 'properties.name']]],
-        border: {
-          type: MapFeatureType.line,
-          color: ['$rgba', 0, 0, 0, 1],
-          width: 1,
-        },
+        borderColor: ['$rgba', 0, 0, 0, 1],
+        borderWidth: 1,
       },
       maxzoom: 18,
       minzoom: 12,
@@ -283,6 +281,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
         fontSize: 24,
+        align: TextAlign.center,
       },
       maxzoom: 18,
       minzoom: 12,
@@ -315,6 +314,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
           ['suburb', 18],
           ['neighbourhood', 18],
         ],
+        align: TextAlign.center,
       },
       maxzoom: 14,
       minzoom: 0,
@@ -345,6 +345,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.housenumber'],
         font: 'defaultFont',
         fontSize: 8,
+        align: TextAlign.center,
       },
       minzoom: 16,
     },
@@ -506,6 +507,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.name_en'],
         font: 'defaultFont',
         fontSize: 32,
+        align: TextAlign.center,
       },
     },
     admin: {
@@ -573,6 +575,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
         fontSize: 14,
+        align: TextAlign.center,
       },
       maxzoom: 18,
       minzoom: 12,
@@ -611,6 +614,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
           ['settlement', 28],
           ['settlement_subdivision', 24],
         ],
+        align: TextAlign.center,
         margin: {
           top: -25,
         },
@@ -627,8 +631,35 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       feature: {
         type: MapFeatureType.glyph,
         name: ['$switch', ['$get', 'properties.class'], ['settlement', 'dot-11'], ['settlement_subdivision', 'dot-10']],
-        show: ['$and', ['$notEmpty', ['$get', 'properties.name']], ['$eq', ['$get', 'properties.class'], 'settlement']],
+        show: [
+          '$and',
+          ['$notEmpty', ['$get', 'properties.name']],
+          ['$eq', ['$get', 'properties.class'], 'settlement'],
+          ['$lte', ['$get', 'properties.filterrank'], 3],
+        ],
         atlas: 'iconsAtlas',
+      },
+      maxzoom: 16,
+      minzoom: 0,
+    },
+    settelmentIconPoint: {
+      source: 'dataSource',
+      sourceLayer: 'place_label',
+      styleLayerName: 'settelmentIconPointStyle',
+      zIndex: 6,
+      show: true,
+      feature: {
+        type: MapFeatureType.point,
+        radius: 10,
+        color: ['$rgba', 255, 0, 0, 1],
+        borderWidth: 1,
+        borderColor: ['$rgba', 0, 0, 0, 1],
+        show: [
+          '$and',
+          ['$notEmpty', ['$get', 'properties.name']],
+          ['$eq', ['$get', 'properties.class'], 'settlement'],
+          ['$lte', ['$get', 'properties.filterrank'], 3],
+        ],
       },
       maxzoom: 16,
       minzoom: 0,
@@ -658,6 +689,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
         text: ['$get', 'properties.house_num'],
         font: 'defaultFont',
         fontSize: 12,
+        align: TextAlign.center,
       },
     },
     structureIcon: {
@@ -777,6 +809,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         text: ['$get', 'properties.name'],
         font: 'defaultFont',
         fontSize: 28,
+        align: TextAlign.center,
       },
       maxzoom: 18,
       minzoom: 12,
@@ -801,6 +834,7 @@ export const SateliteTilesStyles: DataTileStyles = {
           ['settlement', 28],
           ['settlement_subdivision', 24],
         ],
+        align: TextAlign.center,
         margin: {
           top: -25,
         },
@@ -821,6 +855,7 @@ export const SateliteTilesStyles: DataTileStyles = {
         text: ['$get', 'properties.house_num'],
         font: 'defaultFont',
         fontSize: 12,
+        align: TextAlign.center,
       },
     },
   },

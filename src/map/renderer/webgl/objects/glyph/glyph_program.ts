@@ -15,7 +15,7 @@ export class GlyphProgram extends ObjectProgram {
 
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
-  protected glyphPropertiesBuffer: WebGlBuffer;
+  protected propertiesBuffer: WebGlBuffer;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -72,7 +72,7 @@ export class GlyphProgram extends ObjectProgram {
     this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 3 });
     this.textcoordBuffer = createWebGlBuffer(this.gl, { location: 1, size: 2 });
     this.colorBuffer = createWebGlBuffer(this.gl, { location: 2, size: 4 });
-    this.glyphPropertiesBuffer = createWebGlBuffer(this.gl, { location: 3, size: 2 });
+    this.propertiesBuffer = createWebGlBuffer(this.gl, { location: 3, size: 2 });
 
     gl.bindVertexArray(null);
   }
@@ -99,7 +99,7 @@ export class GlyphProgram extends ObjectProgram {
     this.currentAtlasTexture?.bind();
     this.positionBuffer.bufferData(objectGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(objectGroup.textcoords.buffer);
-    this.glyphPropertiesBuffer.bufferData(objectGroup.glyphProperties.buffer);
+    this.propertiesBuffer.bufferData(objectGroup.properties.buffer);
     this.colorBuffer.bufferData(
       options?.readPixelRenderMode ? objectGroup.selectionColor.buffer : objectGroup.color.buffer,
     );

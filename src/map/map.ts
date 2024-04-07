@@ -381,8 +381,7 @@ export class GlideMap extends Evented<MapEventType> {
   }
 
   rerender(pruneCache = false): Promise<void> {
-    const zoom = this.getZoom();
-    this.tilesGrid.updateTiles(this.camera, zoom);
+    this.tilesGrid.updateTiles(this.camera);
 
     this.renderQueue.clear();
     return this.renderQueue.render(() => {

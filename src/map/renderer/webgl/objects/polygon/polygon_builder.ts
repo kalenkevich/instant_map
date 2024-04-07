@@ -8,7 +8,7 @@ import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> {
-  build(distance: number, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
+  build(name: string, zIndex = 0): WebGlPolygonBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];

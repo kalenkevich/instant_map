@@ -8,7 +8,7 @@ import { addXTimes } from '../../utils/array_utils';
 
 const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGlImageBufferredGroup> {
-  build(distance: number, name: string, zIndex = 0): WebGlImageBufferredGroup {
+  build(name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const colorBuffer: number[] = [];

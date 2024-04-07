@@ -1,11 +1,8 @@
-import { FontFormatType } from '../../font/font_config';
 import { WebGlObjectBufferredGroup } from './objects/object/object';
 import { ImageGroupBuilder } from './objects/image/image_group_builder';
 import { PointGroupBuilder } from './objects/point/point_builder';
 import { PolygonGroupBuilder } from './objects/polygon/polygon_builder';
-import { LineGroupBuilder } from './objects/line/line_builder';
 import { GlyphGroupBuilder } from './objects/glyph/glyph_group_builder';
-import { TextVectorBuilder } from './objects/text_vector/text_vector_builder';
 import { TextTextureGroupBuilder } from './objects/text_texture/text_texture_builder';
 import { LineShaiderBuilder } from './objects/line_shader/line_shader_builder';
 import { MapTile } from '../../tile/tile';
@@ -25,7 +22,6 @@ import { GlyphsManager } from '../../glyphs/glyphs_manager';
 
 export function MapFeatures2WebglObjects(
   mapFeatures: MapFeature[],
-  distance: number,
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
   textureManager: GlyphsManager,
@@ -33,14 +29,9 @@ export function MapFeatures2WebglObjects(
 ): WebGlObjectBufferredGroup[] {
   const pointBuidler = new PointGroupBuilder(featureFlags, devicePixelRatio);
   const polygonGroupBuilder = new PolygonGroupBuilder(featureFlags, devicePixelRatio);
-  const lineBuilder = featureFlags.webglRendererUseShaderLines
-    ? new LineShaiderBuilder(featureFlags, devicePixelRatio)
-    : new LineGroupBuilder(featureFlags, devicePixelRatio);
+  const lineBuilder = new LineShaiderBuilder(featureFlags, devicePixelRatio);
   const glyphGroupBuilder = new GlyphGroupBuilder(featureFlags, devicePixelRatio, textureManager);
-  const textBuilder =
-    featureFlags.webglRendererFontFormatType === FontFormatType.vector
-      ? new TextVectorBuilder(featureFlags, devicePixelRatio, fontManager)
-      : new TextTextureGroupBuilder(featureFlags, devicePixelRatio, fontManager);
+  const textBuilder = new TextTextureGroupBuilder(featureFlags, devicePixelRatio, fontManager);
   const imageGroupBuilder = new ImageGroupBuilder(featureFlags, devicePixelRatio);
 
   for (const mapFeature of mapFeatures) {
@@ -75,27 +66,27 @@ export function MapFeatures2WebglObjects(
   const objectGroups: WebGlObjectBufferredGroup[] = [];
 
   if (!pointBuidler.isEmpty()) {
-    objectGroups.push(pointBuidler.build(distance, 'points'));
+    objectGroups.push(pointBuidler.build('points'));
   }
 
   if (!polygonGroupBuilder.isEmpty()) {
-    objectGroups.push(polygonGroupBuilder.build(distance, 'polygons'));
+    objectGroups.push(polygonGroupBuilder.build('polygons'));
   }
 
   if (!lineBuilder.isEmpty()) {
-    objectGroups.push(lineBuilder.build(distance, 'lines'));
+    objectGroups.push(lineBuilder.build('lines'));
   }
 
   if (!glyphGroupBuilder.isEmpty()) {
-    objectGroups.push(glyphGroupBuilder.build(distance, 'glyphs'));
+    objectGroups.push(glyphGroupBuilder.build('glyphs'));
   }
 
   if (!textBuilder.isEmpty()) {
-    objectGroups.push(textBuilder.build(distance, 'texts'));
+    objectGroups.push(textBuilder.build('texts'));
   }
 
   if (!imageGroupBuilder.isEmpty()) {
-    objectGroups.push(imageGroupBuilder.build(distance, 'images'));
+    objectGroups.push(imageGroupBuilder.build('images'));
   }
 
   return objectGroups;
@@ -103,7 +94,6 @@ export function MapFeatures2WebglObjects(
 
 export function MapTile2WebglObjects(
   mapTile: MapTile,
-  distance: number,
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
   textureManager: GlyphsManager,
@@ -117,14 +107,9 @@ export function MapTile2WebglObjects(
   const objectGroups: WebGlObjectBufferredGroup[] = [];
   const pointBuidler = new PointGroupBuilder(featureFlags, devicePixelRatio);
   const polygonGroupBuilder = new PolygonGroupBuilder(featureFlags, devicePixelRatio);
-  const lineBuilder = featureFlags.webglRendererUseShaderLines
-    ? new LineShaiderBuilder(featureFlags, devicePixelRatio)
-    : new LineGroupBuilder(featureFlags, devicePixelRatio);
+  const lineBuilder = new LineShaiderBuilder(featureFlags, devicePixelRatio);
   const glyphGroupBuilder = new GlyphGroupBuilder(featureFlags, devicePixelRatio, textureManager);
-  const textBuilder =
-    featureFlags.webglRendererFontFormatType === FontFormatType.vector
-      ? new TextVectorBuilder(featureFlags, devicePixelRatio, fontManager)
-      : new TextTextureGroupBuilder(featureFlags, devicePixelRatio, fontManager);
+  const textBuilder = new TextTextureGroupBuilder(featureFlags, devicePixelRatio, fontManager);
   const imageGroupBuilder = new ImageGroupBuilder(featureFlags, devicePixelRatio);
 
   for (let mapLayerId = 0; mapLayerId < mapTile.layers.length; mapLayerId++) {
@@ -162,34 +147,32 @@ export function MapTile2WebglObjects(
     }
 
     if (!pointBuidler.isEmpty()) {
-      objectGroups.push(pointBuidler.build(distance, `${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
+      objectGroups.push(pointBuidler.build(`${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
       pointBuidler.clear();
     }
 
     if (!polygonGroupBuilder.isEmpty()) {
-      objectGroups.push(
-        polygonGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex),
-      );
+      objectGroups.push(polygonGroupBuilder.build(`${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex));
       polygonGroupBuilder.clear();
     }
 
     if (!lineBuilder.isEmpty()) {
-      objectGroups.push(lineBuilder.build(distance, `${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
+      objectGroups.push(lineBuilder.build(`${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
       lineBuilder.clear();
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
-      objectGroups.push(glyphGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
+      objectGroups.push(glyphGroupBuilder.build(`${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
       glyphGroupBuilder.clear();
     }
 
     if (!textBuilder.isEmpty()) {
-      objectGroups.push(textBuilder.build(distance, `${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
+      objectGroups.push(textBuilder.build(`${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
       textBuilder.clear();
     }
 
     if (!imageGroupBuilder.isEmpty()) {
-      objectGroups.push(imageGroupBuilder.build(distance, `${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
+      objectGroups.push(imageGroupBuilder.build(`${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
       imageGroupBuilder.clear();
     }
   }
