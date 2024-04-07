@@ -40,7 +40,7 @@ export default {
       offsetLeft /= u_distance;
 
       float x = a_position.x - offsetLeft;
-      float y = a_position.y - offsetTop;
+      float y = a_position.y + offsetTop;
       float alignment = a_position.z;
 
       if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_LEFT) {

@@ -112,7 +112,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         );
         texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
-        addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend - offsetTop, offsetX], 6);
+        addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend + offsetTop, offsetX], 6);
         addXTimes(colorBuffer, text.color, 6);
         addXTimes(borderColorBuffer, text.borderColor, 6);
         addXTimes(selectionColorBuffer, selectionColorId, 6);

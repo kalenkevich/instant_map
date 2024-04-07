@@ -34,8 +34,8 @@ export default {
       offsetTop /= u_distance;
       offsetLeft /= u_distance;
 
-      float x = a_position.x + offsetLeft;
-      float y = a_position.y - offsetTop;
+      float x = a_position.x - offsetLeft;
+      float y = a_position.y + offsetTop;
 
       gl_Position = vec4(applyMatrix(u_matrix, clipSpace(vec2(x, y))), 0, 1);
     }
