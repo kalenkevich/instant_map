@@ -92,7 +92,7 @@ export enum MapEventType {
   PREHEAT = 'map_tile_preheat',
 }
 
-export class GlideMap extends Evented<MapEventType> {
+export class InstantMap extends Evented<MapEventType> {
   private readonly rootEl: HTMLElement;
   private readonly featureFlags: MapFeatureFlags;
   private pan: MapPan;
@@ -178,7 +178,7 @@ export class GlideMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions,
       mapStyle,
-      this.projection.fromXY(this.camera.getPosition()),
+      this.projection.unproject(this.camera.getPosition(), true),
       this.camera.getZoom(),
       this.camera.getRotation(),
     );
@@ -209,7 +209,7 @@ export class GlideMap extends Evented<MapEventType> {
     this.projection = getProjectionFromType(mapOptions.projection);
     this.camera = new MapCamera(
       featureFlags,
-      this.projection.fromLngLat(center),
+      this.projection.project(center, true),
       zoom,
       rotation,
       this.width,
@@ -221,9 +221,9 @@ export class GlideMap extends Evented<MapEventType> {
       featureFlags,
       mapOptions.rendrer,
       styles,
-      mapOptions.tileCacheSize || 256,
+      mapOptions.tileCacheSize || 128,
       mapOptions.tileBuffer || 1,
-      mapOptions.workerPool || 8,
+      mapOptions.workerPool || 2,
       styles.tileSize,
       this.pixelRatio,
       this.maxZoom,
@@ -292,7 +292,7 @@ export class GlideMap extends Evented<MapEventType> {
   getCenter(): [number, number] {
     const cameraPosition = this.camera.getPosition();
 
-    return this.projection.fromXY(cameraPosition);
+    return this.projection.unproject(cameraPosition, true);
   }
 
   // Get Camera location

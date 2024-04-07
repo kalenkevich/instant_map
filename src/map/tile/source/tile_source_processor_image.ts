@@ -50,8 +50,8 @@ export async function ImageTileSourceProcessor(
           id: 0,
           type: MapFeatureType.image,
           bbox: [
-            [...projection.fromLngLat([tilebbox[0], tilebbox[1]])],
-            [...projection.fromLngLat([tilebbox[2], tilebbox[3]])],
+            [...projection.project([tilebbox[0], tilebbox[1]], true)],
+            [...projection.project([tilebbox[2], tilebbox[3]], true)],
           ],
           topLeft: tilePolygon.coordinates[0][0] as [number, number],
           source: textureSource,

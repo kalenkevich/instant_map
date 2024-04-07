@@ -1,4 +1,4 @@
-import { GlideMap } from '../map';
+import { InstantMap } from '../map';
 import { MapControl } from './map_control';
 
 export enum MapControlPosition {
@@ -17,7 +17,7 @@ export class MapParentControl extends MapControl {
   private el: HTMLElement;
 
   constructor(
-    protected readonly map: GlideMap,
+    protected readonly map: InstantMap,
     protected readonly position: MapControlPosition,
   ) {
     super(map);

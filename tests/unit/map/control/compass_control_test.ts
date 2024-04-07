@@ -1,16 +1,16 @@
 import { JSDOM } from 'jsdom';
 import { describe, expect, it, jest } from '@jest/globals';
-import { GlideMap } from '../../../../src/map/map';
+import { InstantMap } from '../../../../src/map/map';
 import { CompassControl } from '../../../../src/map/controls/compass_control';
 
 describe('CompassControl', () => {
   const document = new JSDOM('<!DOCTYPE html><html><body></body></html>').window.document;
-  let fakeMap: GlideMap;
+  let fakeMap: InstantMap;
   let rootEl: HTMLElement;
 
   beforeEach(() => {
     rootEl = document.createElement('div');
-    fakeMap = {} as unknown as GlideMap;
+    fakeMap = {} as unknown as InstantMap;
   });
 
   it('should be attached to the parent el as a child.', () => {
