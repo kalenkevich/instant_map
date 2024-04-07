@@ -3,6 +3,11 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_sha
 export default {
   vertext: `
     precision highp float;
+    #define VERTEX_QUAD_ALIGNMENT_TOP_LEFT 0.0
+    #define VERTEX_QUAD_ALIGNMENT_TOP_RIGHT 1.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT 2.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT 3.0
+
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${FEATURE_FLAGS_UTILS}
@@ -14,26 +19,24 @@ export default {
     uniform float u_renderType;
     uniform float u_distance;
 
-    attribute vec2 a_vertecies;
+    attribute vec3 a_position;
     attribute vec2 a_prevPoint;
     attribute vec2 a_currPoint;
     attribute vec2 a_nextPoint;
-    attribute vec3 a_lineProps;
-    attribute vec3 a_renderStyles;
+    attribute vec2 a_lineProps; // [line.width, line.borderWidth]
+    attribute vec3 a_renderStyles; // [line.fill, line.cap, line.join]
     attribute vec4 a_color;
     attribute vec4 a_borderColor;
     attribute vec2 a_lineStripVertecies;
     attribute vec2 a_pointVertecies;
 
-    // varying vec2 v_vertecies;
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;
     varying vec2 v_nextPoint;
-    varying vec3 v_lineProps;
-    varying vec3 v_renderStyles;
+    varying vec2 v_lineProps; // [line.width, line.borderWidth]
+    varying vec3 v_renderStyles; // [line.fill, line.cap, line.join]
     varying vec4 v_color;
     varying vec4 v_borderColor;
-    varying vec2 v_point;
 
     void main() {
       v_prevPoint = applyMatrix(u_matrix, clipSpace(a_prevPoint));
@@ -44,8 +47,26 @@ export default {
       v_color = a_color;
       v_borderColor = a_borderColor;
 
-      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_vertecies.xy)), 0, 1);
-      v_point = gl_Position.xy / gl_Position.w;
+      float halfTotalWidth = (a_lineProps[0] + a_lineProps[1]) / u_distance / 2.0;
+      float x = a_position.x;
+      float y = a_position.y;
+      float alignment = a_position.z;
+
+      if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_LEFT) {
+        x -= halfTotalWidth;
+        y += halfTotalWidth;
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_RIGHT) {
+        x += halfTotalWidth;
+        y += halfTotalWidth;
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT) {
+        x -= halfTotalWidth;
+        y -= halfTotalWidth;
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT) {
+        x += halfTotalWidth;
+        y -= halfTotalWidth;
+      }
+
+      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(vec2(x, y))), 0, 1);
     }
   `,
   fragment: `
@@ -57,15 +78,13 @@ export default {
     uniform float u_tile_size;
     uniform float u_renderType;
 
-    // varying vec2 v_vertecies;
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;
     varying vec2 v_nextPoint;
-    varying vec3 v_lineProps; // [angleDegree, line.width, line.borderWidth]
+    varying vec2 v_lineProps; // [line.width, line.borderWidth]
     varying vec3 v_renderStyles; // [line.fill, line.cap, line.join]
     varying vec4 v_color;
     varying vec4 v_borderColor;
-    varying vec2 v_point;
 
     float getPointAlignmentToLine(vec2 lineEquation, vec2 point) {
       float k = lineEquation.x;
@@ -114,8 +133,8 @@ export default {
     void main() {
       vec2 resolution = vec2(u_width, u_height);
       vec2 point = (gl_FragCoord.xy / resolution) - 1.0;
-      float lineWidth = v_lineProps.y / u_width / 2.0;
-      float borderWidth = v_lineProps.z / u_width / 2.0;
+      float lineWidth = v_lineProps[0] / u_width / 2.0;
+      float borderWidth = v_lineProps[1] / u_width / 2.0;
 
       vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
       vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);

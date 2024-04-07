@@ -33,11 +33,11 @@ export class LineShaderProgram extends ObjectProgram {
 
     this.gl.bindVertexArray(this.vao);
 
-    this.vertecies = createWebGlBuffer(gl, { location: 0, size: 2 });
+    this.vertecies = createWebGlBuffer(gl, { location: 0, size: 3 });
     this.prevPoint = createWebGlBuffer(gl, { location: 1, size: 2 });
     this.currPoint = createWebGlBuffer(gl, { location: 2, size: 2 });
     this.nextPoint = createWebGlBuffer(gl, { location: 3, size: 2 });
-    this.lineProps = createWebGlBuffer(gl, { location: 4, size: 3 });
+    this.lineProps = createWebGlBuffer(gl, { location: 4, size: 2 });
     this.renderStyles = createWebGlBuffer(gl, { location: 5, size: 3 });
     this.color = createWebGlBuffer(gl, { location: 6, size: 4 });
     this.borderColor = createWebGlBuffer(gl, { location: 7, size: 4 });
