@@ -1,17 +1,16 @@
 import { MapFeatureType, ImageMapFeature } from '../../../../tile/feature';
 import { WebGlImageBufferredGroup } from './image';
 import { WebGlObjectAttributeType } from '../object/object';
-import { ObjectGroupBuilder } from '../object/object_group_builder';
+import { ObjectGroupBuilder, VERTEX_QUAD_POSITION } from '../object/object_group_builder';
 import { integerToVector4 } from '../../utils/number2vec';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { addXTimes } from '../../utils/array_utils';
 
-const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGlImageBufferredGroup> {
   build(name: string, zIndex = 0): WebGlImageBufferredGroup {
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
-    const colorBuffer: number[] = [];
+    const propertiesBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
 
     const size = this.objects.length;
@@ -19,10 +18,9 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
 
     for (const image of this.objects) {
       const colorId = integerToVector4(image.id);
+      const offsetTop = image.offset?.top || 0;
+      const offsetLeft = image.offset?.left || 0;
       textureSource = image.source;
-
-      // const marginTop = this.scalarScale((image.margin?.top || 0) / this.pixelRatio, distance);
-      // const marginLeft = this.scalarScale((image.margin?.left || 0) / this.pixelRatio, distance);
 
       const [x1, y1] = [image.bbox[0][0], image.bbox[0][1]];
       const [x4, y4] = [image.bbox[1][0], image.bbox[1][1]];
@@ -32,10 +30,23 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
       const p4 = [x4, y4];
 
       // flip it by y basis
-      verteciesBuffer.push(...p3, ...p4, ...p1, ...p1, ...p4, ...p2);
+      verteciesBuffer.push(
+        ...p3,
+        VERTEX_QUAD_POSITION.BOTTOM_LEFT,
+        ...p4,
+        VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
+        ...p1,
+        VERTEX_QUAD_POSITION.TOP_LEFT,
+        ...p1,
+        VERTEX_QUAD_POSITION.TOP_LEFT,
+        ...p4,
+        VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
+        ...p2,
+        VERTEX_QUAD_POSITION.TOP_RIGHT,
+      );
       texcoordBuffer.push(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0);
 
-      addXTimes(colorBuffer, TRANSPARENT_COLOR, 6);
+      addXTimes(propertiesBuffer, [image.width, image.height, offsetTop, offsetLeft], 6);
       addXTimes(selectionColorBuffer, colorId, 6);
     }
 
@@ -44,11 +55,11 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
       name,
       zIndex,
       size,
-      numElements: verteciesBuffer.length / 2,
+      numElements: verteciesBuffer.length / 3,
       texture: textureSource,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 3,
         buffer: createdSharedArrayBuffer(verteciesBuffer),
       },
       textcoords: {
@@ -56,10 +67,10 @@ export class ImageGroupBuilder extends ObjectGroupBuilder<ImageMapFeature, WebGl
         size: 2,
         buffer: createdSharedArrayBuffer(texcoordBuffer),
       },
-      color: {
+      properties: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: createdSharedArrayBuffer(colorBuffer),
+        buffer: createdSharedArrayBuffer(propertiesBuffer),
       },
       selectionColor: {
         type: WebGlObjectAttributeType.FLOAT,

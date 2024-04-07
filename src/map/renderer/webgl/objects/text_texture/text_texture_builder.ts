@@ -55,18 +55,22 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     let numElements = 0;
 
     for (const text of this.objects) {
-      let offset = 0;
+      let offsetX = 0;
       const selectionColorId = integerToVector4(text.id);
       const x1 = text.center[0];
       const y1 = text.center[1];
+      const offsetTop = text.offset?.top || 0;
+      const offsetLeft = text.offset?.left || 0;
       const textAlign = text.align || TextAlign.left;
       const totalWidth = this.getTextTotalWidth(text, fontAtlas);
 
       if (textAlign === TextAlign.center) {
-        offset -= totalWidth / 2;
+        offsetX -= totalWidth / 2;
       } else if (textAlign === TextAlign.right) {
-        offset -= totalWidth;
+        offsetX -= totalWidth;
       }
+
+      offsetX -= offsetLeft;
 
       for (const char of text.text) {
         const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
@@ -108,13 +112,13 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         );
         texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
-        addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend, offset], 6);
+        addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend - offsetTop, offsetX], 6);
         addXTimes(colorBuffer, text.color, 6);
         addXTimes(borderColorBuffer, text.borderColor, 6);
         addXTimes(selectionColorBuffer, selectionColorId, 6);
 
         numElements += 6;
-        offset += textScaledWidth;
+        offsetX += textScaledWidth;
       }
     }
 

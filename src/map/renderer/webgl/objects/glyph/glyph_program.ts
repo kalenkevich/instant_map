@@ -72,7 +72,7 @@ export class GlyphProgram extends ObjectProgram {
     this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 3 });
     this.textcoordBuffer = createWebGlBuffer(this.gl, { location: 1, size: 2 });
     this.colorBuffer = createWebGlBuffer(this.gl, { location: 2, size: 4 });
-    this.propertiesBuffer = createWebGlBuffer(this.gl, { location: 3, size: 2 });
+    this.propertiesBuffer = createWebGlBuffer(this.gl, { location: 3, size: 4 });
 
     gl.bindVertexArray(null);
   }

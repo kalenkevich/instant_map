@@ -1,6 +1,6 @@
 import { WebGlImageBufferredGroup } from './image';
 import ImageShaiders from './image_shader';
-import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
+import { ObjectProgram } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
 import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
@@ -10,6 +10,7 @@ export class ImageProgram extends ObjectProgram {
   protected texture: WebGlTexture;
   protected u_textureLocation: WebGLUniformLocation;
   protected textcoordBuffer: WebGlBuffer;
+  protected propertiesBuffer: WebGlBuffer;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -43,9 +44,10 @@ export class ImageProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 2 });
+    this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 3 });
     this.textcoordBuffer = createWebGlBuffer(gl, { location: 1, size: 2 });
-    this.colorBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
+    this.propertiesBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
+    this.colorBuffer = createWebGlBuffer(gl, { location: 3, size: 4 });
 
     gl.bindVertexArray(null);
   }
@@ -70,7 +72,7 @@ export class ImageProgram extends ObjectProgram {
     });
   }
 
-  drawObjectGroup(imageGroup: WebGlImageBufferredGroup, options?: DrawObjectGroupOptions): void {
+  drawObjectGroup(imageGroup: WebGlImageBufferredGroup): void {
     const gl = this.gl;
 
     gl.bindVertexArray(this.vao);
@@ -81,9 +83,8 @@ export class ImageProgram extends ObjectProgram {
 
     this.positionBuffer.bufferData(imageGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(imageGroup.textcoords.buffer);
-    this.colorBuffer.bufferData(
-      options?.readPixelRenderMode ? imageGroup.selectionColor.buffer : imageGroup.color.buffer,
-    );
+    this.propertiesBuffer.bufferData(imageGroup.properties.buffer);
+    this.colorBuffer.bufferData(imageGroup.selectionColor.buffer);
 
     gl.drawArrays(gl.TRIANGLES, 0, imageGroup.numElements);
 

@@ -17,6 +17,8 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
 
     for (const point of this.objects) {
       const colorId = integerToVector4(point.id);
+      const offsetTop = point.offset?.top || 0;
+      const offsetLeft = point.offset?.left || 0;
       const [x1, y1] = point.center;
 
       vertecies.push(
@@ -39,7 +41,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
         y1,
         VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
       );
-      addXTimes(propertiesBuffer, [point.radius, point.borderWidth], 6);
+      addXTimes(propertiesBuffer, [point.radius, point.borderWidth, offsetTop, offsetLeft], 6);
       addXTimes(colorBuffer, point.color, 6);
       addXTimes(borderWidthBuffer, point.borderWidth, 6);
       addXTimes(borderColorBuffer, point.borderColor, 6);
@@ -59,7 +61,7 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
       },
       properties: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 4,
         buffer: createdSharedArrayBuffer(propertiesBuffer),
       },
       color: {

@@ -22,7 +22,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
     const currPoint: number[] = [];
     const nextPoint: number[] = [];
     // angle, width, borderWidth,
-    const lineProps: number[] = [];
+    const properties: number[] = [];
     // fill, cap, join
     const renderStyles: number[] = [];
     const color: number[] = [];
@@ -62,7 +62,7 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
         addXTimes(prevPoint, [aPoint[0], aPoint[1]], 6);
         addXTimes(currPoint, [bPoint[0], bPoint[1]], 6);
         addXTimes(nextPoint, [cPoint[0], cPoint[1]], 6);
-        addXTimes(lineProps, [line.width, line.borderWidth], 6);
+        addXTimes(properties, [line.width, line.borderWidth], 6);
         addXTimes(renderStyles, [line.fill, line.cap, line.join], 6);
         addXTimes(color, line.color, 6);
         addXTimes(borderColor, line.borderColor, 6);
@@ -96,10 +96,10 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
         size: 2,
         buffer: createdSharedArrayBuffer(nextPoint),
       },
-      lineProps: {
+      properties: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: createdSharedArrayBuffer(lineProps),
+        buffer: createdSharedArrayBuffer(properties),
       },
       renderStyles: {
         type: WebGlObjectAttributeType.FLOAT,

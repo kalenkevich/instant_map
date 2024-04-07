@@ -20,7 +20,7 @@ export default {
     attribute vec3 a_position;
     attribute vec2 a_texCoord;
     attribute vec4 a_color;
-    attribute vec2 a_glyph_properties;
+    attribute vec4 a_properties;
 
     varying vec2 v_texCoord;
     varying vec4 v_color;
@@ -29,14 +29,18 @@ export default {
       v_texCoord = a_texCoord;
       v_color = a_color;
 
-      float width = a_glyph_properties[0];
-      float height = a_glyph_properties[1];
+      float width = a_properties[0];
+      float height = a_properties[1];
+      float offsetTop = a_properties[2];
+      float offsetLeft = a_properties[3];
 
       width /= u_distance;
       height /= u_distance;
+      offsetTop /= u_distance;
+      offsetLeft /= u_distance;
 
-      float x = a_position.x;
-      float y = a_position.y;
+      float x = a_position.x - offsetLeft;
+      float y = a_position.y - offsetTop;
       float alignment = a_position.z;
 
       if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_LEFT) {

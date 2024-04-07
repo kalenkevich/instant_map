@@ -1,7 +1,7 @@
 import tilebelt from '@mapbox/tilebelt';
 import geometryCenter from '@turf/center';
 import { MapTile, getTileRef } from '../tile';
-import { MapFeatureType, LineFillStyle, LineJoinStyle, LineCapStyle, LineMapFeature, TextMapFeature } from '../feature';
+import { MapFeatureType, LineFillStyle, LineJoinStyle, LineCapStyle } from '../feature';
 import { MapFeatureFlags } from '../../flags';
 import { DataTileSource, DataLayerStyle } from '../../styles/styles';
 import { TileSourceProcessOptions } from './tile_source_processor';
@@ -44,7 +44,7 @@ export async function DebugTileSourceProcessor(
             fill: LineFillStyle.solid,
             join: LineJoinStyle.miter,
             cap: LineCapStyle.square,
-          } as LineMapFeature,
+          },
           {
             id: 1,
             type: MapFeatureType.text,
@@ -59,7 +59,7 @@ export async function DebugTileSourceProcessor(
               top: 0,
               left: 0,
             },
-          } as TextMapFeature,
+          },
         ],
       },
     ],

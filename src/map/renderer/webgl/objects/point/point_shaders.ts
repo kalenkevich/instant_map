@@ -19,7 +19,7 @@ export default {
     uniform bool u_is_read_pixel_render_mode;
 
     attribute vec3 a_position;
-    attribute vec2 a_properties; // [radius, borderWidth];
+    attribute vec4 a_properties; // [radius, borderWidth, offsetTop, offsetLeft];
     attribute vec4 a_color;
     attribute vec4 a_border_color;
 
@@ -32,6 +32,8 @@ export default {
     void main() {
       float radius = a_properties[0];
       float borderWidth = a_properties[1];
+      float offsetTop = a_properties[2];
+      float offsetLeft = a_properties[3];
 
       v_radius = radius;
       v_border_width = borderWidth;
@@ -40,10 +42,12 @@ export default {
 
       radius /= u_distance;
       borderWidth /= u_distance;
+      offsetTop /= u_distance;
+      offsetLeft /= u_distance;
       float totalRadius = radius + borderWidth;
 
-      float x = a_position.x;
-      float y = a_position.y;
+      float x = a_position.x - offsetLeft;
+      float y = a_position.y + offsetTop;
       float alignment = a_position.z;
 
       if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_LEFT) {

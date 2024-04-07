@@ -615,8 +615,8 @@ export const MapboxVectorTileStyles: DataTileStyles = {
           ['settlement_subdivision', 24],
         ],
         align: TextAlign.center,
-        margin: {
-          top: -25,
+        offset: {
+          top: -12,
         },
       },
       maxzoom: 16,
@@ -660,6 +660,9 @@ export const MapboxVectorTileStyles: DataTileStyles = {
           ['$eq', ['$get', 'properties.class'], 'settlement'],
           ['$lte', ['$get', 'properties.filterrank'], 3],
         ],
+        offset: {
+          top: 12,
+        },
       },
       maxzoom: 16,
       minzoom: 0,
@@ -835,7 +838,7 @@ export const SateliteTilesStyles: DataTileStyles = {
           ['settlement_subdivision', 24],
         ],
         align: TextAlign.center,
-        margin: {
+        offset: {
           top: -25,
         },
       },

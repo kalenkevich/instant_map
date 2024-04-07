@@ -4,17 +4,7 @@ import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 import { TileSourceProcessOptions } from './tile_source_processor';
 import { MapTile, MapTileLayer, getTileRef } from '../tile';
-import {
-  GlyphMapFeature,
-  MapFeatureType,
-  PointMapFeature,
-  PolygonMapFeature,
-  TextMapFeature,
-  LineJoinStyle,
-  LineFillStyle,
-  LineMapFeature,
-  TextAlign,
-} from '../feature';
+import { MapFeatureType, LineJoinStyle, LineFillStyle, TextAlign } from '../feature';
 import { MapFeatureFlags } from '../../flags';
 import {
   DataLayerStyle,
@@ -118,11 +108,11 @@ export async function MvtTileSourceProcessor(
             radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
             borderWidth: pointStyle.borderWidth ? compileStatement(pointStyle.borderWidth, pointFeature) : 0,
             borderColor: pointStyle.borderColor ? compileStatement(pointStyle.borderColor, pointFeature) : [0, 0, 0, 0],
-            margin: {
-              top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
-              left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
+            offset: {
+              top: pointStyle.offset?.top ? compileStatement(pointStyle.offset?.top, pointFeature) : 0,
+              left: pointStyle.offset?.left ? compileStatement(pointStyle.offset?.left, pointFeature) : 0,
             },
-          } as PointMapFeature);
+          });
 
           continue;
         }
@@ -141,11 +131,11 @@ export async function MvtTileSourceProcessor(
               borderColor: pointStyle.borderColor
                 ? compileStatement(pointStyle.borderColor, pointFeature)
                 : [0, 0, 0, 0],
-              margin: {
-                top: pointStyle.margin?.top ? compileStatement(pointStyle.margin?.top, pointFeature) : 0,
-                left: pointStyle.margin?.left ? compileStatement(pointStyle.margin?.left, pointFeature) : 0,
+              offset: {
+                top: pointStyle.offset?.top ? compileStatement(pointStyle.offset?.top, pointFeature) : 0,
+                left: pointStyle.offset?.left ? compileStatement(pointStyle.offset?.left, pointFeature) : 0,
               },
-            } as PointMapFeature);
+            });
           }
         }
 
@@ -169,11 +159,11 @@ export async function MvtTileSourceProcessor(
             fontSize: compileStatement(textStyle.fontSize, pointFeature),
             borderWidth: 1,
             align: textStyle.align ? compileStatement(textStyle.align, pointFeature) : TextAlign.left,
-            margin: {
-              top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
-              left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
+            offset: {
+              top: textStyle.offset?.top ? compileStatement(textStyle.offset?.top, pointFeature) : 0,
+              left: textStyle.offset?.left ? compileStatement(textStyle.offset?.left, pointFeature) : 0,
             },
-          } as TextMapFeature);
+          });
 
           continue;
         }
@@ -193,11 +183,11 @@ export async function MvtTileSourceProcessor(
               fontSize: compileStatement(textStyle.fontSize, pointFeature),
               borderWidth: 1,
               align: textStyle.align ? compileStatement(textStyle.align, pointFeature) : TextAlign.left,
-              margin: {
-                top: textStyle.margin?.top ? compileStatement(textStyle.margin?.top, pointFeature) : 0,
-                left: textStyle.margin?.left ? compileStatement(textStyle.margin?.left, pointFeature) : 0,
+              offset: {
+                top: textStyle.offset?.top ? compileStatement(textStyle.offset?.top, pointFeature) : 0,
+                left: textStyle.offset?.left ? compileStatement(textStyle.offset?.left, pointFeature) : 0,
               },
-            } as TextMapFeature);
+            });
           }
         }
 
@@ -224,11 +214,11 @@ export async function MvtTileSourceProcessor(
           center: projection.fromLngLat(center),
           width: glyphStyle.width ?? compileStatement(glyphStyle.width, pointFeature),
           height: glyphStyle.height ?? compileStatement(glyphStyle.height, pointFeature),
-          margin: {
-            top: glyphStyle.margin?.top ? compileStatement(glyphStyle.margin?.top, pointFeature) : 0,
-            left: glyphStyle.margin?.left ? compileStatement(glyphStyle.margin?.left, pointFeature) : 0,
+          offset: {
+            top: glyphStyle.offset?.top ? compileStatement(glyphStyle.offset?.top, pointFeature) : 0,
+            left: glyphStyle.offset?.left ? compileStatement(glyphStyle.offset?.left, pointFeature) : 0,
           },
-        } as GlyphMapFeature);
+        });
 
         continue;
       }
@@ -253,7 +243,7 @@ export async function MvtTileSourceProcessor(
             borderWidth: 1,
             borderColor: [0, 0, 0, 1],
             borderJoin: LineJoinStyle.bevel,
-          } as PolygonMapFeature);
+          });
 
           continue;
         }
@@ -272,7 +262,7 @@ export async function MvtTileSourceProcessor(
               borderWidth: 1,
               borderColor: [0, 0, 0, 1],
               borderJoin: LineJoinStyle.bevel,
-            } as PolygonMapFeature);
+            });
           }
         }
 
@@ -296,7 +286,7 @@ export async function MvtTileSourceProcessor(
             fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
             join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
             cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
-          } as LineMapFeature);
+          });
 
           continue;
         }
@@ -316,7 +306,7 @@ export async function MvtTileSourceProcessor(
               fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
               join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
               cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
-            } as LineMapFeature);
+            });
           }
         }
 

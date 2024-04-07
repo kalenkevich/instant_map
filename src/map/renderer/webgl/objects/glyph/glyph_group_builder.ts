@@ -48,7 +48,8 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       const colorId = integerToVector4(glyph.id);
       const textureAtlas = glyphTextureMapping[glyph.atlas];
       const glyphMapping = textureAtlas.mapping[glyph.name];
-
+      const offsetTop = glyph.offset?.top || 0;
+      const offsetLeft = glyph.offset?.left || 0;
       const textureWidth = textureAtlas.width;
       const textureHeight = textureAtlas.height;
       const glyphScaledWidth = glyphMapping.width / glyphMapping.pixelRatio;
@@ -83,7 +84,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       );
       texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
-      addXTimes(glyphProperties, [glyphScaledWidth, glyphScaledHeight], 6);
+      addXTimes(glyphProperties, [glyphScaledWidth, glyphScaledHeight, offsetTop, offsetLeft], 6);
       addXTimes(colorBuffer, TRANSPARENT_COLOR, 6);
       addXTimes(selectionColorBuffer, colorId, 6);
     }
@@ -107,7 +108,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       },
       properties: {
         type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
+        size: 4,
         buffer: createdSharedArrayBuffer(glyphProperties),
       },
       color: {

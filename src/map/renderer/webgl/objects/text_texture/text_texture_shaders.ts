@@ -31,16 +31,16 @@ export default {
 
       float width = a_text_properties[0];
       float height = a_text_properties[1];
-      float ascend = a_text_properties[2];
-      float offset = a_text_properties[3];
+      float offsetTop = a_text_properties[2];
+      float offsetLeft = a_text_properties[3];
 
       width /= u_distance;
       height /= u_distance;
-      ascend /= u_distance;
-      offset /= u_distance;
+      offsetTop /= u_distance;
+      offsetLeft /= u_distance;
 
-      float x = a_position.x + offset;
-      float y = a_position.y - ascend;
+      float x = a_position.x + offsetLeft;
+      float y = a_position.y - offsetTop;
       float alignment = a_position.z;
 
       if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_RIGHT) {

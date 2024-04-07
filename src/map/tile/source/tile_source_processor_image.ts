@@ -1,6 +1,6 @@
 import tilebelt from '@mapbox/tilebelt';
 import { MapTile, MapTileLayer, getTileRef } from '../tile';
-import { ImageMapFeature, MapFeatureType } from '../feature';
+import { MapFeatureType } from '../feature';
 import { TileSourceProcessOptions } from './tile_source_processor';
 import { MapFeatureFlags } from '../../flags';
 import { ImageTileSource, DataLayerStyle, ImageStyle } from '../../styles/styles';
@@ -49,7 +49,6 @@ export async function ImageTileSourceProcessor(
         {
           id: 0,
           type: MapFeatureType.image,
-          name: tileId,
           bbox: [
             [...projection.fromLngLat([tilebbox[0], tilebbox[1]])],
             [...projection.fromLngLat([tilebbox[2], tilebbox[3]])],
@@ -59,8 +58,11 @@ export async function ImageTileSourceProcessor(
           width: imageFeatureStyle.width ? compileStatement(imageFeatureStyle.width, {}) : tileSize,
           height: imageFeatureStyle.height ? compileStatement(imageFeatureStyle.height, {}) : tileSize,
           pixelRatio: source.pixelRatio || 1,
-          margin: imageFeatureStyle.margin ?? compileStatement(imageFeatureStyle.margin, {}),
-        } as ImageMapFeature,
+          offset: {
+            top: imageFeatureStyle.offset?.top ? compileStatement(imageFeatureStyle.offset?.top, {}) : 0,
+            left: imageFeatureStyle.offset?.left ? compileStatement(imageFeatureStyle.offset?.left, {}) : 0,
+          },
+        },
       ],
     });
   }

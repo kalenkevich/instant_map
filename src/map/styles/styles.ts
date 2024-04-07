@@ -1,5 +1,5 @@
 import { Statement, ColorValue } from './style_statement';
-import { MapFeatureType, TextAlign } from '../tile/feature';
+import { MapFeatureType, PointOffset, TextAlign } from '../tile/feature';
 import { FontConfig } from '../font/font_config';
 import { GlyphsTextrureAtlasConfig } from '../glyphs/glyphs_config';
 import { TileSourceType } from '../tile/source/tile_source';
@@ -60,12 +60,7 @@ export interface PointStyle {
   borderColor?: Statement<ColorValue>;
   minzoom?: number;
   maxzoom?: number;
-  margin?: PointMargin;
-}
-
-export interface PointMargin {
-  top?: Statement<number>;
-  left?: Statement<number>;
+  offset?: PointOffset;
 }
 
 export interface LineStyle {
@@ -102,7 +97,7 @@ export interface TextStyle {
   align?: Statement<TextAlign>;
   minzoom?: number;
   maxzoom?: number;
-  margin?: PointMargin;
+  offset?: PointOffset;
 }
 
 export interface GlyphStyle {
@@ -114,7 +109,7 @@ export interface GlyphStyle {
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
-  margin?: PointMargin;
+  offset?: PointOffset;
 }
 
 export interface ImageStyle {
@@ -124,5 +119,5 @@ export interface ImageStyle {
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
-  margin?: PointMargin;
+  offset?: PointOffset;
 }

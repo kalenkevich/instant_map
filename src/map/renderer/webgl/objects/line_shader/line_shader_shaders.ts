@@ -23,7 +23,7 @@ export default {
     attribute vec2 a_prevPoint;
     attribute vec2 a_currPoint;
     attribute vec2 a_nextPoint;
-    attribute vec2 a_lineProps; // [line.width, line.borderWidth]
+    attribute vec2 a_properties; // [line.width, line.borderWidth]
     attribute vec3 a_renderStyles; // [line.fill, line.cap, line.join]
     attribute vec4 a_color;
     attribute vec4 a_borderColor;
@@ -33,7 +33,7 @@ export default {
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;
     varying vec2 v_nextPoint;
-    varying vec2 v_lineProps; // [line.width, line.borderWidth]
+    varying vec2 v_properties; // [line.width, line.borderWidth]
     varying vec3 v_renderStyles; // [line.fill, line.cap, line.join]
     varying vec4 v_color;
     varying vec4 v_borderColor;
@@ -42,12 +42,12 @@ export default {
       v_prevPoint = applyMatrix(u_matrix, clipSpace(a_prevPoint));
       v_currPoint = applyMatrix(u_matrix, clipSpace(a_currPoint));
       v_nextPoint = applyMatrix(u_matrix, clipSpace(a_nextPoint));
-      v_lineProps = a_lineProps;
+      v_properties = a_properties;
       v_renderStyles = a_renderStyles;
       v_color = a_color;
       v_borderColor = a_borderColor;
 
-      float halfTotalWidth = (a_lineProps[0] + a_lineProps[1]) / u_distance / 2.0;
+      float halfTotalWidth = (a_properties[0] + a_properties[1]) / u_distance / 2.0;
       float x = a_position.x;
       float y = a_position.y;
       float alignment = a_position.z;
@@ -81,7 +81,7 @@ export default {
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;
     varying vec2 v_nextPoint;
-    varying vec2 v_lineProps; // [line.width, line.borderWidth]
+    varying vec2 v_properties; // [line.width, line.borderWidth]
     varying vec3 v_renderStyles; // [line.fill, line.cap, line.join]
     varying vec4 v_color;
     varying vec4 v_borderColor;
@@ -133,8 +133,8 @@ export default {
     void main() {
       vec2 resolution = vec2(u_width, u_height);
       vec2 point = (gl_FragCoord.xy / resolution) - 1.0;
-      float lineWidth = v_lineProps[0] / u_width / 2.0;
-      float borderWidth = v_lineProps[1] / u_width / 2.0;
+      float lineWidth = v_properties[0] / u_width / 2.0;
+      float borderWidth = v_properties[1] / u_width / 2.0;
 
       vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
       vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);

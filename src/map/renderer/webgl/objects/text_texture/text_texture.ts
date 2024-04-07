@@ -9,7 +9,7 @@ export interface WebGlTextTextureBufferredGroup extends WebGlObjectBufferredGrou
   sfdTexture: boolean;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>;
   textcoords: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>;
-  // [width, height, ascend, offset]
+  // [width, height, offsetTop, offsetLeft]
   textProperties: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>;
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>;
   borderColor: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>;
