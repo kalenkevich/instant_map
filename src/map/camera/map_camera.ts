@@ -108,10 +108,10 @@ export class MapCamera {
 
     // get LngLat bounding box
     const bbox = [
-      this.projection.lngFromMercatorX(x1),
-      this.projection.latFromMercatorY(y1),
-      this.projection.lngFromMercatorX(x2),
-      this.projection.latFromMercatorY(y2),
+      this.projection.unprojectX(x1, true),
+      this.projection.unprojectY(y1, true),
+      this.projection.unprojectX(x2, true),
+      this.projection.unprojectY(y2, true),
     ];
 
     return bbox;

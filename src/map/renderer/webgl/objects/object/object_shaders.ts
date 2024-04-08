@@ -52,33 +52,3 @@ export const MAT_UTILS = `
     );
   }
 `;
-
-// export const MERCATOR_PROJECTION_UTILS = `
-//   #define PI 3.141592653589793
-//   #define HALF_PI PI/2.0
-//   #define QUARTER_PI PI/4.0
-//   #define RAD_TO_DEG 180.0/PI
-//   #define DEG_TO_RAD PI/180.0
-
-//   float mercatorXfromLng(float lng) {
-//     return (180.0 + lng) / 360.0;
-//   }
-
-//   float mercatorYfromLat(float lat) {
-//     return (180.0 - (RAD_TO_DEG * log(tan(QUARTER_PI + (lat * PI) / 360.0)))) / 360.0;
-//   }
-
-//   vec2 mercatorProject(vec2 lngLat) {
-//     float x = mercatorXfromLng(lngLat.x);
-//     float y = mercatorYfromLat(lngLat.y);
-
-//     return vec2(x, y);
-//   }
-
-//   vec2 mercatorProject(vec3 lngLat) {
-//     float x = mercatorXfromLng(lngLat.x);
-//     float y = mercatorYfromLat(lngLat.y);
-
-//     return vec2(x, y);
-//   }
-// `;

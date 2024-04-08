@@ -1,5 +1,5 @@
 import { throttle } from '../map/utils/trottle';
-import { GlideMap, MapEventType } from '../map/map';
+import { InstantMap, MapEventType } from '../map/map';
 import {
   SateliteTilesStyles,
   MaptilerSateliteTilesStyles,
@@ -11,6 +11,7 @@ import {
 import { MapTileRendererType } from '../map/renderer/renderer';
 import { createRootEl } from './demo_utils';
 import { ENABLED_FEATURE_FLAGS } from './enabled_features';
+import { ProjectionType } from '../map/geo/projection/projection';
 
 const MAP_ROOT_EL_MARGIN = 10;
 
@@ -52,7 +53,7 @@ const syncQueryParamsWithMapState = () => {
   history.replaceState(null, '', '?' + query.toString());
 };
 
-function subscribeOnEvents(map: GlideMap) {
+function subscribeOnEvents(map: InstantMap) {
   map.on(MapEventType.ANY, fireMapEvent);
   map.on(MapEventType.ZOOM, throttle(syncQueryParamsWithMapState, 250));
   map.on(MapEventType.CENTER, throttle(syncQueryParamsWithMapState, 250));
@@ -62,7 +63,7 @@ function fireMapEvent(eventType: MapEventType) {
   document.dispatchEvent(new Event(eventType));
 }
 
-let currentMap: GlideMap | undefined;
+let currentMap: InstantMap | undefined;
 
 export function renderMap() {
   const rootDiv = createRootEl(window.innerWidth, window.innerHeight, MAP_ROOT_EL_MARGIN);
@@ -70,13 +71,16 @@ export function renderMap() {
 
   const [zoom, lat, lng] = getStartMapLocation();
 
-  currentMap = new GlideMap({
+  currentMap = new InstantMap({
     rootEl: rootDiv,
     zoom,
     center: [lat, lng],
     rendrer: MapTileRendererType.webgl2,
+    projection: ProjectionType.Mercator,
     tileStyles: MapboxVectorTileStyles,
-    projection: 'mercator',
+    tileCacheSize: 128,
+    workerPool: 4,
+    featureFlags: ENABLED_FEATURE_FLAGS,
     controls: {
       compas: true,
       zoom: true,
@@ -114,8 +118,6 @@ export function renderMap() {
         },
       ],
     },
-    workerPool: 8,
-    featureFlags: ENABLED_FEATURE_FLAGS,
   });
 
   window.addEventListener('resize', () => {

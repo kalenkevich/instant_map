@@ -1,16 +1,14 @@
-import { vec2 } from 'gl-matrix';
 import earcut from 'earcut';
 import { MapFeatureType, PolygonMapFeature } from '../../../../tile/feature';
 import { WebGlPolygonBufferredGroup } from './polygon';
 import { WebGlObjectAttributeType } from '../object/object';
-import { SceneCamera } from '../../../renderer';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> {
-  build(camera: SceneCamera, name: string, zIndex = 0): WebGlPolygonBufferredGroup {
+  build(name: string, zIndex = 0): WebGlPolygonBufferredGroup {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
@@ -62,7 +60,7 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, W
   }
 }
 
-export function verticesFromPolygon(result: number[], coordinates: Array<Array<vec2>>): number {
+export function verticesFromPolygon(result: number[], coordinates: Array<Array<[number, number]>>): number {
   const start = result.length;
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);

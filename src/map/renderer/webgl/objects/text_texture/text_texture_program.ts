@@ -12,6 +12,7 @@ import { toImageBitmapTexture } from '../../../../texture/texture_utils';
 export class TextTextureProgram extends ObjectProgram {
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
+  protected textPropertiesBuffer: WebGlBuffer;
 
   protected fontTextures: WebGlTexture[] = [];
   protected u_textureLocation: WebGLUniformLocation;
@@ -52,9 +53,10 @@ export class TextTextureProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 2 });
+    this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 3 });
     this.textcoordBuffer = createWebGlBuffer(gl, { location: 1, size: 2 });
     this.colorBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
+    this.textPropertiesBuffer = createWebGlBuffer(gl, { location: 3, size: 4 });
 
     gl.bindVertexArray(null);
   }
@@ -97,8 +99,9 @@ export class TextTextureProgram extends ObjectProgram {
     gl.uniform1i(this.u_textureLocation, texture.index);
     gl.uniform1i(this.u_sfdLocation, textGroup.sfdTexture ? 1 : 0);
 
-    this.positionBuffer.bufferData(new Float32Array(textGroup.vertecies.buffer));
-    this.textcoordBuffer.bufferData(new Float32Array(textGroup.textcoords.buffer));
+    this.positionBuffer.bufferData(textGroup.vertecies.buffer);
+    this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
+    this.textPropertiesBuffer.bufferData(textGroup.textProperties.buffer);
 
     if (options?.readPixelRenderMode) {
       this.colorBuffer.bufferData(textGroup.selectionColor.buffer);

@@ -4,10 +4,8 @@ import { addExtensionsToContext, ExtendedWebGLRenderingContext } from './webgl_c
 import { ObjectProgram } from './objects/object/object_program';
 import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
-import { LineProgram } from './objects/line/line_program';
 import { LineShaderProgram } from './objects/line_shader/line_shader_program';
 import { TextTextureProgram } from './objects/text_texture/text_texture_program';
-import { TextVectorProgram } from './objects/text_vector/text_vector_program';
 import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
@@ -16,7 +14,6 @@ import { MapFeatureFlags } from '../../flags';
 import { WebGlTexture, createTexture } from './utils/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
-import { FontFormatType } from '../../font/font_config';
 import { FontManager } from '../../font/font_manager';
 import { WebGlObjectBufferredGroup } from './objects/object/object';
 
@@ -55,12 +52,14 @@ export class WebGlRenderer {
 
     if (this.type === MapTileRendererType.webgl) {
       gl = this.gl = this.canvas.getContext('webgl', {
+        performance: 'high-performance',
         alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;
       addExtensionsToContext(gl);
     } else {
       gl = this.gl = this.canvas.getContext('webgl2', {
+        performance: 'high-performance',
         alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;
@@ -85,14 +84,9 @@ export class WebGlRenderer {
 
     const pointProgram = new PointProgram(gl, this.featureFlags);
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
-    const lineProgram = this.featureFlags.webglRendererUseShaderLines
-      ? new LineShaderProgram(gl, this.featureFlags)
-      : new LineProgram(gl, this.featureFlags);
+    const lineProgram = new LineShaderProgram(gl, this.featureFlags);
     const glyphProgram = new GlyphProgram(gl, this.featureFlags, this.textureManager);
-    const textProgram =
-      this.featureFlags.webglRendererFontFormatType === FontFormatType.vector
-        ? new TextVectorProgram(gl, this.featureFlags)
-        : new TextTextureProgram(gl, this.featureFlags, this.fontManager);
+    const textProgram = new TextTextureProgram(gl, this.featureFlags, this.fontManager);
     const imageProgram = new ImageProgram(gl, this.featureFlags);
 
     await Promise.all([
@@ -232,6 +226,7 @@ export class WebGlRenderer {
     program.setMatrix(camera.viewMatrix);
     program.setWidth(this.rootEl.offsetWidth);
     program.setHeight(this.rootEl.offsetHeight);
+    program.setDistance(camera.distance);
     program.setReadPixelRenderMode(options.readPixelRenderMode || false);
   }
 }

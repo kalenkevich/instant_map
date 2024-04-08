@@ -1,5 +1,5 @@
 import { MapControl } from './map_control';
-import { GlideMap } from '../map';
+import { InstantMap } from '../map';
 import { DataTileStyles } from '../styles/styles';
 
 export interface DataTileStylesSelectConfig {
@@ -13,7 +13,7 @@ export class StyleSelectControl extends MapControl {
   private selectedStyleConfig: DataTileStylesSelectConfig;
 
   constructor(
-    protected readonly map: GlideMap,
+    protected readonly map: InstantMap,
     protected readonly document: Document,
     private readonly styleConfigs: DataTileStylesSelectConfig[],
   ) {

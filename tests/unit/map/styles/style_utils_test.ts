@@ -89,11 +89,8 @@ describe('compileFeatureStyle', () => {
         ['ice', ['$rgb', 1, 1, 3]],
       ],
       radius: 5,
-      border: {
-        type: MapFeatureType.line,
-        color: ['$rgb', 1, 1, 3],
-        width: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
-      },
+      borderColor: ['$rgb', 1, 1, 3],
+      borderWidth: ['$switch', ['$get', 'properties.class'], ['land', 1], ['water', 2], ['ice', 3]],
       minzoom: 0,
       maxzoom: 5,
     };

@@ -1,14 +1,14 @@
 import { MapTile } from '../tile/tile';
-import { MapTileRendererType } from '../renderer/renderer';
-import { FetchTileOptions, TileSourceProcessor } from '../tile/tile_source_processor';
+import { TileProcessingOptions, TileSourceProcessor } from '../tile/source/tile_source_processor';
 import { WorkerTaskRequestType, WorkerTaskResponseType, WorkerTaskRequest } from './worker_actions';
 
 export type FetchTilePromise<T> = Promise<T> & { cancel: () => void };
 
 export class WorkerActionHandler {
   private readonly tileFetchPromiseMap = new Map<string, FetchTilePromise<void>>();
+  private readonly tileSourceProcessor = new TileSourceProcessor();
 
-  constructor(private readonly tileRendererTypeTransformerMap: Record<MapTileRendererType, TileSourceProcessor>) {}
+  constructor() {}
 
   listen() {
     addEventListener('message', this.workerMessageHandler);
@@ -18,14 +18,17 @@ export class WorkerActionHandler {
     removeEventListener('message', this.workerMessageHandler);
   }
 
-  private workerMessageHandler = (message: { data: WorkerTaskRequest<FetchTileOptions | string> }) => {
+  private workerMessageHandler = (message: { data: WorkerTaskRequest<TileProcessingOptions | string> }) => {
     const request = message.data;
 
     switch (request.type) {
       case WorkerTaskRequestType.FETCH_TILE: {
-        const fetchData = request.data as FetchTileOptions;
+        const processTileOptions = request.data as TileProcessingOptions;
 
-        this.tileFetchPromiseMap.set(fetchData.tileId, this.startTileFetch(fetchData));
+        this.tileFetchPromiseMap.set(
+          processTileOptions.tileSource.tileId,
+          this.startTileProcessing(processTileOptions),
+        );
 
         return;
       }
@@ -46,19 +49,26 @@ export class WorkerActionHandler {
     }
   };
 
-  private startTileFetch(data: FetchTileOptions): FetchTilePromise<void> {
+  private startTileProcessing(processTileOptions: TileProcessingOptions): FetchTilePromise<void> {
     const abortController = new AbortController();
     let cancelled = false;
     let resolved = false;
     let rejected = false;
     let promiseResolve: () => void;
+    const tileId = processTileOptions.tileSource.tileId;
 
     const promise = new Promise<void>((resolve, reject) => {
       promiseResolve = resolve;
-      const tileTrasformer = this.tileRendererTypeTransformerMap[data.rendererType];
 
-      tileTrasformer
-        .getMapTile(data, abortController)
+      this.tileSourceProcessor
+        .getMapTile(processTileOptions.featureFlags, processTileOptions.tileSource, abortController)
+        .then(tile =>
+          this.tileSourceProcessor.prerenderTile(
+            processTileOptions.featureFlags,
+            tile,
+            processTileOptions.tilePrerender,
+          ),
+        )
         .then((tile: MapTile) => {
           postMessage({
             type: WorkerTaskResponseType.TILE_FULL_COMPLETE,
@@ -68,13 +78,13 @@ export class WorkerActionHandler {
           resolved = true;
         })
         .catch((e: Error) => {
-          postMessage({ tileId: data.tileId });
+          postMessage({ tileId });
           reject(e);
           rejected = true;
         })
         .finally(() => {
-          if (this.tileFetchPromiseMap.has(data.tileId)) {
-            this.tileFetchPromiseMap.delete(data.tileId);
+          if (this.tileFetchPromiseMap.has(tileId)) {
+            this.tileFetchPromiseMap.delete(tileId);
           }
         });
     });

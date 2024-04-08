@@ -60,9 +60,9 @@ export type GreaterCondition = ['$>' | '$gt', ConditionStatement, ConditionState
 
 export type GreaterOrEqualCondition = ['$>=' | '$gte', ConditionStatement, ConditionStatement];
 
-export type OrCondition = ['$||' | '$or', ConditionStatement, ConditionStatement];
+export type OrCondition = ['$||' | '$or', ConditionStatement, ConditionStatement, ConditionStatement?];
 
-export type AndCondition = ['$&&' | '$and', ConditionStatement, ConditionStatement];
+export type AndCondition = ['$&&' | '$and', ConditionStatement, ConditionStatement, ConditionStatement?];
 
 export type OneOfCondition = ['$oneOf', ValueStatement<any>, ...Array<ValueStatement<any>>];
 

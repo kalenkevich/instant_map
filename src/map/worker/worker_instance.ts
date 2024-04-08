@@ -31,7 +31,7 @@ export class WorkerInstance extends Evented<WorkerTaskResponseType> {
     }
 
     this.worker.onmessage = (result: { data: WorkerTaskResponse }) => {
-      this.fire(result.data.type, result.data);
+      this.fire(result.data.type);
 
       if (responseEvent && result.data.type === responseEvent) {
         responseHandler(result.data);

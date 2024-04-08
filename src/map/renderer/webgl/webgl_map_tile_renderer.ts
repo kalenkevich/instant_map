@@ -1,11 +1,13 @@
-import { MapTileRenderer, MapTileRendererType } from '../renderer';
+import { MapTile } from '../../tile/tile';
+
 import { MapFeatureFlags } from '../../flags';
 import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { FontManager } from '../../font/font_manager';
 
 import { WebGlSceneCamera } from './webgl_camera';
 import { WebGlRenderer, WebGlRendererOptions } from './webgl_renderer';
-import { WebGlMapTile } from './tile/webgl_tile';
+import { MapTileRenderer, MapTileRendererType } from '../renderer';
+import { MapTile2WebglObjects } from './webgl_map_tile_to_webgl_object';
 
 /**
  * Wrapper for WebGlRenderer to fit the MapTileRenderer interface.
@@ -16,11 +18,11 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
 
   constructor(
     rootEl: HTMLElement,
-    featureFlags: MapFeatureFlags,
+    private readonly featureFlags: MapFeatureFlags,
     type: MapTileRendererType.webgl | MapTileRendererType.webgl2,
-    devicePixelRatio: number,
-    fontManager: FontManager,
-    textureManager: GlyphsManager,
+    private readonly devicePixelRatio: number,
+    private readonly fontManager: FontManager,
+    private readonly textureManager: GlyphsManager,
   ) {
     this.renderer = new WebGlRenderer(rootEl, featureFlags, type, devicePixelRatio, fontManager, textureManager);
   }
@@ -37,24 +39,44 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     return this.renderer.resize(width, height);
   }
 
-  render(tiles: WebGlMapTile[], camera: WebGlSceneCamera, renderOptions?: WebGlRendererOptions): void {
+  render(tiles: MapTile[], camera: WebGlSceneCamera, renderOptions?: WebGlRendererOptions): void {
     const objectGroups = [];
 
     for (const tile of tiles) {
-      for (const layer of tile.layers) {
-        objectGroups.push(...layer.objectGroups);
+      if (tile.layers.length > 0 && !tile.prerendedData) {
+        continue;
+      }
+
+      const tileObjectGroups = MapTile2WebglObjects(
+        tile,
+        this.featureFlags,
+        this.fontManager,
+        this.textureManager,
+        this.devicePixelRatio,
+      );
+
+      for (let tileObjGroupIdx = 0; tileObjGroupIdx < tileObjectGroups.length; tileObjGroupIdx++) {
+        objectGroups.push(tileObjectGroups[tileObjGroupIdx]);
       }
     }
 
     return this.renderer.render(objectGroups, camera, renderOptions);
   }
 
-  getObjectId(tiles: WebGlMapTile[], camera: WebGlSceneCamera, x: number, y: number): number {
+  getObjectId(tiles: MapTile[], camera: WebGlSceneCamera, x: number, y: number): number {
     const objectGroups = [];
 
     for (const tile of tiles) {
-      for (const layer of tile.layers) {
-        objectGroups.push(...layer.objectGroups);
+      const tileObjectGroups = MapTile2WebglObjects(
+        tile,
+        this.featureFlags,
+        this.fontManager,
+        this.textureManager,
+        this.devicePixelRatio,
+      );
+
+      for (let tileObjGroupIdx = 0; tileObjGroupIdx < tileObjectGroups.length; tileObjGroupIdx++) {
+        objectGroups.push(tileObjectGroups[tileObjGroupIdx]);
       }
     }
 
