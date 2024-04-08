@@ -5,32 +5,40 @@ export class MercatorProjection implements Projection {
     return ProjectionType.Mercator;
   }
 
-  mercatorXfromLng(lng: number): number {
-    return (180 + lng) / 360;
+  project(lngLat: [number, number], normalize: boolean): [number, number] {
+    return [this.projectX(lngLat[0], normalize), this.projectY(lngLat[1], normalize)];
   }
 
-  mercatorYfromLat(lat: number): number {
-    return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / 360;
+  projectX(lng: number, normalize: boolean): number {
+    const dividor = normalize ? 360 : 1;
+
+    return (180 + lng) / dividor;
   }
 
-  fromLngLat(lngLat: [number, number]): [number, number] {
-    return [this.mercatorXfromLng(lngLat[0]), this.mercatorYfromLat(lngLat[1])];
+  projectY(lat: number, normalize: boolean): number {
+    const dividor = normalize ? 360 : 1;
+
+    return (180 - (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) / dividor;
   }
 
-  lngFromMercatorX(x: number): number {
-    return x * 360 - 180;
-  }
-
-  latFromMercatorY(y: number): number {
-    const y2 = 180 - y * 360;
-    return (360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90;
-  }
-
-  fromXY(xy: [number, number]): [number, number] {
+  unproject(xy: [number, number], normalized: boolean): [number, number] {
     const [x, y] = xy;
-    const lng = this.lngFromMercatorX(x);
-    const lat = this.latFromMercatorY(y);
+    const lng = this.unprojectX(x, normalized);
+    const lat = this.unprojectY(y, normalized);
 
     return [lng, lat];
+  }
+
+  unprojectX(x: number, normalized: boolean): number {
+    const multiplier = normalized ? 360 : 1;
+
+    return x * multiplier - 180;
+  }
+
+  unprojectY(y: number, normalized: boolean): number {
+    const multiplier = normalized ? 360 : 1;
+    const y2 = 180 - y * multiplier;
+
+    return (360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90;
   }
 }

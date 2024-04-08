@@ -1,11 +1,11 @@
 import { JSDOM } from 'jsdom';
 import { describe, expect, it, jest } from '@jest/globals';
-import { GlideMap } from '../../../../src/map/map';
+import { InstantMap } from '../../../../src/map/map';
 import { ZoomControl } from '../../../../src/map/controls/zoom_control';
 
 describe('ZoomControl', () => {
   let document: Document;
-  let fakeMap: GlideMap;
+  let fakeMap: InstantMap;
   let rootEl: HTMLElement;
   const mapCenter = [0, 0];
 
@@ -22,7 +22,7 @@ describe('ZoomControl', () => {
       getZoom() {
         return Promise.resolve();
       },
-    } as unknown as GlideMap;
+    } as unknown as InstantMap;
   });
 
   it('should be attached to the parent el as a child.', () => {

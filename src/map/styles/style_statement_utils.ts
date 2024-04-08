@@ -403,11 +403,15 @@ export function compileOrCondition(
     throw new Error('OrCondition statement is invalid: ' + JSON.stringify(statement));
   }
 
-  if (compileConditionStatementOrValue(statement[1], context, config)) {
-    return true;
+  for (let i = 1; i < statement.length; i++) {
+    const result = compileConditionStatementOrValue(statement[i], context, config);
+
+    if (result) {
+      return true;
+    }
   }
 
-  return !!compileConditionStatementOrValue(statement[2], context, config);
+  return false;
 }
 
 export function compileAndCondition(
@@ -422,10 +426,15 @@ export function compileAndCondition(
     throw new Error('AndCondition statement is invalid: ' + JSON.stringify(statement));
   }
 
-  const leftHandStatement = compileConditionStatementOrValue(statement[1], context, config);
-  const rightHandStatement = compileConditionStatementOrValue(statement[2], context, config);
+  for (let i = 1; i < statement.length; i++) {
+    const result = compileConditionStatementOrValue(statement[i], context, config);
 
-  return !!(leftHandStatement && rightHandStatement);
+    if (!result) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function compileValueStatement<V>(

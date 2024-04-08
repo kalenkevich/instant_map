@@ -54,29 +54,15 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       return;
     }
 
-    const { tileId, layers: tileLayers } = response.data;
-
-    if (!tileLayers || tileLayers.length === 0) {
-      return;
-    }
-
-    let tile: MapTile;
-    if (this.tiles.has(tileId)) {
-      tile = this.tiles.get(tileId);
-
-      tile.layers = tileLayers;
-    } else {
-      tile = this.createMapTile(tileId, tileLayers);
-
-      this.tiles.set(tileId, tile);
-    }
+    const processedTile = response.data as MapTile;
+    this.tiles.set(processedTile.tileId, processedTile);
 
     setTimeout(() => {
-      this.fire(TilesGridEvent.TILE_LOADED, tile);
+      this.fire(TilesGridEvent.TILE_LOADED, processedTile.tileId);
     }, 0);
   }
 
-  public async updateTiles(camera: MapCamera, zoom: number, canvasWidth: number, canvasHeight: number) {
+  public async updateTiles(camera: MapCamera) {
     // update visible tiles based on viewport
     const bbox = camera.getCurrentBounds();
     const z = Math.min(Math.trunc(camera.getZoom()), this.maxTileZoom);
@@ -148,19 +134,19 @@ export class TilesGrid extends Evented<TilesGridEvent> {
         {
           type: WorkerTaskRequestType.FETCH_TILE,
           data: {
-            tileId,
-            tileStyles: this.tileStyles,
-            rendererType: this.rendererType,
-            projectionViewMat: [...camera.getProjectionMatrix()],
-            canvasWidth,
-            canvasHeight,
-            pixelRatio: this.pixelRatio,
-            zoom,
-            tileSize: this.tileSize,
-            projectionType: this.projection.getType(),
-            atlasTextureMappingState: this.glyphsManager.getMappingState(),
-            fontManagerState: this.fontManager.getState(),
             featureFlags: this.featureFlags,
+            tileSource: {
+              tileId,
+              tileStyles: this.tileStyles,
+              tileSize: this.tileSize,
+              projectionType: this.projection.getType(),
+            },
+            tilePrerender: {
+              rendererType: this.rendererType,
+              pixelRatio: this.pixelRatio,
+              atlasTextureMappingState: this.glyphsManager.getMappingState(),
+              fontManagerState: this.fontManager.getState(),
+            },
           },
         },
         WorkerTaskResponseType.TILE_FULL_COMPLETE,
@@ -197,11 +183,11 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     return tiles;
   }
 
-  private createMapTile(refOrId: TileRef | string, tileLayers: MapTileLayer[] = []): MapTile {
+  private createMapTile(refOrId: TileRef | string): MapTile {
     return {
       ref: getTileRef(refOrId),
       tileId: getTileId(refOrId),
-      layers: tileLayers,
+      layers: [],
     };
   }
 

@@ -3,6 +3,11 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_sha
 export default {
   vertext: `
     precision highp float;
+    #define VERTEX_QUAD_ALIGNMENT_TOP_LEFT 0.0
+    #define VERTEX_QUAD_ALIGNMENT_TOP_RIGHT 1.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT 2.0
+    #define VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT 3.0
+
     ${CLIP_UTILS}
     ${MAT_UTILS}
     ${FEATURE_FLAGS_UTILS}
@@ -10,10 +15,12 @@ export default {
     uniform mat3 u_matrix;
     uniform float u_width;
     uniform float u_height;
+    uniform float u_distance;
 
-    attribute vec2 a_position;
+    attribute vec3 a_position;
     attribute vec2 a_texCoord;
     attribute vec4 a_color;
+    attribute vec4 a_text_properties;
 
     varying vec2 v_texCoord;
     varying vec4 v_color;
@@ -22,7 +29,30 @@ export default {
       v_texCoord = a_texCoord;
       v_color = a_color;
 
-      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_position)), 0, 1);
+      float width = a_text_properties[0];
+      float height = a_text_properties[1];
+      float offsetTop = a_text_properties[2];
+      float offsetLeft = a_text_properties[3];
+
+      width /= u_distance;
+      height /= u_distance;
+      offsetTop /= u_distance;
+      offsetLeft /= u_distance;
+
+      float x = a_position.x + offsetLeft;
+      float y = a_position.y - offsetTop;
+      float alignment = a_position.z;
+
+      if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_RIGHT) {
+        x += width;
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT) {
+        y += height;
+      } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT) {
+        x += width;
+        y += height;
+      }
+
+      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(vec2(x, y))), 0, 1);
     }
   `,
   fragment: `

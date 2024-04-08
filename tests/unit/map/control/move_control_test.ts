@@ -1,11 +1,11 @@
 import { JSDOM } from 'jsdom';
 import { describe, expect, it, jest } from '@jest/globals';
-import { GlideMap } from '../../../../src/map/map';
+import { InstantMap } from '../../../../src/map/map';
 import { MoveControl } from '../../../../src/map/controls/move_control';
 
 describe('MoveControl', () => {
   let document: Document;
-  let fakeMap: GlideMap;
+  let fakeMap: InstantMap;
   let rootEl: HTMLElement;
 
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe('MoveControl', () => {
     rootEl = document.body;
     fakeMap = {
       async panBy() {},
-    } as unknown as GlideMap;
+    } as unknown as InstantMap;
   });
 
   it('should be attached to the parent el as a child.', () => {
@@ -51,7 +51,7 @@ describe('MoveControl', () => {
         x: 0,
         y: -512,
       }),
-      { animate: false }
+      { animate: false },
     );
   });
 
@@ -70,7 +70,7 @@ describe('MoveControl', () => {
         x: 0,
         y: 512,
       }),
-      { animate: false }
+      { animate: false },
     );
   });
 
@@ -89,7 +89,7 @@ describe('MoveControl', () => {
         x: -512,
         y: 0,
       }),
-      { animate: false }
+      { animate: false },
     );
   });
 
@@ -108,7 +108,7 @@ describe('MoveControl', () => {
         x: 512,
         y: 0,
       }),
-      { animate: false }
+      { animate: false },
     );
   });
 });

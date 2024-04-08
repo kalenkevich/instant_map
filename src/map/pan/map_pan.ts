@@ -1,6 +1,6 @@
 import 'hammerjs';
 import { vec3, mat3 } from 'gl-matrix';
-import { GlideMap } from '../map';
+import { InstantMap } from '../map';
 import { Evented } from '../evented';
 
 export enum MapPanEvents {
@@ -15,7 +15,7 @@ export class MapPan extends Evented<MapPanEvents> {
   private startY: number;
 
   constructor(
-    private readonly map: GlideMap,
+    private readonly map: InstantMap,
     private readonly el: HTMLElement,
   ) {
     super();

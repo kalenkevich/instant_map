@@ -9,24 +9,26 @@ export enum MapFeatureType {
   text = 'text',
 }
 
-export interface MapFeature {
-  id: number;
-  type: MapFeatureType;
-}
+export type MapFeature =
+  | PointMapFeature
+  | LineMapFeature
+  | PolygonMapFeature
+  | GlyphMapFeature
+  | TextMapFeature
+  | ImageMapFeature;
 
-export interface PointMapFeature extends MapFeature {
+export interface PointMapFeature {
   id: number;
   type: MapFeatureType.point;
   color: [number, number, number, number]; // RGBA color
   center: [number, number];
   radius: number;
-  components?: number;
-  margin?: PointMargin;
+  offset?: PointOffset;
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
 }
 
-export interface LineMapFeature extends MapFeature {
+export interface LineMapFeature {
   id: number;
   type: MapFeatureType.line;
   color: [number, number, number, number]; // RGBA color
@@ -39,7 +41,7 @@ export interface LineMapFeature extends MapFeature {
   borderColor: [number, number, number, number]; // RGBA color
 }
 
-export interface PolygonMapFeature extends MapFeature {
+export interface PolygonMapFeature {
   id: number;
   type: MapFeatureType.polygon;
   color: [number, number, number, number]; // RGBA color
@@ -49,7 +51,7 @@ export interface PolygonMapFeature extends MapFeature {
   borderJoin: LineJoinStyle;
 }
 
-export interface GlyphMapFeature extends MapFeature {
+export interface GlyphMapFeature {
   id: number;
   type: MapFeatureType.glyph;
   atlas: string;
@@ -57,10 +59,10 @@ export interface GlyphMapFeature extends MapFeature {
   center: [number, number];
   width: number;
   height: number;
-  margin?: PointMargin;
+  offset?: PointOffset;
 }
 
-export interface TextMapFeature extends MapFeature {
+export interface TextMapFeature {
   id: number;
   type: MapFeatureType.text;
   color: [number, number, number, number]; // RGBA color
@@ -68,25 +70,25 @@ export interface TextMapFeature extends MapFeature {
   fontSize: number;
   text: string;
   center: [number, number];
-  margin?: PointMargin;
+  offset?: PointOffset;
+  align?: TextAlign; // default left
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
 }
 
-export interface ImageMapFeature extends MapFeature {
+export interface ImageMapFeature {
   id: number;
   type: MapFeatureType.image;
-  name: string;
   bbox: Array<[number, number]>;
   topLeft: [number, number];
   width: number;
   height: number;
   pixelRatio: number;
   source: ImageBitmapTextureSource;
-  margin?: PointMargin;
+  offset?: PointOffset;
 }
 
-export interface PointMargin {
+export interface PointOffset {
   top?: number;
   left?: number;
 }
@@ -110,4 +112,10 @@ export enum LineFillStyle {
   dashed = 1,
   dotted = 2,
   dotdashed = 3,
+}
+
+export enum TextAlign {
+  left = 0,
+  center = 1,
+  right = 2,
 }

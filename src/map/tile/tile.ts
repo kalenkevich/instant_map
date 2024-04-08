@@ -1,9 +1,15 @@
+import { MapFeature } from './feature';
+import { WebGlObjectBufferredGroup } from '../renderer/webgl/objects/object/object';
+
 export type TileRef = [number, number, number];
+
+export type PrerendedTileData = WebGlObjectBufferredGroup[];
 
 export interface MapTile {
   ref: TileRef;
   tileId: string;
   layers: MapTileLayer[];
+  prerendedData?: PrerendedTileData;
 }
 
 export interface MapTileLayer {
@@ -11,6 +17,7 @@ export interface MapTileLayer {
   source: string;
   layerName: string;
   zIndex: number;
+  features: MapFeature[];
 }
 
 export function getTileId(refOrId: TileRef | string): string {

@@ -1,11 +1,17 @@
-import { ArrayBufferTextureSource, TextureSource, TextureSourceType, ImageBitmapTextureSource } from './texture';
+import {
+  ArrayBufferTextureSource,
+  TextureSource,
+  TextureSourceType,
+  ImageBitmapTextureSource,
+  Float32ArrayBufferTextureSource,
+} from './texture';
 
 export function canvasToArrayBufferTextureSource(
   canvas: HTMLCanvasElement | OffscreenCanvas,
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -22,7 +28,7 @@ export function canvasToSharebleArrayBufferTextureSource(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const res = canvasToArrayBufferTextureSource(canvas, x, y, width, height);
 
@@ -30,9 +36,9 @@ export function canvasToSharebleArrayBufferTextureSource(
 }
 
 export function arrayBufferToSharebleTextureSource(
-  originalBuffer: Uint8ClampedArray,
+  originalBuffer: Uint8ClampedArray | number[],
   width: number,
-  height: number
+  height: number,
 ): ArrayBufferTextureSource {
   const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
   const resultBuffer = new Uint8ClampedArray(sharedMemoryBuffer);
@@ -46,9 +52,26 @@ export function arrayBufferToSharebleTextureSource(
   };
 }
 
+export function floatArrayBufferToSharebleTextureSource(
+  originalBuffer: Float32Array | number[],
+  width: number,
+  height: number,
+): Float32ArrayBufferTextureSource {
+  const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
+  const resultBuffer = new Float32Array(sharedMemoryBuffer);
+  resultBuffer.set(originalBuffer);
+
+  return {
+    type: TextureSourceType.FLOAT_ARRAY_BUFFER,
+    width,
+    height,
+    data: resultBuffer,
+  };
+}
+
 export async function toImageBitmapTexture(
   texture: TextureSource,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   switch (texture.type) {
     case TextureSourceType.IMAGE_BITMAP:
@@ -66,7 +89,7 @@ export async function arrayBufferToImageBitmapTextureSource(
   sy: number,
   sw: number,
   sh: number,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   const sourceBuffer = new Uint8ClampedArray(originalBuffer.length);
   sourceBuffer.set(originalBuffer);
@@ -91,7 +114,7 @@ export async function imageToImageBitmapTextureSource(
   sy: number,
   sw: number,
   sh: number,
-  options?: ImageBitmapOptions
+  options?: ImageBitmapOptions,
 ): Promise<ImageBitmapTextureSource> {
   const resultOptions: ImageBitmapOptions = {
     premultiplyAlpha: 'premultiply',
@@ -115,4 +138,13 @@ export async function blobToBitmapImageTextureSource(sourceBlob: Blob): Promise<
     height: data.height,
     data,
   };
+}
+
+export async function blobToArrayBufferSource(sourceBlob: Blob): Promise<ArrayBufferTextureSource> {
+  const sourceImage = await createImageBitmap(sourceBlob);
+  const canvas = new OffscreenCanvas(sourceImage.width, sourceImage.height);
+  const ctx = canvas.getContext('2d');
+  const resultData = new Uint8ClampedArray(ctx.getImageData(0, 0, sourceImage.width, sourceImage.height).data.buffer);
+
+  return arrayBufferToSharebleTextureSource(resultData, sourceImage.width, sourceImage.height);
 }

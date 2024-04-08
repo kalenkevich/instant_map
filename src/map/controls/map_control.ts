@@ -1,8 +1,8 @@
-import { GlideMap } from '../map';
+import { InstantMap } from '../map';
 
 export abstract class MapControl {
   constructor(
-    protected readonly map: GlideMap,
+    protected readonly map: InstantMap,
     protected readonly document: Document = window.document,
   ) {}
 

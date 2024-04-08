@@ -15,12 +15,11 @@ const GLYPH_TYPE_SOURCE_MAP: Record<
 };
 
 export class GlyphsManager {
-  private state?: GlyphsManagerState = {};
-  private mappingState?: GlyphsManagerMappingState = {};
-
   constructor(
     private readonly featureFlags: MapFeatureFlags,
-    private readonly atlasesConfigs: Record<string, GlyphsTextrureAtlasConfig> = {}
+    private readonly atlasesConfigs: Record<string, GlyphsTextrureAtlasConfig> = {},
+    private readonly state: GlyphsManagerState = {},
+    private readonly mappingState: GlyphsManagerMappingState = {},
   ) {}
 
   async init() {
