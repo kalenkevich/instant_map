@@ -79,7 +79,7 @@ export function renderMap() {
     projection: ProjectionType.Mercator,
     tileStyles: MapboxVectorTileStyles,
     tileCacheSize: 128,
-    workerPool: 2,
+    workerPool: 4,
     featureFlags: ENABLED_FEATURE_FLAGS,
     controls: {
       compas: true,
