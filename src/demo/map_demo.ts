@@ -78,6 +78,7 @@ export function renderMap() {
     rendrer: MapTileRendererType.webgl2,
     projection: ProjectionType.Mercator,
     tileStyles: MapboxVectorTileStyles,
+    tileBuffer: 1,
     tileCacheSize: 128,
     workerPool: 4,
     featureFlags: ENABLED_FEATURE_FLAGS,

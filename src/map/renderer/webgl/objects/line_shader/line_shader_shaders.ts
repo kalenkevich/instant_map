@@ -18,6 +18,7 @@ export default {
     uniform float u_tile_size;
     uniform float u_renderType;
     uniform float u_distance;
+    uniform float u_device_pixel_ratio;
 
     attribute vec3 a_position;
     attribute vec2 a_prevPoint;
@@ -76,6 +77,7 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_tile_size;
+    uniform float u_device_pixel_ratio;
     uniform float u_renderType;
 
     varying vec2 v_prevPoint;
@@ -131,10 +133,10 @@ export default {
     }
 
     void main() {
-      vec2 resolution = vec2(u_width, u_height);
+      vec2 resolution = vec2(u_width, u_height) * (u_device_pixel_ratio / 2.0);
       vec2 point = (gl_FragCoord.xy / resolution) - 1.0;
-      float lineWidth = v_properties[0] / u_width / 2.0;
-      float borderWidth = v_properties[1] / u_width / 2.0;
+      float lineWidth = v_properties[0] / u_width / u_device_pixel_ratio;
+      float borderWidth = v_properties[1] / u_width / u_device_pixel_ratio;
 
       vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
       vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);

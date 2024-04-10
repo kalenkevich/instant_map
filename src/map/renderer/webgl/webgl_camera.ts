@@ -2,7 +2,7 @@ import { mat3 } from 'gl-matrix';
 import { SceneCamera } from '../renderer';
 
 export class WebGlSceneCamera implements SceneCamera {
-  private _viewMatrix: mat3;
+  private _viewMatrix: [number, number, number, number, number, number, number, number, number];
 
   constructor(
     private sceneWidth: number,
@@ -27,7 +27,7 @@ export class WebGlSceneCamera implements SceneCamera {
   }
 
   get viewMatrix(): [number, number, number, number, number, number, number, number, number] {
-    return [...this._viewMatrix] as [number, number, number, number, number, number, number, number, number];
+    return this._viewMatrix;
   }
 
   setEye(eyeX: number, eyeY: number) {
@@ -62,7 +62,7 @@ function getProjectionMatrix(
   eyeX: number,
   eyeY: number,
   rotationInDegree: number,
-): mat3 {
+): [number, number, number, number, number, number, number, number, number] {
   // update camera matrix
   const cameraMat = mat3.create();
   mat3.translate(cameraMat, cameraMat, [eyeX, eyeY]);
@@ -74,5 +74,5 @@ function getProjectionMatrix(
   const viewMat = mat3.invert(mat3.create(), cameraMat);
   const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
 
-  return viewProjectionMat;
+  return [...viewProjectionMat] as [number, number, number, number, number, number, number, number, number];
 }

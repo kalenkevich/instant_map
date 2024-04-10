@@ -227,6 +227,7 @@ export class WebGlRenderer {
     program.setWidth(this.rootEl.offsetWidth);
     program.setHeight(this.rootEl.offsetHeight);
     program.setDistance(camera.distance);
+    program.setDevicePixelRation(this.devicePixelRatio);
     program.setReadPixelRenderMode(options.readPixelRenderMode || false);
   }
 }

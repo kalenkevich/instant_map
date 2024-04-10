@@ -1,4 +1,3 @@
-import { mat3 } from 'gl-matrix';
 import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../../flags';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
@@ -19,6 +18,7 @@ export abstract class ObjectProgram {
   protected u_widthLocation: WebGLUniformLocation;
   protected u_heightLocation: WebGLUniformLocation;
   protected u_distanceLocation: WebGLUniformLocation;
+  protected u_devicePixelRatioLocation: WebGLUniformLocation;
   protected u_is_read_pixel_render_modeLocation: WebGLUniformLocation;
   protected u_feature_flagsLocations: Record<string, WebGLUniformLocation>;
 
@@ -97,6 +97,7 @@ export abstract class ObjectProgram {
     this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
     this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
     this.u_distanceLocation = this.gl.getUniformLocation(this.program, 'u_distance');
+    this.u_devicePixelRatioLocation = this.gl.getUniformLocation(this.program, 'u_device_pixel_ratio');
     this.u_is_read_pixel_render_modeLocation = this.gl.getUniformLocation(this.program, 'u_is_read_pixel_render_mode');
 
     this.u_feature_flagsLocations = {};
@@ -121,7 +122,7 @@ export abstract class ObjectProgram {
 
   abstract onUnlink(): void;
 
-  setMatrix(matrix: mat3) {
+  setMatrix(matrix: [number, number, number, number, number, number, number, number, number]) {
     this.gl.uniformMatrix3fv(this.u_matrixLocation, false, matrix);
   }
 
@@ -135,6 +136,10 @@ export abstract class ObjectProgram {
 
   setDistance(distance: number) {
     this.gl.uniform1f(this.u_distanceLocation, distance);
+  }
+
+  setDevicePixelRation(devicePixelRatio: number) {
+    this.gl.uniform1f(this.u_devicePixelRatioLocation, devicePixelRatio);
   }
 
   setReadPixelRenderMode(isReadPixelRenderMode: boolean) {

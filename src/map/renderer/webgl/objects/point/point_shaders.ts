@@ -16,6 +16,7 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_distance;
+    uniform float u_device_pixel_ratio;
     uniform bool u_is_read_pixel_render_mode;
 
     attribute vec3 a_position;
@@ -40,10 +41,11 @@ export default {
       v_color = a_color;
       v_border_color = a_border_color;
 
-      radius /= u_distance;
-      borderWidth /= u_distance;
-      offsetTop /= u_distance;
-      offsetLeft /= u_distance;
+      radius /= u_distance * (u_device_pixel_ratio / 2.0);
+      borderWidth /= u_distance * (u_device_pixel_ratio / 2.0);
+      offsetTop /= u_distance * (u_device_pixel_ratio / 2.0);
+      offsetLeft /= u_distance * (u_device_pixel_ratio / 2.0);
+
       float totalRadius = radius + borderWidth;
 
       float x = a_position.x - offsetLeft;
