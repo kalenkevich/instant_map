@@ -47,13 +47,7 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
         continue;
       }
 
-      const tileObjectGroups = MapTile2WebglObjects(
-        tile,
-        this.featureFlags,
-        this.fontManager,
-        this.textureManager,
-        this.devicePixelRatio,
-      );
+      const tileObjectGroups = MapTile2WebglObjects(tile, this.featureFlags, this.fontManager, this.textureManager);
 
       for (let tileObjGroupIdx = 0; tileObjGroupIdx < tileObjectGroups.length; tileObjGroupIdx++) {
         objectGroups.push(tileObjectGroups[tileObjGroupIdx]);
@@ -67,13 +61,7 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     const objectGroups = [];
 
     for (const tile of tiles) {
-      const tileObjectGroups = MapTile2WebglObjects(
-        tile,
-        this.featureFlags,
-        this.fontManager,
-        this.textureManager,
-        this.devicePixelRatio,
-      );
+      const tileObjectGroups = MapTile2WebglObjects(tile, this.featureFlags, this.fontManager, this.textureManager);
 
       for (let tileObjGroupIdx = 0; tileObjGroupIdx < tileObjectGroups.length; tileObjGroupIdx++) {
         objectGroups.push(tileObjectGroups[tileObjGroupIdx]);

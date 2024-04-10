@@ -13,10 +13,9 @@ const TRANSPARENT_COLOR = [0, 0, 0, 0];
 export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGlGlyphBufferredGroup> {
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
-    protected readonly pixelRatio: number,
     private readonly glyphsManager: GlyphsManager,
   ) {
-    super(featureFlags, pixelRatio);
+    super(featureFlags);
   }
 
   build(name: string, zIndex = 0): WebGlGlyphBufferredGroup {

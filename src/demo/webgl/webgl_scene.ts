@@ -64,7 +64,6 @@ export class WebGlScene {
       this.featureFlags,
       this.fontManager,
       this.textureManager,
-      this.devicePixelRatio,
     );
 
     this.renderer.render(objectGroups, camera, renderOptions);

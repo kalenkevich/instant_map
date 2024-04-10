@@ -143,7 +143,6 @@ export class TilesGrid extends Evented<TilesGridEvent> {
             },
             tilePrerender: {
               rendererType: this.rendererType,
-              pixelRatio: this.pixelRatio,
               atlasTextureMappingState: this.glyphsManager.getMappingState(),
               fontManagerState: this.fontManager.getState(),
             },

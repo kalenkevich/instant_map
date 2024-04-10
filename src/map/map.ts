@@ -377,7 +377,7 @@ export class InstantMap extends Evented<MapEventType> {
 
     this.camera.resize(this.width, this.height);
     this.renderer.resize(this.width, this.height);
-    this.render();
+    this.rerender();
   }
 
   rerender(pruneCache = false): Promise<void> {

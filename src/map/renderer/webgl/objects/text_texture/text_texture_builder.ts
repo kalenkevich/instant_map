@@ -27,10 +27,9 @@ export interface GlyphMapping {
 export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, WebGlTextTextureBufferredGroup> {
   constructor(
     protected readonly featureFlags: MapFeatureFlags,
-    protected readonly pixelRatio: number,
     private readonly fontManager: FontManager,
   ) {
-    super(featureFlags, pixelRatio);
+    super(featureFlags);
   }
 
   addObject(text: TextMapFeature): void {

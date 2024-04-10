@@ -15,10 +15,7 @@ export abstract class ObjectGroupBuilder<
 > {
   protected objects: Array<InputObjectType> = [];
 
-  constructor(
-    protected readonly featureFlags: MapFeatureFlags,
-    protected readonly pixelRatio: number,
-  ) {}
+  constructor(protected readonly featureFlags: MapFeatureFlags) {}
 
   addObject(obj: InputObjectType): void {
     this.objects.push(obj);
