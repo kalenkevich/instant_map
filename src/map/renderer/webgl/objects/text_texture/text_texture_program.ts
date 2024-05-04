@@ -3,21 +3,30 @@ import TextShaders from './text_texture_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
-import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
+import { WebGlTexture, createWebGlTexture } from '../../helpers/weblg_texture';
+import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
 import { FontManager } from '../../../../font/font_manager';
 import { TextureFontAtlas } from '../../../../font/font_config';
-import { toImageBitmapTexture } from '../../../../texture/texture_utils';
+import { toImageBitmapTextureSource } from '../../../../texture/texture_utils';
 
 export class TextTextureProgram extends ObjectProgram {
+  // Uniforms
+  protected textureUniform: WebGlUniform;
+  protected propertiesDataUniform: WebGlUniform;
+  protected propertiesTextureUniform: WebGlUniform;
+  protected isSfdUniform: WebGlUniform;
+  protected borderWidthUniform: WebGlUniform;
+
+  // Attributes
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
   protected textPropertiesBuffer: WebGlBuffer;
+  protected objectIndexBuffer: WebGlBuffer;
 
+  // Textures
   protected fontTextures: WebGlTexture[] = [];
-  protected u_textureLocation: WebGLUniformLocation;
-  protected u_sfdLocation: WebGLUniformLocation;
-  protected u_border_widthLocation: WebGLUniformLocation;
+  protected propertiesTexture: WebGlTexture;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -30,7 +39,7 @@ export class TextTextureProgram extends ObjectProgram {
   }
 
   public async onInit(): Promise<void> {
-    await this.setupTexture();
+    await this.setupTextures();
   }
 
   onLink(): void {
@@ -57,24 +66,43 @@ export class TextTextureProgram extends ObjectProgram {
     this.textcoordBuffer = createWebGlBuffer(gl, { location: 1, size: 2 });
     this.colorBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
     this.textPropertiesBuffer = createWebGlBuffer(gl, { location: 3, size: 4 });
+    this.objectIndexBuffer = createWebGlBuffer(gl, { location: 4, size: 1 });
 
     gl.bindVertexArray(null);
   }
 
   protected setupUniforms() {
     super.setupUniforms();
-    this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
-    this.u_sfdLocation = this.gl.getUniformLocation(this.program, 'u_is_sfd_mode');
-    this.u_border_widthLocation = this.gl.getUniformLocation(this.program, 'u_border_width');
+
+    this.textureUniform = createWebGlUniform(this.gl, { name: 'u_texture', program: this.program });
+    this.propertiesDataUniform = createWebGlUniform(this.gl, { name: 'u_properties_data', program: this.program });
+    this.propertiesTextureUniform = createWebGlUniform(this.gl, { name: 'u_properties', program: this.program });
+    this.isSfdUniform = createWebGlUniform(this.gl, { name: 'u_is_sfd_mode', program: this.program });
+    this.borderWidthUniform = createWebGlUniform(this.gl, { name: 'u_border_width', program: this.program });
   }
 
-  protected async setupTexture() {
+  protected async setupTextures() {
     const gl = this.gl;
+
+    this.propertiesTexture = createWebGlTexture(gl, {
+      name: 'text_properties_texture',
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+      // Not texture filterable means they must be used with gl.NEAREST only
+      minFilter: gl.NEAREST,
+      magFilter: gl.NEAREST,
+      // Be careful with this config. This one only for Float32 texture source.
+      // Сheck more options and combinations here: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D#internalformat
+      type: gl.FLOAT,
+      internalFormat: gl.RGBA32F,
+      format: gl.RGBA,
+    });
+
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | undefined;
 
     for (const source of Object.values(fontAtlas?.sources || {})) {
       this.fontTextures.push(
-        createTexture(gl, {
+        createWebGlTexture(gl, {
           name: 'text_atlas_' + source.name,
           width: source.source.width,
           height: source.source.height,
@@ -83,7 +111,7 @@ export class TextTextureProgram extends ObjectProgram {
           wrapT: gl.CLAMP_TO_EDGE,
           minFilter: gl.LINEAR,
           magFilter: gl.LINEAR,
-          source: await toImageBitmapTexture(source.source),
+          source: await toImageBitmapTextureSource(source.source),
         }),
       );
     }
@@ -96,29 +124,41 @@ export class TextTextureProgram extends ObjectProgram {
 
     const texture = this.fontTextures[textGroup.textureIndex];
     texture.bind();
-    gl.uniform1i(this.u_textureLocation, texture.index);
-    gl.uniform1i(this.u_sfdLocation, textGroup.sfdTexture ? 1 : 0);
+
+    this.textureUniform.setInteger(texture.index);
+    this.isSfdUniform.setBoolean(textGroup.sfdTexture);
+
+    this.propertiesTexture.bind();
+    this.propertiesTexture.setPixels(textGroup.properties.texture);
+    this.propertiesDataUniform.setVector3([
+      textGroup.properties.texture.width,
+      textGroup.properties.texture.height,
+      textGroup.properties.sizeInPixels,
+    ]);
+    this.propertiesTextureUniform.setInteger(this.propertiesTexture.index);
 
     this.positionBuffer.bufferData(textGroup.vertecies.buffer);
     this.textcoordBuffer.bufferData(textGroup.textcoords.buffer);
     this.textPropertiesBuffer.bufferData(textGroup.textProperties.buffer);
+    this.objectIndexBuffer.bufferData(textGroup.objectIndex.buffer);
 
     if (options?.readPixelRenderMode) {
       this.colorBuffer.bufferData(textGroup.selectionColor.buffer);
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
     } else {
       // draw text border
-      gl.uniform1f(this.u_border_widthLocation, 0.6);
+      this.borderWidthUniform.setFloat(0.6);
       this.colorBuffer.bufferData(textGroup.borderColor.buffer);
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
 
       // draw text
-      gl.uniform1f(this.u_border_widthLocation, 0.75);
+      this.borderWidthUniform.setFloat(0.75);
       this.colorBuffer.bufferData(textGroup.color.buffer);
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
     }
 
     texture.unbind();
+    this.propertiesTexture.unbind();
     gl.bindVertexArray(null);
   }
 }

@@ -3,7 +3,7 @@ import PointShaders from './point_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
 
 export class PointProgram extends ObjectProgram {
   positionBuffer: WebGlBuffer;
@@ -19,12 +19,6 @@ export class PointProgram extends ObjectProgram {
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
-
-  public async onInit(): Promise<void> {}
-
-  onLink(): void {}
-
-  onUnlink(): void {}
 
   protected setupBuffer() {
     const gl = this.gl;

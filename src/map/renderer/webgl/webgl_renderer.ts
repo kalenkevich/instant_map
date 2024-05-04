@@ -11,8 +11,8 @@ import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../flags';
-import { WebGlTexture, createTexture } from './utils/weblg_texture';
-import { WebGlFrameBuffer, createFrameBuffer } from './utils/webgl_framebuffer';
+import { WebGlTexture, createWebGlTexture } from './helpers/weblg_texture';
+import { WebGlFrameBuffer, createFrameBuffer } from './helpers/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
 import { FontManager } from '../../font/font_manager';
 import { WebGlObjectBufferredGroup } from './objects/object/object';
@@ -60,7 +60,7 @@ export class WebGlRenderer {
     } else {
       gl = this.gl = this.canvas.getContext('webgl2', {
         performance: 'high-performance',
-        alpha: true,
+        // alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;
     }
@@ -68,7 +68,7 @@ export class WebGlRenderer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    this.frameBufferTexture = createTexture(gl, {
+    this.frameBufferTexture = createWebGlTexture(gl, {
       name: 'framebuffer texture',
       width: this.canvas.width,
       height: this.canvas.height,

@@ -16,7 +16,6 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_tile_size;
-    uniform float u_renderType;
     uniform float u_distance;
     uniform float u_device_pixel_ratio;
 
@@ -78,7 +77,6 @@ export default {
     uniform float u_height;
     uniform float u_tile_size;
     uniform float u_device_pixel_ratio;
-    uniform float u_renderType;
 
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;

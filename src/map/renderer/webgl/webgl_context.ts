@@ -7,6 +7,8 @@ export type ExtendedWebGLRenderingContext = WebGLRenderingContext & {
   createVertexArray(): WebGLVertexArrayObjectOES;
   bindVertexArray(vao: WebGLVertexArrayObjectOES): void;
   drawBuffers(buffers: Array<GLenum>): void;
+  RGBA8: number;
+  RGBA32F: number;
 };
 
 export const SUPPORTED_EXTENSIONS = [

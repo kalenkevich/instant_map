@@ -1,7 +1,8 @@
 import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../../flags';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
+import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
 
 export interface DrawObjectGroupOptions {
   readPixelRenderMode?: boolean;
@@ -10,17 +11,18 @@ export interface DrawObjectGroupOptions {
 export abstract class ObjectProgram {
   protected program: WebGLProgram;
 
+  // Uniforms
+  protected matrixUniform: WebGlUniform;
+  protected widthUniform: WebGlUniform;
+  protected heightUniform: WebGlUniform;
+  protected distanceUniform: WebGlUniform;
+  protected devicePixelRatioUniform: WebGlUniform;
+  protected isReadPixelRenderModeUniform: WebGlUniform;
+  protected featureFlagsUnifroms: Record<string, WebGlUniform>;
+
+  // Attribures
   protected positionBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
-
-  // uniform locations
-  protected u_matrixLocation: WebGLUniformLocation;
-  protected u_widthLocation: WebGLUniformLocation;
-  protected u_heightLocation: WebGLUniformLocation;
-  protected u_distanceLocation: WebGLUniformLocation;
-  protected u_devicePixelRatioLocation: WebGLUniformLocation;
-  protected u_is_read_pixel_render_modeLocation: WebGLUniformLocation;
-  protected u_feature_flagsLocations: Record<string, WebGLUniformLocation>;
 
   protected vao: WebGLVertexArrayObjectOES;
 
@@ -93,16 +95,25 @@ export abstract class ObjectProgram {
   }
 
   protected setupUniforms() {
-    this.u_matrixLocation = this.gl.getUniformLocation(this.program, 'u_matrix');
-    this.u_widthLocation = this.gl.getUniformLocation(this.program, 'u_width');
-    this.u_heightLocation = this.gl.getUniformLocation(this.program, 'u_height');
-    this.u_distanceLocation = this.gl.getUniformLocation(this.program, 'u_distance');
-    this.u_devicePixelRatioLocation = this.gl.getUniformLocation(this.program, 'u_device_pixel_ratio');
-    this.u_is_read_pixel_render_modeLocation = this.gl.getUniformLocation(this.program, 'u_is_read_pixel_render_mode');
+    this.matrixUniform = createWebGlUniform(this.gl, { name: 'u_matrix', program: this.program });
+    this.widthUniform = createWebGlUniform(this.gl, { name: 'u_width', program: this.program });
+    this.heightUniform = createWebGlUniform(this.gl, { name: 'u_height', program: this.program });
+    this.distanceUniform = createWebGlUniform(this.gl, { name: 'u_distance', program: this.program });
+    this.devicePixelRatioUniform = createWebGlUniform(this.gl, {
+      name: 'u_device_pixel_ratio',
+      program: this.program,
+    });
+    this.isReadPixelRenderModeUniform = createWebGlUniform(this.gl, {
+      name: 'u_is_read_pixel_render_mode',
+      program: this.program,
+    });
 
-    this.u_feature_flagsLocations = {};
+    this.featureFlagsUnifroms = {};
     for (const name of Object.keys(this.featureFlags)) {
-      this.u_feature_flagsLocations[name] = this.gl.getUniformLocation(this.program, `u_feature_flags.${name}`);
+      this.featureFlagsUnifroms[name] = createWebGlUniform(this.gl, {
+        name: `u_feature_flags.${name}`,
+        program: this.program,
+      });
     }
   }
 
@@ -116,39 +127,41 @@ export abstract class ObjectProgram {
     this.onUnlink();
   }
 
-  abstract onInit(): Promise<void>;
+  onInit(): Promise<void> {
+    return Promise.resolve();
+  }
 
-  abstract onLink(): void;
+  onLink() {}
 
-  abstract onUnlink(): void;
+  onUnlink() {}
 
   setMatrix(matrix: [number, number, number, number, number, number, number, number, number]) {
-    this.gl.uniformMatrix3fv(this.u_matrixLocation, false, matrix);
+    this.matrixUniform.setMatrix3(matrix);
   }
 
   setWidth(width: number) {
-    this.gl.uniform1f(this.u_widthLocation, width);
+    this.widthUniform.setFloat(width);
   }
 
   setHeight(height: number) {
-    this.gl.uniform1f(this.u_heightLocation, height);
+    this.heightUniform.setFloat(height);
   }
 
   setDistance(distance: number) {
-    this.gl.uniform1f(this.u_distanceLocation, distance);
+    this.distanceUniform.setFloat(distance);
   }
 
   setDevicePixelRation(devicePixelRatio: number) {
-    this.gl.uniform1f(this.u_devicePixelRatioLocation, devicePixelRatio);
+    this.devicePixelRatioUniform.setFloat(devicePixelRatio);
   }
 
   setReadPixelRenderMode(isReadPixelRenderMode: boolean) {
-    this.gl.uniform1i(this.u_is_read_pixel_render_modeLocation, isReadPixelRenderMode ? 1 : 0);
+    this.isReadPixelRenderModeUniform.setBoolean(isReadPixelRenderMode);
   }
 
   setFeatureFlags() {
     for (const [name, value] of Object.entries(this.featureFlags)) {
-      this.gl.uniform1i(this.u_feature_flagsLocations[name], value);
+      this.featureFlagsUnifroms[name].setBoolean(value);
     }
   }
 

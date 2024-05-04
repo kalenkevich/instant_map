@@ -3,14 +3,20 @@ import ImageShaiders from './image_shader';
 import { ObjectProgram } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
-import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
+import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
+import { WebGlTexture, createWebGlTexture } from '../../helpers/weblg_texture';
 
 export class ImageProgram extends ObjectProgram {
-  protected texture: WebGlTexture;
-  protected u_textureLocation: WebGLUniformLocation;
+  // Uniforms
+  protected textureUniform: WebGlUniform;
+
+  // Attributes
   protected textcoordBuffer: WebGlBuffer;
   protected propertiesBuffer: WebGlBuffer;
+
+  // Textures
+  protected texture: WebGlTexture;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -54,13 +60,13 @@ export class ImageProgram extends ObjectProgram {
 
   protected setupUniforms() {
     super.setupUniforms();
-    this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
+    this.textureUniform = createWebGlUniform(this.gl, { name: 'u_texture', program: this.program });
   }
 
   setupTexture() {
     const gl = this.gl;
 
-    this.texture = createTexture(gl, {
+    this.texture = createWebGlTexture(gl, {
       name: 'image',
       width: 0,
       height: 0,
@@ -77,7 +83,7 @@ export class ImageProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    gl.uniform1i(this.u_textureLocation, this.texture.index);
+    this.textureUniform.setInteger(this.texture.index);
     this.texture.setSource(imageGroup.texture);
     this.texture.bind();
 

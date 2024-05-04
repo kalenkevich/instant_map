@@ -15,6 +15,7 @@ import {
   UNDEFINED_CHAR_CODE,
 } from '../../../../font/font_config';
 import { addXTimes } from '../../utils/array_utils';
+import { createObjectPropertiesTexture } from '../../helpers/object_properties_texture';
 
 export interface GlyphMapping {
   glyph: TextureFontGlyph | SdfFontGlyph;
@@ -42,17 +43,20 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
 
   build(name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
     const size = this.objects.length;
+    const objectIndex: number[] = [];
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
     const textProperties: number[] = [];
     const colorBuffer: number[] = [];
     const borderColorBuffer: number[] = [];
     const selectionColorBuffer: number[] = [];
+    const propertiesTexture = createObjectPropertiesTexture();
     // TODO: support any font
     const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | SdfFontAtlas;
     const texture = fontAtlas.sources[0];
     let numElements = 0;
 
+    let currentObjectIndex = 0;
     for (const text of this.objects) {
       let offsetX = 0;
       const selectionColorId = integerToVector4(text.id);
@@ -61,7 +65,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       const offsetTop = text.offset?.top || 0;
       const offsetLeft = text.offset?.left || 0;
       const textAlign = text.align || TextAlign.left;
-      const totalWidth = this.getTextTotalWidth(text, fontAtlas);
+      const totalWidth = getTextTotalWidth(text, fontAtlas);
 
       if (textAlign === TextAlign.center) {
         offsetX -= totalWidth / 2;
@@ -72,7 +76,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       offsetX -= offsetLeft;
 
       for (const char of text.text) {
-        const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
+        const glyphMapping = getGlyphMapping(text, char, fontAtlas);
 
         if (glyphMapping.glyph.charCode === UNDEFINED_CHAR_CODE) {
           continue;
@@ -111,11 +115,18 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         );
         texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
+        propertiesTexture.addValue([textScaledWidth, textScaledHeight, ascend + offsetTop, offsetX]);
+        // propertiesTexture.addValue(text.color);
+        // propertiesTexture.addValue(text.borderColor);
+        // propertiesTexture.addValue(selectionColorId);
+
+        addXTimes(objectIndex, currentObjectIndex, 6);
         addXTimes(textProperties, [textScaledWidth, textScaledHeight, ascend + offsetTop, offsetX], 6);
         addXTimes(colorBuffer, text.color, 6);
         addXTimes(borderColorBuffer, text.borderColor, 6);
         addXTimes(selectionColorBuffer, selectionColorId, 6);
 
+        currentObjectIndex++;
         numElements += 6;
         offsetX += textScaledWidth;
       }
@@ -129,6 +140,15 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       numElements,
       textureIndex: 0,
       sfdTexture: fontAtlas.type === FontFormatType.sdf,
+      properties: {
+        texture: propertiesTexture.compileTexture(),
+        sizeInPixels: 1,
+      },
+      objectIndex: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 1,
+        buffer: createdSharedArrayBuffer(objectIndex),
+      },
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 3,
@@ -161,35 +181,35 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       },
     };
   }
+}
 
-  getTextTotalWidth(text: TextMapFeature, fontAtlas: TextureFontAtlas | SdfFontAtlas): number {
-    let width = 0;
+function getTextTotalWidth(text: TextMapFeature, fontAtlas: TextureFontAtlas | SdfFontAtlas): number {
+  let width = 0;
 
-    for (const char of text.text) {
-      const glyphMapping = this.getGlyphMapping(text, char, fontAtlas);
-      const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
-      const textScaledWidth = glyphMapping.glyph.width * scaleFactor;
+  for (const char of text.text) {
+    const glyphMapping = getGlyphMapping(text, char, fontAtlas);
+    const scaleFactor = text.fontSize / glyphMapping.glyph.fontSize / glyphMapping.glyph.pixelRatio;
+    const textScaledWidth = glyphMapping.glyph.width * scaleFactor;
 
-      if (glyphMapping.glyph.charCode === UNDEFINED_CHAR_CODE) {
-        continue;
-      }
-
-      width += textScaledWidth;
+    if (glyphMapping.glyph.charCode === UNDEFINED_CHAR_CODE) {
+      continue;
     }
 
-    return width;
+    width += textScaledWidth;
   }
 
-  getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
-    const charCode = char.charCodeAt(0);
-    const glyph = fontAtlas.glyphs[charCode] || fontAtlas.glyphs[UNDEFINED_CHAR_CODE];
+  return width;
+}
 
-    return {
-      glyph,
-      font: text.font,
-      color: text.color,
-      borderColor: text.borderColor,
-      fontSize: text.fontSize,
-    };
-  }
+function getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
+  const charCode = char.charCodeAt(0);
+  const glyph = fontAtlas.glyphs[charCode] || fontAtlas.glyphs[UNDEFINED_CHAR_CODE];
+
+  return {
+    glyph,
+    font: text.font,
+    color: text.color,
+    borderColor: text.borderColor,
+    fontSize: text.fontSize,
+  };
 }

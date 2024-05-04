@@ -4,18 +4,23 @@ import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program'
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { GlyphsManager } from '../../../../glyphs/glyphs_manager';
 import { MapFeatureFlags } from '../../../../flags';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
-import { WebGlTexture, createTexture } from '../../utils/weblg_texture';
-import { toImageBitmapTexture } from '../../../../texture/texture_utils';
+import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
+import { WebGlTexture, createWebGlTexture } from '../../helpers/weblg_texture';
+import { toImageBitmapTextureSource } from '../../../../texture/texture_utils';
 
 export class GlyphProgram extends ObjectProgram {
-  protected u_textureLocation: WebGLUniformLocation;
-  protected atlasTextures: Record<string, WebGlTexture> = {};
-  protected currentAtlasTexture?: WebGlTexture;
+  // Uniforms
+  protected textureUniform: WebGlUniform;
 
+  // Attributes
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
   protected propertiesBuffer: WebGlBuffer;
+
+  // Textures
+  protected currentAtlasTexture?: WebGlTexture;
+  protected atlasTextures: Record<string, WebGlTexture> = {};
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -50,7 +55,7 @@ export class GlyphProgram extends ObjectProgram {
 
     const textures = this.atlasTextureManager.getAll();
     for (const textureInfo of textures) {
-      this.atlasTextures[textureInfo.name] = createTexture(gl, {
+      this.atlasTextures[textureInfo.name] = createWebGlTexture(gl, {
         name: textureInfo.name,
         width: textureInfo.width,
         height: textureInfo.height,
@@ -59,7 +64,7 @@ export class GlyphProgram extends ObjectProgram {
         wrapT: gl.CLAMP_TO_EDGE,
         minFilter: gl.NEAREST,
         magFilter: gl.NEAREST,
-        source: await toImageBitmapTexture(textureInfo.source),
+        source: await toImageBitmapTextureSource(textureInfo.source),
       });
     }
   }
@@ -79,12 +84,12 @@ export class GlyphProgram extends ObjectProgram {
 
   protected setupUniforms() {
     super.setupUniforms();
-    this.u_textureLocation = this.gl.getUniformLocation(this.program, 'u_texture');
+    this.textureUniform = createWebGlUniform(this.gl, { name: 'u_texture', program: this.program });
   }
 
   protected setCurrentTexture(textureName: string) {
     this.currentAtlasTexture = this.atlasTextures[textureName];
-    this.gl.uniform1i(this.u_textureLocation, this.atlasTextures[textureName].index);
+    this.textureUniform.setInteger(this.atlasTextures[textureName].index);
   }
 
   drawObjectGroup(objectGroup: WebGlGlyphBufferredGroup, options?: DrawObjectGroupOptions): void {

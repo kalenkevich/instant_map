@@ -8,8 +8,8 @@ import {
   DEFAULT_SUPPORTED_CHARCODE_RANGES,
 } from './font_config';
 import { downloadBitmapImage } from '../utils/download_utils';
-import { ArrayBufferTextureSource, TextureSourceType } from '../texture/texture';
-import { arrayBufferToImageBitmapTextureSource, arrayBufferToSharebleTextureSource } from '../texture/texture_utils';
+import { Uint8ClampedArrayBufferTextureSource, TextureSourceType } from '../texture/texture';
+import { arrayBufferToImageBitmapTextureSource, toUint8ClampedTextureSource } from '../texture/texture_utils';
 
 export const DEFAULT_GLYPH_BORDER = 3;
 export const SDF_SCALE = 2;
@@ -210,7 +210,9 @@ export function parseSdfGlyph(tag: number, glyph: SdfFontGlyph, pbf: Protobuf) {
 }
 
 // Creates texture atlas array buffer from glyphs
-export async function createTextureFromSdfGlyphs(fontAtlas: SdfFontAtlas): Promise<ArrayBufferTextureSource> {
+export async function createTextureFromSdfGlyphs(
+  fontAtlas: SdfFontAtlas,
+): Promise<Uint8ClampedArrayBufferTextureSource> {
   const glyphs = Object.values(fontAtlas.glyphs);
   const { columns: textureColumns, cellWidth, cellHeight } = getTextureDimentions(glyphs);
   const EMPTY_PIXEL = [0, 0, 0, 0];
@@ -286,14 +288,14 @@ export async function createTextureFromSdfGlyphs(fontAtlas: SdfFontAtlas): Promi
   }
 
   const textureSource = new Uint8ClampedArray(sourceBufferBucket);
-  const texture: ArrayBufferTextureSource = {
-    type: TextureSourceType.ARRAY_BUFFER,
+  const texture: Uint8ClampedArrayBufferTextureSource = {
+    type: TextureSourceType.UINT_8_CLAMPED_ARRAY_BUFFER,
     data: textureSource,
     width: cellWidth * textureColumns,
     height: cellHeight * rows.length,
   };
 
-  return arrayBufferToSharebleTextureSource(texture.data, texture.width, texture.height);
+  return toUint8ClampedTextureSource(texture.data, texture.width, texture.height);
 }
 
 export function getTextureDimentions(glyphs: SdfFontGlyph[]): {

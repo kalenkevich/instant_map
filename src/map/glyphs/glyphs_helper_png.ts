@@ -1,5 +1,5 @@
 import { ImageBitmapTextureSource } from '../texture/texture';
-import { imageToImageBitmapTextureSource, toImageBitmapTexture } from '../texture/texture_utils';
+import { imageToImageBitmapTextureSource, toImageBitmapTextureSource } from '../texture/texture_utils';
 import {
   GlyphsTextrureAtlasType,
   PngGlyphsTextrureAtlasConfig,
@@ -8,7 +8,7 @@ import {
 } from './glyphs_config';
 
 export async function getGlyphTextureAtlasFromPngConfig(
-  config: PngGlyphsTextrureAtlasConfig
+  config: PngGlyphsTextrureAtlasConfig,
 ): Promise<TextureAtlasState> {
   const [source, mapping] = await Promise.all([
     getGlyphTextureAtlasSourceFromPngConfig(config),
@@ -26,10 +26,10 @@ export async function getGlyphTextureAtlasFromPngConfig(
 }
 
 export async function getGlyphTextureAtlasSourceFromPngConfig(
-  config: PngGlyphsTextrureAtlasConfig
+  config: PngGlyphsTextrureAtlasConfig,
 ): Promise<ImageBitmapTextureSource> {
   if (config.source) {
-    return toImageBitmapTexture(config.source);
+    return toImageBitmapTextureSource(config.source);
   }
 
   if (!config.sourceUrl) {
@@ -48,7 +48,7 @@ export async function getGlyphTextureAtlasSourceFromPngConfig(
 }
 
 export async function getGlyphTextureAtlasMappingFromPngConfig(
-  config: PngGlyphsTextrureAtlasConfig
+  config: PngGlyphsTextrureAtlasConfig,
 ): Promise<Record<string, GlyphTextureAtlasMapping>> {
   if (config.mapping) {
     return config.mapping;
