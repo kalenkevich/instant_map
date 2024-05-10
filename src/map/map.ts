@@ -111,6 +111,7 @@ export class InstantMap extends Evented<MapEventType> {
   private minZoom: number;
   private maxZoom: number;
   private styles: DataTileStyles;
+  private resizeObserver?: ResizeObserver;
 
   private statsWidget: HTMLElement;
   private frameStats: {
@@ -156,7 +157,8 @@ export class InstantMap extends Evented<MapEventType> {
     await this.renderer.init();
 
     if (this.mapOptions.resizable) {
-      window.addEventListener('resize', this.resizeEventListener);
+      this.resizeObserver = new ResizeObserver(this.resizeEventListener);
+      this.resizeObserver.observe(this.rootEl, { box: 'content-box' });
     }
 
     return;
@@ -170,6 +172,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.tilesGrid.off(TilesGridEvent.TILE_LOADED, this.onTileChanged);
     this.tilesGrid.destroy();
     this.renderer.destroy();
+    this.resizeObserver?.unobserve(this.rootEl);
   }
 
   setStyles(mapStyle: DataTileStyles) {
@@ -227,7 +230,7 @@ export class InstantMap extends Evented<MapEventType> {
       styles.tileSize,
       this.pixelRatio,
       this.maxZoom,
-      this.projection,
+      this.projection.getType(),
       this.fontManager,
       this.glyphsManager,
     );
@@ -406,8 +409,8 @@ export class InstantMap extends Evented<MapEventType> {
       {
         viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
         distance: Math.pow(2, zoom) * this.styles.tileSize,
-        width: this.width,
-        height: this.height,
+        width: this.camera.getWidth(),
+        height: this.camera.getHeight(),
       },
       { pruneCache },
     );

@@ -17,10 +17,7 @@ export class MapCamera {
     private tileSize: number,
     private projection: Projection,
   ) {
-    this.x = x;
-    this.y = y;
-
-    this.updateProjectionMatrix();
+    this.setPosition([x, y], zoom);
   }
 
   public getPosition(): [number, number] {
@@ -69,6 +66,14 @@ export class MapCamera {
     this.updateProjectionMatrix();
   }
 
+  public getWidth(): number {
+    return this.width;
+  }
+
+  public getHeight(): number {
+    return this.height;
+  }
+
   public inBoundLimits(position?: [number, number], zoom?: number): boolean {
     const bbox = this.getBounds(position || [this.x, this.y], zoom || this.zoom);
 
@@ -95,10 +100,10 @@ export class MapCamera {
     const zy = wy * zoomScale;
 
     // get bottom-left and top-right pixels
-    let x1 = zx - this.width / 2;
-    let y1 = zy + this.height / 2;
-    let x2 = zx + this.width / 2;
-    let y2 = zy - this.height / 2;
+    let x1 = zx - this.width;
+    let y1 = zy + this.height;
+    let x2 = zx + this.width;
+    let y2 = zy - this.height;
 
     // convert to world coords
     x1 = x1 / zoomScale / this.tileSize;

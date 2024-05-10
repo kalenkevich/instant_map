@@ -1,7 +1,11 @@
 import { MapTileRendererType, RenderOptions, SceneCamera } from '../renderer';
 import { MapFeatureType } from '../../tile/feature';
+import { MapFeatureFlags } from '../../flags';
+import { FontManager } from '../../font/font_manager';
+
 import { addExtensionsToContext, ExtendedWebGLRenderingContext } from './webgl_context';
 import { ObjectProgram } from './objects/object/object_program';
+import { WebGlObjectBufferredGroup } from './objects/object/object';
 import { PointProgram } from './objects/point/point_program';
 import { PolygonProgram } from './objects/polygon/polygon_program';
 import { LineShaderProgram } from './objects/line_shader/line_shader_program';
@@ -10,12 +14,9 @@ import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { GlyphsManager } from '../../glyphs/glyphs_manager';
-import { MapFeatureFlags } from '../../flags';
-import { WebGlTexture, createWebGlTexture } from './helpers/weblg_texture';
+import { createWebGlTexture } from './helpers/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './helpers/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
-import { FontManager } from '../../font/font_manager';
-import { WebGlObjectBufferredGroup } from './objects/object/object';
 
 export interface WebGlRendererOptions extends RenderOptions {
   pruneCache?: boolean;
@@ -31,9 +32,8 @@ export class WebGlRenderer {
   private programs: Record<MapFeatureType, ObjectProgram>;
   private gl?: ExtendedWebGLRenderingContext;
 
-  private framebuffer: WebGlFrameBuffer;
+  private framebuffer?: WebGlFrameBuffer;
   private framebufferProgram: FramebufferProgram;
-  private frameBufferTexture: WebGlTexture;
 
   constructor(
     private readonly rootEl: HTMLElement,
@@ -60,26 +60,15 @@ export class WebGlRenderer {
     } else {
       gl = this.gl = this.canvas.getContext('webgl2', {
         performance: 'high-performance',
-        // alpha: true,
+        alpha: true,
         antialias: true,
       }) as ExtendedWebGLRenderingContext;
     }
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    this.frameBufferTexture = createWebGlTexture(gl, {
-      name: 'framebuffer texture',
-      width: this.canvas.width,
-      height: this.canvas.height,
-      pixels: null,
-      unpackPremultiplyAlpha: true,
-      minFilter: gl.LINEAR,
-      magFilter: gl.LINEAR,
-      wrapS: gl.CLAMP_TO_EDGE,
-      wrapT: gl.CLAMP_TO_EDGE,
-    });
-    this.framebuffer = createFrameBuffer(gl, { texture: this.frameBufferTexture });
+    this.framebuffer = this.createFramebuffer();
     this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
 
     const pointProgram = new PointProgram(gl, this.featureFlags);
@@ -120,8 +109,8 @@ export class WebGlRenderer {
 
     canvas.width = width * this.devicePixelRatio;
     canvas.height = height * this.devicePixelRatio;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    canvas.style.width = `100%`;
+    canvas.style.height = `100%`;
     canvas.style.background = 'transparent';
 
     return canvas;
@@ -130,10 +119,12 @@ export class WebGlRenderer {
   public resize(width: number, height: number) {
     this.canvas.width = width * this.devicePixelRatio;
     this.canvas.height = height * this.devicePixelRatio;
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
 
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    // we should recreate framebuffer object
+    this.alreadyRenderedTileLayer.clear();
+    this.framebuffer?.clear();
+    this.framebuffer = this.createFramebuffer();
+    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   }
 
   private currentStateId?: string;
@@ -203,7 +194,7 @@ export class WebGlRenderer {
     if (shouldRenderToCanvas) {
       this.framebufferProgram.link();
       this.setProgramGlobalUniforms(this.framebufferProgram, camera, options);
-      this.framebufferProgram.draw(this.frameBufferTexture);
+      this.framebufferProgram.draw(this.framebuffer.getTexture());
       this.framebufferProgram.unlink();
       this.debugLog(`canvas render`);
     } else {
@@ -224,10 +215,30 @@ export class WebGlRenderer {
 
   private setProgramGlobalUniforms(program: ObjectProgram, camera: SceneCamera, options: WebGlRendererOptions) {
     program.setMatrix(camera.viewMatrix);
-    program.setWidth(this.rootEl.offsetWidth);
-    program.setHeight(this.rootEl.offsetHeight);
+    program.setWidth(this.canvas.width);
+    program.setHeight(this.canvas.height);
     program.setDistance(camera.distance);
     program.setDevicePixelRation(this.devicePixelRatio);
     program.setReadPixelRenderMode(options.readPixelRenderMode || false);
+  }
+
+  private createFramebuffer(): WebGlFrameBuffer {
+    const gl = this.gl;
+
+    const frameBufferTexture = createWebGlTexture(gl, {
+      name: 'framebuffer texture',
+      // Replace framebuffer with a new instance but use the same texture index
+      textureIndex: this.framebuffer?.getTexture().index,
+      width: this.canvas.width,
+      height: this.canvas.height,
+      pixels: null,
+      unpackPremultiplyAlpha: true,
+      minFilter: gl.LINEAR,
+      magFilter: gl.LINEAR,
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+    });
+
+    return createFrameBuffer(gl, { texture: frameBufferTexture });
   }
 }

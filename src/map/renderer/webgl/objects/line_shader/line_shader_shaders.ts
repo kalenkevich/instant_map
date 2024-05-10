@@ -131,7 +131,7 @@ export default {
     }
 
     void main() {
-      vec2 resolution = vec2(u_width, u_height) * (u_device_pixel_ratio / 2.0);
+      vec2 resolution = vec2(u_width, u_height) / u_device_pixel_ratio;
       vec2 point = (gl_FragCoord.xy / resolution) - 1.0;
       float lineWidth = v_properties[0] / u_width / u_device_pixel_ratio;
       float borderWidth = v_properties[1] / u_width / u_device_pixel_ratio;

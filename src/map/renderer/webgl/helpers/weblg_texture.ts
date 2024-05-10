@@ -4,6 +4,7 @@ import { ArrayBufferTextureSource } from '../../../texture/texture';
 
 export interface CreateTextureOptions {
   name: string;
+  textureIndex?: number;
   width?: number;
   height?: number;
   flipY?: boolean;
@@ -30,6 +31,8 @@ export interface WebGlTexture {
   level: number;
   setSource(source: ImageBitmapTextureSource): void;
   setPixels(texturePixels: ArrayBufferTextureSource): void;
+  setWidth(width: number): void;
+  setHeight(height: number): void;
   bind(): void;
   unbind(): void;
 }
@@ -39,7 +42,7 @@ let CURRENT_TEXTURE_INDEX = 0;
 export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: CreateTextureOptions): WebGlTexture {
   const texture = gl.createTexture();
   const level = options.level || 0;
-  const textureIndex = CURRENT_TEXTURE_INDEX++;
+  const textureIndex = options.textureIndex !== undefined ? options.textureIndex : CURRENT_TEXTURE_INDEX++;
 
   gl.activeTexture(gl.TEXTURE0 + textureIndex);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -127,6 +130,8 @@ export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: C
         texturePixels.data,
       );
     },
+    setWidth(width: number) {},
+    setHeight(height: number) {},
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);
       gl.bindTexture(gl.TEXTURE_2D, texture);
