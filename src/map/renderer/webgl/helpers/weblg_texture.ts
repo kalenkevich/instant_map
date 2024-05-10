@@ -31,8 +31,6 @@ export interface WebGlTexture {
   level: number;
   setSource(source: ImageBitmapTextureSource): void;
   setPixels(texturePixels: ArrayBufferTextureSource): void;
-  setWidth(width: number): void;
-  setHeight(height: number): void;
   bind(): void;
   unbind(): void;
 }
@@ -130,8 +128,6 @@ export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: C
         texturePixels.data,
       );
     },
-    setWidth(width: number) {},
-    setHeight(height: number) {},
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);
       gl.bindTexture(gl.TEXTURE_2D, texture);
