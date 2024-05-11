@@ -69,17 +69,17 @@ export function renderMap() {
   const rootDiv = createRootEl(window.innerWidth, window.innerHeight, MAP_ROOT_EL_MARGIN);
   document.body.appendChild(rootDiv);
 
-  const [zoom, lat, lng] = getStartMapLocation();
+  const [zoom, lng, lat] = getStartMapLocation();
 
   currentMap = new InstantMap({
     rootEl: rootDiv,
     zoom,
-    center: [lat, lng],
+    center: [lng, lat],
     rendrer: MapTileRendererType.webgl2,
     projection: ProjectionType.Mercator,
     tileStyles: MapboxVectorTileStyles,
     tileBuffer: 1,
-    tileCacheSize: 128,
+    tileCacheSize: 256,
     workerPool: 4,
     featureFlags: ENABLED_FEATURE_FLAGS,
     controls: {

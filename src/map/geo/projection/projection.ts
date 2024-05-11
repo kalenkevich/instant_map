@@ -4,6 +4,16 @@ export enum ProjectionType {
   Mercator = 'mercator',
 }
 
+export interface ProjectOptions {
+  normalize: boolean;
+  clip: boolean;
+}
+
+export interface UnprojectOptions {
+  normalized: boolean;
+  clipped: boolean;
+}
+
 export interface Projection {
   getType(): ProjectionType;
 
@@ -13,9 +23,9 @@ export interface Projection {
    * @param normalize if true than will return x and y in range from 0 to 1.
    * @returns projected [x,y] coordinates.
    */
-  project(lngLat: [number, number], normalize: boolean): [number, number];
-  projectX(lng: number, normalize: boolean): number;
-  projectY(lat: number, normalize: boolean): number;
+  project(lngLat: [number, number], options?: ProjectOptions): [number, number];
+  projectX(lng: number, options?: ProjectOptions): number;
+  projectY(lat: number, options?: ProjectOptions): number;
 
   /**
    * Oposite operation for project.
@@ -23,9 +33,9 @@ export interface Projection {
    * @param normalized if true than porcess x and y as in range from 0 to 1.
    * @returns unprojected [lng, lat] coordinates.
    */
-  unproject(xy: [number, number], normalized: boolean): [number, number];
-  unprojectX(x: number, normalized: boolean): number;
-  unprojectY(y: number, normalized: boolean): number;
+  unproject(xy: [number, number], options?: UnprojectOptions): [number, number];
+  unprojectX(x: number, options: UnprojectOptions): number;
+  unprojectY(y: number, options: UnprojectOptions): number;
 }
 
 export function getProjectionFromType(type: ProjectionType | string): Projection {

@@ -1,4 +1,4 @@
-import { WebGlSceneCamera } from '../../map/renderer/webgl/webgl_camera';
+import { SceneCamera } from '../../map/renderer/renderer';
 import { WebGlRenderer, WebGlRendererOptions } from '../../map/renderer/webgl/webgl_renderer';
 import { MapFeatureFlags } from '../../map/flags';
 import { MapTileRendererType } from '../../map/renderer/renderer';
@@ -58,7 +58,7 @@ export class WebGlScene {
     this.objects.push(obj);
   }
 
-  render(camera: WebGlSceneCamera, renderOptions: WebGlRendererOptions = {}) {
+  render(camera: SceneCamera, renderOptions: WebGlRendererOptions = {}) {
     const objectGroups = MapFeatures2WebglObjects(
       this.objects,
       this.featureFlags,

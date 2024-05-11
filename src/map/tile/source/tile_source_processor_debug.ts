@@ -1,7 +1,7 @@
 import tilebelt from '@mapbox/tilebelt';
 import geometryCenter from '@turf/center';
 import { MapTile, getTileRef } from '../tile';
-import { MapFeatureType, LineFillStyle, LineJoinStyle, LineCapStyle } from '../feature';
+import { MapFeatureType, LineFillStyle, LineJoinStyle, LineCapStyle, TextAlign } from '../feature';
 import { MapFeatureFlags } from '../../flags';
 import { DataTileSource, DataLayerStyle } from '../../styles/styles';
 import { TileSourceProcessOptions } from './tile_source_processor';
@@ -38,8 +38,8 @@ export async function DebugTileSourceProcessor(
             type: MapFeatureType.line,
             color: [1, 0, 0, 1],
             borderColor: [0, 0, 0, 1],
-            vertecies: tileBbox.map(p => projection.project(p, true)),
-            width: 3,
+            vertecies: tileBbox.map(p => projection.project(p, { normalize: true, clip: false })),
+            width: 10,
             borderWidth: 0,
             fill: LineFillStyle.solid,
             join: LineJoinStyle.miter,
@@ -49,16 +49,13 @@ export async function DebugTileSourceProcessor(
             id: 1,
             type: MapFeatureType.text,
             text: processOptions.tileId,
-            center: projection.project(tileCenter, true),
+            center: projection.project(tileCenter, { normalize: true, clip: false }),
             font: 'defaultFont',
-            fontSize: 24,
+            fontSize: 48,
             borderWidth: 1,
-            color: [0, 0, 0, 1],
+            color: [1, 0, 0, 1],
             borderColor: [1, 1, 1, 1],
-            margin: {
-              top: 0,
-              left: 0,
-            },
+            align: TextAlign.center,
           },
         ],
       },

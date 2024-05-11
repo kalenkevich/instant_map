@@ -5,7 +5,6 @@ import { MapFeatureFlags } from '../flags';
 export class MapCamera {
   private x: number;
   private y: number;
-  private viewProjectionMat: mat3;
 
   constructor(
     private readonly featureFlags: MapFeatureFlags,
@@ -24,6 +23,14 @@ export class MapCamera {
     return [this.x, this.y];
   }
 
+  public getPositionX(): number {
+    return this.x;
+  }
+
+  public getPositionY(): number {
+    return this.y;
+  }
+
   public setPosition([x, y]: [number, number], zoom?: number) {
     this.x = x;
     this.y = y;
@@ -31,8 +38,6 @@ export class MapCamera {
     if (zoom !== undefined) {
       this.zoom = zoom;
     }
-
-    this.updateProjectionMatrix();
   }
 
   public getZoom(): number {
@@ -41,8 +46,6 @@ export class MapCamera {
 
   public setZoom(zoom: number) {
     this.zoom = zoom;
-
-    this.updateProjectionMatrix();
   }
 
   public getRotation(): number {
@@ -51,19 +54,31 @@ export class MapCamera {
 
   public setRotation(rotationInDegree: number) {
     this.rotationInDegree = rotationInDegree;
-
-    this.updateProjectionMatrix();
   }
 
   public getProjectionMatrix(): mat3 {
-    return this.viewProjectionMat;
+    // update camera matrix
+    const zoomScale = Math.pow(2, this.zoom);
+
+    const cameraMat = mat3.create();
+    mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
+    mat3.scale(cameraMat, cameraMat, [
+      this.width / (this.tileSize * zoomScale),
+      this.height / (this.tileSize * zoomScale),
+    ]);
+    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
+
+    // update view projection matrix
+    const mat = mat3.create();
+    const viewMat = mat3.invert(mat3.create(), cameraMat);
+    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
+
+    return viewProjectionMat;
   }
 
   public resize(width: number, height: number) {
     this.width = width;
     this.height = height;
-
-    this.updateProjectionMatrix();
   }
 
   public getWidth(): number {
@@ -72,6 +87,10 @@ export class MapCamera {
 
   public getHeight(): number {
     return this.height;
+  }
+
+  public getDistance(): number {
+    return Math.pow(2, this.zoom) * this.tileSize;
   }
 
   public inBoundLimits(position?: [number, number], zoom?: number): boolean {
@@ -113,31 +132,12 @@ export class MapCamera {
 
     // get LngLat bounding box
     const bbox = [
-      this.projection.unprojectX(x1, true),
-      this.projection.unprojectY(y1, true),
-      this.projection.unprojectX(x2, true),
-      this.projection.unprojectY(y2, true),
+      this.projection.unprojectX(x1, { normalized: true, clipped: false }),
+      this.projection.unprojectY(y1, { normalized: true, clipped: false }),
+      this.projection.unprojectX(x2, { normalized: true, clipped: false }),
+      this.projection.unprojectY(y2, { normalized: true, clipped: false }),
     ];
 
     return bbox;
-  }
-
-  private updateProjectionMatrix() {
-    // update camera matrix
-    const zoomScale = Math.pow(2, this.zoom);
-
-    const cameraMat = mat3.create();
-    mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
-    mat3.scale(cameraMat, cameraMat, [
-      this.width / (this.tileSize * zoomScale),
-      this.height / (this.tileSize * zoomScale),
-    ]);
-    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
-
-    // update view projection matrix
-    const mat = mat3.create();
-    const viewMat = mat3.invert(mat3.create(), cameraMat);
-    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
-    this.viewProjectionMat = viewProjectionMat;
   }
 }

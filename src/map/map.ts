@@ -134,7 +134,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions,
       this.mapOptions.tileStyles,
-      this.mapOptions.center,
+      this.mapOptions.center, // [lng, lat]
       this.mapOptions.zoom,
       this.mapOptions.rotation,
     );
@@ -181,7 +181,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions,
       mapStyle,
-      this.projection.unproject(this.camera.getPosition(), true),
+      this.projection.unproject(this.camera.getPosition(), { normalized: true, clipped: false }),
       this.camera.getZoom(),
       this.camera.getRotation(),
     );
@@ -198,7 +198,7 @@ export class InstantMap extends Evented<MapEventType> {
     featureFlags: MapFeatureFlags,
     mapOptions: MapOptions,
     styles: DataTileStyles,
-    center: [number, number],
+    center: [number, number], // [lng, lat]
     zoom: number,
     rotation: number,
   ) {
@@ -212,7 +212,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.projection = getProjectionFromType(mapOptions.projection);
     this.camera = new MapCamera(
       featureFlags,
-      this.projection.project(center, true),
+      this.projection.project(center, { normalize: true, clip: true }),
       zoom,
       rotation,
       this.width,
@@ -244,15 +244,16 @@ export class InstantMap extends Evented<MapEventType> {
 
   private onMapClick = (event: MapPanEvents, clickEvent: MouseEvent, clippedWebGlSpaceCoords: [number, number]) => {
     const tiles = this.tilesGrid.getCurrentViewTiles();
-    const zoom = this.getZoom();
-    const viewMatrix = this.camera.getProjectionMatrix();
     const objectId = this.renderer.getObjectId(
       tiles,
+      // camera object
       {
-        viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
-        distance: Math.pow(2, zoom) * this.styles.tileSize,
-        width: this.width,
-        height: this.height,
+        x: this.camera.getPositionX(),
+        y: this.camera.getPositionY(),
+        distance: this.camera.getDistance(),
+        width: this.camera.getWidth(),
+        height: this.camera.getHeight(),
+        rotationInDegree: this.camera.getRotation(),
       },
       clippedWebGlSpaceCoords[0],
       clippedWebGlSpaceCoords[1],
@@ -293,9 +294,7 @@ export class InstantMap extends Evented<MapEventType> {
 
   // Get Geo location
   getCenter(): [number, number] {
-    const cameraPosition = this.camera.getPosition();
-
-    return this.projection.unproject(cameraPosition, true);
+    return this.projection.unproject(this.camera.getPosition(), { normalized: true, clipped: true });
   }
 
   // Get Camera location
@@ -401,16 +400,17 @@ export class InstantMap extends Evented<MapEventType> {
     }
 
     const tiles = this.tilesGrid.getCurrentViewTiles();
-    const zoom = this.getZoom();
-    const viewMatrix = this.camera.getProjectionMatrix();
 
     this.renderer.render(
       tiles,
+      // camera object
       {
-        viewMatrix: viewMatrix as [number, number, number, number, number, number, number, number, number],
-        distance: Math.pow(2, zoom) * this.styles.tileSize,
+        x: this.camera.getPositionX(),
+        y: this.camera.getPositionY(),
+        distance: this.camera.getDistance(),
         width: this.camera.getWidth(),
         height: this.camera.getHeight(),
+        rotationInDegree: this.camera.getRotation(),
       },
       { pruneCache },
     );

@@ -3,8 +3,8 @@ import { MapTile } from '../../tile/tile';
 import { MapFeatureFlags } from '../../flags';
 import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { FontManager } from '../../font/font_manager';
+import { SceneCamera } from '../renderer';
 
-import { WebGlSceneCamera } from './webgl_camera';
 import { WebGlRenderer, WebGlRendererOptions } from './webgl_renderer';
 import { MapTileRenderer, MapTileRendererType } from '../renderer';
 import { MapTile2WebglObjects } from './webgl_map_tile_to_webgl_object';
@@ -39,7 +39,7 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     return this.renderer.resize(width, height);
   }
 
-  render(tiles: MapTile[], camera: WebGlSceneCamera, renderOptions?: WebGlRendererOptions): void {
+  render(tiles: MapTile[], camera: SceneCamera, renderOptions?: WebGlRendererOptions): void {
     const objectGroups = [];
 
     for (const tile of tiles) {
@@ -57,7 +57,7 @@ export class WebGlMapTileRenderer implements MapTileRenderer {
     return this.renderer.render(objectGroups, camera, renderOptions);
   }
 
-  getObjectId(tiles: MapTile[], camera: WebGlSceneCamera, x: number, y: number): number {
+  getObjectId(tiles: MapTile[], camera: SceneCamera, x: number, y: number): number {
     const objectGroups = [];
 
     for (const tile of tiles) {

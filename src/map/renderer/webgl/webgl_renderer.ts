@@ -17,6 +17,7 @@ import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { createWebGlTexture } from './helpers/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './helpers/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
+import { getProjectionViewMatrix } from './utils/webgl_camera_utils';
 
 export interface WebGlRendererOptions extends RenderOptions {
   pruneCache?: boolean;
@@ -130,7 +131,7 @@ export class WebGlRenderer {
   private currentStateId?: string;
   private alreadyRenderedTileLayer = new Set<string>();
   private getCurrentStateId(camera: SceneCamera) {
-    return [...camera.viewMatrix, camera.distance, this.canvas.width, this.canvas.height].join('-');
+    return [camera.x, camera.y, camera.width, camera.height, camera.distance, camera.rotationInDegree].join('-');
   }
 
   getObjectId(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, x: number, y: number): number {
@@ -214,7 +215,7 @@ export class WebGlRenderer {
   }
 
   private setProgramGlobalUniforms(program: ObjectProgram, camera: SceneCamera, options: WebGlRendererOptions) {
-    program.setMatrix(camera.viewMatrix);
+    program.setMatrix(getProjectionViewMatrix(camera));
     program.setWidth(this.canvas.width);
     program.setHeight(this.canvas.height);
     program.setDistance(camera.distance);
@@ -226,7 +227,7 @@ export class WebGlRenderer {
     const gl = this.gl;
 
     const frameBufferTexture = createWebGlTexture(gl, {
-      name: 'framebuffer texture',
+      name: 'framebuffer_texture',
       // Replace framebuffer with a new instance but use the same texture index
       textureIndex: this.framebuffer?.getTexture().index,
       width: this.canvas.width,
