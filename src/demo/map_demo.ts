@@ -34,7 +34,7 @@ function getStartMapLocation(): [number, number, number] {
   const query = new URLSearchParams(document.location.search);
 
   if (!query.has(MAP_LOCATION_PARAM_NAME)) {
-    return [15.0, 25.3033, 53.0839];
+    return [15.0, 53.0839, 25.3033]; // [zoom, lat, lng]
   }
 
   return parseFromSafeLocation(query.get(MAP_LOCATION_PARAM_NAME));
@@ -63,7 +63,7 @@ function syncQueryParamsWithMapState() {
   const zoom = currentMap.getZoom();
 
   const query = new URLSearchParams(document.location.search);
-  const safeLocation = getSafelocation(zoom, center[0], center[1]);
+  const safeLocation = getSafelocation(zoom, center[1], center[0]); // [zoom, lat, lng]
 
   if (query.has(MAP_LOCATION_PARAM_NAME)) {
     query.delete(MAP_LOCATION_PARAM_NAME);
@@ -131,7 +131,7 @@ let currentMap: InstantMap | undefined;
 export function renderMap() {
   const rootDiv = createRootEl(window.innerWidth, window.innerHeight, MAP_ROOT_EL_MARGIN);
   document.body.appendChild(rootDiv);
-  const [zoom, lng, lat] = getStartMapLocation();
+  const [zoom, lat, lng] = getStartMapLocation();
   const selectedStyleName = getParam(MAP_STYLES_PARAM_NAME) || MapboxVectorTileStyles.name;
   setParam(MAP_STYLES_PARAM_NAME, selectedStyleName); // set default in case it is not defined
   const selectedStyleConfig = STYLES_SELECT_CONFIG.find(config => config.styles.name === selectedStyleName);
