@@ -181,7 +181,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions,
       mapStyle,
-      this.projection.unproject(this.camera.getPosition(), { normalized: true, clipped: false }),
+      this.projection.unproject(this.camera.getPosition(), { normalized: true, clipped: true }),
       this.camera.getZoom(),
       this.camera.getRotation(),
     );

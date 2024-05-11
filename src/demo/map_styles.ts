@@ -61,6 +61,7 @@ const StyleFonts: {
 };
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
+  name: 'MapTilerVector',
   tileSize: 512,
   minzoom: 1,
   maxzoom: 15,
@@ -403,6 +404,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
 };
 
 export const MapboxVectorTileStyles: DataTileStyles = {
+  name: 'MapboxVector',
   tileSize: 512,
   minzoom: 0,
   maxzoom: 16,
@@ -704,6 +706,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
 };
 
 export const SateliteTilesStyles: DataTileStyles = {
+  name: 'SateliteTiles',
   tileSize: 256,
   minzoom: 0,
   maxzoom: 16,
@@ -914,6 +917,7 @@ export const SateliteTilesStyles: DataTileStyles = {
 
 export const MaptilerSateliteTilesStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'MaptilerSatelite',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
@@ -927,6 +931,7 @@ export const MaptilerSateliteTilesStyles: DataTileStyles = {
 
 export const OsmImageTileStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'OsmImage',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
@@ -940,6 +945,7 @@ export const OsmImageTileStyles: DataTileStyles = {
 
 export const BingImageTyleStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'BingImage',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
