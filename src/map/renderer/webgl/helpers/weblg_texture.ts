@@ -37,6 +37,10 @@ export interface WebGlTexture {
 
 let CURRENT_TEXTURE_INDEX = 0;
 
+export function resetTextureIndex() {
+  CURRENT_TEXTURE_INDEX = 0;
+}
+
 export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: CreateTextureOptions): WebGlTexture {
   const texture = gl.createTexture();
   const level = options.level || 0;

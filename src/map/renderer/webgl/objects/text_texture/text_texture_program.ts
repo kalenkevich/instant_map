@@ -74,11 +74,13 @@ export class TextTextureProgram extends ObjectProgram {
   protected setupUniforms() {
     super.setupUniforms();
 
-    this.textureUniform = createWebGlUniform(this.gl, { name: 'u_texture', program: this.program });
-    this.propertiesDataUniform = createWebGlUniform(this.gl, { name: 'u_properties_data', program: this.program });
-    this.propertiesTextureUniform = createWebGlUniform(this.gl, { name: 'u_properties', program: this.program });
-    this.isSfdUniform = createWebGlUniform(this.gl, { name: 'u_is_sfd_mode', program: this.program });
-    this.borderWidthUniform = createWebGlUniform(this.gl, { name: 'u_border_width', program: this.program });
+    const gl = this.gl;
+
+    this.textureUniform = createWebGlUniform(gl, { name: 'u_texture', program: this.program });
+    this.propertiesDataUniform = createWebGlUniform(gl, { name: 'u_properties_data', program: this.program });
+    this.propertiesTextureUniform = createWebGlUniform(gl, { name: 'u_properties', program: this.program });
+    this.isSfdUniform = createWebGlUniform(gl, { name: 'u_is_sfd_mode', program: this.program });
+    this.borderWidthUniform = createWebGlUniform(gl, { name: 'u_border_width', program: this.program });
   }
 
   protected async setupTextures() {

@@ -14,7 +14,7 @@ import { GlyphProgram } from './objects/glyph/glyph_program';
 import { ImageProgram } from './objects/image/image_program';
 import { FramebufferProgram } from './framebuffer/framebuffer_program';
 import { GlyphsManager } from '../../glyphs/glyphs_manager';
-import { createWebGlTexture } from './helpers/weblg_texture';
+import { createWebGlTexture, resetTextureIndex } from './helpers/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './helpers/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
 import { getProjectionViewMatrix } from './utils/webgl_camera_utils';
@@ -44,7 +44,7 @@ export class WebGlRenderer {
     private readonly fontManager: FontManager,
     private readonly textureManager: GlyphsManager,
   ) {
-    this.canvas = this.createCanvasEl();
+    this.canvas = createCanvasEl(this.rootEl, devicePixelRatio);
   }
 
   async init() {
@@ -71,7 +71,6 @@ export class WebGlRenderer {
 
     this.framebuffer = this.createFramebuffer();
     this.framebufferProgram = new FramebufferProgram(gl, this.featureFlags);
-
     const pointProgram = new PointProgram(gl, this.featureFlags);
     const polygonProgram = new PolygonProgram(gl, this.featureFlags);
     const lineProgram = new LineShaderProgram(gl, this.featureFlags);
@@ -100,21 +99,8 @@ export class WebGlRenderer {
   }
 
   destroy() {
+    resetTextureIndex();
     this.rootEl.removeChild(this.canvas);
-  }
-
-  protected createCanvasEl(): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    const width = this.rootEl.offsetWidth;
-    const height = this.rootEl.offsetHeight;
-
-    canvas.width = width * this.devicePixelRatio;
-    canvas.height = height * this.devicePixelRatio;
-    canvas.style.width = `100%`;
-    canvas.style.height = `100%`;
-    canvas.style.background = 'transparent';
-
-    return canvas;
   }
 
   public resize(width: number, height: number) {
@@ -160,7 +146,7 @@ export class WebGlRenderer {
     if (options.pruneCache || this.currentStateId !== stateId) {
       this.currentStateId = stateId;
       this.alreadyRenderedTileLayer.clear();
-      this.framebuffer.clear();
+      this.framebuffer?.clear();
       this.debugLog('clear');
     }
 
@@ -242,4 +228,18 @@ export class WebGlRenderer {
 
     return createFrameBuffer(gl, { texture: frameBufferTexture });
   }
+}
+
+export function createCanvasEl(rootEl: HTMLElement, devicePixelRatio: number = 1): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  const width = rootEl.offsetWidth;
+  const height = rootEl.offsetHeight;
+
+  canvas.width = width * devicePixelRatio;
+  canvas.height = height * devicePixelRatio;
+  canvas.style.width = `100%`;
+  canvas.style.height = `100%`;
+  canvas.style.background = 'transparent';
+
+  return canvas;
 }

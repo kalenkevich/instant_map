@@ -361,7 +361,6 @@ export class InstantMap extends Evented<MapEventType> {
       },
     );
 
-    this.renderQueue.clear();
     return animation.run();
   }
 
@@ -385,7 +384,6 @@ export class InstantMap extends Evented<MapEventType> {
   rerender(pruneCache = false): Promise<void> {
     this.tilesGrid.updateTiles(this.camera);
 
-    this.renderQueue.clear();
     return this.renderQueue.render(() => {
       this.render(pruneCache);
       pruneCache = false;

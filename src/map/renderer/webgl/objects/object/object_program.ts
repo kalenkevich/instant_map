@@ -3,6 +3,7 @@ import { MapFeatureFlags } from '../../../../flags';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
 import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
+import { createProgram } from '../../helpers/webgl_program';
 
 export interface DrawObjectGroupOptions {
   readPixelRenderMode?: boolean;
@@ -45,42 +46,8 @@ export abstract class ObjectProgram {
   }
 
   protected setupProgram() {
-    const gl = this.gl;
-
-    const vertexShader = this.createShader(gl.VERTEX_SHADER, this.vertexShaderSource);
-    const fragmentShader = this.createShader(gl.FRAGMENT_SHADER, this.fragmentShaderSource);
-
-    this.program = this.createProgram(vertexShader, fragmentShader);
+    this.program = createProgram(this.gl, this.vertexShaderSource, this.fragmentShaderSource);
     this.vao = this.gl.createVertexArray();
-  }
-
-  protected createShader(type: number, source: string): WebGLShader {
-    const gl = this.gl;
-
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (success) {
-      return shader;
-    }
-    console.error(gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-  }
-
-  protected createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-    const gl = this.gl;
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (success) {
-      return program;
-    }
-    console.error(gl.getProgramInfoLog(program));
-    gl.deleteProgram(program);
   }
 
   protected setupBuffer() {

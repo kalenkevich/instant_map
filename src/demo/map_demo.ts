@@ -61,16 +61,9 @@ function getParam(name: string): string | undefined {
 function syncQueryParamsWithMapState() {
   const center = currentMap.getCenter();
   const zoom = currentMap.getZoom();
-
-  const query = new URLSearchParams(document.location.search);
   const safeLocation = getSafelocation(zoom, center[1], center[0]); // [zoom, lat, lng]
 
-  if (query.has(MAP_LOCATION_PARAM_NAME)) {
-    query.delete(MAP_LOCATION_PARAM_NAME);
-  }
-  query.append(MAP_LOCATION_PARAM_NAME, safeLocation);
-
-  history.replaceState(null, '', '?' + query.toString());
+  setParam(MAP_LOCATION_PARAM_NAME, safeLocation);
 }
 
 function subscribeOnEvents(map: InstantMap) {

@@ -55,6 +55,7 @@ export class EasyAnimation {
 
   complete() {
     this.inProgress = false;
+    this.onAnimationStop();
   }
 
   stopAnimation(): void {

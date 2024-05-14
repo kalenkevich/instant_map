@@ -51,7 +51,7 @@ export async function DebugTileSourceProcessor(
             text: processOptions.tileId,
             center: projection.project(tileCenter, { normalize: true, clip: false }),
             font: 'defaultFont',
-            fontSize: 48,
+            fontSize: 28,
             borderWidth: 1,
             color: [1, 0, 0, 1],
             borderColor: [1, 1, 1, 1],

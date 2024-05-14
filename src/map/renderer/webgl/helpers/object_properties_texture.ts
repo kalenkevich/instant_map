@@ -38,12 +38,12 @@ export function createObjectPropertiesTexture(): PropertiesTexture {
       return ref;
     },
     compileTexture(): ArrayBufferTextureSource {
-      const width = arrayBuffer.length / 4;
-      // Math.ceil(Math.sqrt());
-      // if (width > MAX_TEXTURE_WIDTH) {
-      //   throw new Error('Texture size is too large.');
-      // }
-      const height = 1;
+      let width = arrayBuffer.length / 4;
+      let height = 1;
+
+      if (width > MAX_TEXTURE_WIDTH) {
+        height = width = Math.ceil(Math.sqrt(width));
+      }
 
       const zerosToAdd = width * height * 4 - arrayBuffer.length;
       for (let i = 0; i < zerosToAdd; i++) {
