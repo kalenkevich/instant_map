@@ -27,10 +27,6 @@ export class ImageProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  async onInit(): Promise<void> {
-    this.setupTexture();
-  }
-
   onLink(): void {
     const gl = this.gl;
 
@@ -63,7 +59,7 @@ export class ImageProgram extends ObjectProgram {
     this.textureUniform = createWebGlUniform(this.gl, { name: 'u_texture', program: this.program });
   }
 
-  setupTexture() {
+  async setupTextures() {
     const gl = this.gl;
 
     this.texture = createWebGlTexture(gl, {

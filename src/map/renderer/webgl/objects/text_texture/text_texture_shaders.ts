@@ -40,17 +40,17 @@ export default {
       v_texCoord = a_texCoord;
       v_color = a_color;
 
-      vec4 text_properties = getValueByIndexFromTexture(u_properties, u_properties_data.xy, a_object_index);
+      // vec4 text_properties = getValueByIndexFromTexture(u_properties, u_properties_data.xy, a_object_index);
 
-      float width = text_properties[0] / 1.0;
-      float height = text_properties[1] / 1.0;
-      float offsetTop = text_properties[2] / 1.0;
-      float offsetLeft = text_properties[3] / 1.0;
+      // float width = text_properties[0] / 1.0;
+      // float height = text_properties[1] / 1.0;
+      // float offsetTop = text_properties[2] / 1.0;
+      // float offsetLeft = text_properties[3] / 1.0;
 
-      // float width = a_text_properties[0];
-      // float height = a_text_properties[1];
-      // float offsetTop = a_text_properties[2];
-      // float offsetLeft = a_text_properties[3];
+      float width = a_text_properties[0];
+      float height = a_text_properties[1];
+      float offsetTop = a_text_properties[2];
+      float offsetLeft = a_text_properties[3];
 
       width /= u_distance * (u_device_pixel_ratio / 2.0);
       height /= u_distance * (u_device_pixel_ratio / 2.0);

@@ -32,10 +32,6 @@ export class GlyphProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public async onInit(): Promise<void> {
-    await this.setupTextures();
-  }
-
   public onLink(): void {
     const gl = this.gl;
 

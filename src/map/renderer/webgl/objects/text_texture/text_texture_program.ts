@@ -38,10 +38,6 @@ export class TextTextureProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public async onInit(): Promise<void> {
-    await this.setupTextures();
-  }
-
   onLink(): void {
     const gl = this.gl;
 

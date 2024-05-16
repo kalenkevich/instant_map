@@ -42,6 +42,7 @@ export abstract class ObjectProgram {
     this.setupProgram();
     this.setupBuffer();
     this.setupUniforms();
+    await this.setupTextures();
     return this.onInit();
   }
 
@@ -83,6 +84,8 @@ export abstract class ObjectProgram {
       });
     }
   }
+
+  protected async setupTextures() {}
 
   link() {
     this.gl.useProgram(this.program);
