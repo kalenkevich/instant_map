@@ -136,42 +136,42 @@ export default {
       float lineWidth = v_properties[0] / u_width / u_device_pixel_ratio;
       float borderWidth = v_properties[1] / u_width / u_device_pixel_ratio;
 
-      // vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
-      // vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);
-      // vec2 perpendicularRightLineEquation = getPerpendicularLineEquation(lineEquation, v_currPoint);
-      // float pointAlignmentForLeftEdge = getPointAlignmentToLine(perpendicularLeftLineEquation, point);
-      // float pointAlignmentForRightEdge = getPointAlignmentToLine(perpendicularRightLineEquation, point);
-      // bool isLeftCap = pointAlignmentForLeftEdge <= 0.0 && pointAlignmentForRightEdge <= 0.0;
-      // bool isRightCap = pointAlignmentForLeftEdge >= 0.0 && pointAlignmentForRightEdge >= 0.0;
+      vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
+      vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);
+      vec2 perpendicularRightLineEquation = getPerpendicularLineEquation(lineEquation, v_currPoint);
+      float pointAlignmentForLeftEdge = getPointAlignmentToLine(perpendicularLeftLineEquation, point);
+      float pointAlignmentForRightEdge = getPointAlignmentToLine(perpendicularRightLineEquation, point);
+      bool isLeftCap = pointAlignmentForLeftEdge <= 0.0 && pointAlignmentForRightEdge <= 0.0;
+      bool isRightCap = pointAlignmentForLeftEdge >= 0.0 && pointAlignmentForRightEdge >= 0.0;
 
-      // vec2 nextLineEquation = getLineEquation(v_currPoint, v_nextPoint);
-      // bool isJoin = belongToLine(nextLineEquation, lineWidth + borderWidth, point) && belongToLine(lineEquation, lineWidth + borderWidth, point);
+      vec2 nextLineEquation = getLineEquation(v_currPoint, v_nextPoint);
+      bool isJoin = belongToLine(nextLineEquation, lineWidth + borderWidth, point) && belongToLine(lineEquation, lineWidth + borderWidth, point);
 
-      // if (isJoin) {
-      //   // Render join
-      //   float distanceToCurrentLine = getDistanceFromLine(lineEquation, point);
-      //   float distanceToNextLine = getDistanceFromLine(nextLineEquation, point);
+      if (isJoin) {
+        // Render join
+        float distanceToCurrentLine = getDistanceFromLine(lineEquation, point);
+        float distanceToNextLine = getDistanceFromLine(nextLineEquation, point);
 
-      //   if (distanceToCurrentLine <= lineWidth || distanceToNextLine <= lineWidth) {
-      //     gl_FragColor = v_color;
-      //   } else if (distanceToCurrentLine > lineWidth && distanceToCurrentLine <= lineWidth + borderWidth) {
-      //     gl_FragColor = v_borderColor;
-      //   } else if (distanceToNextLine > lineWidth && distanceToNextLine <= lineWidth + borderWidth) {
-      //     gl_FragColor = v_borderColor;
-      //   }
-      // } else if (isLeftCap || isRightCap) {
-      //   // Render Cap
+        if (distanceToCurrentLine <= lineWidth || distanceToNextLine <= lineWidth) {
+          gl_FragColor = v_color;
+        } else if (distanceToCurrentLine > lineWidth && distanceToCurrentLine <= lineWidth + borderWidth) {
+          gl_FragColor = v_borderColor;
+        } else if (distanceToNextLine > lineWidth && distanceToNextLine <= lineWidth + borderWidth) {
+          gl_FragColor = v_borderColor;
+        }
+      } else if (isLeftCap || isRightCap) {
+        // Render Cap
 
-      //   float distanceToEdge = length(point - (isLeftCap ? v_prevPoint: v_currPoint));
-      //   bool isCapBody = distanceToEdge <= lineWidth;
-      //   bool isBorder = (distanceToEdge > lineWidth) && (distanceToEdge <= lineWidth + borderWidth);
+        float distanceToEdge = length(point - (isLeftCap ? v_prevPoint: v_currPoint));
+        bool isCapBody = distanceToEdge <= lineWidth;
+        bool isBorder = (distanceToEdge > lineWidth) && (distanceToEdge <= lineWidth + borderWidth);
 
-      //   if (isCapBody) {
-      //     gl_FragColor = v_color;
-      //   } else if (isBorder) {
-      //     gl_FragColor = v_borderColor;
-      //   }
-      // } else {
+        if (isCapBody) {
+          gl_FragColor = v_color;
+        } else if (isBorder) {
+          gl_FragColor = v_borderColor;
+        }
+      } else {
         // Render body
 
         vec2 p1 = v_prevPoint;
@@ -188,7 +188,7 @@ export default {
         } else if (pointDistance > lineWidth && pointDistance <= (lineWidth + borderWidth)) {
           gl_FragColor = v_borderColor;
         }
-      // }
+      }
     }
   `,
 };
