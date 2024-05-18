@@ -3,9 +3,10 @@ import ShaderLineShaders from './line_shader_shaders';
 import { ObjectProgram, DrawObjectGroupOptions } from '../object/object_program';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { MapFeatureFlags } from '../../../../flags';
-import { WebGlBuffer, createWebGlBuffer } from '../../utils/webgl_buffer';
+import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
 
 export class LineShaderProgram extends ObjectProgram {
+  // Attributes
   protected vertecies: WebGlBuffer;
   protected prevPoint: WebGlBuffer;
   protected currPoint: WebGlBuffer;
@@ -14,8 +15,6 @@ export class LineShaderProgram extends ObjectProgram {
   protected renderStyles: WebGlBuffer;
   protected color: WebGlBuffer;
   protected borderColor: WebGlBuffer;
-
-  protected u_renderType: WebGLUniformLocation;
 
   protected vao: WebGLVertexArrayObjectOES;
 
@@ -45,8 +44,6 @@ export class LineShaderProgram extends ObjectProgram {
     this.gl.bindVertexArray(null);
   }
 
-  public async onInit(): Promise<void> {}
-
   public onLink(): void {
     const gl = this.gl;
 
@@ -62,7 +59,6 @@ export class LineShaderProgram extends ObjectProgram {
 
   protected setupUniforms() {
     super.setupUniforms();
-    this.u_renderType = this.gl.getUniformLocation(this.program, 'u_renderType');
   }
 
   drawObjectGroup(lineGroup: WebGlShaderLineBufferredGroup, options?: DrawObjectGroupOptions) {
@@ -82,7 +78,6 @@ export class LineShaderProgram extends ObjectProgram {
     );
 
     // draw line
-    gl.uniform1f(this.u_renderType, 0);
     gl.drawArrays(gl.TRIANGLES, 0, lineGroup.numElements);
 
     gl.bindVertexArray(null);

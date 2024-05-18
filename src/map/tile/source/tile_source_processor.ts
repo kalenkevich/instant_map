@@ -29,7 +29,6 @@ export interface TileSourceProcessOptions {
 
 interface MapTilePrerenderOptions {
   rendererType: MapTileRendererType;
-  pixelRatio: number;
   fontManagerState: Record<string, FontAtlas>;
   atlasTextureMappingState: GlyphsManagerMappingState;
 }
@@ -172,13 +171,7 @@ export class TileSourceProcessor {
     const fontManager = new FontManager(featureFlags, {}, prerenderOptions.fontManagerState);
     const glyphsManager = new GlyphsManager(featureFlags, {}, {}, prerenderOptions.atlasTextureMappingState);
 
-    mapTile.prerendedData = MapTile2WebglObjects(
-      mapTile,
-      featureFlags,
-      fontManager,
-      glyphsManager,
-      prerenderOptions.pixelRatio,
-    );
+    mapTile.prerendedData = MapTile2WebglObjects(mapTile, featureFlags, fontManager, glyphsManager);
 
     // TODO: Webworker overloaded with data because of that.
     mapTile.layers.forEach(l => {

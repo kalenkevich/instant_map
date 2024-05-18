@@ -6,6 +6,7 @@ export interface DataTileStylesSelectConfig {
   id: string;
   name: string;
   styles: DataTileStyles;
+  onSelect: (styles: DataTileStyles) => void;
 }
 
 export class StyleSelectControl extends MapControl {
@@ -29,6 +30,7 @@ export class StyleSelectControl extends MapControl {
 
       const styleEl = createMapStyleOption(this.document, styleConfig, isStyleSelected, (selectedId: string) => {
         this.selectedStyleConfig = this.styleConfigs.find(s => s.id === selectedId);
+        this.selectedStyleConfig.onSelect(this.selectedStyleConfig.styles);
 
         this.map.setStyles(this.selectedStyleConfig.styles);
       });

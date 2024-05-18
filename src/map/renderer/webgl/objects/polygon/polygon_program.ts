@@ -14,12 +14,6 @@ export class PolygonProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  public async onInit(): Promise<void> {}
-
-  onLink(): void {}
-
-  onUnlink(): void {}
-
   drawObjectGroup(objectGroup: WebGlPolygonBufferredGroup, options?: DrawObjectGroupOptions) {
     const gl = this.gl;
 

@@ -1,6 +1,7 @@
 import { renderMap } from './demo/map_demo';
 import { renderWebglPointExample } from './demo/webgl/webgl_point';
 import { renderWebglLineExample } from './demo/webgl/webgl_line';
+import { renderTexturePropertiesExample } from './demo/webgl/texture_properties';
 
 const ROUTE_MAP: Record<string, () => void> = {
   '/': () => {
@@ -14,6 +15,9 @@ const ROUTE_MAP: Record<string, () => void> = {
   },
   '/webgl/line': () => {
     renderWebglLineExample();
+  },
+  '/webgl/textureProperties': () => {
+    renderTexturePropertiesExample();
   },
 };
 

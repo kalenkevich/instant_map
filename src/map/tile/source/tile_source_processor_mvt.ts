@@ -104,7 +104,10 @@ export async function MvtTileSourceProcessor(
             id: pointFeature.id! as number,
             type: MapFeatureType.point,
             color: compileStatement(pointStyle.color, pointFeature),
-            center: projection.project(pointFeature.geometry.coordinates as [number, number], true),
+            center: projection.project(pointFeature.geometry.coordinates as [number, number], {
+              normalize: true,
+              clip: false,
+            }),
             radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
             borderWidth: pointStyle.borderWidth ? compileStatement(pointStyle.borderWidth, pointFeature) : 0,
             borderColor: pointStyle.borderColor ? compileStatement(pointStyle.borderColor, pointFeature) : [0, 0, 0, 0],
@@ -125,7 +128,7 @@ export async function MvtTileSourceProcessor(
               id: pointFeature.id! as number,
               type: MapFeatureType.point,
               color: compileStatement(pointStyle.color, pointFeature),
-              center: projection.project(point as [number, number], true),
+              center: projection.project(point as [number, number], { normalize: true, clip: false }),
               radius: pointStyle.radius ? compileStatement(pointStyle.radius, pointFeature) : 1,
               borderWidth: pointStyle.borderWidth ? compileStatement(pointStyle.borderWidth, pointFeature) : 0,
               borderColor: pointStyle.borderColor
@@ -154,7 +157,10 @@ export async function MvtTileSourceProcessor(
             color: compileStatement(textStyle.color, pointFeature),
             borderColor: compileStatement(textStyle.borderColor, pointFeature),
             text: compileStatement(textStyle.text, pointFeature),
-            center: projection.project(pointFeature.geometry.coordinates as [number, number], true),
+            center: projection.project(pointFeature.geometry.coordinates as [number, number], {
+              normalize: true,
+              clip: false,
+            }),
             font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
             fontSize: compileStatement(textStyle.fontSize, pointFeature),
             borderWidth: 1,
@@ -178,7 +184,7 @@ export async function MvtTileSourceProcessor(
               color: compileStatement(textStyle.color, pointFeature),
               borderColor: compileStatement(textStyle.borderColor, pointFeature),
               text: compileStatement(textStyle.text, pointFeature),
-              center: projection.project(point as [number, number], true),
+              center: projection.project(point as [number, number], { normalize: true, clip: false }),
               font: textStyle.font ? compileStatement(textStyle.font, pointFeature) : 'opensans',
               fontSize: compileStatement(textStyle.fontSize, pointFeature),
               borderWidth: 1,
@@ -211,7 +217,7 @@ export async function MvtTileSourceProcessor(
           type: MapFeatureType.glyph,
           atlas: compileStatement(glyphStyle.atlas, pointFeature),
           name: compileStatement(glyphStyle.name, pointFeature),
-          center: projection.project(center, true),
+          center: projection.project(center, { normalize: true, clip: false }),
           width: glyphStyle.width ?? compileStatement(glyphStyle.width, pointFeature),
           height: glyphStyle.height ?? compileStatement(glyphStyle.height, pointFeature),
           offset: {
@@ -238,7 +244,7 @@ export async function MvtTileSourceProcessor(
             type: MapFeatureType.polygon,
             color: compileStatement(polygonStyle.color, polygonFeature),
             vertecies: (geojson.geometry.coordinates as Array<Array<[number, number]>>).map(arr =>
-              arr.map(p => projection.project(p, true)),
+              arr.map(p => projection.project(p, { normalize: true, clip: false })),
             ),
             borderWidth: 1,
             borderColor: [0, 0, 0, 1],
@@ -257,7 +263,7 @@ export async function MvtTileSourceProcessor(
               type: MapFeatureType.polygon,
               color: compileStatement(polygonStyle.color, polygonFeature),
               vertecies: ([polygons[0]] as Array<Array<[number, number]>>).map(arr =>
-                arr.map(p => projection.project(p, true)),
+                arr.map(p => projection.project(p, { normalize: true, clip: false })),
               ),
               borderWidth: 1,
               borderColor: [0, 0, 0, 1],
@@ -280,7 +286,7 @@ export async function MvtTileSourceProcessor(
             type: MapFeatureType.line,
             color: compileStatement(lineStyle.color, lineFeature),
             vertecies: (lineFeature.geometry.coordinates as Array<[number, number]>).map(p =>
-              projection.project(p, true),
+              projection.project(p, { normalize: true, clip: false }),
             ),
             width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
             borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
@@ -301,7 +307,9 @@ export async function MvtTileSourceProcessor(
               id: lineFeature.id! as number,
               type: MapFeatureType.line,
               color: compileStatement(lineStyle.color, lineFeature),
-              vertecies: (lineGeometry as Array<[number, number]>).map(p => projection.project(p, true)),
+              vertecies: (lineGeometry as Array<[number, number]>).map(p =>
+                projection.project(p, { normalize: true, clip: false }),
+              ),
               width: lineStyle.width ? compileStatement(lineStyle.width, lineFeature) : 1,
               borderWidth: lineStyle.borderWidth ? compileStatement(lineStyle.borderWidth, lineFeature) : 0,
               borderColor: lineStyle.borderColor ? compileStatement(lineStyle.borderColor, lineFeature) : [0, 0, 0, 0],

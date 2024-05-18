@@ -11,9 +11,13 @@ export interface WebGlFrameBuffer {
   bind(): void;
   unbind(): void;
   clear(): void;
+  getTexture(): WebGlTexture;
 }
 
-export function createFrameBuffer(gl: ExtendedWebGLRenderingContext, options: CreateFrameBufferOptions) {
+export function createFrameBuffer(
+  gl: ExtendedWebGLRenderingContext,
+  options: CreateFrameBufferOptions,
+): WebGlFrameBuffer {
   const framebuffer = gl.createFramebuffer();
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
@@ -33,6 +37,9 @@ export function createFrameBuffer(gl: ExtendedWebGLRenderingContext, options: Cr
     },
     unbind() {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    },
+    getTexture(): WebGlTexture {
+      return options.texture;
     },
     clear(color?: [number, number, number, number]) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);

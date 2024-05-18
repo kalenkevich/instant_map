@@ -16,6 +16,7 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_distance;
+    uniform float u_device_pixel_ratio;
 
     attribute vec3 a_position;
     attribute vec2 a_texCoord;
@@ -34,10 +35,10 @@ export default {
       float offsetTop = a_properties[2];
       float offsetLeft = a_properties[3];
 
-      width /= u_distance;
-      height /= u_distance;
-      offsetTop /= u_distance;
-      offsetLeft /= u_distance;
+      width /= u_distance * (u_device_pixel_ratio / 2.0);
+      height /= u_distance * (u_device_pixel_ratio / 2.0);
+      offsetTop /= u_distance * (u_device_pixel_ratio / 2.0);
+      offsetLeft /= u_distance* (u_device_pixel_ratio / 2.0);
 
       float x = a_position.x - offsetLeft;
       float y = a_position.y + offsetTop;

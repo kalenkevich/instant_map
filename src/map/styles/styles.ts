@@ -6,6 +6,7 @@ import { TileSourceType } from '../tile/source/tile_source';
 import { LineCapStyle, LineFillStyle, LineJoinStyle } from '../tile/feature';
 
 export interface DataTileStyles {
+  name: string;
   tileSize?: number;
   minzoom?: number;
   maxzoom?: number;

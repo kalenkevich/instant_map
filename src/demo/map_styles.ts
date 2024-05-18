@@ -61,6 +61,7 @@ const StyleFonts: {
 };
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
+  name: 'MapTilerVector',
   tileSize: 512,
   minzoom: 1,
   maxzoom: 15,
@@ -403,6 +404,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
 };
 
 export const MapboxVectorTileStyles: DataTileStyles = {
+  name: 'MapboxVector',
   tileSize: 512,
   minzoom: 0,
   maxzoom: 16,
@@ -528,8 +530,15 @@ export const MapboxVectorTileStyles: DataTileStyles = {
           ['motorway', ['$rgba', 233, 201, 43, 1]],
           ['$default', ['$rgba', 215, 218, 226, 1]],
         ],
-        width: ['$switch', ['$get', 'properties.class'], ['primary', 8], ['$default', 4]],
-        borderWidth: 2,
+        width: [
+          '$switch',
+          ['$get', 'properties.class'],
+          ['primary', 16],
+          ['secondary', 12],
+          ['motorway', 12],
+          ['$default', 6],
+        ],
+        borderWidth: 4,
         borderColor: ['$rgba', 0, 0, 0, 1],
         joinStyle: LineJoinStyle.round,
       },
@@ -697,6 +706,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
 };
 
 export const SateliteTilesStyles: DataTileStyles = {
+  name: 'SateliteTiles',
   tileSize: 256,
   minzoom: 0,
   maxzoom: 16,
@@ -907,6 +917,7 @@ export const SateliteTilesStyles: DataTileStyles = {
 
 export const MaptilerSateliteTilesStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'MaptilerSatelite',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
@@ -920,6 +931,7 @@ export const MaptilerSateliteTilesStyles: DataTileStyles = {
 
 export const OsmImageTileStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'OsmImage',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {
@@ -933,6 +945,7 @@ export const OsmImageTileStyles: DataTileStyles = {
 
 export const BingImageTyleStyles: DataTileStyles = {
   ...SateliteTilesStyles,
+  name: 'BingImage',
   sources: {
     dataSource: MapboxVectorDataSource,
     imageSource: {

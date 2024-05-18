@@ -2,7 +2,7 @@ import tilebelt from '@mapbox/tilebelt';
 import { Evented } from '../evented';
 import { MapCamera } from '../camera/map_camera';
 import { TileRef, MapTile, getTileId, getTileRef } from './tile';
-import { Projection } from '../geo/projection/projection';
+import { ProjectionType } from '../geo/projection/projection';
 import { MapTileLayer } from './tile';
 import { MapTileRendererType } from '../renderer/renderer';
 import { LRUCache } from '../utils/lru_cache';
@@ -35,7 +35,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileSize: number,
     private readonly pixelRatio: number,
     private readonly maxTileZoom: number,
-    private readonly projection: Projection,
+    private readonly projectionType: ProjectionType,
     private readonly fontManager: FontManager,
     private readonly glyphsManager: GlyphsManager,
   ) {
@@ -139,11 +139,10 @@ export class TilesGrid extends Evented<TilesGridEvent> {
               tileId,
               tileStyles: this.tileStyles,
               tileSize: this.tileSize,
-              projectionType: this.projection.getType(),
+              projectionType: this.projectionType,
             },
             tilePrerender: {
               rendererType: this.rendererType,
-              pixelRatio: this.pixelRatio,
               atlasTextureMappingState: this.glyphsManager.getMappingState(),
               fontManagerState: this.fontManager.getState(),
             },

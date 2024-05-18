@@ -1,7 +1,10 @@
-import { Float32ArrayBufferTextureSource } from '../../../texture/texture';
-import { floatArrayBufferToSharebleTextureSource } from '../../../texture/texture_utils';
+import { ArrayBufferTextureSource } from '../../../texture/texture';
+import { toFloat32TextureSource } from '../../../texture/texture_utils';
 
-export interface PropertiesTexture {}
+export interface PropertiesTexture {
+  addValue(value: ObjectPropertyValue): number;
+  compileTexture(): ArrayBufferTextureSource;
+}
 
 export type ObjectPropertyValue =
   | number
@@ -10,6 +13,8 @@ export type ObjectPropertyValue =
   | [number, number, number, number];
 
 export type ObjectProperties = Record<string, ObjectPropertyValue>;
+
+const MAX_TEXTURE_WIDTH = 2048;
 
 export function createObjectPropertiesTexture(): PropertiesTexture {
   const arrayBuffer: number[] = [];
@@ -32,16 +37,20 @@ export function createObjectPropertiesTexture(): PropertiesTexture {
 
       return ref;
     },
-    compileTexture(): Float32ArrayBufferTextureSource {
-      const width = Math.ceil(Math.sqrt(arrayBuffer.length / 4));
-      const height = width;
+    compileTexture(): ArrayBufferTextureSource {
+      let width = arrayBuffer.length / 4;
+      let height = 1;
+
+      if (width > MAX_TEXTURE_WIDTH) {
+        height = width = Math.ceil(Math.sqrt(width));
+      }
 
       const zerosToAdd = width * height * 4 - arrayBuffer.length;
       for (let i = 0; i < zerosToAdd; i++) {
         arrayBuffer.push(0);
       }
 
-      return floatArrayBufferToSharebleTextureSource(arrayBuffer, width, height);
+      return toFloat32TextureSource(arrayBuffer, width, height);
     },
   };
 }
