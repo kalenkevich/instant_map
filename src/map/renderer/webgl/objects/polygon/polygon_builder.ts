@@ -18,11 +18,12 @@ export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, W
     for (const polygon of this.objects) {
       const numberOfAddedVertecies = verticesFromPolygon(vertecies, polygon.vertecies);
       const xTimes = numberOfAddedVertecies / 2;
+      const polygonId = integerToVector4(polygon.id);
 
       addXTimes(colorBuffer, [...polygon.color], xTimes);
       addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
       addXTimes(borderColorBuffer, [...polygon.borderColor], xTimes);
-      addXTimes(borderColorBuffer, integerToVector4(polygon.id), xTimes);
+      addXTimes(borderColorBuffer, polygonId, xTimes);
     }
 
     return {

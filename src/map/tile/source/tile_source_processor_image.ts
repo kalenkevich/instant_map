@@ -22,8 +22,9 @@ export async function ImageTileSourceProcessor(
 
   const [x, y, z] = tileRef.map(Number);
   const projection = getProjectionFromType(processOptions.projectionType);
-  const sourceArrayBuffer = await fetch(tileSourceUrl, { signal: abortController.signal }).then(res => res.blob());
-  const textureSource = await blobToBitmapImageTextureSource(sourceArrayBuffer);
+  const textureSource = await fetch(tileSourceUrl, { signal: abortController.signal })
+    .then(res => res.blob())
+    .then(sourceArrayBuffer => blobToBitmapImageTextureSource(sourceArrayBuffer));
   const tilePolygon = tilebelt.tileToGeoJSON([x, y, z]);
   const tilebbox = tilebelt.tileToBBOX([x, y, z]);
 
@@ -50,8 +51,8 @@ export async function ImageTileSourceProcessor(
           id: 0,
           type: MapFeatureType.image,
           bbox: [
-            [...projection.project([tilebbox[0], tilebbox[1]], true)],
-            [...projection.project([tilebbox[2], tilebbox[3]], true)],
+            [...projection.project([tilebbox[0], tilebbox[1]], { normalize: true, clip: false })],
+            [...projection.project([tilebbox[2], tilebbox[3]], { normalize: true, clip: false })],
           ],
           topLeft: tilePolygon.coordinates[0][0] as [number, number],
           source: textureSource,

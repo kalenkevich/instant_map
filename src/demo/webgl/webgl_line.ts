@@ -2,7 +2,6 @@ import { WebGlScene } from './webgl_scene';
 import { createRootEl } from '../demo_utils';
 import { ENABLED_FEATURE_FLAGS } from '../enabled_features';
 import { MapFeatureType, LineJoinStyle, LineCapStyle, LineFillStyle } from '../../map/tile/feature';
-import { WebGlSceneCamera } from '../../map/renderer/webgl/webgl_camera';
 
 export async function renderWebglLineExample() {
   const rootEl = createRootEl(window.innerWidth, window.innerHeight, 10);
@@ -84,7 +83,12 @@ export async function renderWebglLineExample() {
   //   cap: LineCapStyle.round,
   // });
 
-  const sceneCamera = new WebGlSceneCamera(width, height, 0, 0, 1, 0);
-
-  scene.render(sceneCamera);
+  scene.render({
+    x: 0,
+    y: 0,
+    width,
+    height,
+    distance: 1,
+    rotationInDegree: 0,
+  });
 }

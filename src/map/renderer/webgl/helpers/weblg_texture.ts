@@ -1,10 +1,12 @@
 import { ImageBitmapTextureSource } from '../../../texture/texture';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
+import { ArrayBufferTextureSource } from '../../../texture/texture';
 
 export interface CreateTextureOptions {
   name: string;
-  width: number;
-  height: number;
+  textureIndex?: number;
+  width?: number;
+  height?: number;
   flipY?: boolean;
   unpackPremultiplyAlpha?: boolean;
   wrapS?: number;
@@ -17,7 +19,7 @@ export interface CreateTextureOptions {
   source?: ImageBitmapTextureSource;
   internalFormat?: number;
   format?: number;
-  border?: number;
+  alignment?: number;
 }
 
 export interface WebGlTexture {
@@ -28,22 +30,31 @@ export interface WebGlTexture {
   height: number;
   level: number;
   setSource(source: ImageBitmapTextureSource): void;
-  activate(): void;
+  setPixels(texturePixels: ArrayBufferTextureSource): void;
   bind(): void;
   unbind(): void;
 }
 
 let CURRENT_TEXTURE_INDEX = 0;
 
-export function createTexture(gl: ExtendedWebGLRenderingContext, options: CreateTextureOptions): WebGlTexture {
+export function resetTextureIndex() {
+  CURRENT_TEXTURE_INDEX = 0;
+}
+
+export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: CreateTextureOptions): WebGlTexture {
   const texture = gl.createTexture();
   const level = options.level || 0;
-  const textureIndex = CURRENT_TEXTURE_INDEX++;
+  const textureIndex = options.textureIndex !== undefined ? options.textureIndex : CURRENT_TEXTURE_INDEX++;
 
   gl.activeTexture(gl.TEXTURE0 + textureIndex);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  if (options.source) {
+  if (options.alignment) {
+    gl.pixelStorei(gl.PACK_ALIGNMENT, options.alignment);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, options.alignment);
+  }
+
+  if (options.source !== undefined) {
     gl.texImage2D(
       gl.TEXTURE_2D,
       level,
@@ -59,7 +70,7 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       options.internalFormat || gl.RGBA,
       options.width,
       options.height,
-      options.border || 0,
+      0, // border
       options.format || gl.RGBA,
       options.type || gl.UNSIGNED_BYTE,
       options.pixels,
@@ -108,8 +119,18 @@ export function createTexture(gl: ExtendedWebGLRenderingContext, options: Create
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
-    activate() {
-      gl.activeTexture(gl.TEXTURE0 + textureIndex);
+    setPixels(texturePixels: ArrayBufferTextureSource) {
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        level,
+        options.internalFormat || gl.RGBA32F,
+        texturePixels.width,
+        texturePixels.height,
+        0, // border
+        options.format || gl.RGBA,
+        options.type || gl.FLOAT,
+        texturePixels.data,
+      );
     },
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);

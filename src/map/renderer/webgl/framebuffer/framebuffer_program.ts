@@ -2,8 +2,8 @@ import { ObjectProgram } from '../objects/object/object_program';
 import FramebufferShareds from './framebuffer_shaders';
 import { ExtendedWebGLRenderingContext } from '../webgl_context';
 import { MapFeatureFlags } from '../../../flags';
-import { WebGlTexture } from '../utils/weblg_texture';
-import { WebGlBuffer, createWebGlBuffer } from '../utils/webgl_buffer';
+import { WebGlTexture } from '../helpers/weblg_texture';
+import { WebGlBuffer, createWebGlBuffer } from '../helpers/webgl_buffer';
 
 const POSITION_DATA = new Float32Array([-1, 1, -1, -1, 1, 1, -1, -1, 1, 1, 1, -1]);
 const TEXTURE_DATA = new Float32Array([0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1]);
@@ -18,7 +18,7 @@ export class FramebufferProgram extends ObjectProgram {
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,
     protected readonly vertexShaderSource: string = FramebufferShareds.vertext,
-    protected readonly fragmentShaderSource: string = FramebufferShareds.fragment
+    protected readonly fragmentShaderSource: string = FramebufferShareds.fragment,
   ) {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
