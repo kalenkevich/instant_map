@@ -20,22 +20,40 @@ const MaptilerVectorDataSource: DataTileSource = {
 const StyleFonts: {
   [fontName: string]: FontConfig;
 } = {
-  defaultFont2: {
-    type: FontFormatType.texture,
-    name: 'defaultFont',
-    fontSize: 42,
-    sourceType: FontSourceType.font,
-    sourceUrl: './fonts/opensans_regular.ttf',
-    ranges: [[0, 8447]],
-  },
+  // defaultFont2: {
+  //   type: FontFormatType.texture,
+  //   name: 'defaultFont',
+  //   fontSize: 42,
+  //   sourceType: FontSourceType.font,
+  //   sourceUrl: './fonts/opensans_regular.ttf',
+  //   ranges: [[0, 8447]],
+  // },
   defaultFont: {
     type: FontFormatType.sdf,
     name: 'defaultFont',
+    fontName: 'DIN Pro Regular,Arial Unicode MS Regular',
     pixelRatio: 1,
     fontSize: 24,
     sourceType: FontSourceType.pbf,
     sourceUrl:
       'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Regular,Arial%20Unicode%20MS%20Regular/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
+    ranges: [
+      [0, 255],
+      [256, 511],
+      [1024, 1279],
+      [8192, 8447],
+      // [19968, 20479], // chinese
+    ],
+  },
+  boldFont: {
+    type: FontFormatType.sdf,
+    name: 'boldFont',
+    fontName: 'DIN Pro Bold,Arial Unicode MS Bold',
+    pixelRatio: 1,
+    fontSize: 24,
+    sourceType: FontSourceType.pbf,
+    sourceUrl:
+      'https://api.mapbox.com/fonts/v1/mapbox/DIN%20Pro%20Bold,Arial%20Unicode%20MS%20Bold/{range}.pbf?access_token=pk.eyJ1Ijoia2FsZW5rZXZpY2giLCJhIjoiY2xuYXc2eXY0MDl3ZjJ3bzdjN2JwYTBocCJ9.UMtCm4-d9CQj8QbDouCkpA',
     ranges: [
       [0, 255],
       [256, 511],

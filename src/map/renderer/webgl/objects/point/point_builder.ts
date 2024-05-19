@@ -7,7 +7,7 @@ import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
 export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGlPointBufferredGroup> {
-  build(name: string, zIndex = 0): WebGlPointBufferredGroup {
+  build(name: string, zIndex = 0): WebGlPointBufferredGroup[] {
     const vertecies: number[] = [];
     const colorBuffer: number[] = [];
     const borderWidthBuffer: number[] = [];
@@ -48,38 +48,39 @@ export class PointGroupBuilder extends ObjectGroupBuilder<PointMapFeature, WebGl
       addXTimes(selectionColorBuffer, colorId, 6);
     }
 
-    return {
-      type: MapFeatureType.point,
-      name,
-      zIndex,
-      size: this.objects.length,
-      numElements: vertecies.length / 3,
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 3,
-        buffer: createdSharedArrayBuffer(vertecies),
+    return [
+      {
+        type: MapFeatureType.point,
+        name,
+        zIndex,
+        numElements: vertecies.length / 3,
+        vertecies: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 3,
+          buffer: createdSharedArrayBuffer(vertecies),
+        },
+        properties: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(propertiesBuffer),
+        },
+        color: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(colorBuffer),
+        },
+        borderColor: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(borderColorBuffer),
+        },
+        selectionColor: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(selectionColorBuffer),
+        },
       },
-      properties: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(propertiesBuffer),
-      },
-      color: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      borderColor: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(borderColorBuffer),
-      },
-      selectionColor: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(selectionColorBuffer),
-      },
-    };
+    ];
   }
 }
 

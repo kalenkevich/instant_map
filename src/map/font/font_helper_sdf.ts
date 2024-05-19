@@ -8,7 +8,7 @@ import {
   DEFAULT_SUPPORTED_CHARCODE_RANGES,
 } from './font_config';
 import { downloadBitmapImage } from '../utils/download_utils';
-import { Uint8ClampedArrayBufferTextureSource, TextureSourceType } from '../texture/texture';
+import { Uint8ClampedArrayBufferTextureSource } from '../texture/texture';
 import { arrayBufferToImageBitmapTextureSource, toUint8ClampedTextureSource } from '../texture/texture_utils';
 
 export const DEFAULT_GLYPH_BORDER = 3;
@@ -45,7 +45,7 @@ export async function getFontAtlasFromSdfConfig(
   const fontAtlas: SdfFontAtlas = {
     type: FontFormatType.sdf,
     name: config.name,
-    fontName: 'Arial',
+    fontName: config.fontName,
     glyphs: {},
     sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,
@@ -97,10 +97,12 @@ export async function getFontAtlasFromSdfConfig(
     };
   }
 
-  const textureSource = await createTextureFromSdfGlyphs(fontAtlas);
-  fontAtlas.sources.push({ index: 0, source: textureSource, name: 'text' });
+  const textureSource = createTextureFromSdfGlyphs(fontAtlas);
+  fontAtlas.sources.push({ index: 0, source: textureSource, name: config.name });
 
   if (debugMode) {
+    // const flippedSource = flipYUint8ClampedTextureSource(textureSource);
+
     // renders texture image and attach it to html
     const bitmapTexture = await arrayBufferToImageBitmapTextureSource(
       textureSource.data,
@@ -210,9 +212,7 @@ export function parseSdfGlyph(tag: number, glyph: SdfFontGlyph, pbf: Protobuf) {
 }
 
 // Creates texture atlas array buffer from glyphs
-export async function createTextureFromSdfGlyphs(
-  fontAtlas: SdfFontAtlas,
-): Promise<Uint8ClampedArrayBufferTextureSource> {
+export function createTextureFromSdfGlyphs(fontAtlas: SdfFontAtlas): Uint8ClampedArrayBufferTextureSource {
   const glyphs = Object.values(fontAtlas.glyphs);
   const { columns: textureColumns, cellWidth, cellHeight } = getTextureDimentions(glyphs);
   const EMPTY_PIXEL = [0, 0, 0, 0];
@@ -287,15 +287,12 @@ export async function createTextureFromSdfGlyphs(
     }
   }
 
-  const textureSource = new Uint8ClampedArray(sourceBufferBucket);
-  const texture: Uint8ClampedArrayBufferTextureSource = {
-    type: TextureSourceType.UINT_8_CLAMPED_ARRAY_BUFFER,
-    data: textureSource,
-    width: cellWidth * textureColumns,
-    height: cellHeight * rows.length,
-  };
-
-  return toUint8ClampedTextureSource(texture.data, texture.width, texture.height);
+  return toUint8ClampedTextureSource(
+    new Uint8ClampedArray(sourceBufferBucket),
+    cellWidth * textureColumns,
+    cellHeight * rows.length,
+    { sharedMemory: true, flipY: true },
+  );
 }
 
 export function getTextureDimentions(glyphs: SdfFontGlyph[]): {

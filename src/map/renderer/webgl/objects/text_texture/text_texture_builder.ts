@@ -6,19 +6,13 @@ import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { MapFeatureFlags } from '../../../../flags';
 import { FontManager } from '../../../../font/font_manager';
-import {
-  FontFormatType,
-  SdfFontAtlas,
-  SdfFontGlyph,
-  TextureFontAtlas,
-  TextureFontGlyph,
-  UNDEFINED_CHAR_CODE,
-} from '../../../../font/font_config';
+import { FontAtlas, FontGlyph, FontFormatType, UNDEFINED_CHAR_CODE } from '../../../../font/font_config';
 import { addXTimes } from '../../utils/array_utils';
 import { createObjectPropertiesTexture } from '../../helpers/object_properties_texture';
+import { TextureSource } from '../../../../texture/texture';
 
 export interface GlyphMapping {
-  glyph: TextureFontGlyph | SdfFontGlyph;
+  glyph: FontGlyph;
   font: string;
   fontSize: number;
   color: [number, number, number, number];
@@ -41,23 +35,90 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
     this.objects.push(text);
   }
 
-  build(name: string, zIndex = 0): WebGlTextTextureBufferredGroup {
-    const size = this.objects.length;
-    const objectIndex: number[] = [];
-    const verteciesBuffer: number[] = [];
-    const texcoordBuffer: number[] = [];
-    const textProperties: number[] = [];
-    const colorBuffer: number[] = [];
-    const borderColorBuffer: number[] = [];
-    const selectionColorBuffer: number[] = [];
-    const propertiesTexture = createObjectPropertiesTexture();
-    // TODO: support any font
-    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | SdfFontAtlas;
-    const texture = fontAtlas.sources[0];
+  build(name: string, zIndex = 0): WebGlTextTextureBufferredGroup[] {
+    const bufferedGroups: WebGlTextTextureBufferredGroup[] = [];
+    let objectIndex: number[] = [];
+    let verteciesBuffer: number[] = [];
+    let texcoordBuffer: number[] = [];
+    let textProperties: number[] = [];
+    let colorBuffer: number[] = [];
+    let borderColorBuffer: number[] = [];
+    let selectionColorBuffer: number[] = [];
+    let propertiesTexture = createObjectPropertiesTexture();
     let numElements = 0;
-
     let currentObjectIndex = 0;
+    let currentFontAtlas: FontAtlas | undefined;
+    let currentTextureSource: TextureSource | undefined;
+
     for (const text of this.objects) {
+      const fontAtlas = this.fontManager.getFontAtlas(text.font);
+      currentFontAtlas = fontAtlas;
+      const texture = fontAtlas.sources[0];
+
+      if (currentTextureSource !== texture.source) {
+        if (currentTextureSource) {
+          bufferedGroups.push({
+            type: MapFeatureType.text,
+            name: name + '_' + fontAtlas.name,
+            zIndex,
+            numElements,
+            texture: currentTextureSource,
+            isSfdTexture: fontAtlas.type === FontFormatType.sdf,
+            properties: {
+              texture: propertiesTexture.compileTexture(),
+              sizeInPixels: 1,
+            },
+            objectIndex: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 1,
+              buffer: createdSharedArrayBuffer(objectIndex),
+            },
+            vertecies: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 3,
+              buffer: createdSharedArrayBuffer(verteciesBuffer),
+            },
+            textcoords: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 2,
+              buffer: createdSharedArrayBuffer(texcoordBuffer),
+            },
+            textProperties: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(textProperties),
+            },
+            color: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(colorBuffer),
+            },
+            borderColor: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(borderColorBuffer),
+            },
+            selectionColor: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(selectionColorBuffer),
+            },
+          });
+        }
+        numElements = 0;
+        currentObjectIndex = 0;
+        propertiesTexture = createObjectPropertiesTexture();
+        currentTextureSource = texture.source;
+
+        objectIndex = [];
+        verteciesBuffer = [];
+        texcoordBuffer = [];
+        textProperties = [];
+        colorBuffer = [];
+        borderColorBuffer = [];
+        selectionColorBuffer = [];
+      }
+
       let offsetX = 0;
       const selectionColorId = integerToVector4(text.id);
       const x1 = text.center[0];
@@ -115,7 +176,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         );
         texcoordBuffer.push(u1, v1, u2, v1, u1, v2, u1, v2, u2, v1, u2, v2);
 
-        propertiesTexture.addValue([textScaledWidth, textScaledHeight, ascend + offsetTop, offsetX]);
+        // propertiesTexture.addValue([textScaledWidth, textScaledHeight, ascend + offsetTop, offsetX]);
         // propertiesTexture.addValue(text.color);
         // propertiesTexture.addValue(text.borderColor);
         // propertiesTexture.addValue(selectionColorId);
@@ -132,14 +193,13 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
       }
     }
 
-    return {
+    bufferedGroups.push({
       type: MapFeatureType.text,
       name,
       zIndex,
-      size,
       numElements,
-      textureIndex: 0,
-      sfdTexture: fontAtlas.type === FontFormatType.sdf,
+      texture: currentTextureSource,
+      isSfdTexture: currentFontAtlas.type === FontFormatType.sdf,
       properties: {
         texture: propertiesTexture.compileTexture(),
         sizeInPixels: 1,
@@ -179,11 +239,13 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
         size: 4,
         buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
-    };
+    });
+
+    return bufferedGroups;
   }
 }
 
-function getTextTotalWidth(text: TextMapFeature, fontAtlas: TextureFontAtlas | SdfFontAtlas): number {
+function getTextTotalWidth(text: TextMapFeature, fontAtlas: FontAtlas): number {
   let width = 0;
 
   for (const char of text.text) {
@@ -201,7 +263,7 @@ function getTextTotalWidth(text: TextMapFeature, fontAtlas: TextureFontAtlas | S
   return width;
 }
 
-function getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: TextureFontAtlas | SdfFontAtlas): GlyphMapping {
+function getGlyphMapping(text: TextMapFeature, char: string, fontAtlas: FontAtlas): GlyphMapping {
   const charCode = char.charCodeAt(0);
   const glyph = fontAtlas.glyphs[charCode] || fontAtlas.glyphs[UNDEFINED_CHAR_CODE];
 

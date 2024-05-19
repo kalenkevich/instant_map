@@ -50,7 +50,7 @@ export function createObjectPropertiesTexture(): PropertiesTexture {
         arrayBuffer.push(0);
       }
 
-      return toFloat32TextureSource(arrayBuffer, width, height);
+      return toFloat32TextureSource(arrayBuffer, width, height, { sharedMemory: true, flipY: true });
     },
   };
 }

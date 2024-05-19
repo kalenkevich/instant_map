@@ -92,8 +92,8 @@ export interface TextStyle {
   color: Statement<ColorValue>;
   borderColor: Statement<ColorValue>;
   text: Statement<string>;
-  font?: Statement<string>; // default roboto
-  fontSize?: Statement<number>; // default 14
+  font: Statement<string>; // default roboto
+  fontSize: Statement<number>; // default 14
   show?: Statement<boolean>;
   align?: Statement<TextAlign>;
   minzoom?: number;

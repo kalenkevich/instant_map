@@ -7,12 +7,11 @@ export enum FontSourceType {
 }
 
 export enum FontFormatType {
-  vector = 'vector',
   sdf = 'sdf',
   texture = 'texture',
 }
 
-export type FontConfig = VectorFontConfig | SdfFontConfig | TextureFontConfig;
+export type FontConfig = SdfFontConfig | TextureFontConfig;
 
 export const DEFAULT_SUPPORTED_CHARCODE_RANGES: Array<[number, number]> = [
   [0, 255],
@@ -24,18 +23,11 @@ export const DEFAULT_SUPPORTED_CHARCODE_RANGES: Array<[number, number]> = [
 
 export const UNDEFINED_CHAR_CODE = -1;
 
-export interface VectorFontConfig {
-  type: FontFormatType.vector;
-  sourceType: FontSourceType.font;
-  name: string; // font name
-  sourceUrl: string;
-  ranges?: Array<[number, number]>; // supported charcode ranges
-}
-
 export interface SdfFontConfig {
   type: FontFormatType.sdf;
   sourceType: FontSourceType.font | FontSourceType.pbf;
-  name: string; // font name
+  name: string; // config font name name, alisas which used in styles.
+  fontName: string; // system font name
   sourceUrl: string;
   fontSize: number;
   ranges?: Array<[number, number]>; // supported charcode ranges
@@ -45,7 +37,8 @@ export interface SdfFontConfig {
 export interface TextureFontConfig {
   type: FontFormatType.texture;
   sourceType: FontSourceType.font | FontSourceType.image;
-  name: string; // font name
+  name: string; // config font name name, alisas which used in styles.
+  fontName: string; // system font name
   sourceUrl: string;
   ranges?: Array<[number, number]>; // supported charcode ranges
   fontSize: number;
@@ -56,16 +49,7 @@ export interface TextureFontConfig {
   pixelRatio?: number;
 }
 
-export type FontAtlas = VectorFontAtlas | SdfFontAtlas | TextureFontAtlas;
-
-export interface VectorFontAtlas {
-  type: FontFormatType.vector;
-  name: string;
-  glyphs: Record<number, VectorFontGlyph>;
-  ascender: number;
-  descender: number;
-  ranges: Array<[number, number]>; // supported charcode ranges
-}
+export type FontAtlas = SdfFontAtlas | TextureFontAtlas;
 
 export interface SdfFontAtlas {
   type: FontFormatType.sdf;
@@ -90,26 +74,17 @@ export interface TextureFontAtlas {
   ranges: Array<[number, number]>; // supported charcode ranges
 }
 
-export type FontGlyph = VectorFontGlyph | SdfFontGlyph | TextureFontGlyph;
-
-export interface VectorFontGlyph {
-  type: FontFormatType.vector;
-  char: string; // char string
-  charCode: number;
-  source: VectorGlyphCommand[];
-  width: number;
-  height: number;
-}
+export type FontGlyph = SdfFontGlyph | TextureFontGlyph;
 
 export interface SdfFontGlyph {
   type: FontFormatType.sdf;
   char: string; // char string
   charCode: number;
   source: Uint8ClampedArray;
-  width: number;
-  height: number;
-  x: number; // ???
-  y: number; // ???
+  x: number; // x coordinate of left top corner of the glyph rectangle in the atlas
+  y: number; // y coordinate of left top corner of the glyph rectangle in the atlas
+  width: number; // width of the glyph rectangle in the atlas
+  height: number; // height of the glyph rectangle in the atlas
   actualBoundingBoxAscent: number;
   actualBoundingBoxDescent: number;
   fontSize: number;
@@ -120,10 +95,10 @@ export interface TextureFontGlyph {
   type: FontFormatType.texture;
   char: string; // char string
   charCode: number;
-  width: number;
-  height: number;
-  x: number; // x position according to the source
-  y: number; // y position according to the source
+  x: number; // x coordinate of left top corner of the glyph rectangle in the atlas
+  y: number; // y coordinate of left top corner of the glyph rectangle in the atlas
+  width: number; // width of the glyph rectangle in the atlas
+  height: number; // height of the glyph rectangle in the atlas
   actualBoundingBoxAscent: number;
   actualBoundingBoxDescent: number;
   fontSize: number;

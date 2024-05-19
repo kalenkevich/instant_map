@@ -18,7 +18,7 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
     super(featureFlags);
   }
 
-  build(name: string, zIndex = 0): WebGlGlyphBufferredGroup {
+  build(name: string, zIndex = 0): WebGlGlyphBufferredGroup[] {
     let textureAtlasName: string;
     const filteredGlyphs: GlyphMapFeature[] = [];
     const glyphTextureMapping = this.glyphsManager.getMappingState();
@@ -34,8 +34,6 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
 
       filteredGlyphs.push(glyph);
     }
-
-    const size = filteredGlyphs.length;
 
     const verteciesBuffer: number[] = [];
     const texcoordBuffer: number[] = [];
@@ -88,38 +86,39 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       addXTimes(selectionColorBuffer, colorId, 6);
     }
 
-    return {
-      type: MapFeatureType.glyph,
-      name,
-      zIndex,
-      size,
-      numElements: verteciesBuffer.length / 3,
-      atlas: textureAtlasName,
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 3,
-        buffer: createdSharedArrayBuffer(verteciesBuffer),
+    return [
+      {
+        type: MapFeatureType.glyph,
+        name,
+        zIndex,
+        numElements: verteciesBuffer.length / 3,
+        atlas: textureAtlasName,
+        vertecies: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 3,
+          buffer: createdSharedArrayBuffer(verteciesBuffer),
+        },
+        textcoords: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 2,
+          buffer: createdSharedArrayBuffer(texcoordBuffer),
+        },
+        properties: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(glyphProperties),
+        },
+        color: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(colorBuffer),
+        },
+        selectionColor: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(selectionColorBuffer),
+        },
       },
-      textcoords: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(texcoordBuffer),
-      },
-      properties: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(glyphProperties),
-      },
-      color: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(colorBuffer),
-      },
-      selectionColor: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(selectionColorBuffer),
-      },
-    };
+    ];
   }
 }
