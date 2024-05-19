@@ -11,7 +11,7 @@ export class RenderQueue {
     this.invokeRender = this.invokeRender.bind(this);
   }
 
-  public render(renderFn: RenderFunc): Promise<void> {
+  public renderInNextAvailableFrame(renderFn: RenderFunc): Promise<void> {
     return new Promise(resolve => {
       this.queue.push([renderFn, resolve]);
 
