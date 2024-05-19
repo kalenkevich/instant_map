@@ -3,7 +3,7 @@ import { DataTileSource, DataTileStyles } from '../map/styles/styles';
 import { MapFeatureType, LineJoinStyle, TextAlign } from '../map/tile/feature';
 import { FontConfig } from '../map/font/font_config';
 import { FontFormatType, FontSourceType } from '../map/font/font_config';
-import { GlyphsTextrureAtlasType } from '../map/glyphs/glyphs_config';
+import { GlyphsTextrureAtlasType, GlyphsTextrureAtlasConfig } from '../map/glyphs/glyphs_config';
 
 const MapboxVectorDataSource: DataTileSource = {
   type: TileSourceType.mvt,
@@ -76,6 +76,25 @@ const StyleFonts: {
   //   sourceType: FontSourceType.font,
   //   sourceUrl: './fonts/opensans_regular.ttf',
   // },
+};
+
+const StyleGlyphs: {
+  [glyphAtlas: string]: GlyphsTextrureAtlasConfig;
+} = {
+  iconsAtlas: {
+    type: GlyphsTextrureAtlasType.png,
+    name: 'iconsAtlas',
+    width: 1024,
+    height: 936,
+    sourceUrl: './icons/sprite@2x.png',
+    mappingUrl: './icons/sprite@2x.json',
+  },
+  temakiSvg: {
+    type: GlyphsTextrureAtlasType.svg,
+    name: 'temakiSvg',
+    sourceUrl: 'https://raw.githubusercontent.com/rapideditor/temaki/main/dist/temaki-view.svg',
+    pixelRatio: 4,
+  },
 };
 
 export const MapTilerVectorTileStyles: DataTileStyles = {
@@ -408,16 +427,7 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       minzoom: 3,
     },
   },
-  glyphs: {
-    iconsAtlas: {
-      type: GlyphsTextrureAtlasType.png,
-      name: 'iconsAtlas',
-      width: 1024,
-      height: 936,
-      sourceUrl: './icons/sprite@2x.png',
-      mappingUrl: './icons/sprite@2x.json',
-    },
-  },
+  glyphs: StyleGlyphs,
   fonts: StyleFonts,
 };
 
@@ -597,6 +607,20 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       maxzoom: 18,
       minzoom: 12,
     },
+    poiIconSvg: {
+      source: 'dataSource',
+      sourceLayer: 'poi_label',
+      styleLayerName: 'poiIconSvg',
+      show: true,
+      zIndex: 3,
+      feature: {
+        type: MapFeatureType.glyph,
+        name: ['$concat', 'temaki-', ['$get', 'properties.maki']],
+        atlas: 'temakiSvg',
+      },
+      maxzoom: 18,
+      minzoom: 12,
+    },
     place: {
       source: 'dataSource',
       sourceLayer: 'place_label',
@@ -710,16 +734,7 @@ export const MapboxVectorTileStyles: DataTileStyles = {
       minzoom: 12,
     },
   },
-  glyphs: {
-    iconsAtlas: {
-      type: GlyphsTextrureAtlasType.png,
-      name: 'iconsAtlas',
-      width: 1024,
-      height: 936,
-      sourceUrl: './icons/sprite@2x.png',
-      mappingUrl: './icons/sprite@2x.json',
-    },
-  },
+  glyphs: StyleGlyphs,
   fonts: StyleFonts,
 };
 
@@ -920,16 +935,7 @@ export const SateliteTilesStyles: DataTileStyles = {
       minzoom: 12,
     },
   },
-  glyphs: {
-    iconsAtlas: {
-      type: GlyphsTextrureAtlasType.png,
-      name: 'iconsAtlas',
-      width: 1024,
-      height: 936,
-      sourceUrl: './icons/sprite@2x.png',
-      mappingUrl: './icons/sprite@2x.json',
-    },
-  },
+  glyphs: StyleGlyphs,
   fonts: StyleFonts,
 };
 

@@ -101,8 +101,6 @@ export async function getFontAtlasFromSdfConfig(
   fontAtlas.sources.push({ index: 0, source: textureSource, name: config.name });
 
   if (debugMode) {
-    // const flippedSource = flipYUint8ClampedTextureSource(textureSource);
-
     // renders texture image and attach it to html
     const bitmapTexture = await arrayBufferToImageBitmapTextureSource(
       textureSource.data,
