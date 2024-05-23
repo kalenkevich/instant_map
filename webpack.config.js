@@ -1,11 +1,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
+const TerserPlugin = require("terser-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
-const isProduction = process.env['APP_ENV'] === 'PRODUCTION';
+const isProduction = true || process.env['APP_ENV'] === 'PRODUCTION';
 
 module.exports = {
   entry: './src/index.ts',
@@ -55,6 +56,11 @@ module.exports = {
     }),
     new BundleAnalyzerPlugin({ analyzerMode: isProduction ? 'disabled' : 'server' }),
   ],
+
   mode: isProduction ? 'production' : 'development',
   devtool: isProduction ? undefined : 'inline-source-map',
+  optimization: isProduction ? {
+    minimize: true,
+    minimizer: [new TerserPlugin()],
+  } : {},
 };
