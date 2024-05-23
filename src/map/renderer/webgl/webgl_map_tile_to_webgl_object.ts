@@ -65,27 +65,27 @@ export function MapFeatures2WebglObjects(
   const objectGroups: WebGlObjectBufferredGroup[] = [];
 
   if (!pointBuidler.isEmpty()) {
-    objectGroups.push(pointBuidler.build('points'));
+    objectGroups.push(...pointBuidler.build('points'));
   }
 
   if (!polygonGroupBuilder.isEmpty()) {
-    objectGroups.push(polygonGroupBuilder.build('polygons'));
+    objectGroups.push(...polygonGroupBuilder.build('polygons'));
   }
 
   if (!lineBuilder.isEmpty()) {
-    objectGroups.push(lineBuilder.build('lines'));
+    objectGroups.push(...lineBuilder.build('lines'));
   }
 
   if (!glyphGroupBuilder.isEmpty()) {
-    objectGroups.push(glyphGroupBuilder.build('glyphs'));
+    objectGroups.push(...glyphGroupBuilder.build('glyphs'));
   }
 
   if (!textBuilder.isEmpty()) {
-    objectGroups.push(textBuilder.build('texts'));
+    objectGroups.push(...textBuilder.build('texts'));
   }
 
   if (!imageGroupBuilder.isEmpty()) {
-    objectGroups.push(imageGroupBuilder.build('images'));
+    objectGroups.push(...imageGroupBuilder.build('images'));
   }
 
   return objectGroups;
@@ -145,32 +145,32 @@ export function MapTile2WebglObjects(
     }
 
     if (!pointBuidler.isEmpty()) {
-      objectGroups.push(pointBuidler.build(`${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
+      objectGroups.push(...pointBuidler.build(`${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
       pointBuidler.clear();
     }
 
     if (!polygonGroupBuilder.isEmpty()) {
-      objectGroups.push(polygonGroupBuilder.build(`${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex));
+      objectGroups.push(...polygonGroupBuilder.build(`${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex));
       polygonGroupBuilder.clear();
     }
 
     if (!lineBuilder.isEmpty()) {
-      objectGroups.push(lineBuilder.build(`${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
+      objectGroups.push(...lineBuilder.build(`${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
       lineBuilder.clear();
     }
 
     if (!glyphGroupBuilder.isEmpty()) {
-      objectGroups.push(glyphGroupBuilder.build(`${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
+      objectGroups.push(...glyphGroupBuilder.build(`${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
       glyphGroupBuilder.clear();
     }
 
     if (!textBuilder.isEmpty()) {
-      objectGroups.push(textBuilder.build(`${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
+      objectGroups.push(...textBuilder.build(`${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
       textBuilder.clear();
     }
 
     if (!imageGroupBuilder.isEmpty()) {
-      objectGroups.push(imageGroupBuilder.build(`${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
+      objectGroups.push(...imageGroupBuilder.build(`${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
       imageGroupBuilder.clear();
     }
   }

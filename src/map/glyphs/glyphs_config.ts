@@ -32,6 +32,7 @@ export interface SvgGlyphsTextureAtlasConfig {
   name: string;
   source?: string;
   sourceUrl?: string;
+  pixelRatio?: number;
 }
 
 export interface GlyphTexture {
@@ -47,6 +48,7 @@ export interface GlyphTexture {
 }
 
 export interface GlyphTextureAtlasMapping {
+  name: string;
   x: number;
   y: number;
   width: number;

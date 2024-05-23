@@ -1,6 +1,14 @@
-import { mat3 } from 'gl-matrix';
 import { Projection } from '../geo/projection/projection';
 import { MapFeatureFlags } from '../flags';
+import {
+  Matrix3,
+  createMatrix3,
+  translateMatrix3,
+  scaleMatrix3,
+  rotateMatrix3,
+  invertMatrix3,
+  multiplyMatrix3,
+} from '../math/matrix_utils';
 
 export class MapCamera {
   private x: number;
@@ -56,22 +64,18 @@ export class MapCamera {
     this.rotationInDegree = rotationInDegree;
   }
 
-  public getProjectionMatrix(): mat3 {
+  public getProjectionMatrix(): Matrix3 {
     // update camera matrix
     const zoomScale = Math.pow(2, this.zoom);
 
-    const cameraMat = mat3.create();
-    mat3.translate(cameraMat, cameraMat, [this.x, this.y]);
-    mat3.scale(cameraMat, cameraMat, [
-      this.width / (this.tileSize * zoomScale),
-      this.height / (this.tileSize * zoomScale),
-    ]);
-    mat3.rotate(cameraMat, cameraMat, (Math.PI / 180) * this.rotationInDegree);
+    const cameraMat = createMatrix3();
+    translateMatrix3(cameraMat, [this.x, this.y]);
+    scaleMatrix3(cameraMat, [this.width / (this.tileSize * zoomScale), this.height / (this.tileSize * zoomScale)]);
+    rotateMatrix3(cameraMat, (Math.PI / 180) * this.rotationInDegree);
 
     // update view projection matrix
-    const mat = mat3.create();
-    const viewMat = mat3.invert(mat3.create(), cameraMat);
-    const viewProjectionMat = mat3.multiply(mat, mat, viewMat);
+    const viewMat = invertMatrix3(cameraMat);
+    const viewProjectionMat = multiplyMatrix3(createMatrix3(), viewMat);
 
     return viewProjectionMat;
   }

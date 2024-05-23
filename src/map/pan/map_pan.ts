@@ -1,5 +1,5 @@
 import 'hammerjs';
-import { vec3, mat3 } from 'gl-matrix';
+import { invertMatrix3, transformVector3Matrix3 } from '../math/matrix_utils';
 import { InstantMap } from '../map';
 import { Evented } from '../evented';
 
@@ -66,14 +66,10 @@ export class MapPan extends Evented<MapPanEvents> {
     const viewProjectionMat = this.map.getProjectionMatrix();
 
     // compute the previous position in world space
-    const [preX, preY] = vec3.transformMat3(
-      vec3.create(),
-      [this.startX, this.startY, 0],
-      mat3.invert(mat3.create(), viewProjectionMat),
-    );
+    const [preX, preY] = transformVector3Matrix3([this.startX, this.startY, 0], invertMatrix3([...viewProjectionMat]));
 
     // compute the new position in world space
-    const [postX, postY] = vec3.transformMat3(vec3.create(), [x, y, 0], mat3.invert(mat3.create(), viewProjectionMat));
+    const [postX, postY] = transformVector3Matrix3([x, y, 0], invertMatrix3([...viewProjectionMat]));
 
     // move that amount, because how much the position changes depends on the zoom level
     const deltaX = preX - postX;
@@ -133,11 +129,7 @@ export class MapPan extends Evented<MapPanEvents> {
     const [x, y] = this.getClipSpacePosition(wheelEvent);
 
     // get position before zooming
-    const [preZoomX, preZoomY] = vec3.transformMat3(
-      vec3.create(),
-      [x, y, 0],
-      mat3.invert(mat3.create(), this.map.getProjectionMatrix()),
-    );
+    const [preZoomX, preZoomY] = transformVector3Matrix3([x, y, 0], invertMatrix3([...this.map.getProjectionMatrix()]));
 
     // update current zoom state
     const prevZoom = this.map.getZoom();
@@ -152,10 +144,9 @@ export class MapPan extends Evented<MapPanEvents> {
     this.map.setZoom(newZoom);
 
     // get new position after zooming
-    const [postZoomX, postZoomY] = vec3.transformMat3(
-      vec3.create(),
+    const [postZoomX, postZoomY] = transformVector3Matrix3(
       [x, y, 0],
-      mat3.invert(mat3.create(), this.map.getProjectionMatrix()),
+      invertMatrix3([...this.map.getProjectionMatrix()]),
     );
 
     // camera needs to be moved the difference of before and after

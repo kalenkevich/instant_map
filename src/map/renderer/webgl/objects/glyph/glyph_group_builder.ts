@@ -18,13 +18,11 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
     super(featureFlags);
   }
 
-  build(name: string, zIndex = 0): WebGlGlyphBufferredGroup {
-    let textureAtlasName: string;
+  build(name: string, zIndex = 0): WebGlGlyphBufferredGroup[] {
+    const bufferedGroup: WebGlGlyphBufferredGroup[] = [];
     const filteredGlyphs: GlyphMapFeature[] = [];
     const glyphTextureMapping = this.glyphsManager.getMappingState();
-
     for (const glyph of this.objects) {
-      textureAtlasName = glyph.atlas;
       const textureAtlas = glyphTextureMapping[glyph.atlas];
       const glyphMapping = textureAtlas.mapping[glyph.name];
 
@@ -35,15 +33,62 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       filteredGlyphs.push(glyph);
     }
 
-    const size = filteredGlyphs.length;
+    if (!filteredGlyphs.length) {
+      return [];
+    }
 
-    const verteciesBuffer: number[] = [];
-    const texcoordBuffer: number[] = [];
-    const colorBuffer: number[] = [];
-    const glyphProperties: number[] = [];
-    const selectionColorBuffer: number[] = [];
+    let verteciesBuffer: number[] = [];
+    let texcoordBuffer: number[] = [];
+    let colorBuffer: number[] = [];
+    let glyphProperties: number[] = [];
+    let selectionColorBuffer: number[] = [];
+    let currentAtlas: string | undefined;
 
     for (const glyph of filteredGlyphs) {
+      if (currentAtlas !== glyph.atlas) {
+        if (currentAtlas) {
+          bufferedGroup.push({
+            type: MapFeatureType.glyph,
+            name,
+            zIndex,
+            numElements: verteciesBuffer.length / 3,
+            atlas: currentAtlas,
+            vertecies: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 3,
+              buffer: createdSharedArrayBuffer(verteciesBuffer),
+            },
+            textcoords: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 2,
+              buffer: createdSharedArrayBuffer(texcoordBuffer),
+            },
+            properties: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(glyphProperties),
+            },
+            color: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(colorBuffer),
+            },
+            selectionColor: {
+              type: WebGlObjectAttributeType.FLOAT,
+              size: 4,
+              buffer: createdSharedArrayBuffer(selectionColorBuffer),
+            },
+          });
+        }
+        currentAtlas = glyph.atlas;
+
+        verteciesBuffer = [];
+        texcoordBuffer = [];
+        colorBuffer = [];
+        glyphProperties = [];
+        selectionColorBuffer = [];
+      }
+
       const colorId = integerToVector4(glyph.id);
       const textureAtlas = glyphTextureMapping[glyph.atlas];
       const glyphMapping = textureAtlas.mapping[glyph.name];
@@ -88,13 +133,12 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
       addXTimes(selectionColorBuffer, colorId, 6);
     }
 
-    return {
+    bufferedGroup.push({
       type: MapFeatureType.glyph,
       name,
       zIndex,
-      size,
       numElements: verteciesBuffer.length / 3,
-      atlas: textureAtlasName,
+      atlas: currentAtlas,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 3,
@@ -120,6 +164,8 @@ export class GlyphGroupBuilder extends ObjectGroupBuilder<GlyphMapFeature, WebGl
         size: 4,
         buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
-    };
+    });
+
+    return bufferedGroup;
   }
 }

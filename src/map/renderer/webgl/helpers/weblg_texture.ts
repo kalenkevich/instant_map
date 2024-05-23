@@ -106,8 +106,6 @@ export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: C
     height: options.height,
     level,
     setSource(source: ImageBitmapTextureSource) {
-      gl.activeTexture(gl.TEXTURE0 + textureIndex);
-      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
         gl.TEXTURE_2D,
         level,
@@ -116,19 +114,17 @@ export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: C
         options.type || gl.UNSIGNED_BYTE,
         source.data,
       );
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, null);
     },
     setPixels(texturePixels: ArrayBufferTextureSource) {
       gl.texImage2D(
         gl.TEXTURE_2D,
         level,
-        options.internalFormat || gl.RGBA32F,
+        options.internalFormat || gl.RGBA,
         texturePixels.width,
         texturePixels.height,
         0, // border
         options.format || gl.RGBA,
-        options.type || gl.FLOAT,
+        options.type || gl.UNSIGNED_BYTE,
         texturePixels.data,
       );
     },

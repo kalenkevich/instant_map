@@ -27,7 +27,7 @@ export async function getFontAtlasFromImage(config: TextureFontConfig): Promise<
   const fontAtlas: TextureFontAtlas = {
     type: FontFormatType.texture,
     name: config.name,
-    fontName: '',
+    fontName: config.fontName,
     glyphs: {},
     sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,
@@ -101,7 +101,7 @@ export async function getFontAtlasFromFont(
   const fontAtlas: TextureFontAtlas = {
     type: FontFormatType.texture,
     name: config.name,
-    fontName: '',
+    fontName: config.fontName,
     glyphs: {},
     sources: [],
     ranges: config.ranges || DEFAULT_SUPPORTED_CHARCODE_RANGES,

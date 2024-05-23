@@ -41,7 +41,6 @@ export default {
       v_color = a_color;
 
       // vec4 text_properties = getValueByIndexFromTexture(u_properties, u_properties_data.xy, a_object_index);
-
       // float width = text_properties[0] / 1.0;
       // float height = text_properties[1] / 1.0;
       // float offsetTop = text_properties[2] / 1.0;
