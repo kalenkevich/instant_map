@@ -53,7 +53,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [{ from: path.resolve(__dirname, 'assets'), to: path.resolve(__dirname, 'dist') }],
     }),
-    new BundleAnalyzerPlugin(),
+    new BundleAnalyzerPlugin({ analyzerMode: isProduction ? 'disabled' : 'server' }),
   ],
   mode: isProduction ? 'production' : 'development',
   devtool: isProduction ? undefined : 'inline-source-map',
