@@ -3,7 +3,6 @@ import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectA
 
 export interface WebGlPolygonBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.polygon;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>; // Array<vec4>;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec2>;

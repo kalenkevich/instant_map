@@ -16,7 +16,7 @@ const getBbox = (p1: [number, number], p2: [number, number]): [number, number, n
 };
 
 export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlShaderLineBufferredGroup> {
-  build(name: string, zIndex = 0): WebGlShaderLineBufferredGroup {
+  build(name: string, zIndex = 0): WebGlShaderLineBufferredGroup[] {
     const vertecies: number[] = [];
     const prevPoint: number[] = [];
     const currPoint: number[] = [];
@@ -70,57 +70,58 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
       }
     }
 
-    return {
-      type: MapFeatureType.line,
-      name,
-      zIndex,
-      size: this.objects.length,
-      numElements: vertecies.length / 3,
-      vertecies: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 3,
-        buffer: createdSharedArrayBuffer(vertecies),
+    return [
+      {
+        type: MapFeatureType.line,
+        name,
+        zIndex,
+        numElements: vertecies.length / 3,
+        vertecies: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 3,
+          buffer: createdSharedArrayBuffer(vertecies),
+        },
+        prevPoint: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 2,
+          buffer: createdSharedArrayBuffer(prevPoint),
+        },
+        currPoint: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 2,
+          buffer: createdSharedArrayBuffer(currPoint),
+        },
+        nextPoint: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 2,
+          buffer: createdSharedArrayBuffer(nextPoint),
+        },
+        properties: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 2,
+          buffer: createdSharedArrayBuffer(properties),
+        },
+        renderStyles: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 3,
+          buffer: createdSharedArrayBuffer(renderStyles),
+        },
+        color: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(color),
+        },
+        borderColor: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(borderColor),
+        },
+        selectionColor: {
+          type: WebGlObjectAttributeType.FLOAT,
+          size: 4,
+          buffer: createdSharedArrayBuffer(selectionColor),
+        },
       },
-      prevPoint: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(prevPoint),
-      },
-      currPoint: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(currPoint),
-      },
-      nextPoint: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(nextPoint),
-      },
-      properties: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 2,
-        buffer: createdSharedArrayBuffer(properties),
-      },
-      renderStyles: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 3,
-        buffer: createdSharedArrayBuffer(renderStyles),
-      },
-      color: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(color),
-      },
-      borderColor: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(borderColor),
-      },
-      selectionColor: {
-        type: WebGlObjectAttributeType.FLOAT,
-        size: 4,
-        buffer: createdSharedArrayBuffer(selectionColor),
-      },
-    };
+    ];
   }
 }

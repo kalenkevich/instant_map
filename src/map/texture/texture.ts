@@ -14,6 +14,8 @@ export type ArrayBufferTextureSource =
 
 /** Bynary source of the image. */
 export interface Uint8ClampedArrayBufferTextureSource {
+  id: number; // Every texture should have uniq id to identify it (and set only once for example);
+  name?: string;
   type: TextureSourceType.UINT_8_CLAMPED_ARRAY_BUFFER;
   width: number;
   height: number;
@@ -22,6 +24,8 @@ export interface Uint8ClampedArrayBufferTextureSource {
 
 /** Bynary source of the image. */
 export interface Float32ArrayBufferTextureSource {
+  id: number;
+  name?: string;
   type: TextureSourceType.FLOAT_32_ARRAY_BUFFER;
   width: number;
   height: number;
@@ -30,6 +34,8 @@ export interface Float32ArrayBufferTextureSource {
 
 /** Bynary source of the image. */
 export interface Uint8ArrayBufferTextureSource {
+  id: number;
+  name?: string;
   type: TextureSourceType.UINT8_ARRAY_BUFFER;
   width: number;
   height: number;
@@ -38,6 +44,8 @@ export interface Uint8ArrayBufferTextureSource {
 
 /** Bitmap image source. Ready to be used in canvas by GPU. */
 export interface ImageBitmapTextureSource {
+  id: number;
+  name?: string;
   type: TextureSourceType.IMAGE_BITMAP;
   width: number;
   height: number;

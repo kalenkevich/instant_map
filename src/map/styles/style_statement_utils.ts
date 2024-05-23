@@ -1150,6 +1150,7 @@ export function isConstantValue<V>(statement: Statement<V>): boolean {
       '$max',
       '$rgb',
       '$rgba',
+      '$concat',
     ].includes(statement[0]);
   }
 
