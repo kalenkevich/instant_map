@@ -8,6 +8,8 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 
 const isProduction = process.env['APP_ENV'] === 'PRODUCTION';
 
+console.log('Production build: ', isProduction);
+
 module.exports = {
   entry: './src/index.ts',
   resolve: {
