@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
-const isProduction = true || process.env['APP_ENV'] === 'PRODUCTION';
+const isProduction = process.env['APP_ENV'] === 'PRODUCTION';
 
 module.exports = {
   entry: './src/index.ts',
