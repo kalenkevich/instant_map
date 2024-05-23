@@ -1,11 +1,16 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+const isProduction = process.env['APP_ENV'] === 'PRODUCTION';
 
 module.exports = {
   entry: './src/index.ts',
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.js'],
   },
   output: {
     filename: 'bundle.[fullhash].js',
@@ -48,7 +53,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [{ from: path.resolve(__dirname, 'assets'), to: path.resolve(__dirname, 'dist') }],
     }),
+    new BundleAnalyzerPlugin(),
   ],
-  mode: 'development',
-  devtool: 'inline-source-map',
+  mode: isProduction ? 'production' : 'development',
+  devtool: isProduction ? undefined : 'inline-source-map',
 };

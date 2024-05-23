@@ -3,7 +3,6 @@ import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectA
 
 export interface WebGlPointBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.point;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>;
   color: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 4, Float32Array>;

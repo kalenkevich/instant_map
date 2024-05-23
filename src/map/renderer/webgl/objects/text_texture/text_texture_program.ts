@@ -7,8 +7,7 @@ import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
 import { WebGlTexture, createWebGlTexture } from '../../helpers/weblg_texture';
 import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
 import { FontManager } from '../../../../font/font_manager';
-import { TextureFontAtlas } from '../../../../font/font_config';
-import { toImageBitmapTextureSource } from '../../../../texture/texture_utils';
+import { TextureSource, TextureSourceType } from '../../../../texture/texture';
 
 export class TextTextureProgram extends ObjectProgram {
   // Uniforms
@@ -25,8 +24,9 @@ export class TextTextureProgram extends ObjectProgram {
   protected objectIndexBuffer: WebGlBuffer;
 
   // Textures
-  protected fontTextures: WebGlTexture[] = [];
+  protected fontTexture: WebGlTexture;
   protected propertiesTexture: WebGlTexture;
+  private currentFontTexture: TextureSource;
 
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
@@ -82,6 +82,16 @@ export class TextTextureProgram extends ObjectProgram {
   protected async setupTextures() {
     const gl = this.gl;
 
+    this.fontTexture = createWebGlTexture(gl, {
+      name: 'text_texture_atlas',
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+      minFilter: gl.LINEAR,
+      magFilter: gl.LINEAR,
+      type: gl.UNSIGNED_BYTE,
+      internalFormat: gl.RGBA,
+      format: gl.RGBA,
+    });
     this.propertiesTexture = createWebGlTexture(gl, {
       name: 'text_properties_texture',
       wrapS: gl.CLAMP_TO_EDGE,
@@ -95,24 +105,6 @@ export class TextTextureProgram extends ObjectProgram {
       internalFormat: gl.RGBA32F,
       format: gl.RGBA,
     });
-
-    const fontAtlas = this.fontManager.getFontAtlas('defaultFont') as TextureFontAtlas | undefined;
-
-    for (const source of Object.values(fontAtlas?.sources || {})) {
-      this.fontTextures.push(
-        createWebGlTexture(gl, {
-          name: 'text_atlas_' + source.name,
-          width: source.source.width,
-          height: source.source.height,
-          unpackPremultiplyAlpha: true,
-          wrapS: gl.CLAMP_TO_EDGE,
-          wrapT: gl.CLAMP_TO_EDGE,
-          minFilter: gl.LINEAR,
-          magFilter: gl.LINEAR,
-          source: await toImageBitmapTextureSource(source.source),
-        }),
-      );
-    }
   }
 
   drawObjectGroup(textGroup: WebGlTextTextureBufferredGroup, options?: DrawObjectGroupOptions) {
@@ -120,11 +112,19 @@ export class TextTextureProgram extends ObjectProgram {
 
     gl.bindVertexArray(this.vao);
 
-    const texture = this.fontTextures[textGroup.textureIndex];
-    texture.bind();
+    this.fontTexture.bind();
+    // Change current font texture only when it is really different.
+    if (this.currentFontTexture?.id !== textGroup.texture.id) {
+      if (textGroup.texture.type === TextureSourceType.IMAGE_BITMAP) {
+        this.fontTexture.setSource(textGroup.texture);
+      } else {
+        this.fontTexture.setPixels(textGroup.texture);
+      }
+    }
+    this.currentFontTexture = textGroup.texture;
 
-    this.textureUniform.setInteger(texture.index);
-    this.isSfdUniform.setBoolean(textGroup.sfdTexture);
+    this.textureUniform.setInteger(this.fontTexture.index);
+    this.isSfdUniform.setBoolean(textGroup.isSfdTexture);
 
     this.propertiesTexture.bind();
     this.propertiesTexture.setPixels(textGroup.properties.texture);
@@ -155,7 +155,7 @@ export class TextTextureProgram extends ObjectProgram {
       gl.drawArrays(gl.TRIANGLES, 0, textGroup.numElements);
     }
 
-    texture.unbind();
+    this.fontTexture.unbind();
     this.propertiesTexture.unbind();
     gl.bindVertexArray(null);
   }

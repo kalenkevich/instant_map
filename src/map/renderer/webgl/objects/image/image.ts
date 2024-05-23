@@ -4,7 +4,6 @@ import { ImageBitmapTextureSource } from '../../../../texture/texture';
 
 export interface WebGlImageBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.image;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
   texture: ImageBitmapTextureSource;
   // [x, y, alignment]

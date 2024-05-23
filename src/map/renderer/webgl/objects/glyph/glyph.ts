@@ -3,7 +3,6 @@ import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectA
 
 export interface WebGlGlyphBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.glyph;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
   atlas: string;
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>;

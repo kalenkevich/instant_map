@@ -3,7 +3,6 @@ import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectA
 
 export interface WebGlShaderLineBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.line;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
   vertecies: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 3, Float32Array>; // Array<vec2>;
   prevPoint: WebGlObjectAttributeDescriptor<WebGlObjectAttributeType.FLOAT, 2, Float32Array>; // Array<vec3>;

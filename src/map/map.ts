@@ -74,6 +74,11 @@ export interface MapOptions {
   featureFlags?: MapFeatureFlags;
 }
 
+interface RenderOptions {
+  pruneCache: boolean;
+  clearRenderQueue: boolean;
+}
+
 export enum MapEventType {
   ANY = '*',
   ZOOM = 'map_zoom',
@@ -139,7 +144,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.mapOptions.rotation,
     );
     this.init().then(() => {
-      this.rerender();
+      this.rerender({ pruneCache: false, clearRenderQueue: false });
     });
   }
 
@@ -186,7 +191,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.camera.getRotation(),
     );
     this.init().then(() => {
-      this.rerender();
+      this.rerender({ pruneCache: false, clearRenderQueue: false });
     });
   }
 
@@ -239,7 +244,7 @@ export class InstantMap extends Evented<MapEventType> {
   }
 
   private onTileChanged = () => {
-    this.rerender(true);
+    this.rerender({ pruneCache: false, clearRenderQueue: true });
   };
 
   private onMapClick = (event: MapPanEvents, clickEvent: MouseEvent, clippedWebGlSpaceCoords: [number, number]) => {
@@ -269,7 +274,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.camera.resize(this.width, this.height);
     this.renderer.resize(this.width, this.height);
 
-    this.rerender();
+    this.rerender({ pruneCache: false, clearRenderQueue: true });
     this.fire(MapEventType.RESIZE, { width: this.width, height: this.height });
   };
 
@@ -307,7 +312,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.fire(MapEventType.ZOOM, zoom);
 
     if (rerender) {
-      this.rerender();
+      this.rerender({ pruneCache: false, clearRenderQueue: true });
     }
   }
 
@@ -316,7 +321,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.fire(MapEventType.CENTER, pos);
 
     if (rerender) {
-      this.rerender();
+      this.rerender({ pruneCache: false, clearRenderQueue: true });
     }
   }
 
@@ -325,7 +330,7 @@ export class InstantMap extends Evented<MapEventType> {
     this.fire(MapEventType.ROTATION, rotationInDegree);
 
     if (rerender) {
-      this.rerender();
+      this.rerender({ pruneCache: false, clearRenderQueue: true });
     }
   }
 
@@ -349,9 +354,8 @@ export class InstantMap extends Evented<MapEventType> {
       (progress: number) => {
         const nextZoomValue = currentZoom + diff * progress;
 
-        this.camera.setZoom(nextZoomValue);
-
-        return this.rerender();
+        this.setZoom(nextZoomValue, false);
+        return this.rerender({ pruneCache: false, clearRenderQueue: false });
       },
       () => {
         this.fire(MapEventType.ZOOM, this.getZoom());
@@ -378,13 +382,18 @@ export class InstantMap extends Evented<MapEventType> {
 
     this.camera.resize(this.width, this.height);
     this.renderer.resize(this.width, this.height);
-    this.rerender();
+    this.rerender({ pruneCache: false, clearRenderQueue: true });
   }
 
-  rerender(pruneCache = false): Promise<void> {
+  rerender(options: RenderOptions): Promise<void> {
     this.tilesGrid.updateTiles(this.camera);
 
-    return this.renderQueue.render(() => {
+    if (options.clearRenderQueue) {
+      this.renderQueue.clear();
+    }
+
+    let pruneCache = options.pruneCache;
+    return this.renderQueue.renderInNextAvailableFrame(() => {
       this.render(pruneCache);
       pruneCache = false;
       this.fire(MapEventType.RENDER);

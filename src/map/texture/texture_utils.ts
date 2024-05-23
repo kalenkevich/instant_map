@@ -7,6 +7,18 @@ import {
   Float32ArrayBufferTextureSource,
 } from './texture';
 
+let currentTextureId = 0;
+
+export interface CreateTextureSourceOptions {
+  sharedMemory: boolean;
+  flipY: boolean;
+}
+
+const DefaultCreateOptions: CreateTextureSourceOptions = {
+  sharedMemory: true,
+  flipY: false,
+};
+
 export function canvasToArrayBufferTextureSource(
   canvas: HTMLCanvasElement | OffscreenCanvas,
   x: number,
@@ -17,6 +29,7 @@ export function canvasToArrayBufferTextureSource(
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.UINT_8_CLAMPED_ARRAY_BUFFER,
     width,
     height,
@@ -49,10 +62,15 @@ export function toUint8ClampedTextureSource(
   originalBuffer: Uint8ClampedArray | number[],
   width: number,
   height: number,
-  sharedMemory: boolean = true,
+  options: CreateTextureSourceOptions = DefaultCreateOptions,
 ): Uint8ClampedArrayBufferTextureSource {
   let resultBuffer: Uint8ClampedArray;
-  if (sharedMemory) {
+
+  if (options.flipY) {
+    originalBuffer = flipYArray(originalBuffer, width, height);
+  }
+
+  if (options.sharedMemory) {
     const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8ClampedArray.BYTES_PER_ELEMENT);
     resultBuffer = new Uint8ClampedArray(sharedMemoryBuffer);
   } else {
@@ -62,6 +80,7 @@ export function toUint8ClampedTextureSource(
   resultBuffer.set(originalBuffer);
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.UINT_8_CLAMPED_ARRAY_BUFFER,
     width,
     height,
@@ -80,12 +99,25 @@ export function toUint8TextureSource(
   originalBuffer: Uint8Array | number[],
   width: number,
   height: number,
+  options: CreateTextureSourceOptions = DefaultCreateOptions,
 ): Uint8ArrayBufferTextureSource {
-  const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Uint8Array.BYTES_PER_ELEMENT);
-  const resultBuffer = new Uint8Array(sharedMemoryBuffer);
+  let resultBuffer: Uint8Array;
+
+  if (options.flipY) {
+    originalBuffer = flipYArray(originalBuffer, width, height);
+  }
+
+  if (options.sharedMemory) {
+    const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Float32Array.BYTES_PER_ELEMENT);
+    resultBuffer = new Uint8Array(sharedMemoryBuffer);
+  } else {
+    resultBuffer = new Uint8Array(originalBuffer);
+  }
+
   resultBuffer.set(originalBuffer);
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.UINT8_ARRAY_BUFFER,
     width,
     height,
@@ -106,11 +138,15 @@ export function toFloat32TextureSource(
   originalBuffer: Float32Array | number[],
   width: number,
   height: number,
-  sharedMemory: boolean = true,
+  options: CreateTextureSourceOptions = DefaultCreateOptions,
 ): Float32ArrayBufferTextureSource {
   let resultBuffer: Float32Array;
 
-  if (sharedMemory) {
+  if (options.flipY) {
+    originalBuffer = flipYArray(originalBuffer, width, height);
+  }
+
+  if (options.sharedMemory) {
     const sharedMemoryBuffer = new SharedArrayBuffer(originalBuffer.length * Float32Array.BYTES_PER_ELEMENT);
     resultBuffer = new Float32Array(sharedMemoryBuffer);
   } else {
@@ -120,6 +156,7 @@ export function toFloat32TextureSource(
   resultBuffer.set(originalBuffer);
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.FLOAT_32_ARRAY_BUFFER,
     width,
     height,
@@ -159,6 +196,7 @@ export async function arrayBufferToImageBitmapTextureSource(
   };
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.IMAGE_BITMAP,
     width: sw,
     height: sh,
@@ -180,6 +218,7 @@ export async function imageToImageBitmapTextureSource(
   };
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.IMAGE_BITMAP,
     width: sw,
     height: sh,
@@ -191,6 +230,7 @@ export async function blobToBitmapImageTextureSource(sourceBlob: Blob): Promise<
   const data = await createImageBitmap(sourceBlob);
 
   return {
+    id: currentTextureId++,
     type: TextureSourceType.IMAGE_BITMAP,
     width: data.width,
     height: data.height,
@@ -205,4 +245,16 @@ export async function blobToArrayBufferSource(sourceBlob: Blob): Promise<Uint8Cl
   const resultData = new Uint8ClampedArray(ctx.getImageData(0, 0, sourceImage.width, sourceImage.height).data.buffer);
 
   return toUint8ClampedTextureSource(resultData, sourceImage.width, sourceImage.height);
+}
+
+export function flipYArray(data: ArrayLike<number>, width: number, height: number): number[] {
+  const flippedSource: number[] = [];
+
+  for (let row = height - 1; row >= 0; row--) {
+    for (let column = 0; column < width * 4; column++) {
+      flippedSource.push(data[row * 4 * width + column]);
+    }
+  }
+
+  return flippedSource;
 }

@@ -1,13 +1,12 @@
 import { MapFeatureType } from '../../../../tile/feature';
 import { WebGlObjectBufferredGroup, WebGlObjectAttributeDescriptor, WebGlObjectAttributeType } from '../object/object';
-import { ArrayBufferTextureSource } from '../../../../texture/texture';
+import { ArrayBufferTextureSource, TextureSource } from '../../../../texture/texture';
 
 export interface WebGlTextTextureBufferredGroup extends WebGlObjectBufferredGroup {
   type: MapFeatureType.text;
-  size: number; // group size | number of instances;
   numElements: number; // number of elements
-  textureIndex: number;
-  sfdTexture: boolean;
+  texture: TextureSource;
+  isSfdTexture: boolean;
   properties: {
     texture: ArrayBufferTextureSource;
     sizeInPixels: number; // how many pixels needs to store the object properties

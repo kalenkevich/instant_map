@@ -1,6 +1,5 @@
 import { MapFeatureFlags } from '../flags';
 import { FontFormatType, FontConfig, FontAtlas } from './font_config';
-import { getFontAtlasFromVectorConfig } from './font_helper_vector';
 import { getFontAtlasFromSdfConfig } from './font_helper_sdf';
 import { getFontAtlasFromTextureConfig } from './font_helper_texture';
 
@@ -8,7 +7,6 @@ const FONT_FORMAT_TYPE_ATLAS_MAP: Record<
   FontFormatType,
   (config: FontConfig, debugMode: boolean) => Promise<FontAtlas>
 > = {
-  [FontFormatType.vector]: getFontAtlasFromVectorConfig,
   [FontFormatType.sdf]: getFontAtlasFromSdfConfig,
   [FontFormatType.texture]: getFontAtlasFromTextureConfig,
 };
