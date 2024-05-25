@@ -5,7 +5,9 @@ import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { toSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
+import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { addXTimes } from '../../utils/array_utils';
+// import { integerToVector4 } from '../../utils/number2vec';
 
 export const getPolygonFeatureGroups: ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> = (
   objects: PolygonMapFeature[],
@@ -19,14 +21,18 @@ export const getPolygonFeatureGroups: ObjectGroupBuilder<PolygonMapFeature, WebG
   const selectionColorBuffer: number[] = [];
 
   for (const polygon of objects) {
-    const numberOfAddedVertecies = verticesFromPolygon(vertecies, polygon.vertecies);
-    const xTimes = numberOfAddedVertecies / 2;
-    const polygonId = integerToVector4(polygon.id);
+    const numberOfAddedVertecies = verticesFromPolygon(
+      vertecies,
+      polygon.vertecies,
+      polygon.extrude ? polygon.extrudeHeight : 0,
+    );
+    const xTimes = numberOfAddedVertecies / 3;
+    // const polygonId = integerToVector4(polygon.id);
 
-    addXTimes(colorBuffer, [...polygon.color], xTimes);
-    addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
-    addXTimes(borderColorBuffer, [...polygon.borderColor], xTimes);
-    addXTimes(borderColorBuffer, polygonId, xTimes);
+    addXTimes(colorBuffer, polygon.color, xTimes);
+    // addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
+    // addXTimes(borderColorBuffer, polygon.borderColor, xTimes);
+    // addXTimes(selectionColorBuffer, polygonId, xTimes);
   }
 
   return [
@@ -34,37 +40,41 @@ export const getPolygonFeatureGroups: ObjectGroupBuilder<PolygonMapFeature, WebG
       type: MapFeatureType.polygon,
       name,
       zIndex,
-      numElements: vertecies.length / 2,
+      numElements: vertecies.length / 3,
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: toSharedArrayBuffer(vertecies),
+        buffer: createdSharedArrayBuffer(vertecies),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: toSharedArrayBuffer(colorBuffer),
+        buffer: createdSharedArrayBuffer(colorBuffer),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 1,
-        buffer: toSharedArrayBuffer(borderWidthBuffer),
+        buffer: createdSharedArrayBuffer(borderWidthBuffer),
       },
       borderColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: toSharedArrayBuffer(borderColorBuffer),
+        buffer: createdSharedArrayBuffer(borderColorBuffer),
       },
       selectionColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: toSharedArrayBuffer(selectionColorBuffer),
+        buffer: createdSharedArrayBuffer(selectionColorBuffer),
       },
     },
   ];
 };
 
-export function verticesFromPolygon(result: number[], coordinates: Array<Array<[number, number]>>): number {
+export function verticesFromPolygon(
+  result: number[],
+  coordinates: Array<Array<[number, number]>>,
+  extrude: number,
+): number {
   const start = result.length;
   const data = earcut.flatten(coordinates);
   const triangles = earcut(data.vertices, data.holes, 2);
@@ -73,6 +83,12 @@ export function verticesFromPolygon(result: number[], coordinates: Array<Array<[
     const point = triangles[i];
     result.push(data.vertices[point * 2]);
     result.push(data.vertices[point * 2 + 1]);
+    result.push(1);
+  }
+
+  if (extrude > 0) {
+    // build vertical edges
+    // build top surface
   }
 
   return result.length - start;

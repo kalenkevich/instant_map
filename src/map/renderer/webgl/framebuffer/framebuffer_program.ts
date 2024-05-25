@@ -23,15 +23,9 @@ export class FramebufferProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  protected setupBuffer() {
-    const gl = this.gl;
-
-    gl.bindVertexArray(this.vao);
-
+  protected setupBuffers() {
     this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 2 });
     this.textcoordBuffer = createWebGlBuffer(this.gl, { location: 1, size: 2 });
-
-    gl.bindVertexArray(null);
   }
 
   protected setupUniforms() {

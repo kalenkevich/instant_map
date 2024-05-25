@@ -21,7 +21,7 @@ export interface PointMapFeature {
   id: number;
   type: MapFeatureType.point;
   color: [number, number, number, number]; // RGBA color
-  center: [number, number];
+  center: [number, number, number];
   radius: number;
   offset?: PointOffset;
   borderWidth: number;
@@ -52,6 +52,8 @@ export interface PolygonMapFeature {
   borderColor: [number, number, number, number]; // RGBA color
   borderJoin: LineJoinStyle;
   visible: boolean;
+  extrude: boolean;
+  extrudeHeight: number;
 }
 
 export interface GlyphMapFeature {
@@ -59,7 +61,7 @@ export interface GlyphMapFeature {
   type: MapFeatureType.glyph;
   atlas: string;
   name: string;
-  center: [number, number];
+  center: [number, number, number];
   width: number;
   height: number;
   offset?: PointOffset;
@@ -73,7 +75,7 @@ export interface TextMapFeature {
   font: string;
   fontSize: number;
   text: string;
-  center: [number, number];
+  center: [number, number, number];
   offset?: PointOffset;
   align?: TextAlign; // default left
   borderWidth: number;
@@ -85,7 +87,7 @@ export interface TextMapFeature {
 export interface ImageMapFeature {
   id: number;
   type: MapFeatureType.image;
-  bbox: Array<[number, number]>;
+  bbox: Array<[number, number, number]>;
   topLeft: [number, number];
   width: number;
   height: number;

@@ -2,7 +2,6 @@ import { WebGlObjectBufferredGroup } from './object';
 import { MapFeatureFlags } from '../../../../flags';
 import { ExtendedWebGLRenderingContext } from '../../webgl_context';
 import { WebGlUniform, createWebGlUniform } from '../../helpers/weblg_uniform';
-import { WebGlBuffer, createWebGlBuffer } from '../../helpers/webgl_buffer';
 import { createProgram } from '../../helpers/webgl_program';
 
 export interface DrawObjectGroupOptions {
@@ -21,10 +20,6 @@ export abstract class ObjectProgram {
   protected isReadPixelRenderModeUniform: WebGlUniform;
   protected featureFlagsUnifroms: Record<string, WebGlUniform>;
 
-  // Attribures
-  protected positionBuffer: WebGlBuffer;
-  protected colorBuffer: WebGlBuffer;
-
   protected vao: WebGLVertexArrayObjectOES;
 
   constructor(
@@ -40,7 +35,9 @@ export abstract class ObjectProgram {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.setupProgram();
-    this.setupBuffer();
+    gl.bindVertexArray(this.vao);
+    this.setupBuffers();
+    gl.bindVertexArray(null);
     this.setupUniforms();
     await this.setupTextures();
     return this.onInit();
@@ -53,16 +50,7 @@ export abstract class ObjectProgram {
     this.vao = this.gl.createVertexArray();
   }
 
-  protected setupBuffer() {
-    const gl = this.gl;
-
-    gl.bindVertexArray(this.vao);
-
-    this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 2 });
-    this.colorBuffer = createWebGlBuffer(this.gl, { location: 1, size: 4 });
-
-    gl.bindVertexArray(null);
-  }
+  protected setupBuffers() {}
 
   protected setupUniforms() {
     this.matrixUniform = createWebGlUniform(this.gl, { name: 'u_matrix', program: this.program });

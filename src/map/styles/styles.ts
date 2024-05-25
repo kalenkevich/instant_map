@@ -85,6 +85,8 @@ export interface PolygonStyle {
   show?: Statement<boolean>;
   minzoom?: number;
   maxzoom?: number;
+  extrude?: Statement<boolean>;
+  extrudeHeight?: Statement<number>;
 }
 
 export interface TextStyle {

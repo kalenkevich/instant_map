@@ -25,10 +25,8 @@ export class LineShaderProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  protected setupBuffer(): void {
+  protected setupBuffers(): void {
     const gl = this.gl;
-
-    this.gl.bindVertexArray(this.vao);
 
     this.vertecies = createWebGlBuffer(gl, { location: 0, size: 3 });
     this.prevPoint = createWebGlBuffer(gl, { location: 1, size: 2 });
@@ -38,8 +36,6 @@ export class LineShaderProgram extends ObjectProgram {
     this.renderStyles = createWebGlBuffer(gl, { location: 5, size: 3 });
     this.color = createWebGlBuffer(gl, { location: 6, size: 4 });
     this.borderColor = createWebGlBuffer(gl, { location: 7, size: 4 });
-
-    this.gl.bindVertexArray(null);
   }
 
   public onLink(): void {

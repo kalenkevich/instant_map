@@ -18,6 +18,7 @@ export class TextTextureProgram extends ObjectProgram {
   protected borderWidthUniform: WebGlUniform;
 
   // Attributes
+  protected positionBuffer: WebGlBuffer;
   protected textcoordBuffer: WebGlBuffer;
   protected colorBuffer: WebGlBuffer;
   protected textPropertiesBuffer: WebGlBuffer;
@@ -58,18 +59,14 @@ export class TextTextureProgram extends ObjectProgram {
     this.propertiesTexture.destroy();
   }
 
-  protected setupBuffer() {
+  protected setupBuffers() {
     const gl = this.gl;
-
-    gl.bindVertexArray(this.vao);
 
     this.positionBuffer = createWebGlBuffer(gl, { location: 0, size: 3 });
     this.textcoordBuffer = createWebGlBuffer(gl, { location: 1, size: 2 });
     this.colorBuffer = createWebGlBuffer(gl, { location: 2, size: 4 });
     this.textPropertiesBuffer = createWebGlBuffer(gl, { location: 3, size: 4 });
     this.objectIndexBuffer = createWebGlBuffer(gl, { location: 4, size: 1 });
-
-    gl.bindVertexArray(null);
   }
 
   protected setupUniforms() {

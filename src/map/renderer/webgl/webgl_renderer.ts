@@ -17,7 +17,7 @@ import { GlyphsManager } from '../../glyphs/glyphs_manager';
 import { createWebGlTexture, resetTextureIndex } from './helpers/weblg_texture';
 import { WebGlFrameBuffer, createFrameBuffer } from './helpers/webgl_framebuffer';
 import { vector4ToInteger } from './utils/number2vec';
-import { getProjectionViewMatrix } from './utils/webgl_camera_utils';
+import { getProjectionViewMatrix3 } from './utils/webgl_camera_utils';
 
 export interface WebGlRendererOptions extends RenderOptions {
   pruneCache?: boolean;
@@ -117,7 +117,19 @@ export class WebGlRenderer {
   private currentStateId?: string;
   private alreadyRenderedTileLayer = new Set<string>();
   private getCurrentStateId(camera: SceneCamera) {
-    return [camera.x, camera.y, camera.width, camera.height, camera.distance, camera.rotationInDegree].join('-');
+    return [
+      camera.x,
+      camera.y,
+      camera.width,
+      camera.height,
+      camera.fieldOfView,
+      camera.zFar,
+      camera.zNear,
+      camera.xRotation,
+      camera.yRotation,
+      camera.zRotation,
+      camera.distance,
+    ].join('-');
   }
 
   getObjectId(objects: WebGlObjectBufferredGroup[], camera: SceneCamera, x: number, y: number): number {
@@ -201,7 +213,7 @@ export class WebGlRenderer {
   }
 
   private setProgramGlobalUniforms(program: ObjectProgram, camera: SceneCamera, options: WebGlRendererOptions) {
-    program.setMatrix(getProjectionViewMatrix(camera));
+    program.setMatrix(getProjectionViewMatrix3(camera));
     program.setWidth(this.canvas.width);
     program.setHeight(this.canvas.height);
     program.setDistance(camera.distance);

@@ -7,6 +7,8 @@ import { DataTileSource, DataLayerStyle } from '../../styles/styles';
 import { TileSourceProcessOptions } from './tile_source_processor';
 import { getProjectionFromType } from '../../geo/projection/projection';
 
+const DEFAULT_ALTITUDE = 1;
+
 export async function DebugTileSourceProcessor(
   featureFlags: MapFeatureFlags,
   tileSourceUrl: string,
@@ -38,7 +40,11 @@ export async function DebugTileSourceProcessor(
             type: MapFeatureType.line,
             color: [1, 0, 0, 1],
             borderColor: [0, 0, 0, 1],
-            vertecies: tileBbox.map(p => projection.project(p, { normalize: true, clip: false })),
+            vertecies: tileBbox.map(p => {
+              const [x, y] = projection.project([p[0], p[1], DEFAULT_ALTITUDE], { normalize: true, clip: false });
+
+              return [x, y];
+            }),
             width: 10,
             borderWidth: 0,
             fill: LineFillStyle.solid,
@@ -50,7 +56,10 @@ export async function DebugTileSourceProcessor(
             id: 1,
             type: MapFeatureType.text,
             text: processOptions.tileId,
-            center: projection.project(tileCenter, { normalize: true, clip: false }),
+            center: projection.project([tileCenter[0], tileCenter[1], DEFAULT_ALTITUDE], {
+              normalize: true,
+              clip: false,
+            }),
             font: 'defaultFont',
             fontSize: 28,
             borderWidth: 1,

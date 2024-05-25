@@ -1,5 +1,5 @@
 import 'hammerjs';
-import { invertMatrix3, transformVector3Matrix3 } from '../math/matrix_utils';
+import { transformVector3Matrix4, invertMatrix4 } from '../math/matrix_utils';
 import { InstantMap } from '../map';
 import { Evented } from '../evented';
 
@@ -63,13 +63,13 @@ export class MapPan extends Evented<MapPanEvents> {
 
   private handleMove(moveEvent: HammerMouseEvent) {
     const [x, y] = this.getClipSpacePosition(moveEvent);
-    const viewProjectionMat = this.map.getProjectionMatrix();
+    const viewModelMatrix = this.map.getProjectionViewMatrix();
 
     // compute the previous position in world space
-    const [preX, preY] = transformVector3Matrix3([this.startX, this.startY, 0], invertMatrix3([...viewProjectionMat]));
+    const [preX, preY] = transformVector3Matrix4([this.startX, this.startY, 0], invertMatrix4([...viewModelMatrix]));
 
     // compute the new position in world space
-    const [postX, postY] = transformVector3Matrix3([x, y, 0], invertMatrix3([...viewProjectionMat]));
+    const [postX, postY] = transformVector3Matrix4([x, y, 0], invertMatrix4([...viewModelMatrix]));
 
     // move that amount, because how much the position changes depends on the zoom level
     const deltaX = preX - postX;
@@ -78,11 +78,11 @@ export class MapPan extends Evented<MapPanEvents> {
       return; // abort
     }
 
-    const cameraPos = this.map.getCenterXY();
+    const cameraPos = this.map.getCenterXYZ();
     const newX = cameraPos[0] + deltaX;
     const newY = cameraPos[1] + deltaY;
 
-    if (!this.map.inBoundLimits([newX, newY])) {
+    if (!this.map.inBoundLimits([newX, newY, cameraPos[2]])) {
       return;
     }
 
@@ -90,7 +90,7 @@ export class MapPan extends Evented<MapPanEvents> {
     this.startX = x;
     this.startY = y;
 
-    this.map.setCenter([newX, newY]);
+    this.map.setCenter([newX, newY, cameraPos[2]]);
   }
 
   // handle dragging the map position (panning)
@@ -129,7 +129,10 @@ export class MapPan extends Evented<MapPanEvents> {
     const [x, y] = this.getClipSpacePosition(wheelEvent);
 
     // get position before zooming
-    const [preZoomX, preZoomY] = transformVector3Matrix3([x, y, 0], invertMatrix3([...this.map.getProjectionMatrix()]));
+    const [preZoomX, preZoomY] = transformVector3Matrix4(
+      [x, y, 0],
+      invertMatrix4([...this.map.getProjectionViewMatrix()]),
+    );
 
     // update current zoom state
     const prevZoom = this.map.getZoom();
@@ -137,28 +140,28 @@ export class MapPan extends Evented<MapPanEvents> {
     let newZoom = prevZoom + zoomDelta;
     newZoom = Math.max(this.map.getMinZoom(), Math.min(newZoom, this.map.getMaxZoom()));
 
-    if (!this.map.inBoundLimits(this.map.getCenterXY(), newZoom)) {
+    if (!this.map.inBoundLimits(this.map.getCenterXYZ(), newZoom)) {
       return;
     }
 
     this.map.setZoom(newZoom);
 
     // get new position after zooming
-    const [postZoomX, postZoomY] = transformVector3Matrix3(
+    const [postZoomX, postZoomY] = transformVector3Matrix4(
       [x, y, 0],
-      invertMatrix3([...this.map.getProjectionMatrix()]),
+      invertMatrix4([...this.map.getProjectionViewMatrix()]),
     );
 
     // camera needs to be moved the difference of before and after
-    const [cameraX, cameraY] = this.map.getCenterXY();
+    const [cameraX, cameraY, cameraZ] = this.map.getCenterXYZ();
     const newX = cameraX + preZoomX - postZoomX;
     const newY = cameraY + preZoomY - postZoomY;
 
-    if (!this.map.inBoundLimits([newX, newY], newZoom)) {
+    if (!this.map.inBoundLimits([newX, newY, cameraZ], newZoom)) {
       return;
     }
 
-    this.map.setCenter([newX, newY], newZoom);
+    this.map.setCenter([newX, newY, cameraZ], newZoom);
   }
 
   // from a given mouse position on the canvas, return the xy value in clip space

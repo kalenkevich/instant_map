@@ -53,8 +53,8 @@ export async function ImageTileSourceProcessor(
           id: 0,
           type: MapFeatureType.image,
           bbox: [
-            [...projection.project([tilebbox[0], tilebbox[1]], { normalize: true, clip: false })],
-            [...projection.project([tilebbox[2], tilebbox[3]], { normalize: true, clip: false })],
+            [...projection.project([tilebbox[0], tilebbox[1], 0], { normalize: true, clip: false })],
+            [...projection.project([tilebbox[2], tilebbox[3], 0], { normalize: true, clip: false })],
           ],
           topLeft: tilePolygon.coordinates[0][0] as [number, number],
           source: textureSource,

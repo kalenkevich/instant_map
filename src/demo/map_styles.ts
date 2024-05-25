@@ -232,6 +232,8 @@ export const MapTilerVectorTileStyles: DataTileStyles = {
       feature: {
         type: MapFeatureType.polygon,
         color: ['$rgba', 222, 215, 211, 1],
+        extrude: true,
+        extrudeHeight: ['$get', 'height'],
       },
       minzoom: 12,
     },

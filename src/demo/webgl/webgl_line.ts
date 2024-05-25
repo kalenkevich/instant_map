@@ -85,12 +85,11 @@ export async function renderWebglLineExample() {
   //   cap: LineCapStyle.round,
   // });
 
-  scene.render({
-    x: 0,
-    y: 0,
-    width,
-    height,
-    distance: 1,
-    rotationInDegree: 0,
-  });
+  // scene.render({
+  //   x: 0,
+  //   y: 0,
+  //   width,
+  //   height,
+  //   distance: 1,
+  // });
 }
