@@ -30,6 +30,7 @@ interface MapTilePrerenderOptions {
   rendererType: MapTileRendererType;
   fontManagerState: Record<string, FontAtlas>;
   atlasTextureMappingState: GlyphsManagerMappingState;
+  devicePixelRatio: number;
 }
 
 export type TileSourceTypeProcessorHandler = (
@@ -170,7 +171,13 @@ export class TileSourceProcessor {
     const fontManager = new FontManager(featureFlags, {}, prerenderOptions.fontManagerState);
     const glyphsManager = new GlyphsManager(featureFlags, {}, {}, prerenderOptions.atlasTextureMappingState);
 
-    mapTile.prerendedData = MapTile2WebglObjects(mapTile, featureFlags, fontManager, glyphsManager);
+    mapTile.prerendedData = MapTile2WebglObjects(
+      mapTile,
+      featureFlags,
+      fontManager,
+      glyphsManager,
+      prerenderOptions.devicePixelRatio,
+    );
 
     return mapTile;
   }

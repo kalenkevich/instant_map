@@ -3,64 +3,66 @@ import { MapFeatureType, PolygonMapFeature } from '../../../../tile/feature';
 import { WebGlPolygonBufferredGroup } from './polygon';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
-import { createdSharedArrayBuffer } from '../../utils/array_buffer';
+import { toSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-export class PolygonGroupBuilder extends ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> {
-  build(name: string, zIndex = 0): WebGlPolygonBufferredGroup[] {
-    const vertecies: number[] = [];
-    const colorBuffer: number[] = [];
-    const borderWidthBuffer: number[] = [];
-    const borderColorBuffer: number[] = [];
-    const selectionColorBuffer: number[] = [];
+export const getPolygonFeatureGroups: ObjectGroupBuilder<PolygonMapFeature, WebGlPolygonBufferredGroup> = (
+  objects: PolygonMapFeature[],
+  name: string,
+  zIndex = 0,
+) => {
+  const vertecies: number[] = [];
+  const colorBuffer: number[] = [];
+  const borderWidthBuffer: number[] = [];
+  const borderColorBuffer: number[] = [];
+  const selectionColorBuffer: number[] = [];
 
-    for (const polygon of this.objects) {
-      const numberOfAddedVertecies = verticesFromPolygon(vertecies, polygon.vertecies);
-      const xTimes = numberOfAddedVertecies / 2;
-      const polygonId = integerToVector4(polygon.id);
+  for (const polygon of objects) {
+    const numberOfAddedVertecies = verticesFromPolygon(vertecies, polygon.vertecies);
+    const xTimes = numberOfAddedVertecies / 2;
+    const polygonId = integerToVector4(polygon.id);
 
-      addXTimes(colorBuffer, [...polygon.color], xTimes);
-      addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
-      addXTimes(borderColorBuffer, [...polygon.borderColor], xTimes);
-      addXTimes(borderColorBuffer, polygonId, xTimes);
-    }
-
-    return [
-      {
-        type: MapFeatureType.polygon,
-        name,
-        zIndex,
-        numElements: vertecies.length / 2,
-        vertecies: {
-          type: WebGlObjectAttributeType.FLOAT,
-          size: 2,
-          buffer: createdSharedArrayBuffer(vertecies),
-        },
-        color: {
-          type: WebGlObjectAttributeType.FLOAT,
-          size: 4,
-          buffer: createdSharedArrayBuffer(colorBuffer),
-        },
-        borderWidth: {
-          type: WebGlObjectAttributeType.FLOAT,
-          size: 1,
-          buffer: createdSharedArrayBuffer(borderWidthBuffer),
-        },
-        borderColor: {
-          type: WebGlObjectAttributeType.FLOAT,
-          size: 4,
-          buffer: createdSharedArrayBuffer(borderColorBuffer),
-        },
-        selectionColor: {
-          type: WebGlObjectAttributeType.FLOAT,
-          size: 4,
-          buffer: createdSharedArrayBuffer(selectionColorBuffer),
-        },
-      },
-    ];
+    addXTimes(colorBuffer, [...polygon.color], xTimes);
+    addXTimes(borderWidthBuffer, polygon.borderWidth, xTimes);
+    addXTimes(borderColorBuffer, [...polygon.borderColor], xTimes);
+    addXTimes(borderColorBuffer, polygonId, xTimes);
   }
-}
+
+  return [
+    {
+      type: MapFeatureType.polygon,
+      name,
+      zIndex,
+      numElements: vertecies.length / 2,
+      vertecies: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 2,
+        buffer: toSharedArrayBuffer(vertecies),
+      },
+      color: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: toSharedArrayBuffer(colorBuffer),
+      },
+      borderWidth: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 1,
+        buffer: toSharedArrayBuffer(borderWidthBuffer),
+      },
+      borderColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: toSharedArrayBuffer(borderColorBuffer),
+      },
+      selectionColor: {
+        type: WebGlObjectAttributeType.FLOAT,
+        size: 4,
+        buffer: toSharedArrayBuffer(selectionColorBuffer),
+      },
+    },
+  ];
+};
 
 export function verticesFromPolygon(result: number[], coordinates: Array<Array<[number, number]>>): number {
   const start = result.length;

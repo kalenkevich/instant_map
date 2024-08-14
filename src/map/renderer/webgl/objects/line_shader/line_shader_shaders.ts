@@ -203,11 +203,12 @@ export default {
   
         float pointDistance = length(p4 - p3);
         float halfWidth = lineWidth / 2.0;
+        float totalWidth = halfWidth + borderWidth;
   
         // Smooth transitions (anti-aliasing)
         if (pointDistance <= halfWidth) {
           gl_FragColor = v_color;
-        } else {
+        } else if (pointDistance <= totalWidth) {
           gl_FragColor = v_borderColor;
         }
       // }
