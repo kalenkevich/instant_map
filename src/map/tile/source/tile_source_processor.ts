@@ -12,7 +12,6 @@ import { MapTileRendererType } from '../../renderer/renderer';
 import { FontAtlas } from '../../font/font_config';
 import { GlyphsManager, GlyphsManagerMappingState } from '../../glyphs/glyphs_manager';
 import { FontManager } from '../../font/font_manager';
-import { MapFeatureType } from '../feature';
 
 export interface TileProcessingOptions {
   featureFlags: MapFeatureFlags;
@@ -172,11 +171,6 @@ export class TileSourceProcessor {
     const glyphsManager = new GlyphsManager(featureFlags, {}, {}, prerenderOptions.atlasTextureMappingState);
 
     mapTile.prerendedData = MapTile2WebglObjects(mapTile, featureFlags, fontManager, glyphsManager);
-
-    // TODO: Webworker overloaded with data because of that.
-    mapTile.layers.forEach(l => {
-      l.features = l.features.filter(f => f.type === MapFeatureType.image);
-    });
 
     return mapTile;
   }

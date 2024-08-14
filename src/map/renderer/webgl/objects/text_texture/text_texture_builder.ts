@@ -28,7 +28,7 @@ export class TextTextureGroupBuilder extends ObjectGroupBuilder<TextMapFeature, 
   }
 
   addObject(text: TextMapFeature): void {
-    if (!text.text) {
+    if (!text.text || !text.visible) {
       return;
     }
 

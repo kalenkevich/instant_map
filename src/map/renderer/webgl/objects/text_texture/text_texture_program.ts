@@ -53,6 +53,11 @@ export class TextTextureProgram extends ObjectProgram {
     gl.disable(gl.BLEND);
   }
 
+  public destroy(): void {
+    this.fontTexture.destroy();
+    this.propertiesTexture.destroy();
+  }
+
   protected setupBuffer() {
     const gl = this.gl;
 
@@ -84,6 +89,7 @@ export class TextTextureProgram extends ObjectProgram {
 
     this.fontTexture = createWebGlTexture(gl, {
       name: 'text_texture_atlas',
+      flipY: true,
       wrapS: gl.CLAMP_TO_EDGE,
       wrapT: gl.CLAMP_TO_EDGE,
       minFilter: gl.LINEAR,

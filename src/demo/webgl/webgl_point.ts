@@ -22,6 +22,7 @@ export async function renderWebglPointExample() {
     radius: 10,
     borderWidth: 2,
     borderColor: [0.0, 0.0, 0.0, 1.0],
+    visible: true,
   });
 
   scene.render({

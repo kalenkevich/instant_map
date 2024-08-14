@@ -6,22 +6,13 @@ import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { integerToVector4 } from '../../utils/number2vec';
 import { addXTimes } from '../../utils/array_utils';
 
-const getBbox = (p1: [number, number], p2: [number, number]): [number, number, number, number] => {
-  const minX = Math.min(p1[0], p2[0]);
-  const minY = Math.min(p1[1], p2[1]);
-  const maxX = Math.max(p1[0], p2[0]);
-  const maxY = Math.max(p1[1], p2[1]);
-
-  return [minX, minY, maxX, maxY];
-};
-
 export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGlShaderLineBufferredGroup> {
   build(name: string, zIndex = 0): WebGlShaderLineBufferredGroup[] {
     const vertecies: number[] = [];
     const prevPoint: number[] = [];
     const currPoint: number[] = [];
     const nextPoint: number[] = [];
-    // angle, width, borderWidth,
+    // lineWidth, borderWidth
     const properties: number[] = [];
     // fill, cap, join
     const renderStyles: number[] = [];
@@ -36,26 +27,25 @@ export class LineShaiderBuilder extends ObjectGroupBuilder<LineMapFeature, WebGl
         const aPoint = line.vertecies[i - 1];
         const bPoint = line.vertecies[i];
         const cPoint = i + 1 === line.vertecies.length ? line.vertecies[i] : line.vertecies[i + 1];
-        const [minx, miny, maxx, maxy] = getBbox(aPoint, bPoint);
 
         vertecies.push(
-          minx,
-          maxy,
+          0,
+          0,
           VERTEX_QUAD_POSITION.TOP_LEFT,
-          maxx,
-          maxy,
+          0,
+          0,
           VERTEX_QUAD_POSITION.TOP_RIGHT,
-          minx,
-          miny,
+          0,
+          0,
           VERTEX_QUAD_POSITION.BOTTOM_LEFT,
-          minx,
-          miny,
+          0,
+          0,
           VERTEX_QUAD_POSITION.BOTTOM_LEFT,
-          maxx,
-          maxy,
+          0,
+          0,
           VERTEX_QUAD_POSITION.TOP_RIGHT,
-          maxx,
-          miny,
+          0,
+          0,
           VERTEX_QUAD_POSITION.BOTTOM_RIGHT,
         );
 

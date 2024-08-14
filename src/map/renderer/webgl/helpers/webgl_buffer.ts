@@ -21,6 +21,7 @@ export interface WebGlBuffer {
  */
 export function createWebGlBuffer(gl: ExtendedWebGLRenderingContext, params: CreateWebGlBufferParams): WebGlBuffer {
   const buffer = gl.createBuffer();
+  let currentBufferedDataLength = 0;
 
   gl.enableVertexAttribArray(params.location);
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -39,7 +40,12 @@ export function createWebGlBuffer(gl: ExtendedWebGLRenderingContext, params: Cre
     location: params.location,
     bufferData(data: Float32Array) {
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      if (currentBufferedDataLength > data.length) {
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
+      } else {
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        currentBufferedDataLength = data.length;
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
     },
   };

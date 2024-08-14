@@ -6,7 +6,7 @@ import { MapFeatureFlags } from '../../flags';
 import { ImageTileSource, DataLayerStyle, ImageStyle } from '../../styles/styles';
 import { compileStatement } from '../../styles/style_statement_utils';
 import { getProjectionFromType } from '../../geo/projection/projection';
-import { blobToBitmapImageTextureSource } from '../../texture/texture_utils';
+import { blobToArrayBufferSource } from '../../texture/texture_utils';
 
 export async function ImageTileSourceProcessor(
   featureFlags: MapFeatureFlags,
@@ -24,7 +24,9 @@ export async function ImageTileSourceProcessor(
   const projection = getProjectionFromType(processOptions.projectionType);
   const textureSource = await fetch(tileSourceUrl, { signal: abortController.signal })
     .then(res => res.blob())
-    .then(sourceArrayBuffer => blobToBitmapImageTextureSource(sourceArrayBuffer));
+    .then(sourceArrayBuffer =>
+      blobToArrayBufferSource(sourceArrayBuffer, { sharedMemory: true, flipX: false, flipY: true }),
+    );
   const tilePolygon = tilebelt.tileToGeoJSON([x, y, z]);
   const tilebbox = tilebelt.tileToBBOX([x, y, z]);
 
@@ -63,6 +65,7 @@ export async function ImageTileSourceProcessor(
             top: imageFeatureStyle.offset?.top ? compileStatement(imageFeatureStyle.offset?.top, {}) : 0,
             left: imageFeatureStyle.offset?.left ? compileStatement(imageFeatureStyle.offset?.left, {}) : 0,
           },
+          visible: true,
         },
       ],
     });

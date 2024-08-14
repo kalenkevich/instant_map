@@ -49,6 +49,7 @@ export async function renderWebglLineExample() {
     fill: LineFillStyle.solid,
     join: LineJoinStyle.round,
     cap: LineCapStyle.round,
+    visible: true,
   });
 
   scene.addObject({
@@ -65,6 +66,7 @@ export async function renderWebglLineExample() {
     fill: LineFillStyle.solid,
     join: LineJoinStyle.round,
     cap: LineCapStyle.round,
+    visible: true,
   });
 
   // scene.addObject({
