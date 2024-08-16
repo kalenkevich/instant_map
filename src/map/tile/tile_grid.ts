@@ -117,6 +117,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
             data: tileId,
           });
           this.workerPool.cancel(task.taskId);
+          this.tiles.delete(tileId);
         }
 
         this.currentLoadingTiles.delete(tileId);

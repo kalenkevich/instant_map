@@ -161,10 +161,7 @@ export class TileSourceProcessor {
     mapTile: MapTile,
     prerenderOptions: MapTilePrerenderOptions,
   ): Promise<MapTile> {
-    if (
-      prerenderOptions.rendererType !== MapTileRendererType.webgl &&
-      prerenderOptions.rendererType !== MapTileRendererType.webgl2
-    ) {
+    if (![MapTileRendererType.webgl, MapTileRendererType.webgl2].includes(prerenderOptions.rendererType)) {
       return mapTile;
     }
 
