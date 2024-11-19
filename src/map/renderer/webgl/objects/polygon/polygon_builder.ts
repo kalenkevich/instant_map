@@ -4,8 +4,6 @@ import { WebGlPolygonBufferredGroup } from './polygon';
 import { WebGlObjectAttributeType } from '../object/object';
 import { ObjectGroupBuilder } from '../object/object_group_builder';
 import { toSharedArrayBuffer } from '../../utils/array_buffer';
-import { integerToVector4 } from '../../utils/number2vec';
-import { createdSharedArrayBuffer } from '../../utils/array_buffer';
 import { addXTimes } from '../../utils/array_utils';
 // import { integerToVector4 } from '../../utils/number2vec';
 
@@ -44,27 +42,27 @@ export const getPolygonFeatureGroups: ObjectGroupBuilder<PolygonMapFeature, WebG
       vertecies: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 2,
-        buffer: createdSharedArrayBuffer(vertecies),
+        buffer: toSharedArrayBuffer(vertecies),
       },
       color: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: createdSharedArrayBuffer(colorBuffer),
+        buffer: toSharedArrayBuffer(colorBuffer),
       },
       borderWidth: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 1,
-        buffer: createdSharedArrayBuffer(borderWidthBuffer),
+        buffer: toSharedArrayBuffer(borderWidthBuffer),
       },
       borderColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: createdSharedArrayBuffer(borderColorBuffer),
+        buffer: toSharedArrayBuffer(borderColorBuffer),
       },
       selectionColor: {
         type: WebGlObjectAttributeType.FLOAT,
         size: 4,
-        buffer: createdSharedArrayBuffer(selectionColorBuffer),
+        buffer: toSharedArrayBuffer(selectionColorBuffer),
       },
     },
   ];
