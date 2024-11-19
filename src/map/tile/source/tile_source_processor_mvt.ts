@@ -348,6 +348,9 @@ export async function MvtTileSourceProcessor(
       textIndex.finish();
 
       for (const textFeature of textFeatures) {
+        if (!textFeature.visible) {
+          continue;
+        }
         const [x, y] = textFeature.center;
         const neighborIds = textIndex.within(x, y, 0.005);
         const [mostImportantItem, ...lessImportantItems] = neighborIds

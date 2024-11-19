@@ -33,8 +33,9 @@ export function MapFeatures2WebglObjects(
   const glyphs: GlyphMapFeature[] = [];
   const texts: TextMapFeature[] = [];
   const images: ImageMapFeature[] = [];
+  const visibleMapFeatures = mapFeatures.filter(f => f.visible);
 
-  for (const mapFeature of mapFeatures) {
+  for (const mapFeature of visibleMapFeatures) {
     switch (mapFeature.type) {
       case MapFeatureType.point: {
         points.push(mapFeature as PointMapFeature);
@@ -119,6 +120,9 @@ export function MapTile2WebglObjects(
 
     for (let mapFeatureId = 0; mapFeatureId < mapLayer.features.length; mapFeatureId++) {
       const mapFeature = mapLayer.features[mapFeatureId];
+      if (!mapFeature.visible) {
+        continue;
+      }
 
       switch (mapFeature.type) {
         case MapFeatureType.point: {

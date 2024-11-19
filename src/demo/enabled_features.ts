@@ -5,5 +5,5 @@ export const ENABLED_FEATURE_FLAGS: MapFeatureFlags = {
   webglRendererDebug: false,
   enableObjectSelection: false,
   fontManagerDebugModeEnabled: false,
-  enableTextGrouping: true,
+  enableTextGrouping: false,
 };
