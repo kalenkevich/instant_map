@@ -26,16 +26,16 @@ export class MoveControl extends MapControl {
     this.leftButton = this.createButton('▲', 'move-left', 270);
 
     this.upButton.onclick = throttle(() => {
-      this.map.panBy([0, -this.stepDeltaInPx]);
+      this.map.panBy([0, -this.stepDeltaInPx, 0]);
     }, this.debounceTimeMs);
     this.downButton.onclick = throttle(() => {
-      this.map.panBy([0, this.stepDeltaInPx]);
+      this.map.panBy([0, this.stepDeltaInPx, 0]);
     }, this.debounceTimeMs);
     this.rightButton.onclick = throttle(() => {
-      this.map.panBy([this.stepDeltaInPx, 0]);
+      this.map.panBy([this.stepDeltaInPx, 0, 0]);
     }, this.debounceTimeMs);
     this.leftButton.onclick = throttle(() => {
-      this.map.panBy([-this.stepDeltaInPx, 0]);
+      this.map.panBy([-this.stepDeltaInPx, 0, 0]);
     }, this.debounceTimeMs);
 
     this.rows[0].appendChild(this.createEmptyBlock());

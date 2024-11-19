@@ -1,5 +1,6 @@
 import Stats from 'stats.js';
 import { Evented } from './evented';
+import { Vector2, Vector3 } from './math/matrix_utils';
 import { MapPan, MapPanEvents } from './pan/map_pan';
 import { MapCamera } from './camera/map_camera';
 import { Projection, ProjectionType, getProjectionFromType } from './geo/projection/projection';
@@ -18,9 +19,9 @@ import { DataTileStyles } from './styles/styles';
 import { MapFeatureFlags } from './flags';
 
 const defaultOptions = {
-  center: [0, 0] as [number, number],
+  center: [0, 0] as Vector2,
   zoom: 1,
-  rotation: 0,
+  rotation: [Math.PI / 4, 0, 0] as Vector3,
   tileBuffer: 1,
   projection: 'mercator',
   resizable: true,
@@ -40,11 +41,11 @@ export interface MapOptions {
   height?: number;
   rendrer: MapTileRendererType;
   /** Initial map camera position. */
-  center?: [number, number];
+  center?: [number, number, number?];
   /** Initial zoom value of the map. */
   zoom?: number;
   /** Initial rotation value of the map. */
-  rotation?: number;
+  rotation?: [number, number, number];
   /** Number of tiles to store in cache */
   tileCacheSize?: number;
   /** Number of tiles to fetch around. */
@@ -139,7 +140,7 @@ export class InstantMap extends Evented<MapEventType> {
       this.featureFlags,
       this.mapOptions,
       this.mapOptions.tileStyles,
-      this.mapOptions.center, // [lng, lat]
+      [this.mapOptions.center[0], this.mapOptions.center[1], this.mapOptions.center[2] || 1], // [lng, lat]
       this.mapOptions.zoom,
       this.mapOptions.rotation,
     );
@@ -203,9 +204,9 @@ export class InstantMap extends Evented<MapEventType> {
     featureFlags: MapFeatureFlags,
     mapOptions: MapOptions,
     styles: DataTileStyles,
-    center: [number, number], // [lng, lat]
+    center: Vector3, // [lng, lat, alt]
     zoom: number,
-    rotation: number,
+    cameraRotation: Vector3,
   ) {
     this.minZoom = mapOptions.tileStyles.minzoom || 1;
     this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
@@ -218,8 +219,8 @@ export class InstantMap extends Evented<MapEventType> {
     this.camera = new MapCamera(
       featureFlags,
       this.projection.project(center, { normalize: true, clip: true }),
+      cameraRotation,
       zoom,
-      rotation,
       this.width,
       this.height,
       styles.tileSize,
@@ -258,7 +259,12 @@ export class InstantMap extends Evented<MapEventType> {
         distance: this.camera.getDistance(),
         width: this.camera.getWidth(),
         height: this.camera.getHeight(),
-        rotationInDegree: this.camera.getRotation(),
+        fieldOfView: this.camera.getFieldOfViewRadians(),
+        zNear: 1,
+        zFar: this.camera.getDistance(),
+        xRotation: this.camera.getRotationX(),
+        yRotation: this.camera.getRotationY(),
+        zRotation: this.camera.getRotationZ(),
       },
       clippedWebGlSpaceCoords[0],
       clippedWebGlSpaceCoords[1],
@@ -298,12 +304,12 @@ export class InstantMap extends Evented<MapEventType> {
   }
 
   // Get Geo location
-  getCenter(): [number, number] {
+  getCenter(): Vector3 {
     return this.projection.unproject(this.camera.getPosition(), { normalized: true, clipped: true });
   }
 
   // Get Camera location
-  getCenterXY(): [number, number] {
+  getCenterXYZ(): Vector3 {
     return this.camera.getPosition();
   }
 
@@ -316,7 +322,7 @@ export class InstantMap extends Evented<MapEventType> {
     }
   }
 
-  setCenter(pos: [number, number], zoom?: number, rerender = true) {
+  setCenter(pos: Vector3, zoom?: number, rerender = true) {
     this.camera.setPosition(pos, zoom);
     this.fire(MapEventType.CENTER, pos);
 
@@ -325,16 +331,16 @@ export class InstantMap extends Evented<MapEventType> {
     }
   }
 
-  setRotation(rotationInDegree: number, rerender = true) {
-    this.camera.setRotation(rotationInDegree);
-    this.fire(MapEventType.ROTATION, rotationInDegree);
+  setRotation(cameraRotation: Vector3, rerender = true) {
+    this.camera.setRotation(cameraRotation);
+    this.fire(MapEventType.ROTATION, cameraRotation);
 
     if (rerender) {
       this.rerender({ pruneCache: false, clearRenderQueue: true });
     }
   }
 
-  panBy(center: [number, number], rerender = true) {
+  panBy(center: Vector3, rerender = true) {
     if (!rerender) {
       return;
     }
@@ -342,7 +348,7 @@ export class InstantMap extends Evented<MapEventType> {
     return Promise.resolve();
   }
 
-  zoomToPoint(newZoom: number, center: [number, number], rerender = true) {
+  zoomToPoint(newZoom: number, center: Vector3, rerender = true) {
     const currentZoom = this.camera.getZoom();
     const diff = newZoom - currentZoom;
 
@@ -368,12 +374,12 @@ export class InstantMap extends Evented<MapEventType> {
     return animation.run();
   }
 
-  inBoundLimits(position?: [number, number], zoom?: number): boolean {
+  inBoundLimits(position?: Vector3, zoom?: number): boolean {
     return this.camera.inBoundLimits(position, zoom);
   }
 
-  getProjectionMatrix() {
-    return this.camera.getProjectionMatrix();
+  getProjectionViewMatrix() {
+    return this.camera.getProjectionViewMatrix();
   }
 
   resize(width: number, height: number) {
@@ -417,7 +423,12 @@ export class InstantMap extends Evented<MapEventType> {
         distance: this.camera.getDistance(),
         width: this.camera.getWidth(),
         height: this.camera.getHeight(),
-        rotationInDegree: this.camera.getRotation(),
+        fieldOfView: this.camera.getFieldOfViewRadians(),
+        zNear: 1,
+        zFar: this.camera.getDistance(),
+        xRotation: this.camera.getRotationX(),
+        yRotation: this.camera.getRotationY(),
+        zRotation: this.camera.getRotationZ(),
       },
       { pruneCache },
     );

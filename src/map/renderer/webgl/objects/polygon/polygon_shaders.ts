@@ -1,7 +1,7 @@
-import { FEATURE_FLAGS_UTILS, DEFAULT_FRAGMENT_SHADER_SOURCE, CLIP_UTILS, MAT_UTILS } from '../object/object_shaders';
+import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_shaders';
 
 export default {
-  vertext: `
+  vertext: `#version 300 es
     precision highp float;
     ${CLIP_UTILS}
     ${MAT_UTILS}
@@ -13,15 +13,25 @@ export default {
     uniform float u_distance;
     uniform bool u_is_read_pixel_render_mode;
 
-    attribute vec2 a_position;
-    attribute vec4 a_color;
+    layout(location=0) in vec3 a_position;
+    layout(location=1) in vec4 a_color;
 
-    varying vec4 v_color;
+    out vec4 v_color;
 
     void main() {
       v_color = a_color;
-      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_position)), 0, 1);
+      gl_Position = vec4(applyMatrix(u_matrix, clipSpace(a_position)), 1);
     }
   `,
-  fragment: DEFAULT_FRAGMENT_SHADER_SOURCE,
+  fragment: `#version 300 es
+    precision mediump float;
+
+    uniform bool u_is_read_pixel_render_mode;
+    in vec4 v_color;
+    out vec4 outColor;
+
+    void main() {
+      outColor = v_color;
+    }
+  `,
 };

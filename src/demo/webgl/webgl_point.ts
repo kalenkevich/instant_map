@@ -18,19 +18,19 @@ export async function renderWebglPointExample() {
     type: MapFeatureType.point,
     id: 1,
     color: [1.0, 0.0, 0.0, 1.0],
-    center: [0, 0],
+    center: [0, 0, 1],
     radius: 10,
     borderWidth: 2,
     borderColor: [0.0, 0.0, 0.0, 1.0],
     visible: true,
   });
 
-  scene.render({
-    x: 0,
-    y: 0,
-    width,
-    height,
-    distance: 1,
-    rotationInDegree: 0,
-  });
+  // scene.render({
+  //   x: 0,
+  //   y: 0,
+  //   width,
+  //   height,
+  //   distance: 1,
+  //   rotationInDegree: 0,
+  // });
 }

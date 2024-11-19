@@ -8,8 +8,12 @@ export class MercatorProjection implements Projection {
     return ProjectionType.Mercator;
   }
 
-  project(lngLat: [number, number], options?: ProjectOptions): [number, number] {
-    return [this.projectX(lngLat[0], options), this.projectY(lngLat[1], options)];
+  project(lngLatAlt: [number, number, number], options?: ProjectOptions): [number, number, number] {
+    return [
+      this.projectX(lngLatAlt[0], options),
+      this.projectY(lngLatAlt[1], options),
+      this.projectZ(lngLatAlt[2], options),
+    ];
   }
 
   projectX(lng: number, options?: ProjectOptions): number {
@@ -26,8 +30,12 @@ export class MercatorProjection implements Projection {
     return options.clip ? 1 - y * 2 : y;
   }
 
-  unproject([x, y]: [number, number], options?: UnprojectOptions): [number, number] {
-    return [this.unprojectX(x, options), this.unprojectY(y, options)];
+  projectZ(alt: number, options?: ProjectOptions): number {
+    return alt;
+  }
+
+  unproject([x, y, z]: [number, number, number], options?: UnprojectOptions): [number, number, number] {
+    return [this.unprojectX(x, options), this.unprojectY(y, options), this.unprojectZ(z, options)];
   }
 
   unprojectX(x: number, options?: UnprojectOptions): number {
@@ -44,5 +52,9 @@ export class MercatorProjection implements Projection {
     y = 180 - y * multiplier;
 
     return (360 / Math.PI) * Math.atan(Math.exp((y * Math.PI) / 180)) - 90;
+  }
+
+  unprojectZ(z: number, options?: UnprojectOptions): number {
+    return z;
   }
 }

@@ -20,17 +20,13 @@ export class PointProgram extends ObjectProgram {
     super(gl, featureFlags, vertexShaderSource, fragmentShaderSource);
   }
 
-  protected setupBuffer() {
+  protected setupBuffers() {
     const gl = this.gl;
-
-    gl.bindVertexArray(this.vao);
 
     this.positionBuffer = createWebGlBuffer(this.gl, { location: 0, size: 3 });
     this.propertiesBuffer = createWebGlBuffer(gl, { location: 1, size: 4 });
     this.colorBuffer = createWebGlBuffer(this.gl, { location: 2, size: 4 });
     this.borderColorBuffer = createWebGlBuffer(this.gl, { location: 3, size: 4 });
-
-    gl.bindVertexArray(null);
   }
 
   drawObjectGroup(objectGroup: WebGlPointBufferredGroup, options?: DrawObjectGroupOptions) {
