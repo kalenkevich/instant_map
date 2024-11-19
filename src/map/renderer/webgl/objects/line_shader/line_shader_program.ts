@@ -16,8 +16,6 @@ export class LineShaderProgram extends ObjectProgram {
   protected color: WebGlBuffer;
   protected borderColor: WebGlBuffer;
 
-  protected vao: WebGLVertexArrayObjectOES;
-
   constructor(
     protected readonly gl: ExtendedWebGLRenderingContext,
     protected readonly featureFlags: MapFeatureFlags,

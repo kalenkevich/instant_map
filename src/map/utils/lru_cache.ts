@@ -1,49 +1,67 @@
-export class LRUCache<K, V> {
-  private readonly hashmap = new Map<K, V>();
+import { Evented, EventListener } from '../evented';
 
-  constructor(private readonly capacity: number) {}
+export enum LRUCacheEvents {
+  removed = 'removed',
+}
+
+export class LRUCache<K, V> extends Map {
+  private readonly hashmap = new Map<K, V>();
+  private readonly evented = new Evented<LRUCacheEvents>();
+
+  constructor(private readonly capacity: number) {
+    super();
+  }
 
   public has(key: K): boolean {
     return this.hashmap.has(key);
   }
 
   public get(key: K): V | undefined {
-    return this.hashmap.get(key);
+    if (!this.hashmap.has(key)) return undefined;
+
+    const val = this.hashmap.get(key);
+    this.hashmap.delete(key);
+    this.hashmap.set(key, val);
+
+    return val;
   }
 
   public set(key: K, value: V) {
-    if (this.hashmap.has(key)) {
-      this.hashmap.delete(key);
-    }
+    this.hashmap.delete(key);
 
     if (this.hashmap.size === this.capacity) {
-      this.pruneLeastValue();
+      const removedValueKey = this.hashmap.keys().next().value;
+      this.evented.fire(LRUCacheEvents.removed, this.hashmap.get(removedValueKey));
+      this.hashmap.delete(removedValueKey);
+      this.hashmap.set(key, value);
+    } else {
+      this.hashmap.set(key, value);
     }
 
-    this.hashmap.set(key, value);
+    return this;
   }
 
   public delete(key: K) {
-    this.hashmap.delete(key);
+    return this.hashmap.delete(key);
   }
 
-  public size(): number {
+  public get size(): number {
     return this.hashmap.size;
   }
 
-  private pruneLeastValue() {
-    const key = this.getFirstKey();
-
-    if (key) {
-      this.delete(key);
-    }
+  public clear() {
+    return this.hashmap.clear();
   }
 
-  private getFirstKey(): K | undefined {
-    if (this.hashmap.size === 0) {
-      return;
-    }
+  public on(eventType: LRUCacheEvents, handler: EventListener<LRUCacheEvents>): void {
+    this.evented.on(eventType, handler);
+  }
 
-    return this.hashmap.keys().next().value;
+  public once(eventType: LRUCacheEvents, handler: EventListener<LRUCacheEvents>): void {
+    this.evented.once(eventType, handler);
+  }
+
+  public off(eventType: LRUCacheEvents, handler: EventListener<LRUCacheEvents>) {
+    this.evented.off(eventType, handler);
   }
 }

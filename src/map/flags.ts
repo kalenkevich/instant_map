@@ -10,4 +10,6 @@ export interface MapFeatureFlags {
 
   // Renders textures and attaches it to the html dom.
   fontManagerDebugModeEnabled?: boolean;
+
+  enableTextGrouping?: boolean;
 }

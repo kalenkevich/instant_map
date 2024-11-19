@@ -1,10 +1,10 @@
 import { WebGlObjectBufferredGroup } from './objects/object/object';
-import { ImageGroupBuilder } from './objects/image/image_group_builder';
-import { PointGroupBuilder } from './objects/point/point_builder';
-import { PolygonGroupBuilder } from './objects/polygon/polygon_builder';
-import { GlyphGroupBuilder } from './objects/glyph/glyph_group_builder';
-import { TextTextureGroupBuilder } from './objects/text_texture/text_texture_builder';
-import { LineShaiderBuilder } from './objects/line_shader/line_shader_builder';
+import { getPointFeatureGroups } from './objects/point/point_builder';
+import { getPolygonFeatureGroups } from './objects/polygon/polygon_builder';
+import { getLineFeatureGroups } from './objects/line_shader/line_shader_builder';
+import { getGlyphFeatureGroups } from './objects/glyph/glyph_group_builder';
+import { getTextFeatureGroups } from './objects/text_texture/text_texture_builder';
+import { getImageFeatureGroups } from './objects/image/image_group_builder';
 import { MapTile } from '../../tile/tile';
 import {
   MapFeature,
@@ -24,39 +24,43 @@ export function MapFeatures2WebglObjects(
   mapFeatures: MapFeature[],
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
-  textureManager: GlyphsManager,
+  glyphsManager: GlyphsManager,
+  devicePixelRatio: number = 1,
 ): WebGlObjectBufferredGroup[] {
-  const pointBuidler = new PointGroupBuilder(featureFlags);
-  const polygonGroupBuilder = new PolygonGroupBuilder(featureFlags);
-  const lineBuilder = new LineShaiderBuilder(featureFlags);
-  const glyphGroupBuilder = new GlyphGroupBuilder(featureFlags, textureManager);
-  const textBuilder = new TextTextureGroupBuilder(featureFlags, fontManager);
-  const imageGroupBuilder = new ImageGroupBuilder(featureFlags);
+  const points: PointMapFeature[] = [];
+  const polygons: PolygonMapFeature[] = [];
+  const lines: LineMapFeature[] = [];
+  const glyphs: GlyphMapFeature[] = [];
+  const texts: TextMapFeature[] = [];
+  const images: ImageMapFeature[] = [];
+  const visibleMapFeatures = mapFeatures.filter(f => f.visible);
 
-  for (const mapFeature of mapFeatures) {
+  for (const mapFeature of visibleMapFeatures) {
     switch (mapFeature.type) {
       case MapFeatureType.point: {
-        pointBuidler.addObject(mapFeature as PointMapFeature);
+        points.push(mapFeature as PointMapFeature);
         continue;
       }
       case MapFeatureType.polygon: {
-        polygonGroupBuilder.addObject(mapFeature as PolygonMapFeature);
+        polygons.push(mapFeature as PolygonMapFeature);
         continue;
       }
       case MapFeatureType.line: {
-        lineBuilder.addObject(mapFeature as LineMapFeature);
+        lines.push(mapFeature as LineMapFeature);
         continue;
       }
       case MapFeatureType.glyph: {
-        glyphGroupBuilder.addObject(mapFeature as GlyphMapFeature);
+        glyphs.push(mapFeature as GlyphMapFeature);
         continue;
       }
       case MapFeatureType.text: {
-        textBuilder.addObject(mapFeature as TextMapFeature);
+        if (mapFeature.text) {
+          texts.push(mapFeature as TextMapFeature);
+        }
         continue;
       }
       case MapFeatureType.image: {
-        imageGroupBuilder.addObject(mapFeature as ImageMapFeature);
+        images.push(mapFeature as ImageMapFeature);
         continue;
       }
     }
@@ -64,28 +68,28 @@ export function MapFeatures2WebglObjects(
 
   const objectGroups: WebGlObjectBufferredGroup[] = [];
 
-  if (!pointBuidler.isEmpty()) {
-    objectGroups.push(...pointBuidler.build('points'));
+  if (points.length) {
+    objectGroups.push(...getPointFeatureGroups(points, 'points', 0, { featureFlags, devicePixelRatio }));
   }
 
-  if (!polygonGroupBuilder.isEmpty()) {
-    objectGroups.push(...polygonGroupBuilder.build('polygons'));
+  if (polygons.length) {
+    objectGroups.push(...getPolygonFeatureGroups(polygons, 'polygons', 0, { featureFlags, devicePixelRatio }));
   }
 
-  if (!lineBuilder.isEmpty()) {
-    objectGroups.push(...lineBuilder.build('lines'));
+  if (lines.length) {
+    objectGroups.push(...getLineFeatureGroups(lines, 'lines', 0, { featureFlags, devicePixelRatio }));
   }
 
-  if (!glyphGroupBuilder.isEmpty()) {
-    objectGroups.push(...glyphGroupBuilder.build('glyphs'));
+  if (glyphs.length) {
+    objectGroups.push(...getGlyphFeatureGroups(glyphs, 'glyphs', 0, { featureFlags, devicePixelRatio, glyphsManager }));
   }
 
-  if (!textBuilder.isEmpty()) {
-    objectGroups.push(...textBuilder.build('texts'));
+  if (texts.length) {
+    objectGroups.push(...getTextFeatureGroups(texts, 'texts', 0, { featureFlags, devicePixelRatio, fontManager }));
   }
 
-  if (!imageGroupBuilder.isEmpty()) {
-    objectGroups.push(...imageGroupBuilder.build('images'));
+  if (images.length) {
+    objectGroups.push(...getImageFeatureGroups(images, 'images', 0, { featureFlags, devicePixelRatio }));
   }
 
   return objectGroups;
@@ -95,7 +99,8 @@ export function MapTile2WebglObjects(
   mapTile: MapTile,
   featureFlags: MapFeatureFlags,
   fontManager: FontManager,
-  textureManager: GlyphsManager,
+  glyphsManager: GlyphsManager,
+  devicePixelRatio: number,
 ): WebGlObjectBufferredGroup[] {
   if (mapTile.prerendedData && mapTile.prerendedData.length > 0) {
     return mapTile.prerendedData;
@@ -103,75 +108,112 @@ export function MapTile2WebglObjects(
 
   const tileId = mapTile.tileId;
   const objectGroups: WebGlObjectBufferredGroup[] = [];
-  const pointBuidler = new PointGroupBuilder(featureFlags);
-  const polygonGroupBuilder = new PolygonGroupBuilder(featureFlags);
-  const lineBuilder = new LineShaiderBuilder(featureFlags);
-  const glyphGroupBuilder = new GlyphGroupBuilder(featureFlags, textureManager);
-  const textBuilder = new TextTextureGroupBuilder(featureFlags, fontManager);
-  const imageGroupBuilder = new ImageGroupBuilder(featureFlags);
+  let points: PointMapFeature[] = [];
+  let polygons: PolygonMapFeature[] = [];
+  let lines: LineMapFeature[] = [];
+  let glyphs: GlyphMapFeature[] = [];
+  let texts: TextMapFeature[] = [];
+  let images: ImageMapFeature[] = [];
 
   for (let mapLayerId = 0; mapLayerId < mapTile.layers.length; mapLayerId++) {
     const mapLayer = mapTile.layers[mapLayerId];
 
     for (let mapFeatureId = 0; mapFeatureId < mapLayer.features.length; mapFeatureId++) {
       const mapFeature = mapLayer.features[mapFeatureId];
+      if (!mapFeature.visible) {
+        continue;
+      }
 
       switch (mapFeature.type) {
         case MapFeatureType.point: {
-          pointBuidler.addObject(mapFeature as PointMapFeature);
+          points.push(mapFeature as PointMapFeature);
           continue;
         }
         case MapFeatureType.polygon: {
-          polygonGroupBuilder.addObject(mapFeature as PolygonMapFeature);
+          polygons.push(mapFeature as PolygonMapFeature);
           continue;
         }
         case MapFeatureType.line: {
-          lineBuilder.addObject(mapFeature as LineMapFeature);
+          lines.push(mapFeature as LineMapFeature);
           continue;
         }
         case MapFeatureType.glyph: {
-          glyphGroupBuilder.addObject(mapFeature as GlyphMapFeature);
+          glyphs.push(mapFeature as GlyphMapFeature);
           continue;
         }
         case MapFeatureType.text: {
-          textBuilder.addObject(mapFeature as TextMapFeature);
+          if (mapFeature.text) {
+            texts.push(mapFeature as TextMapFeature);
+          }
           continue;
         }
         case MapFeatureType.image: {
-          imageGroupBuilder.addObject(mapFeature as ImageMapFeature);
+          images.push(mapFeature as ImageMapFeature);
           continue;
         }
       }
     }
 
-    if (!pointBuidler.isEmpty()) {
-      objectGroups.push(...pointBuidler.build(`${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex));
-      pointBuidler.clear();
+    if (points.length) {
+      objectGroups.push(
+        ...getPointFeatureGroups(points, `${tileId}_${mapLayer.layerName}_points`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+        }),
+      );
+      points = [];
     }
 
-    if (!polygonGroupBuilder.isEmpty()) {
-      objectGroups.push(...polygonGroupBuilder.build(`${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex));
-      polygonGroupBuilder.clear();
+    if (polygons.length) {
+      objectGroups.push(
+        ...getPolygonFeatureGroups(polygons, `${tileId}_${mapLayer.layerName}_polygons`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+        }),
+      );
+      polygons = [];
     }
 
-    if (!lineBuilder.isEmpty()) {
-      objectGroups.push(...lineBuilder.build(`${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex));
-      lineBuilder.clear();
+    if (lines.length) {
+      objectGroups.push(
+        ...getLineFeatureGroups(lines, `${tileId}_${mapLayer.layerName}_lines`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+        }),
+      );
+      lines = [];
     }
 
-    if (!glyphGroupBuilder.isEmpty()) {
-      objectGroups.push(...glyphGroupBuilder.build(`${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex));
-      glyphGroupBuilder.clear();
+    if (glyphs.length) {
+      objectGroups.push(
+        ...getGlyphFeatureGroups(glyphs, `${tileId}_${mapLayer.layerName}_glyphs`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+          glyphsManager,
+        }),
+      );
+      glyphs = [];
     }
 
-    if (!textBuilder.isEmpty()) {
-      objectGroups.push(...textBuilder.build(`${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex));
-      textBuilder.clear();
+    if (texts.length) {
+      objectGroups.push(
+        ...getTextFeatureGroups(texts, `${tileId}_${mapLayer.layerName}_texts`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+          fontManager,
+        }),
+      );
+      texts = [];
     }
 
-    if (!imageGroupBuilder.isEmpty()) {
-      objectGroups.push(...imageGroupBuilder.build(`${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex));
-      imageGroupBuilder.clear();
+    if (images.length) {
+      objectGroups.push(
+        ...getImageFeatureGroups(images, `${tileId}_${mapLayer.layerName}_images`, mapLayer.zIndex, {
+          featureFlags,
+          devicePixelRatio,
+        }),
+      );
+      images = [];
     }
   }
 

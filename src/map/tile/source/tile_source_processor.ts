@@ -12,7 +12,6 @@ import { MapTileRendererType } from '../../renderer/renderer';
 import { FontAtlas } from '../../font/font_config';
 import { GlyphsManager, GlyphsManagerMappingState } from '../../glyphs/glyphs_manager';
 import { FontManager } from '../../font/font_manager';
-import { MapFeatureType } from '../feature';
 
 export interface TileProcessingOptions {
   featureFlags: MapFeatureFlags;
@@ -31,6 +30,7 @@ interface MapTilePrerenderOptions {
   rendererType: MapTileRendererType;
   fontManagerState: Record<string, FontAtlas>;
   atlasTextureMappingState: GlyphsManagerMappingState;
+  devicePixelRatio: number;
 }
 
 export type TileSourceTypeProcessorHandler = (
@@ -161,22 +161,20 @@ export class TileSourceProcessor {
     mapTile: MapTile,
     prerenderOptions: MapTilePrerenderOptions,
   ): Promise<MapTile> {
-    if (
-      prerenderOptions.rendererType !== MapTileRendererType.webgl &&
-      prerenderOptions.rendererType !== MapTileRendererType.webgl2
-    ) {
+    if (![MapTileRendererType.webgl, MapTileRendererType.webgl2].includes(prerenderOptions.rendererType)) {
       return mapTile;
     }
 
     const fontManager = new FontManager(featureFlags, {}, prerenderOptions.fontManagerState);
     const glyphsManager = new GlyphsManager(featureFlags, {}, {}, prerenderOptions.atlasTextureMappingState);
 
-    mapTile.prerendedData = MapTile2WebglObjects(mapTile, featureFlags, fontManager, glyphsManager);
-
-    // TODO: Webworker overloaded with data because of that.
-    mapTile.layers.forEach(l => {
-      l.features = l.features.filter(f => f.type === MapFeatureType.image);
-    });
+    mapTile.prerendedData = MapTile2WebglObjects(
+      mapTile,
+      featureFlags,
+      fontManager,
+      glyphsManager,
+      prerenderOptions.devicePixelRatio,
+    );
 
     return mapTile;
   }

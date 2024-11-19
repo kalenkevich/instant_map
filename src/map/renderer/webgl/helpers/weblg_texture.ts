@@ -33,18 +33,35 @@ export interface WebGlTexture {
   setPixels(texturePixels: ArrayBufferTextureSource): void;
   bind(): void;
   unbind(): void;
+  destroy(): void;
 }
 
 let CURRENT_TEXTURE_INDEX = 0;
-
 export function resetTextureIndex() {
   CURRENT_TEXTURE_INDEX = 0;
+}
+
+let FREE_TEXTURE_INDECIES = new Set();
+function getNextTextureIndex(): number {
+  if (FREE_TEXTURE_INDECIES.size) {
+    const arr = [...FREE_TEXTURE_INDECIES] as number[];
+    const result = arr.shift();
+    FREE_TEXTURE_INDECIES = new Set(arr);
+
+    return result;
+  }
+
+  return CURRENT_TEXTURE_INDEX++;
+}
+
+function releaseTextureIndex(index: number) {
+  FREE_TEXTURE_INDECIES.add(index);
 }
 
 export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: CreateTextureOptions): WebGlTexture {
   const texture = gl.createTexture();
   const level = options.level || 0;
-  const textureIndex = options.textureIndex !== undefined ? options.textureIndex : CURRENT_TEXTURE_INDEX++;
+  const textureIndex = options.textureIndex !== undefined ? options.textureIndex : getNextTextureIndex();
 
   gl.activeTexture(gl.TEXTURE0 + textureIndex);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -127,6 +144,9 @@ export function createWebGlTexture(gl: ExtendedWebGLRenderingContext, options: C
         options.type || gl.UNSIGNED_BYTE,
         texturePixels.data,
       );
+    },
+    destroy() {
+      releaseTextureIndex(textureIndex);
     },
     bind() {
       gl.activeTexture(gl.TEXTURE0 + textureIndex);

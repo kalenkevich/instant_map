@@ -46,6 +46,8 @@ export abstract class ObjectProgram {
     return this.onInit();
   }
 
+  public destroy() {}
+
   protected setupProgram() {
     this.program = createProgram(this.gl, this.vertexShaderSource, this.fragmentShaderSource);
     this.vao = this.gl.createVertexArray();

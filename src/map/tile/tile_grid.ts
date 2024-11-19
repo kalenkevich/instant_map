@@ -33,7 +33,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     private readonly tileBuffer: number,
     private readonly maxWorkerPool: number,
     private readonly tileSize: number,
-    private readonly pixelRatio: number,
+    private readonly devicePixelRatio: number,
     private readonly maxTileZoom: number,
     private readonly projectionType: ProjectionType,
     private readonly fontManager: FontManager,
@@ -117,6 +117,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
             data: tileId,
           });
           this.workerPool.cancel(task.taskId);
+          this.tiles.delete(tileId);
         }
 
         this.currentLoadingTiles.delete(tileId);
@@ -145,6 +146,7 @@ export class TilesGrid extends Evented<TilesGridEvent> {
               rendererType: this.rendererType,
               atlasTextureMappingState: this.glyphsManager.getMappingState(),
               fontManagerState: this.fontManager.getState(),
+              devicePixelRatio: this.devicePixelRatio,
             },
           },
         },

@@ -1,10 +1,11 @@
 import Protobuf from 'pbf';
+import KDBush from 'kdbush';
 import { VectorTile } from '@mapbox/vector-tile';
 import geometryCenter from '@turf/center';
 import { Feature, LineString, MultiPolygon, Polygon, MultiLineString, Point, MultiPoint } from 'geojson';
 import { TileSourceProcessOptions } from './tile_source_processor';
 import { MapTile, MapTileLayer, getTileRef } from '../tile';
-import { MapFeatureType, LineJoinStyle, LineFillStyle, TextAlign } from '../feature';
+import { MapFeatureType, LineJoinStyle, LineFillStyle, TextAlign, TextMapFeature } from '../feature';
 import { MapFeatureFlags } from '../../flags';
 import {
   DataLayerStyle,
@@ -70,6 +71,8 @@ export async function MvtTileSourceProcessor(
       features: [],
     };
 
+    const textFeatures: TextMapFeature[] = [];
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const numFeatures = vectorTile.layers[styleLayer.sourceLayer]?._features?.length || 0;
@@ -115,6 +118,7 @@ export async function MvtTileSourceProcessor(
               top: pointStyle.offset?.top ? compileStatement(pointStyle.offset?.top, pointFeature) : 0,
               left: pointStyle.offset?.left ? compileStatement(pointStyle.offset?.left, pointFeature) : 0,
             },
+            visible: true,
           });
 
           continue;
@@ -138,6 +142,7 @@ export async function MvtTileSourceProcessor(
                 top: pointStyle.offset?.top ? compileStatement(pointStyle.offset?.top, pointFeature) : 0,
                 left: pointStyle.offset?.left ? compileStatement(pointStyle.offset?.left, pointFeature) : 0,
               },
+              visible: true,
             });
           }
         }
@@ -151,7 +156,7 @@ export async function MvtTileSourceProcessor(
         if (geojson.geometry.type === 'Point') {
           const pointFeature = geojson as Feature<Point>;
 
-          layer.features.push({
+          textFeatures.push({
             id: pointFeature.id! as number,
             type: MapFeatureType.text,
             color: compileStatement(textStyle.color, pointFeature),
@@ -169,6 +174,8 @@ export async function MvtTileSourceProcessor(
               top: textStyle.offset?.top ? compileStatement(textStyle.offset?.top, pointFeature) : 0,
               left: textStyle.offset?.left ? compileStatement(textStyle.offset?.left, pointFeature) : 0,
             },
+            rank: pointFeature.properties['rank'] || 1,
+            visible: true,
           });
 
           continue;
@@ -178,7 +185,7 @@ export async function MvtTileSourceProcessor(
           const pointFeature = geojson as Feature<MultiPoint>;
 
           for (const point of geojson.geometry.coordinates) {
-            layer.features.push({
+            textFeatures.push({
               id: pointFeature.id! as number,
               type: MapFeatureType.text,
               color: compileStatement(textStyle.color, pointFeature),
@@ -193,6 +200,8 @@ export async function MvtTileSourceProcessor(
                 top: textStyle.offset?.top ? compileStatement(textStyle.offset?.top, pointFeature) : 0,
                 left: textStyle.offset?.left ? compileStatement(textStyle.offset?.left, pointFeature) : 0,
               },
+              rank: pointFeature.properties['rank'] || 1,
+              visible: true,
             });
           }
         }
@@ -224,6 +233,7 @@ export async function MvtTileSourceProcessor(
             top: glyphStyle.offset?.top ? compileStatement(glyphStyle.offset?.top, pointFeature) : 0,
             left: glyphStyle.offset?.left ? compileStatement(glyphStyle.offset?.left, pointFeature) : 0,
           },
+          visible: true,
         });
 
         continue;
@@ -249,6 +259,7 @@ export async function MvtTileSourceProcessor(
             borderWidth: 1,
             borderColor: [0, 0, 0, 1],
             borderJoin: LineJoinStyle.bevel,
+            visible: true,
           });
 
           continue;
@@ -268,6 +279,7 @@ export async function MvtTileSourceProcessor(
               borderWidth: 1,
               borderColor: [0, 0, 0, 1],
               borderJoin: LineJoinStyle.bevel,
+              visible: true,
             });
           }
         }
@@ -294,6 +306,7 @@ export async function MvtTileSourceProcessor(
             fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
             join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
             cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
+            visible: true,
           });
 
           continue;
@@ -316,6 +329,7 @@ export async function MvtTileSourceProcessor(
               fill: lineStyle.fillStyle ? compileStatement(lineStyle.fillStyle, lineFeature) : LineFillStyle.solid,
               join: lineStyle.joinStyle && compileStatement(lineStyle.joinStyle, lineFeature),
               cap: lineStyle.capStyle && compileStatement(lineStyle.capStyle, lineFeature),
+              visible: true,
             });
           }
         }
@@ -323,6 +337,34 @@ export async function MvtTileSourceProcessor(
         continue;
       }
     }
+
+    if (featureFlags.enableTextGrouping) {
+      // Hide overlapping text
+      const textIndex = new KDBush(textFeatures.length);
+      for (const textFeature of textFeatures) {
+        const [x, y] = textFeature.center;
+        textIndex.add(x, y);
+      }
+      textIndex.finish();
+
+      for (const textFeature of textFeatures) {
+        if (!textFeature.visible) {
+          continue;
+        }
+        const [x, y] = textFeature.center;
+        const neighborIds = textIndex.within(x, y, 0.005);
+        const [mostImportantItem, ...lessImportantItems] = neighborIds
+          .map(index => textFeatures[index])
+          .sort((a, b) => a.rank - b.rank);
+
+        mostImportantItem.visible = true;
+        for (const lessImportantItem of lessImportantItems) {
+          lessImportantItem.visible = false;
+        }
+      }
+    }
+
+    layer.features.push(...textFeatures);
 
     if (layer.features.length) {
       tileLayers.push(layer);

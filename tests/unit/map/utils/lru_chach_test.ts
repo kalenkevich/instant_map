@@ -17,7 +17,7 @@ describe('LRUCache', () => {
     cache.set('2', 2);
     cache.set('3', 3);
 
-    expect(cache.size()).toBe(3);
+    expect(cache.size).toBe(3);
   });
 
   it('should return if item eist in the cache.', () => {
@@ -41,7 +41,7 @@ describe('LRUCache', () => {
     cache.set('4', 4);
     cache.set('5', 5);
 
-    expect(cache.size()).toBe(3);
+    expect(cache.size).toBe(3);
     expect(cache.has('1')).toBe(false);
     expect(cache.has('2')).toBe(false);
     expect(cache.has('3')).toBe(true);
@@ -56,7 +56,7 @@ describe('LRUCache', () => {
     cache.set('2', 2);
     cache.set('3', 3);
 
-    expect(cache.size()).toBe(1);
+    expect(cache.size).toBe(1);
     expect(cache.get('1')).toBeUndefined();
     expect(cache.get('2')).toBeUndefined();
     expect(cache.has('3')).toBe(true);

@@ -40,6 +40,12 @@ export class GlyphProgram extends ObjectProgram {
     gl.depthMask(false);
   }
 
+  public destroy() {
+    for (const t of Object.values(this.atlasTextures)) {
+      t.destroy();
+    }
+  }
+
   public onUnlink() {
     const gl = this.gl;
 
