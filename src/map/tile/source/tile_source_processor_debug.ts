@@ -44,6 +44,7 @@ export async function DebugTileSourceProcessor(
             fill: LineFillStyle.solid,
             join: LineJoinStyle.miter,
             cap: LineCapStyle.square,
+            visible: true,
           },
           {
             id: 1,
@@ -56,6 +57,8 @@ export async function DebugTileSourceProcessor(
             color: [1, 0, 0, 1],
             borderColor: [1, 1, 1, 1],
             align: TextAlign.center,
+            visible: true,
+            rank: 0,
           },
         ],
       },

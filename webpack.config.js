@@ -1,14 +1,14 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
-const TerserPlugin = require("terser-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const isProduction = process.env['APP_ENV'] === 'PRODUCTION';
 
-console.log('Production build: ', isProduction);
+console.log('Production build:', isProduction);
 
 module.exports = {
   entry: './src/index.ts',
@@ -25,10 +25,7 @@ module.exports = {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
-    allowedHosts: [
-      '.ondigitalocean.app',
-      '.kalenkevich.com',
-    ],
+    allowedHosts: ['.ondigitalocean.app', '.kalenkevich.com'],
   },
   module: {
     rules: [
@@ -61,8 +58,10 @@ module.exports = {
 
   mode: isProduction ? 'production' : 'development',
   devtool: isProduction ? undefined : 'inline-source-map',
-  optimization: isProduction ? {
-    minimize: true,
-    minimizer: [new TerserPlugin()],
-  } : {},
+  optimization: isProduction
+    ? {
+        minimize: true,
+        minimizer: [new TerserPlugin()],
+      }
+    : {},
 };

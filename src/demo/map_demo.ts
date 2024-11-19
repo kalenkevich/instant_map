@@ -137,7 +137,7 @@ export function renderMap() {
     projection: ProjectionType.Mercator,
     tileStyles: selectedStyleConfig.styles,
     tileBuffer: 1,
-    tileCacheSize: 256,
+    tileCacheSize: 1024,
     workerPool: 4,
     featureFlags: ENABLED_FEATURE_FLAGS,
     controls: {

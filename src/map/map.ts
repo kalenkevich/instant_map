@@ -110,7 +110,7 @@ export class InstantMap extends Evented<MapEventType> {
   private projection: Projection;
   private mapOptions: MapOptions;
   private stats: Stats;
-  private pixelRatio: number;
+  private devicePixelRatio: number;
   private width: number;
   private height: number;
   private minZoom: number;
@@ -209,7 +209,7 @@ export class InstantMap extends Evented<MapEventType> {
   ) {
     this.minZoom = mapOptions.tileStyles.minzoom || 1;
     this.maxZoom = mapOptions.tileStyles.maxzoom || 15;
-    this.pixelRatio = mapOptions.devicePixelRatio || window.devicePixelRatio;
+    this.devicePixelRatio = mapOptions.devicePixelRatio || window.devicePixelRatio;
     this.styles = styles;
     this.renderQueue = new RenderQueue();
     this.fontManager = new FontManager(featureFlags, styles.fonts || {});
@@ -233,7 +233,7 @@ export class InstantMap extends Evented<MapEventType> {
       mapOptions.tileBuffer || 1,
       mapOptions.workerPool || 2,
       styles.tileSize,
-      this.pixelRatio,
+      this.devicePixelRatio,
       this.maxZoom,
       this.projection.getType(),
       this.fontManager,
@@ -441,7 +441,7 @@ export class InstantMap extends Evented<MapEventType> {
           this.rootEl,
           this.featureFlags,
           MapTileRendererType.webgl,
-          this.pixelRatio,
+          this.devicePixelRatio,
           this.fontManager,
           this.glyphsManager,
         );
@@ -450,7 +450,7 @@ export class InstantMap extends Evented<MapEventType> {
           this.rootEl,
           this.featureFlags,
           MapTileRendererType.webgl2,
-          this.pixelRatio,
+          this.devicePixelRatio,
           this.fontManager,
           this.glyphsManager,
         );

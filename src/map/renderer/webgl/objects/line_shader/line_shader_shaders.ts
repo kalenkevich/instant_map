@@ -3,6 +3,7 @@ import { FEATURE_FLAGS_UTILS, CLIP_UTILS, MAT_UTILS } from '../object/object_sha
 export default {
   vertext: `
     precision highp float;
+    #define PI 3.141592653589793
     #define VERTEX_QUAD_ALIGNMENT_TOP_LEFT 0.0
     #define VERTEX_QUAD_ALIGNMENT_TOP_RIGHT 1.0
     #define VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT 2.0
@@ -17,7 +18,6 @@ export default {
     uniform float u_height;
     uniform float u_tile_size;
     uniform float u_distance;
-    uniform float u_device_pixel_ratio;
 
     attribute vec3 a_position;
     attribute vec2 a_prevPoint;
@@ -38,6 +38,17 @@ export default {
     varying vec4 v_color;
     varying vec4 v_borderColor;
 
+    float atan2(in float y, in float x) {
+      return x == 0.0 ? sign(y) * PI / 2.0 : atan(y, x);
+    }
+
+    float getLineAngle(vec2 p1, vec2 p2) {
+      float dx = p2.x - p1.x;
+      float dy = p2.y - p1.y;
+
+      return atan2(dy, dx);
+    }
+
     void main() {
       v_prevPoint = applyMatrix(u_matrix, clipSpace(a_prevPoint));
       v_currPoint = applyMatrix(u_matrix, clipSpace(a_currPoint));
@@ -47,23 +58,33 @@ export default {
       v_color = a_color;
       v_borderColor = a_borderColor;
 
-      float halfTotalWidth = (a_properties[0] + a_properties[1]) / u_distance / 2.0;
-      float x = a_position.x;
-      float y = a_position.y;
       float alignment = a_position.z;
 
+      float x = 0.0;
+      float y = 0.0;
+      float x1 = a_prevPoint.x;
+      float y1 = a_prevPoint.y;
+      float x2 = a_currPoint.x;
+      float y2 = a_currPoint.y;
+      float centerX = (x1 + x2) / 2.0;
+      float centerY = (y1 + y2) / 2.0;
+      float borderWidth = a_properties[1] / u_distance;
+      float halfTotalWidth = (a_properties[0] / 2.0 + a_properties[1] / 2.0) / u_distance;
+      float halfLength = distance(a_prevPoint, a_currPoint) / 2.0 + borderWidth; // add cap or join
+      float angle = getLineAngle(a_prevPoint, a_currPoint);
+
       if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_LEFT) {
-        x -= halfTotalWidth;
-        y += halfTotalWidth;
+        x = centerX - halfLength * cos(angle) - halfTotalWidth * sin(angle);
+        y = centerY - halfLength * sin(angle) + halfTotalWidth * cos(angle);
       } else if (alignment == VERTEX_QUAD_ALIGNMENT_TOP_RIGHT) {
-        x += halfTotalWidth;
-        y += halfTotalWidth;
+        x = centerX + halfLength * cos(angle) - halfTotalWidth * sin(angle);
+        y = centerY + halfLength * sin(angle) + halfTotalWidth * cos(angle);
       } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_LEFT) {
-        x -= halfTotalWidth;
-        y -= halfTotalWidth;
+        x = centerX - halfLength * cos(angle) + halfTotalWidth * sin(angle);
+        y = centerY - halfLength * sin(angle) - halfTotalWidth * cos(angle);
       } else if (alignment == VERTEX_QUAD_ALIGNMENT_BOTTOM_RIGHT) {
-        x += halfTotalWidth;
-        y -= halfTotalWidth;
+        x = centerX + halfLength * cos(angle) + halfTotalWidth * sin(angle);
+        y = centerY + halfLength * sin(angle) - halfTotalWidth * cos(angle);
       }
 
       gl_Position = vec4(applyMatrix(u_matrix, clipSpace(vec2(x, y))), 0, 1);
@@ -76,7 +97,6 @@ export default {
     uniform float u_width;
     uniform float u_height;
     uniform float u_tile_size;
-    uniform float u_device_pixel_ratio;
 
     varying vec2 v_prevPoint;
     varying vec2 v_currPoint;
@@ -131,47 +151,47 @@ export default {
     }
 
     void main() {
-      vec2 resolution = vec2(u_width, u_height) / u_device_pixel_ratio;
+      vec2 resolution = vec2(u_width, u_height) / 2.0;
       vec2 point = (gl_FragCoord.xy / resolution) - 1.0;
-      float lineWidth = v_properties[0] / u_width / u_device_pixel_ratio;
-      float borderWidth = v_properties[1] / u_width / u_device_pixel_ratio;
+      float lineWidth = v_properties[0] / u_width;
+      float borderWidth = v_properties[1] / u_width;
 
-      vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
-      vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);
-      vec2 perpendicularRightLineEquation = getPerpendicularLineEquation(lineEquation, v_currPoint);
-      float pointAlignmentForLeftEdge = getPointAlignmentToLine(perpendicularLeftLineEquation, point);
-      float pointAlignmentForRightEdge = getPointAlignmentToLine(perpendicularRightLineEquation, point);
-      bool isLeftCap = pointAlignmentForLeftEdge <= 0.0 && pointAlignmentForRightEdge <= 0.0;
-      bool isRightCap = pointAlignmentForLeftEdge >= 0.0 && pointAlignmentForRightEdge >= 0.0;
+      // vec2 lineEquation = getLineEquation(v_prevPoint, v_currPoint);
+      // vec2 perpendicularLeftLineEquation = getPerpendicularLineEquation(lineEquation, v_prevPoint);
+      // vec2 perpendicularRightLineEquation = getPerpendicularLineEquation(lineEquation, v_currPoint);
+      // float pointAlignmentForLeftEdge = getPointAlignmentToLine(perpendicularLeftLineEquation, point);
+      // float pointAlignmentForRightEdge = getPointAlignmentToLine(perpendicularRightLineEquation, point);
+      // bool isLeftCap = pointAlignmentForLeftEdge <= 0.0 && pointAlignmentForRightEdge <= 0.0;
+      // bool isRightCap = pointAlignmentForLeftEdge >= 0.0 && pointAlignmentForRightEdge >= 0.0;
 
-      vec2 nextLineEquation = getLineEquation(v_currPoint, v_nextPoint);
-      bool isJoin = belongToLine(nextLineEquation, lineWidth + borderWidth, point) && belongToLine(lineEquation, lineWidth + borderWidth, point);
+      // vec2 nextLineEquation = getLineEquation(v_currPoint, v_nextPoint);
+      // bool isJoin = belongToLine(nextLineEquation, lineWidth + borderWidth, point) && belongToLine(lineEquation, lineWidth + borderWidth, point);
 
-      if (isJoin) {
-        // Render join
-        float distanceToCurrentLine = getDistanceFromLine(lineEquation, point);
-        float distanceToNextLine = getDistanceFromLine(nextLineEquation, point);
+      // if (isJoin) {
+      //   // Render join
+      //   float distanceToCurrentLine = getDistanceFromLine(lineEquation, point);
+      //   float distanceToNextLine = getDistanceFromLine(nextLineEquation, point);
 
-        if (distanceToCurrentLine <= lineWidth || distanceToNextLine <= lineWidth) {
-          gl_FragColor = v_color;
-        } else if (distanceToCurrentLine > lineWidth && distanceToCurrentLine <= lineWidth + borderWidth) {
-          gl_FragColor = v_borderColor;
-        } else if (distanceToNextLine > lineWidth && distanceToNextLine <= lineWidth + borderWidth) {
-          gl_FragColor = v_borderColor;
-        }
-      } else if (isLeftCap || isRightCap) {
-        // Render Cap
+      //   if (distanceToCurrentLine <= lineWidth || distanceToNextLine <= lineWidth) {
+      //     gl_FragColor = v_color;
+      //   } else if (distanceToCurrentLine > lineWidth && distanceToCurrentLine <= lineWidth + borderWidth) {
+      //     gl_FragColor = v_borderColor;
+      //   } else if (distanceToNextLine > lineWidth && distanceToNextLine <= lineWidth + borderWidth) {
+      //     gl_FragColor = v_borderColor;
+      //   }
+      // } else if (isLeftCap || isRightCap) {
+      //   // Render Cap
 
-        float distanceToEdge = length(point - (isLeftCap ? v_prevPoint: v_currPoint));
-        bool isCapBody = distanceToEdge <= lineWidth;
-        bool isBorder = (distanceToEdge > lineWidth) && (distanceToEdge <= lineWidth + borderWidth);
+      //   float distanceToEdge = length(point - (isLeftCap ? v_prevPoint: v_currPoint));
+      //   bool isCapBody = distanceToEdge <= lineWidth;
+      //   bool isBorder = (distanceToEdge > lineWidth) && (distanceToEdge <= lineWidth + borderWidth);
 
-        if (isCapBody) {
-          gl_FragColor = v_color;
-        } else if (isBorder) {
-          gl_FragColor = v_borderColor;
-        }
-      } else {
+      //   if (isCapBody) {
+      //     gl_FragColor = v_color;
+      //   } else if (isBorder) {
+      //     gl_FragColor = v_borderColor;
+      //   }
+      // } else {
         // Render body
 
         vec2 p1 = v_prevPoint;
@@ -182,13 +202,16 @@ export default {
         vec2 p4 = p1 + normalize(p12) * (dot(p12, p13) / length(p12));
   
         float pointDistance = length(p4 - p3);
+        float halfWidth = lineWidth / 2.0;
+        float totalWidth = halfWidth + borderWidth;
   
-        if (pointDistance <= lineWidth) {
+        // Smooth transitions (anti-aliasing)
+        if (pointDistance <= halfWidth) {
           gl_FragColor = v_color;
-        } else if (pointDistance > lineWidth && pointDistance <= (lineWidth + borderWidth)) {
+        } else if (pointDistance <= totalWidth) {
           gl_FragColor = v_borderColor;
         }
-      }
+      // }
     }
   `,
 };

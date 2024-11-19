@@ -1,4 +1,4 @@
-import { ImageBitmapTextureSource } from '../texture/texture';
+import { TextureSource } from '../texture/texture';
 
 export enum MapFeatureType {
   point = 'point',
@@ -26,6 +26,7 @@ export interface PointMapFeature {
   offset?: PointOffset;
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
+  visible: boolean;
 }
 
 export interface LineMapFeature {
@@ -39,6 +40,7 @@ export interface LineMapFeature {
   cap: LineCapStyle;
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
+  visible: boolean;
 }
 
 export interface PolygonMapFeature {
@@ -49,6 +51,7 @@ export interface PolygonMapFeature {
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
   borderJoin: LineJoinStyle;
+  visible: boolean;
 }
 
 export interface GlyphMapFeature {
@@ -60,6 +63,7 @@ export interface GlyphMapFeature {
   width: number;
   height: number;
   offset?: PointOffset;
+  visible: boolean;
 }
 
 export interface TextMapFeature {
@@ -74,6 +78,8 @@ export interface TextMapFeature {
   align?: TextAlign; // default left
   borderWidth: number;
   borderColor: [number, number, number, number]; // RGBA color
+  rank: number;
+  visible: boolean;
 }
 
 export interface ImageMapFeature {
@@ -84,8 +90,9 @@ export interface ImageMapFeature {
   width: number;
   height: number;
   pixelRatio: number;
-  source: ImageBitmapTextureSource;
+  source: TextureSource;
   offset?: PointOffset;
+  visible: boolean;
 }
 
 export interface PointOffset {

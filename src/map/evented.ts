@@ -29,7 +29,7 @@ export class Evented<EventType> {
     this.eventListeners = this.eventListeners.filter(l => !(l.eventType === eventType && l.handler === handler));
   }
 
-  protected fire(eventType: EventType, ...eventArgs: unknown[]) {
+  public fire(eventType: EventType, ...eventArgs: unknown[]) {
     const listeners = [...this.eventListeners];
 
     for (const listener of listeners) {
