@@ -26,11 +26,25 @@ export class LRUCache<K, V> extends Map {
     return val;
   }
 
-  public set(key: K, value: V) {
+  public set(key: K, value: V, protectedKeys?: Set<K>) {
     this.hashmap.delete(key);
 
     if (this.hashmap.size === this.capacity) {
-      const removedValueKey = this.hashmap.keys().next().value;
+      // Find a tile to evict that is not protected
+      let removedValueKey: K | undefined;
+      for (const candidateKey of this.hashmap.keys()) {
+        if (!protectedKeys || !protectedKeys.has(candidateKey)) {
+          removedValueKey = candidateKey;
+          break;
+        }
+      }
+      
+      // If all tiles are protected, evict the oldest one anyway
+      // (this shouldn't happen in practice if cache size is reasonable)
+      if (!removedValueKey) {
+        removedValueKey = this.hashmap.keys().next().value;
+      }
+      
       this.evented.fire(LRUCacheEvents.removed, this.hashmap.get(removedValueKey));
       this.hashmap.delete(removedValueKey);
       this.hashmap.set(key, value);

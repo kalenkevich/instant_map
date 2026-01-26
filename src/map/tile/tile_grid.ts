@@ -55,7 +55,14 @@ export class TilesGrid extends Evented<TilesGridEvent> {
     }
 
     const processedTile = response.data as MapTile;
-    this.tiles.set(processedTile.tileId, processedTile);
+    
+    if (!this.currentLoadingTiles.has(processedTile.tileId)) {
+      return;
+    }
+    const tilesInViewIds = new Set(this.tilesInView.map(t => getTileId(t)));
+
+    this.currentLoadingTiles.delete(processedTile.tileId);
+    this.tiles.set(processedTile.tileId, processedTile, tilesInViewIds);
 
     setTimeout(() => {
       this.fire(TilesGridEvent.TILE_LOADED, processedTile.tileId);
@@ -124,12 +131,14 @@ export class TilesGrid extends Evented<TilesGridEvent> {
       }
     }
 
+    const tilesInViewIds = new Set(this.tilesInView.map(t => getTileId(t)));
+
     for (const tileId of tilesToLoad) {
       if (this.tiles.has(tileId)) {
         continue;
       }
 
-      this.tiles.set(tileId, this.createMapTile(tileId));
+      this.tiles.set(tileId, this.createMapTile(tileId), tilesInViewIds);
 
       const workerTask = await this.workerPool.execute(
         {
